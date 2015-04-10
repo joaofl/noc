@@ -1,0 +1,12 @@
+DONE -- implement usn-router-module.h
+    - it will cointain the funciond like: send UP, DOWN, etc... por exemplo usando
+      ormask, UP | LEFT... ALL...
+    - this would be aslo responsible of forwarding packets and creating connections
+      without the ack of the upper layers
+
+DONE -- implement the usn-address-module.h
+    - would cointain a different addressing mechanism, since the MAC does not have
+      to be unique.
+
+-- 16/04/14  - Replace the print data functions to callbacks, so the example software keeps
+               track of the statistics, but not the node itself.
