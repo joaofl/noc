@@ -1,29 +1,8 @@
-# README #
+N3-3 module for mesh grid dense sensor network.
 
-This README would normally document whatever steps are necessary to get your application up and running.
+More details in the [wiki](https://bitbucket.org/joaofl/usn/wiki/Home): 
 
-### What is this repository for? ###
+To set it up, place the module inside the **src** dir of ns-3, install lib-armadillo, configure ns-3 and build it. Check the input parameters in the example.
+Tested in version 3.18 of ns-3. Helpers and Tester not implemented yet.
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
 
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
