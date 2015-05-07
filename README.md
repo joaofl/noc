@@ -11,5 +11,4 @@ Authors:
 João Loureiro
 
 Team members:
-Michele Albano
-Tiago Cerqueira
+Michele Albano, Tiago Cerqueira
