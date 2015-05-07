@@ -1,4 +1,4 @@
-# Copyright (c) 2015 João Loureiro
+# Copyright (c) 2015 Joao Loureiro
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -13,9 +13,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Author: João Loureiro <joflo@isep.ipp.pt>
+# Author: Joao Loureiro <joflo@isep.ipp.pt>
 
-__author__ = 'João Loureiro <joflo@isep.ipp.pt>'
+__author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
 import csv
 import sys
@@ -621,7 +621,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
         image_out = image_out[yi:yf,xi:xf] #100:880,320:1100
 
-        image_out = cv2.resize(image_out,(101,101), interpolation = cv2.INTER_CUBIC)
+        image_out = cv2.resize(image_out,(self.network_size_x, self.network_size_y), interpolation = cv2.INTER_CUBIC)
 
         return image_out
 
@@ -1305,7 +1305,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
         for l in self.flows_transmission_time:
 
-            dist = usn_io.dist(l[3], l[4], self.sink_x, self.sink_y)[2] #get the element 2 of the array returned by the f
+            dist = usn_calc.dist(l[3], l[4], self.sink_x, self.sink_y)[2] #get the element 2 of the array returned by the f
 
             transmission_time = (l[2] - l[1])
             # self.listWidget.addItem(str(l[0]) + '\t(' + str(l[3]) + ',' + str(l[4]) + ') d=' + str(dist) + '\t' + str( (l[2] - l[1]) * 10E-6))
@@ -1562,13 +1562,13 @@ class MyWindowClass(QtGui.QWidget, form_class):
             dx = 0
             dy = 0
 
-            if p == 1:  #came from the right. x -= 1
+            if p == 4:  #came from the right. x -= 1
                 xs = x + 1; ys = y; xl = -1 + r; yl = 0; dy = 0.1; tx = 'W'; va = 'top'
-            if p == 2:  #came from the bottom. y -= 1
+            if p == 3:  #came from the bottom. y -= 1
                 xs = x; ys = y + 1; xl = 0; yl = -1 + r; dx = 0.06; tx = 'N'; va = 'top'
-            if p == 3:  #came from the left. x += 1
+            if p == 1:  #came from the left. x += 1
                 xs = x - 1; ys = y; xl = 1 - r; yl = 0; dy = -0.1; tx = 'E'; va = 'top'
-            if p == 4:  #came from the top. y += 1
+            if p == 2:  #came from the top. y += 1
                 xs = x; ys = y - 1; xl = 0; yl = 1 - r; dx = -0.09; tx = 'S'; va = 'bottom'
 
             self.ax_pt.axes.arrow(xs, ys, xl, yl, head_width=0.15, head_length=0.15, fc='r', ec='r')

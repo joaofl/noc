@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: João Loureiro <joflo@isep.ipp.pt>
+ *         Michele Albano <mialb@isep.ipp.pt>
+ *         Tiago Cerqueira <1090678@isep.ipp.pt>
  * 
  */
 
@@ -182,7 +184,7 @@ packet_exchanged_switch(string context, Ptr<const Packet> pck, uint8_t direction
     if (Simulator::Now().GetNanoSeconds() >= (log_start_at_period * sampling_period * 1000 + start_offset * 1000)){
         
 
-        if (hd.GetUSNProtocol() == P_EVENT_ANNOUNCEMENT){ //|| hd.GetUSNProtocol() == P_VALUE_ANNOUNCEMENT) {
+        if (hd.GetUSNProtocol() == P_EVENT_ANNOUNCEMENT ) {//|| hd.GetUSNProtocol() == P_VALUE_ANNOUNCEMENT) {
 
             //    if (pck->GetUid() == 104) {
             file_packets_trace
@@ -400,7 +402,7 @@ main(int argc, char *argv[]) {
     Ptr<USNNetDevice> my_net_device;
     Mac48Address my_mac_address;
 
-    uint128_t n_nodes = my_node_container.GetN();
+    uint64_t n_nodes = my_node_container.GetN();
     cout << "Network size = " << size_x << " * " << size_y << " = " << (unsigned int) n_nodes << endl;
     // Net devices Address reference
     //            4
@@ -433,8 +435,8 @@ main(int argc, char *argv[]) {
 
 
     uint32_t node_this;
-    for (uint128_t y = 0; y < size_y; y++) {
-        for (uint128_t x = 0; x < size_x; x++) {
+    for (uint64_t y = 0; y < size_y; y++) {
+        for (uint64_t x = 0; x < size_x; x++) {
 
             node_this = x + y * size_x;
 

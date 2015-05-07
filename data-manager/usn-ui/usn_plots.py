@@ -1,4 +1,4 @@
-# Copyright (c) 2015 João Loureiro
+# Copyright (c) 2015 Joao Loureiro
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -13,9 +13,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Author: João Loureiro <joflo@isep.ipp.pt>
+# Author: Joao Loureiro <joflo@isep.ipp.pt>
 
-__author__ = 'João Loureiro <joflo@isep.ipp.pt>'
+__author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
 
 import os
