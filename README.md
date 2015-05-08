@@ -7,6 +7,13 @@ More details in the [wiki](https://bitbucket.org/joaofl/usn/wiki/Home):
 To set it up, place the module inside the **src** dir of ns-3, install lib-armadillo, configure ns-3 and build it. Check the input parameters to run the example.
 Tested in version 3.18 of ns-3. Helpers and Testers not implemented yet.
 
+Dependencies of the GUI (you need to install them before executing the user interface):
+- python-OpenCV
+- python-numpy
+- python-mathplotlib
+- python-joblib
+
+
 Authors:
 João Loureiro
 
