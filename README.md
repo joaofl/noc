@@ -1,7 +1,3 @@
-# README #
-
-This README would normally document whatever steps are necessary to get your application up and running.
-
 ### What is this repository for? ###
 
 Ns-3 module for mesh grid dense sensor networks and network-on-chip like network architectures.
