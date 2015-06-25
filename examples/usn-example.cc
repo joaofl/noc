@@ -39,8 +39,10 @@
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/netanim-module.h"
-#include "src/usn/model/usn-application.h"
 #include "src/core/model/object-base.h"
+
+#include "src/usn/model/usn-application.h"
+#include "src/usn/model/usn-io-data.h"
 //#include "src/usn/model/usn-net-device.h"
 //#include "src/usn/model/usn-application.h"
 //#include "ns3/simple-net-device.h"
@@ -50,7 +52,7 @@ NS_LOG_COMPONENT_DEFINE("USNExample");
 
 
 //myrepo
-//ssh://ubuntu@joaofl.ddns.net//media/hd/Joao/Repositorios/ns-3-dev
+//ssh://aruntu@joaofl.ddns.net//media/hd/Joao/Repositorios/ns-3-dev
 
 //run command Netbeans
 //"${OUTPUT_PATH}" $(cat ~/usn-data/config/input-config.c.csv)
@@ -58,7 +60,14 @@ NS_LOG_COMPONENT_DEFINE("USNExample");
 using namespace std;
 using namespace ns3;
 
-ofstream file, file_packets_trace, file_packets_trace_sink, file_packets_trace_net_device, file_queue_size, file_queue_size_prioritized, file_value_annoucement_total_time;
+ofstream file, 
+        file_packets_trace,
+        file_packets_trace_sink,
+        file_packets_trace_net_device, 
+        file_queue_size, 
+        file_queue_size_prioritized, 
+        file_value_annoucement_total_time;
+
 string dir_output;
 string dir_input;
 
@@ -73,7 +82,9 @@ NodeContainer my_node_container;
 uint32_t qs_a, qsp_a; //queue sizes from the previous cycle, to create the log of queue sizes.
 uint64_t time_a;
 
-uint32_t value_annoucement_start_time, value_annoucement_end_time, value_annoucement_count;
+uint32_t value_annoucement_start_time,
+        value_annoucement_end_time, 
+        value_annoucement_count;
 
 
 uint32_t sampling_cycles;
@@ -82,66 +93,7 @@ uint8_t log_start_at_period;
 uint32_t start_offset;
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-typedef struct stat Stat;
 
-#ifndef lint
-/* Prevent over-aggressive optimizers from eliminating ID string */
-const char jlss_id_mkpath_c[] = "@(#)$Id: mkpath.c,v 1.13 2012/07/15 00:40:37 jleffler Exp $";
-#endif /* lint */
-
-static int do_mkdir(const char *path, mode_t mode)
-{
-    Stat            st;
-    int             status = 0;
-
-    if (stat(path, &st) != 0)
-    {
-        /* Directory does not exist. EEXIST for race condition */
-        if (mkdir(path, mode) != 0 && errno != EEXIST)
-            status = -1;
-    }
-    else if (!S_ISDIR(st.st_mode))
-    {
-        errno = ENOTDIR;
-        status = -1;
-    }
-
-    return(status);
-}
-
-/**
-** mkpath - ensure all directories in path exist
-** Algorithm takes the pessimistic view and works top-down to ensure
-** each directory in path exists, rather than optimistically creating
-** the last element and working backwards.
-*/
-int mkpath(const char *path, mode_t mode)
-{
-    char           *pp;
-    char           *sp;
-    int             status;
-    char           *copypath = strdup(path);
-
-    status = 0;
-    pp = copypath;
-    while (status == 0 && (sp = strchr(pp, '/')) != 0)
-    {
-        if (sp != pp)
-        {
-            /* Neither root nor double slash in path */
-            *sp = '\0';
-            status = do_mkdir(copypath, mode);
-            *sp = '/';
-        }
-        pp = sp + 1;
-    }
-    if (status == 0)
-        status = do_mkdir(path, mode);
-    free(copypath);
-    return (status);
-}
-/////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void
@@ -387,12 +339,15 @@ main(int argc, char *argv[]) {
     }
    
 
-    my_node_container.Create(size_x * size_y);
+    
     
     
 
     
     USNHelper my_usn;
+    
+    GridHelper my_grid_network;
+    
     //    my_usn.SetDeviceAttribute("DataRate", StringValue("1Mbps"));
     my_usn.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
     //    my_usn.SetChannelAttribute("Delay", StringValue("0us"));
@@ -402,6 +357,8 @@ main(int argc, char *argv[]) {
     Ptr<USNNetDevice> my_net_device;
     Mac48Address my_mac_address;
 
+    my_node_container.Create(size_x * size_y);
+    
     uint64_t n_nodes = my_node_container.GetN();
     cout << "Network size = " << size_x << " * " << size_y << " = " << (unsigned int) n_nodes << endl;
     // Net devices Address reference
@@ -553,8 +510,10 @@ main(int argc, char *argv[]) {
     // Setting the sinks
     //uint32_t nodes_n = size_x * size_y;
 
-    double delta_x = (double) size_x / (2 * (double) sinks_n);
-
+    double delta_x = (double) size_x / (2 * (double) sinks_n); 
+    // takes the individuals in the center of the network
+    //TODO: a way of manually setting it
+    
     for (uint32_t i = 0; i < sinks_n; i++) {
         uint32_t x = floor((i + 1) * 2 * delta_x - delta_x);
         uint32_t y = floor((double) size_y / 2);

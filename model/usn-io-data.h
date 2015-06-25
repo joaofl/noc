@@ -22,6 +22,17 @@
 #ifndef USN_INPUT_DATA_H
 #define USN_INPUT_DATA_H
 
+#include <errno.h>
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <math.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <pwd.h>
+
 #include <fstream>
 #include <sstream>
 #include "ns3/core-module.h"
@@ -32,6 +43,10 @@
 
 
 using namespace std;
+
+int do_mkdir(const char *path, mode_t mode);
+int mkpath(const char *path, mode_t mode);
+
 namespace ns3 {
     
     class UNSInputData{

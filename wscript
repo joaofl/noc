@@ -16,6 +16,7 @@ def build(bld):
     module.use.append("OPENCV")
     module.source = [
         'helper/usn-helper.cc',
+        'helper/grid-helper.cc',
         'model/usn-net-device.cc',
         'model/usn-channel.cc',
         'model/usn-remote-channel.cc',
@@ -39,6 +40,7 @@ def build(bld):
     headers.module = 'usn'
     headers.source = [
         'helper/usn-helper.h',
+        'helper/grid-helper.h',
         'model/usn-net-device.h',
         'model/usn-channel.h',
         'model/usn-remote-channel.h',
