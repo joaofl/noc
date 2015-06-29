@@ -353,7 +353,28 @@ main(int argc, char *argv[]) {
     my_grid_network.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
     my_grid_network.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
     
+    my_node_container = my_grid_network.InitializeNetwork();
     
+           
+        
+    //Install applications;
+    
+    Ptr<USNApp> my_usn_app = CreateObject<USNApp> ();
+    Ptr<USNSwitch> my_usn_switch = CreateObject<USNSwitch> ();
+    Ptr<USNSensor> my_usn_sensor = CreateObject<USNSensor> ();
+
+
+    ApplicationContainer my_usn_sink_app_container = ;
+    ApplicationContainer my_usn_app_container;
+    ApplicationContainer my_usn_switch_container;
+    ApplicationContainer my_usn_sensor_container;
+    
+    //TODO: this should be done inside the sensor module
+    UNSInputData my_input_data;
+    if ( my_input_data.LoadFromFile(dir_input + "input-data.s.csv")  == 0){
+        cout << "Error loading the input data file at " << dir_input << "input-data.s.csv";
+        return -1;
+    }
 //     
 //   USNHelper my_usn;
 //    //    my_usn.SetDeviceAttribute("DataRate", StringValue("1Mbps"));
