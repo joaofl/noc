@@ -9,19 +9,27 @@
 #define	GRID_HELPER_H
 
 #include <string>
+#include <sstream>
 
 #include "ns3/object-factory.h"
 #include "ns3/net-device-container.h"
 #include "ns3/node-container.h"
 #include "ns3/deprecated.h"
 
+#include "ns3/double.h"
+#include "ns3/integer.h"
+#include "ns3/uinteger.h"
+#include "ns3/string.h"
+
 #include "ns3/trace-helper.h"
+#include "ns3/mobility-module.h"
 
 namespace ns3 {
 
 class Queue;
 class NetDevice;
 class Node;
+//class MobilityHelper;
 
 /**
  * \brief Build a set of USNNetDevice objects
@@ -39,6 +47,8 @@ public:
    */
   GridHelper ();
   virtual ~GridHelper () {}
+  
+  
 
   /**
    * Each point to point net device must have a queue to pass packets through.
@@ -88,6 +98,20 @@ public:
    */
   void SetChannelAttribute (std::string name, const AttributeValue &value);
 
+  
+  /**
+   * Set an attribute value of a network general parameter.
+   *
+   * \param name the name of the attribute to set
+   * \param value the value of the attribute to set
+   *
+   * These parameters are the required info for the helper to create a grid of nodes
+   */
+  void SetNetworkAttribute (std::string name, const uint32_t value);
+  
+  void InitializeNetwork(void);
+  
+  
   /**
    * \param c a set of nodes
    *
@@ -170,6 +194,21 @@ private:
   ObjectFactory m_channelFactory;
   ObjectFactory m_remoteChannelFactory;
   ObjectFactory m_deviceFactory;
+  
+//    cmd.AddValue("size_x", "Network size in the X axe", size_x);
+//    cmd.AddValue("size_y", "Network size in the Y axe", size_y);
+//    cmd.AddValue("operational_mode", "Operate by detecting events (=1) or for sampling all the network (=0)", operational_mode);
+//    cmd.AddValue("size_neighborhood", "Neighborhood size", size_neighborhood);
+//    cmd.AddValue("sinks_n", "Network size in the X axe", sinks_n);
+//    cmd.AddValue("sampling_cycles", "The number of times each node should sample its sensor, and perform data exchange", sampling_cycles);
+//    cmd.AddValue("sampling_period", "The period between each sensor sampling [us]", sampling_period);
+//    cmd.AddValue("log_start_at_period", "The period from witch logging starts", log_start_at_period);
+//    cmd.AddValue("baudrate", "The baudrate of the node's communication ports [kbps]", baudrate);
+//    cmd.AddValue("io_data_dir", "Directory with the I/O simulation data", io_data_dir);
+  
+  uint32_t m_sizeX, m_sizeY, m_baudrate, m_connectionWidth, m_queueSize, m_nodesCreated;
+  std::string m_topology; //"Grid" only for now
+  
 };
 
 } // namespace ns3

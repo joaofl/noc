@@ -30,6 +30,7 @@
 #include "ns3/names.h"
 #include "ns3/mpi-interface.h"
 #include "ns3/mpi-receiver.h"
+#include "src/core/model/object-base.h"
 
 #include "ns3/trace-helper.h"
 #include "grid-helper.h"
@@ -58,6 +59,212 @@ GridHelper::SetQueue (std::string type,
   m_queueFactory.Set (n2, v2);
   m_queueFactory.Set (n3, v3);
   m_queueFactory.Set (n4, v4);
+}
+
+void
+ GridHelper::SetNetworkAttribute (std::string name, const uint32_t value)
+{
+    if (name.compare("SizeX") == 0) //Is the same
+    {
+        m_sizeX = value;
+    }
+    else if (name.compare("SizeY") == 0) //Is the same
+    {
+        m_sizeY = value;
+    }
+    else if (name.compare("ConnectionWidth") == 0) //Is the same
+    {
+        m_connectionWidth = value;
+    }
+}
+
+//void
+//GridHelper::InstallApplication()
+//{
+//    //**************** Application Installation ******************
+//
+//    UNSInputData my_input_data;
+//    if ( my_input_data.LoadFromFile(dir_input + "input-data.s.csv")  == 0){
+//        cout << "Error loading the input data file at " << dir_input << "input-data.s.csv";
+//        return -1;
+//    }
+//        
+//        
+//        //Load one matrix of one snapshot sensors data;
+//
+//
+//    ApplicationContainer my_usn_sink_app_container;
+//    ApplicationContainer my_usn_app_container;
+//    ApplicationContainer my_usn_switch_container;
+//    ApplicationContainer my_usn_sensor_container;
+//
+//    for (uint32_t i = 0; i < n_nodes; i++) {
+//        Ptr<USNApp> my_usn_app = CreateObject<USNApp> ();
+//        Ptr<USNSwitch> my_usn_switch = CreateObject<USNSwitch> ();
+//        Ptr<USNSensor> my_usn_sensor = CreateObject<USNSensor> ();
+//
+//        uint32_t x = i % m_sizeX;
+//        uint32_t y = floor(i / m_sizeX);
+//
+//
+//        //Setup app
+//        my_usn_app->IsSink = false;
+//        my_usn_app->MaxHops = size_neighborhood;
+//        //my_usn_switch->SetStartTime(Seconds(0));
+//        my_usn_app->SetStartTime(Seconds(0));
+//        my_usn_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
+//        my_usn_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
+//        my_usn_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
+//        // detect the neighborhood
+//
+//        //Setup Net Device's Callback
+//        uint8_t n_devices = my_node_container.Get(i)->GetNDevices();
+//
+//        for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
+//            my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<USNNetDevice>();
+////            uint8_t n = my_net_device->GetUSNAddress();
+//            ostringstream ss;
+//            ss << i << "," << x << "," << y << "," << (int) j;
+//            my_net_device->TraceConnect("MacRx", ss.str(), MakeCallback(&packet_received_netdevice_mac));
+//            my_net_device->TraceConnect("MacTx", ss.str(), MakeCallback(&packet_sent_netdevice_mac));
+//            
+//            my_net_device->TraceConnect("PhyTxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
+//            my_net_device->TraceConnect("PhyRxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
+//        }
+//
+//        //Setup switch
+//        ostringstream ss;
+//        ss << i << "," << x << "," << y;
+//
+//        my_usn_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
+//        my_usn_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
+//
+//        //Setup sensor
+//        my_usn_sensor->SensorPosition.x = x;
+//        my_usn_sensor->SensorPosition.y = y;
+//        my_usn_sensor->InputData = &my_input_data;
+//
+//
+//        //Should be installed in this order!!!
+//        my_node_container.Get(i)->AddApplication(my_usn_app);
+//        my_node_container.Get(i)->AddApplication(my_usn_switch);
+//        my_node_container.Get(i)->AddApplication(my_usn_sensor);
+//
+//
+//
+//        my_usn_app_container.Add(my_usn_app);
+//        my_usn_switch_container.Add(my_usn_switch);
+//        my_usn_sensor_container.Add(my_usn_sensor);
+//    }
+//
+//    // Setting the sinks
+//    //uint32_t nodes_n = m_sizeX * m_sizeY;
+//
+//    double delta_x = (double) m_sizeX / (2 * (double) sinks_n); 
+//    // takes the individuals in the center of the network
+//    //TODO: a way of manually setting it
+//    
+//    for (uint32_t i = 0; i < sinks_n; i++) {
+//        uint32_t x = floor((i + 1) * 2 * delta_x - delta_x);
+//        uint32_t y = floor((double) m_sizeY / 2);
+//        uint32_t n = x + y * m_sizeX;
+//        my_usn_app_container.Get(n)->GetObject<USNApp>()->IsSink = true;
+//        my_usn_app_container.Get(n)->GetObject<USNApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
+//        my_usn_sink_app_container.Add(my_usn_app_container.Get(n)); //container with the sinks only
+//        ostringstream ss;
+//        ss << n << "," << x << "," << y;
+//        //        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
+//        //        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
+//        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
+//        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
+//    }
+//
+//    //************************************************************    
+//}
+
+void
+GridHelper::InitializeNetwork()
+{
+    NetDeviceContainer my_net_device_container;
+    Ptr<USNNetDevice> my_net_device;
+    Mac48Address my_mac_address;
+
+    NodeContainer my_node_container;
+    
+    my_node_container.Create(m_sizeX * m_sizeY);
+    
+//    uint32_t m_nodesCreated = my_node_container.GetN();
+    
+//    cout << "Network size = " << m_sizeX << " * " << m_sizeY << " = " << (unsigned int) n_nodes << endl;
+    // Net devices Address reference
+    //            4
+    //         _______
+    //        |       |
+    //     3  |  SN   |  1
+    //        |_______|
+    //           
+    //            2
+
+    //*************** POSITIONING ***********************
+
+    MobilityHelper nodes_mb; //mobility helper
+    uint32_t interspace = 10;
+
+
+    nodes_mb.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    nodes_mb.SetPositionAllocator("ns3::GridPositionAllocator",
+            "MinX", DoubleValue(0.0),
+            "MinY", DoubleValue(0.0),
+            "DeltaX", DoubleValue(interspace),
+            "DeltaY", DoubleValue(interspace),
+            "GridWidth", UintegerValue(m_sizeX),
+            "LayoutType", StringValue("RowFirst"));
+
+
+    nodes_mb.Install(my_node_container);
+
+    //********** Net Devices installation ***************
+
+
+    uint32_t node_this;
+    for (uint64_t y = 0; y < m_sizeY; y++) {
+        for (uint64_t x = 0; x < m_sizeX; x++) {
+
+            node_this = x + y * m_sizeX;
+
+            if (x != m_sizeX - 1) { //connect to the node in front of it
+                my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + 1));
+
+                my_net_device = my_net_device_container.Get(0)->GetObject<USNNetDevice>();
+                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
+                my_net_device->SetUSNAddress(1);
+
+                my_net_device = my_net_device_container.Get(1)->GetObject<USNNetDevice>();
+                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
+                my_net_device->SetUSNAddress(3);
+
+                my_net_device_container.Get(0)->Initialize();
+                my_net_device_container.Get(1)->Initialize();
+            }
+            if (y != m_sizeY - 1) { //connect to the node bellow
+                my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + m_sizeX));
+
+                my_net_device = my_net_device_container.Get(0)->GetObject<USNNetDevice>();
+                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
+                my_net_device->SetUSNAddress(2);
+
+                my_net_device = my_net_device_container.Get(1)->GetObject<USNNetDevice>();
+                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
+                my_net_device->SetUSNAddress(4);
+
+                my_net_device_container.Get(0)->Initialize();
+                my_net_device_container.Get(1)->Initialize();
+            }
+
+
+        }
+
+    }
 }
 
 void 

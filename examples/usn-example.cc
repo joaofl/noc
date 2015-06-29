@@ -344,192 +344,26 @@ main(int argc, char *argv[]) {
     
 
     
-    USNHelper my_usn;
     
+    //Using the new helper
     GridHelper my_grid_network;
+    my_grid_network.SetNetworkAttribute("SizeX", size_x);
+    my_grid_network.SetNetworkAttribute("SizeY", size_y);
     
-    //    my_usn.SetDeviceAttribute("DataRate", StringValue("1Mbps"));
-    my_usn.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
-    //    my_usn.SetChannelAttribute("Delay", StringValue("0us"));
-    my_usn.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
-
-    NetDeviceContainer my_net_device_container;
-    Ptr<USNNetDevice> my_net_device;
-    Mac48Address my_mac_address;
-
-    my_node_container.Create(size_x * size_y);
+    my_grid_network.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
+    my_grid_network.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
     
-    uint64_t n_nodes = my_node_container.GetN();
-    cout << "Network size = " << size_x << " * " << size_y << " = " << (unsigned int) n_nodes << endl;
-    // Net devices Address reference
-    //            4
-    //         _______
-    //        |       |
-    //     3  |  SN   |  1
-    //        |_______|
-    //           
-    //            2
-
-    //*************** POSITIONING ***********************
-
-    MobilityHelper nodes_mb; //mobility helper
-    uint32_t interspace = 10;
-
-
-    nodes_mb.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    nodes_mb.SetPositionAllocator("ns3::GridPositionAllocator",
-            "MinX", DoubleValue(0.0),
-            "MinY", DoubleValue(0.0),
-            "DeltaX", DoubleValue(interspace),
-            "DeltaY", DoubleValue(interspace),
-            "GridWidth", UintegerValue(size_x),
-            "LayoutType", StringValue("RowFirst"));
-
-
-    nodes_mb.Install(my_node_container);
-
-    //********** Net Devices installation ***************
-
-
-    uint32_t node_this;
-    for (uint64_t y = 0; y < size_y; y++) {
-        for (uint64_t x = 0; x < size_x; x++) {
-
-            node_this = x + y * size_x;
-
-            if (x != size_x - 1) { //connect to the node in front of it
-                my_net_device_container = my_usn.Install(my_node_container.Get(node_this), my_node_container.Get(node_this + 1));
-
-                my_net_device = my_net_device_container.Get(0)->GetObject<USNNetDevice>();
-                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
-                my_net_device->SetUSNAddress(1);
-
-                my_net_device = my_net_device_container.Get(1)->GetObject<USNNetDevice>();
-                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
-                my_net_device->SetUSNAddress(3);
-
-                my_net_device_container.Get(0)->Initialize();
-                my_net_device_container.Get(1)->Initialize();
-            }
-            if (y != size_y - 1) { //connect to the node bellow
-                my_net_device_container = my_usn.Install(my_node_container.Get(node_this), my_node_container.Get(node_this + size_x));
-
-                my_net_device = my_net_device_container.Get(0)->GetObject<USNNetDevice>();
-                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
-                my_net_device->SetUSNAddress(2);
-
-                my_net_device = my_net_device_container.Get(1)->GetObject<USNNetDevice>();
-                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
-                my_net_device->SetUSNAddress(4);
-
-                my_net_device_container.Get(0)->Initialize();
-                my_net_device_container.Get(1)->Initialize();
-            }
-
-
-        }
-
-    }
-
-    //**************** Application Installation ******************
-
-    UNSInputData my_input_data;
-    if ( my_input_data.LoadFromFile(dir_input + "input-data.s.csv")  == 0){
-        cout << "Error loading the input data file at " << dir_input << "input-data.s.csv";
-        return -1;
-    }
-        
-        
-        //Load one matrix of one snapshot sensors data;
-
-
-    ApplicationContainer my_usn_sink_app_container;
-    ApplicationContainer my_usn_app_container;
-    ApplicationContainer my_usn_switch_container;
-    ApplicationContainer my_usn_sensor_container;
-
-    for (uint32_t i = 0; i < n_nodes; i++) {
-        Ptr<USNApp> my_usn_app = CreateObject<USNApp> ();
-        Ptr<USNSwitch> my_usn_switch = CreateObject<USNSwitch> ();
-        Ptr<USNSensor> my_usn_sensor = CreateObject<USNSensor> ();
-
-        uint32_t x = i % size_x;
-        uint32_t y = floor(i / size_x);
-
-
-        //Setup app
-        my_usn_app->IsSink = false;
-        my_usn_app->MaxHops = size_neighborhood;
-        //my_usn_switch->SetStartTime(Seconds(0));
-        my_usn_app->SetStartTime(Seconds(0));
-        my_usn_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
-        my_usn_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
-        my_usn_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
-        // detect the neighborhood
-
-        //Setup Net Device's Callback
-        uint8_t n_devices = my_node_container.Get(i)->GetNDevices();
-
-        for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
-            my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<USNNetDevice>();
-//            uint8_t n = my_net_device->GetUSNAddress();
-            ostringstream ss;
-            ss << i << "," << x << "," << y << "," << (int) j;
-            my_net_device->TraceConnect("MacRx", ss.str(), MakeCallback(&packet_received_netdevice_mac));
-            my_net_device->TraceConnect("MacTx", ss.str(), MakeCallback(&packet_sent_netdevice_mac));
-            
-            my_net_device->TraceConnect("PhyTxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-            my_net_device->TraceConnect("PhyRxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-        }
-
-        //Setup switch
-        ostringstream ss;
-        ss << i << "," << x << "," << y;
-
-        my_usn_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
-        my_usn_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
-
-        //Setup sensor
-        my_usn_sensor->SensorPosition.x = x;
-        my_usn_sensor->SensorPosition.y = y;
-        my_usn_sensor->InputData = &my_input_data;
-
-
-        //Should be installed in this order!!!
-        my_node_container.Get(i)->AddApplication(my_usn_app);
-        my_node_container.Get(i)->AddApplication(my_usn_switch);
-        my_node_container.Get(i)->AddApplication(my_usn_sensor);
-
-
-
-        my_usn_app_container.Add(my_usn_app);
-        my_usn_switch_container.Add(my_usn_switch);
-        my_usn_sensor_container.Add(my_usn_sensor);
-    }
-
-    // Setting the sinks
-    //uint32_t nodes_n = size_x * size_y;
-
-    double delta_x = (double) size_x / (2 * (double) sinks_n); 
-    // takes the individuals in the center of the network
-    //TODO: a way of manually setting it
     
-    for (uint32_t i = 0; i < sinks_n; i++) {
-        uint32_t x = floor((i + 1) * 2 * delta_x - delta_x);
-        uint32_t y = floor((double) size_y / 2);
-        uint32_t n = x + y * size_x;
-        my_usn_app_container.Get(n)->GetObject<USNApp>()->IsSink = true;
-        my_usn_app_container.Get(n)->GetObject<USNApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
-        my_usn_sink_app_container.Add(my_usn_app_container.Get(n)); //container with the sinks only
-        ostringstream ss;
-        ss << n << "," << x << "," << y;
-        //        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
-        //        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
-        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
-        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
-    }
+//     
+//   USNHelper my_usn;
+//    //    my_usn.SetDeviceAttribute("DataRate", StringValue("1Mbps"));
+//    my_usn.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
+//    //    my_usn.SetChannelAttribute("Delay", StringValue("0us"));
+//    my_usn.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
 
-    //************************************************************
+    
+
+
 
 
 
@@ -574,19 +408,19 @@ main(int argc, char *argv[]) {
     
     
     //Write to file the information the sinks have received
-    ApplicationContainer::Iterator i;
-    uint8_t s = 0;
-    for (i = my_usn_sink_app_container.Begin(); i != my_usn_sink_app_container.End(); ++i) {
-        stringstream ss;
-        ss << "output-data-s-" << (int)s << ".csv";
-        filename = dir_output + ss.str();
-//        if (operational_mode == 0)
-//            (*i)->GetObject<USNApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood); // some Application method
-//        else if (operational_mode == 1)
-//            (*i)->GetObject<USNApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood);
-//       //     (*i)->GetObject<USNApp>()->SinkReceivedData->WritePointsToFile(filename, size_x, size_y);
-        cout << "Log file created at: '" << filename << "'" << endl;
-    }
+//    ApplicationContainer::Iterator i;
+//    uint8_t s = 0;
+//    for (i = my_usn_sink_app_container.Begin(); i != my_usn_sink_app_container.End(); ++i) {
+//        stringstream ss;
+//        ss << "output-data-s-" << (int)s << ".csv";
+//        filename = dir_output + ss.str();
+////        if (operational_mode == 0)
+////            (*i)->GetObject<USNApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood); // some Application method
+////        else if (operational_mode == 1)
+////            (*i)->GetObject<USNApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood);
+////       //     (*i)->GetObject<USNApp>()->SinkReceivedData->WritePointsToFile(filename, size_x, size_y);
+//        cout << "Log file created at: '" << filename << "'" << endl;
+//    }
     
     file_value_annoucement_total_time << value_annoucement_start_time << "," << value_annoucement_end_time << "," << value_annoucement_count;
 
