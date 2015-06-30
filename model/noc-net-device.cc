@@ -224,6 +224,7 @@ namespace ns3 {
         m_currentPkt = p;
         m_phyTxBeginTrace(m_currentPkt);
 
+        //TODO: here, implement the waiting time in such a way that I can simulate parallel connections
         Time txTime = Seconds(m_bps.CalculateTxTime(p->GetSize()));
         Time txCompleteTime = txTime + m_tInterframeGap;
 
