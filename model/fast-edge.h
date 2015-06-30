@@ -39,7 +39,7 @@
 
 namespace ns3 {
 
-    class USNFastEdge {
+    class NOCFastEdge {
     public:
         
         #define LOW_THRESHOLD_PERCENTAGE 0.8 // percentage of the high threshold value that the low threshold shall be set at

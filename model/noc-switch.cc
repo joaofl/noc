@@ -33,34 +33,34 @@
 using namespace std;
 namespace ns3 {
 
-    NS_LOG_COMPONENT_DEFINE("USNSwitch");
+    NS_LOG_COMPONENT_DEFINE("NOCSwitch");
 
     TypeId
-    USNSwitch::GetTypeId(void) {
-        static TypeId tid = TypeId("ns3::USNSwitch")
+    NOCSwitch::GetTypeId(void) {
+        static TypeId tid = TypeId("ns3::NOCSwitch")
                 .SetParent<Application> ()
-                .AddConstructor<USNSwitch> ()
-                .AddTraceSource("SwitchRxTrace", "The packets received by the switch of each node", MakeTraceSourceAccessor(&USNSwitch::m_switchRxTrace))
-                .AddTraceSource("SwitchTxTrace", "The packets sent by the switch of each node", MakeTraceSourceAccessor(&USNSwitch::m_switchTxTrace))
+                .AddConstructor<NOCSwitch> ()
+                .AddTraceSource("SwitchRxTrace", "The packets received by the switch of each node", MakeTraceSourceAccessor(&NOCSwitch::m_switchRxTrace))
+                .AddTraceSource("SwitchTxTrace", "The packets sent by the switch of each node", MakeTraceSourceAccessor(&NOCSwitch::m_switchTxTrace))
                 ;
         return tid;
     }
 
-    USNSwitch::USNSwitch()
+    NOCSwitch::NOCSwitch()
     : m_running(false) {
     }
 
-    USNSwitch::~USNSwitch() {
+    NOCSwitch::~NOCSwitch() {
     }
 
     //    void
-    //    USNSwitch::Setup(bool IsSink) {
+    //    NOCSwitch::Setup(bool IsSink) {
     //        IsSink = IsSink;
     //
     //    }
 
     void
-    USNSwitch::StartApplication(void) {
+    NOCSwitch::StartApplication(void) {
 
 
         PacketsReceived.assign(P_COUNT, 0);
@@ -76,15 +76,15 @@ namespace ns3 {
         uint8_t n_devices = nd->GetNDevices();
 
         for (uint8_t i = 0; i < n_devices; i++) {
-            nd->GetDevice(i)->SetReceiveCallback(MakeCallback(&USNSwitch::PacketReceive, this));
+            nd->GetDevice(i)->SetReceiveCallback(MakeCallback(&NOCSwitch::PacketReceive, this));
         }
 
-        //m_app = this->GetNode()->GetObject<USNApp>();
+        //m_app = this->GetNode()->GetObject<NOCApp>();
 
     }
 
     void
-    USNSwitch::StopApplication(void) {
+    NOCSwitch::StopApplication(void) {
         m_running = false;
 
         if (m_sendEvent.IsRunning()) {
@@ -93,7 +93,7 @@ namespace ns3 {
     }
 
     void
-    USNSwitch::SendSignal(uint8_t bits, uint8_t ports) {
+    NOCSwitch::SendSignal(uint8_t bits, uint8_t ports) {
         Ptr<Node> node = this->GetNode();
         uint8_t n_devices = node->GetNDevices();
 
@@ -104,9 +104,9 @@ namespace ns3 {
             uint8_t p = ports >> i;
             if ((p & 1) == 1) {
                 for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
-                    if (node->GetDevice(j)->GetObject<USNNetDevice>()->GetUSNAddress() == i + 1) {
+                    if (node->GetDevice(j)->GetObject<NOCNetDevice>()->GetNOCAddress() == i + 1) {
 
-                        node->GetDevice(j)->GetObject<USNNetDevice>()->SendSignal(pck);
+                        node->GetDevice(j)->GetObject<NOCNetDevice>()->SendSignal(pck);
 
                         break;
                     }
@@ -116,7 +116,7 @@ namespace ns3 {
     }
     
     void
-    USNSwitch::SendPacket(Ptr<const Packet> pck, uint8_t ports){
+    NOCSwitch::SendPacket(Ptr<const Packet> pck, uint8_t ports){
         //check if it will be sent to more then one port, if positive, some time
         //drift will be inserted between each transmission in order to guarantee
         //the expected transmission sequence, from east to north, or 1 to 4
@@ -131,7 +131,7 @@ namespace ns3 {
 //                uint8_t port = 0b00000001 << i;
 //                
 //                Time t = NanoSeconds(n_ports);
-//                Simulator::Schedule(t, &USNSwitch::SendSinglePacket, this, pck, port);
+//                Simulator::Schedule(t, &NOCSwitch::SendSinglePacket, this, pck, port);
 ////                SendSinglePacket(pck, port);
 //                n_ports++;
 //            }
@@ -144,13 +144,13 @@ namespace ns3 {
     }
     
     void
-    USNSwitch::SendSinglePacket(Ptr<const Packet> pck, uint8_t ports) {
+    NOCSwitch::SendSinglePacket(Ptr<const Packet> pck, uint8_t ports) {
 
         Ptr<Node> node = this->GetNode();
         uint8_t n_devices = node->GetNDevices();
         uint8_t priority = 0;
 
-        USNHeader hd;
+        NOCHeader hd;
         pck->PeekHeader(hd);
 
 //        NodeRef nr;
@@ -166,21 +166,21 @@ namespace ns3 {
             uint8_t p = ports >> i;
             if ((p & 1) == 1) {
                 for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
-                    if (node->GetDevice(j)->GetObject<USNNetDevice>()->GetUSNAddress() == i + 1) {
+                    if (node->GetDevice(j)->GetObject<NOCNetDevice>()->GetNOCAddress() == i + 1) {
 
                         //TODO: this should be replaced by callbacks urgently
-                        if (hd.GetUSNProtocol() == P_NETWORK_DISCOVERY) {
+                        if (hd.GetNOCProtocol() == P_NETWORK_DISCOVERY) {
                             priority = 0;
                             PacketsSent [P_NETWORK_DISCOVERY]++;
-                        } else if (hd.GetUSNProtocol() == P_VALUE_ANNOUNCEMENT) {
+                        } else if (hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
                             priority = 0;
                             PacketsSent [P_VALUE_ANNOUNCEMENT]++;
-                        } else if (hd.GetUSNProtocol() == P_EVENT_ANNOUNCEMENT) {
+                        } else if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
                             priority = 1;
                             PacketsSent [P_EVENT_ANNOUNCEMENT]++;
                         }
 
-                        node->GetDevice(j)->GetObject<USNNetDevice>()->Send(pck->Copy(), priority);
+                        node->GetDevice(j)->GetObject<NOCNetDevice>()->Send(pck->Copy(), priority);
 
                         break;
                     }
@@ -190,7 +190,7 @@ namespace ns3 {
     }
 
     bool
-    USNSwitch::PacketReceive(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t protocol, const Address& sourceAddress) {
+    NOCSwitch::PacketReceive(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t protocol, const Address& sourceAddress) {
 
         //Check the origin of the packet to determine from which direction it
         //came from and the address of the sink. It also prepares the header in
@@ -229,7 +229,7 @@ namespace ns3 {
 
         Ptr<Packet> pck_cp = pck_rcv->Copy();
 
-        USNHeader hd;
+        NOCHeader hd;
         pck_cp->RemoveHeader(hd);
 
 //        NodeRef nr;
@@ -240,9 +240,9 @@ namespace ns3 {
         //TODO: replace all this by callbacks
         
 
-        uint8_t usn_protocol = hd.GetUSNProtocol();
+        uint8_t noc_protocol = hd.GetNOCProtocol();
 
-        uint8_t ad = device->GetObject<USNNetDevice>()->GetUSNAddress(); //Get the address of the device which generated the interruption
+        uint8_t ad = device->GetObject<NOCNetDevice>()->GetNOCAddress(); //Get the address of the device which generated the interruption
 
         if (ad == 1) { //came from the right
             hd.CurrentX -= 1;
@@ -270,20 +270,20 @@ namespace ns3 {
 
 
 
-        if (usn_protocol == P_NETWORK_DISCOVERY) {
+        if (noc_protocol == P_NETWORK_DISCOVERY) {
             PacketsReceived[P_NETWORK_DISCOVERY]++;
-            Ptr<USNApp> m_app = this->GetNode()->GetApplication(0)->GetObject<USNApp>();
+            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(0)->GetObject<NOCApp>();
             m_app->NetworkDiscoveryReceived(pck_cp, origin_port);
 
-        } else if (usn_protocol == P_VALUE_ANNOUNCEMENT) {
+        } else if (noc_protocol == P_VALUE_ANNOUNCEMENT) {
             PacketsReceived[P_VALUE_ANNOUNCEMENT]++;
-            Ptr<USNApp> m_app = this->GetNode()->GetApplication(0)->GetObject<USNApp>();
+            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(0)->GetObject<NOCApp>();
             m_app->ValueAnnoucementReceived(pck_cp, origin_port);
 
-        } else if (usn_protocol == P_EVENT_ANNOUNCEMENT) {
+        } else if (noc_protocol == P_EVENT_ANNOUNCEMENT) {
             PacketsReceived[P_EVENT_ANNOUNCEMENT]++;
 
-            Ptr<USNApp> m_app = this->GetNode()->GetApplication(0)->GetObject<USNApp>();
+            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(0)->GetObject<NOCApp>();
             m_app->EventAnnoucementReceived(pck_cp, origin_port);
         }
 

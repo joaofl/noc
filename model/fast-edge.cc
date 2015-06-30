@@ -42,7 +42,7 @@ namespace ns3 {
     int g[WIDTH  * HEIGHT], dir[WIDTH  * HEIGHT] = {0};
     unsigned char img_scratch_data[WIDTH  * HEIGHT] = {0};
     #endif
-    void USNFastEdge::canny_edge_detect(struct image * img_in, struct image * img_out) {
+    void NOCFastEdge::canny_edge_detect(struct image * img_in, struct image * img_out) {
             struct image img_scratch;
             int high, low;
             #ifndef WIDTH
@@ -70,7 +70,7 @@ namespace ns3 {
             apply 5x5 Gaussian convolution filter, shrinks the image by 4 pixels in each direction, using Gaussian filter found here:
             http://en.wikipedia.org/wiki/Canny_edge_detector
     */
-    void USNFastEdge::gaussian_noise_reduce(struct image * img_in, struct image * img_out)
+    void NOCFastEdge::gaussian_noise_reduce(struct image * img_in, struct image * img_out)
     {
             #ifdef CLOCK
             clock_t start = clock();
@@ -121,7 +121,7 @@ namespace ns3 {
             calculates the result of the Sobel operator - http://en.wikipedia.org/wiki/Sobel_operator - and estimates edge direction angle
     */
     /*void calc_gradient_sobel(struct image * img_in, int g_x[], int g_y[], int g[], int dir[]) {//float theta[]) {*/
-    void USNFastEdge::calc_gradient_sobel(struct image * img_in, int g[], int dir[]) {
+    void NOCFastEdge::calc_gradient_sobel(struct image * img_in, int g[], int dir[]) {
             #ifdef CLOCK
             clock_t start = clock();
             #endif
@@ -205,7 +205,7 @@ namespace ns3 {
             calculates the result of the Scharr version of the Sobel operator - http://en.wikipedia.org/wiki/Sobel_operator - and estimates edge direction angle
             may have better rotational symmetry
     */
-    void USNFastEdge::calc_gradient_scharr(struct image * img_in, int g_x[], int g_y[], int g[], int dir[]) {//float theta[]) {
+    void NOCFastEdge::calc_gradient_scharr(struct image * img_in, int g_x[], int g_y[], int g[], int dir[]) {//float theta[]) {
             #ifdef CLOCK
             clock_t start = clock();
             #endif
@@ -277,7 +277,7 @@ namespace ns3 {
             if the rounded edge direction angle is 90 degrees, checks the east and west directions
             if the rounded edge direction angle is 135 degrees, checks the northeast and southwest directions
     */
-    void USNFastEdge::non_max_suppression(struct image * img, int g[], int dir[]) {//float theta[]) {
+    void NOCFastEdge::non_max_suppression(struct image * img, int g[], int dir[]) {//float theta[]) {
             #ifdef CLOCK
             clock_t start = clock();
             #endif
@@ -348,7 +348,7 @@ namespace ns3 {
             estimates hysteresis threshold, assuming that the top X% (as defined by the HIGH_THRESHOLD_PERCENTAGE) of edge pixels with the greatest intesity are true edges
             and that the low threshold is equal to the quantity of the high threshold plus the total number of 0s at the low end of the histogram divided by 2
     */
-    void USNFastEdge::estimate_threshold(struct image * img, int * high, int * low) {
+    void NOCFastEdge::estimate_threshold(struct image * img, int * high, int * low) {
             #ifdef CLOCK
             clock_t start = clock();
             #endif
@@ -385,7 +385,7 @@ namespace ns3 {
             #endif
     }
 
-    void USNFastEdge::hysteresis (int high, int low, struct image * img_in, struct image * img_out)
+    void NOCFastEdge::hysteresis (int high, int low, struct image * img_in, struct image * img_out)
     {
             #ifdef CLOCK
             clock_t start = clock();
@@ -407,7 +407,7 @@ namespace ns3 {
             #endif
     }
 
-    int USNFastEdge::trace(int x, int y, int low, struct image * img_in, struct image * img_out)
+    int NOCFastEdge::trace(int x, int y, int low, struct image * img_in, struct image * img_out)
     {
             int y_off, x_off;//, flag;
             if (img_out->pixel_data[y * img_out->width + x] == 0)
@@ -430,7 +430,7 @@ namespace ns3 {
             return(0);
     }
 
-    int USNFastEdge::range(struct image * img, int x, int y)
+    int NOCFastEdge::range(struct image * img, int x, int y)
     {
             if ((x < 0) || (x >= img->width)) {
                     return(0);
@@ -441,7 +441,7 @@ namespace ns3 {
             return(1);
     }
 
-    void USNFastEdge::dilate_1d_h(struct image * img, struct image * img_out) {
+    void NOCFastEdge::dilate_1d_h(struct image * img, struct image * img_out) {
             int x, y, offset, y_max;
             y_max = img->height * (img->width - 2);
             for (y = 2 * img->width; y < y_max; y += img->width) {
@@ -452,7 +452,7 @@ namespace ns3 {
             }
     }
 
-    void USNFastEdge::dilate_1d_v(struct image * img, struct image * img_out) {
+    void NOCFastEdge::dilate_1d_v(struct image * img, struct image * img_out) {
             int x, y, offset, y_max;
             y_max = img->height * (img->width - 2);
             for (y = 2 * img->width; y < y_max; y += img->width) {
@@ -463,7 +463,7 @@ namespace ns3 {
             }
     }
 
-    void USNFastEdge::erode_1d_h(struct image * img, struct image * img_out) {
+    void NOCFastEdge::erode_1d_h(struct image * img, struct image * img_out) {
             int x, y, offset, y_max;
             y_max = img->height * (img->width - 2);
             for (y = 2 * img->width; y < y_max; y += img->width) {
@@ -474,7 +474,7 @@ namespace ns3 {
             }
     }
 
-    void USNFastEdge::erode_1d_v(struct image * img, struct image * img_out) {
+    void NOCFastEdge::erode_1d_v(struct image * img, struct image * img_out) {
             int x, y, offset, y_max;
             y_max = img->height * (img->width - 2);
             for (y = 2 * img->width; y < y_max; y += img->width) {
@@ -485,7 +485,7 @@ namespace ns3 {
             }
     }
 
-    void USNFastEdge::erode(struct image * img_in, struct image * img_scratch, struct image * img_out) {
+    void NOCFastEdge::erode(struct image * img_in, struct image * img_scratch, struct image * img_out) {
             #ifdef CLOCK
             clock_t start = clock();
             #endif
@@ -496,7 +496,7 @@ namespace ns3 {
             #endif
     }
 
-    void USNFastEdge::dilate(struct image * img_in, struct image * img_scratch, struct image * img_out) {
+    void NOCFastEdge::dilate(struct image * img_in, struct image * img_scratch, struct image * img_out) {
             #ifdef CLOCK
             clock_t start = clock();
             #endif
@@ -507,7 +507,7 @@ namespace ns3 {
             #endif
     }
 
-    void USNFastEdge::morph_open(struct image * img_in, struct image * img_scratch, struct image * img_scratch2, struct image * img_out) {
+    void NOCFastEdge::morph_open(struct image * img_in, struct image * img_scratch, struct image * img_scratch2, struct image * img_out) {
             #ifdef CLOCK
             clock_t start = clock();
             #endif
@@ -518,7 +518,7 @@ namespace ns3 {
             #endif
     }
 
-    void USNFastEdge::morph_close(struct image * img_in, struct image * img_scratch, struct image * img_scratch2, struct image * img_out) {
+    void NOCFastEdge::morph_close(struct image * img_in, struct image * img_scratch, struct image * img_scratch2, struct image * img_out) {
             #ifdef CLOCK
             clock_t start = clock();
             #endif

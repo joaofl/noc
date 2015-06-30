@@ -1,7 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
 // Include a header file from your module to test.
-#include "ns3/usn.h"
+#include "ns3/noc.h"
 
 // An essential include is test.h
 #include "ns3/test.h"
@@ -57,12 +57,12 @@ public:
 };
 
 UsnTestSuite::UsnTestSuite ()
-  : TestSuite ("usn", UNIT)
+  : TestSuite ("noc", UNIT)
 {
   // TestDuration for TestCase can be QUICK, EXTENSIVE or TAKES_FOREVER
   AddTestCase (new UsnTestCase1, TestCase::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
-static UsnTestSuite usnTestSuite;
+static UsnTestSuite nocTestSuite;
 

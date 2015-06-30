@@ -44,7 +44,7 @@ struct image {
 
 namespace ns3 {
 
-    class USNImageIO {
+    class NOCImageIO {
     public:
 
         static void write_pgm_image(struct image * img);

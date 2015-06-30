@@ -29,7 +29,7 @@ using namespace arma;
 namespace ns3 {
 
     NodeRef
-    USNCalc::FindMax(std::vector<NodeRef> * nl) { //neighbor list
+    NOCCalc::FindMax(std::vector<NodeRef> * nl) { //neighbor list
         NodeRef found;
 
         if (nl->size() > 0) {
@@ -53,7 +53,7 @@ namespace ns3 {
     }
 
     NodeRef
-    USNCalc::FindMin(std::vector<NodeRef> * nl) {
+    NOCCalc::FindMin(std::vector<NodeRef> * nl) {
         NodeRef found;
 
         if (nl->size() > 0) {
@@ -69,7 +69,7 @@ namespace ns3 {
     }
 
     float
-    USNCalc::FindGrad(std::vector<NodeRef> * sn) {
+    NOCCalc::FindGrad(std::vector<NodeRef> * sn) {
         NodeRef node;
         float grad = 0;
         float total_dist = 0;
@@ -96,7 +96,7 @@ namespace ns3 {
 
     
     float
-    USNCalc::FindDistance(NodeRef a, NodeRef b){
+    NOCCalc::FindDistance(NodeRef a, NodeRef b){
         int32_t dx = 0;
         int32_t dy = 0;
         if(a.x > b.x) dx = abs(a.x - b.x);
@@ -107,12 +107,12 @@ namespace ns3 {
         return sqrt(dx*dx + dy*dy);
     }
 //    NodeRef
-//    USNCalc::FindEdge(std::vector<NodeRef> * sn){
+//    NOCCalc::FindEdge(std::vector<NodeRef> * sn){
 //        
 //    }
 
     uint32_t
-    USNCalc::FindArc(std::vector<NodeRef> * sn) {
+    NOCCalc::FindArc(std::vector<NodeRef> * sn) {
         //        NodeRefPair nrp;
 
         NodeRef nr1, nr2, nr3;
@@ -152,7 +152,7 @@ namespace ns3 {
     }
 
     NodeRef
-    USNCalc::NodeAt(std::vector<NodeRef> * sn, int8_t x, int8_t y) {
+    NOCCalc::NodeAt(std::vector<NodeRef> * sn, int8_t x, int8_t y) {
         NodeRef nr, r;
         //        uint16_t aux;
 
@@ -170,7 +170,7 @@ namespace ns3 {
     }
 
     DataFit
-    USNCalc::FindPlane(std::vector<NodeRef> * sn)
+    NOCCalc::FindPlane(std::vector<NodeRef> * sn)
     {
         double sumxx, sumxy, sumyy, sumxz, sumyz, sumx, sumy, sumz;
         sumxx = 0;
@@ -219,13 +219,13 @@ namespace ns3 {
         p.c = (int32_t)vplane.at(2);
         
         return p;
-//        USNCalc::CalculatePlane(sumxx, sumxy, sumyy, sumxz, sumyz, sumzz, sumx, sumy, sumz, sn->size(), a, b, c);
+//        NOCCalc::CalculatePlane(sumxx, sumxy, sumyy, sumxz, sumyz, sumzz, sumx, sumy, sumz, sn->size(), a, b, c);
         
         //http://www.had2know.com/academics/least-squares-plane-regression.html
     }
 
     DataFit
-    USNCalc::FindCurve(std::vector<NodeRef> * sn)
+    NOCCalc::FindCurve(std::vector<NodeRef> * sn)
     {
 //        Exponential Function z = abxcy
         //        z = abxcy
@@ -292,13 +292,13 @@ namespace ns3 {
         p.c = (int32_t)(t3);
         
         return p;
-//        USNCalc::CalculatePlane(sumxx, sumxy, sumyy, sumxz, sumyz, sumzz, sumx, sumy, sumz, sn->size(), a, b, c);
+//        NOCCalc::CalculatePlane(sumxx, sumxy, sumyy, sumxz, sumyz, sumzz, sumx, sumy, sumz, sn->size(), a, b, c);
         
         //http://www.had2know.com/academics/least-squares-plane-regression.html
     }
     
     DataFit
-    USNCalc::CannyEdge(std::vector<NodeRef> * sn)
+    NOCCalc::CannyEdge(std::vector<NodeRef> * sn)
     {
         //        https://code.google.com/p/fast-edge/
         

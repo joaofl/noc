@@ -19,8 +19,8 @@
  * 
  */
 
-#ifndef USN_TYPES_H
-#define	USN_TYPES_H
+#ifndef NOC_TYPES_H
+#define	NOC_TYPES_H
 
 #include "ns3/core-module.h"
 

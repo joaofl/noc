@@ -27,13 +27,13 @@
 #include "noc-types.h"
 #include "noc-application.h"
 
-//using namespace ns3USNCalc;
+//using namespace ns3NOCCalc;
 using namespace std;
 namespace ns3 {
 
-    NS_LOG_COMPONENT_DEFINE("USNApplication");
+    NS_LOG_COMPONENT_DEFINE("NOCApplication");
 
-    USNApp::USNApp()
+    NOCApp::NOCApp()
     :
     //    m_packetSize(0),
     m_nPackets(0),
@@ -46,18 +46,18 @@ namespace ns3 {
     {
     }
 
-    USNApp::~USNApp() {
+    NOCApp::~NOCApp() {
         //  m_socket = 0;
     }
 
     //    void
-    //    USNApp::Setup(bool IsSink) {
+    //    NOCApp::Setup(bool IsSink) {
     //        IsSink = IsSink;
     //
     //    }
 
     void
-    USNApp::StartApplication(void) {
+    NOCApp::StartApplication(void) {
 
         TimeStartOffset = Seconds(1);
         // this is all the possible neighbors. it excludes the nodes in the edges,
@@ -83,12 +83,12 @@ namespace ns3 {
 
 
 
-        m_switch = this->GetNode()->GetApplication(1)->GetObject<USNSwitch>();
+        m_switch = this->GetNode()->GetApplication(1)->GetObject<NOCSwitch>();
 
         if (IsSink == true) {
-            Simulator::Schedule(TimeStartOffset, &USNApp::NetworkDiscovery, this);
+            Simulator::Schedule(TimeStartOffset, &NOCApp::NetworkDiscovery, this);
 
-            SinkReceivedData = CreateObject<USNOutputData> ();
+            SinkReceivedData = CreateObject<NOCOutputData> ();
         }
 
 
@@ -96,7 +96,7 @@ namespace ns3 {
     }
 
     void
-    USNApp::StopApplication(void) {
+    NOCApp::StopApplication(void) {
         m_running = false;
 
         //        if (m_sendEvent.IsRunning()) {
@@ -105,37 +105,37 @@ namespace ns3 {
     }
 
     void
-    USNApp::ScheduleValueAnnouncement(uint8_t n_times, Time period) {
+    NOCApp::ScheduleValueAnnouncement(uint8_t n_times, Time period) {
 
         for (uint8_t i = 0; i < n_times; i++) {
             Time t = MilliSeconds(period.GetMilliSeconds() * i + TimeStartOffset.GetMilliSeconds() + period.GetMilliSeconds());
-            Simulator::Schedule(t, &USNApp::ValueAnnouncement, this);
+            Simulator::Schedule(t, &NOCApp::ValueAnnouncement, this);
         }
 
     }
 
     NodeRef
-    USNApp::GetSinkAt(uint8_t i) {
+    NOCApp::GetSinkAt(uint8_t i) {
         return m_sinksList.at(i);
     }
 
     uint8_t
-    USNApp::GetSinkN(void) {
+    NOCApp::GetSinkN(void) {
         return m_sinksList.size();
     }
 
     NodeRef
-    USNApp::GetNeighborAt(uint8_t i) {
+    NOCApp::GetNeighborAt(uint8_t i) {
         return m_neighborsList.at(i);
     }
 
     uint8_t
-    USNApp::GetNeighborN(void) {
+    NOCApp::GetNeighborN(void) {
         return m_neighborsList.size();
     }
 
     uint8_t
-    USNApp::DetectEvents(void) { //gets the array with all the neighbors data
+    NOCApp::DetectEvents(void) { //gets the array with all the neighbors data
         EventRef er;
         DataFit p;
         uint8_t count = 0;
@@ -159,8 +159,8 @@ namespace ns3 {
 
                     if (m_neighborsList.size() > 1)
                     {
-                        p = USNCalc::FindPlane(&m_neighborsList);
-//                        p = USNCalc::FindCurve(&m_neighborsList);
+                        p = NOCCalc::FindPlane(&m_neighborsList);
+//                        p = NOCCalc::FindCurve(&m_neighborsList);
                     }
                         
                     else if(m_neighborsList.size() == 1)
@@ -190,7 +190,7 @@ namespace ns3 {
             }
             else if (OperationalMode == 1) {
                 //////// DETECT Edges /////////////
-                float g = USNCalc::FindGrad(&m_neighborsList);
+                float g = NOCCalc::FindGrad(&m_neighborsList);
                 DataFit p;
 //                float w = 1;
 //                float c = 8.4;
@@ -232,8 +232,8 @@ namespace ns3 {
 
                         if (m_neighborsList.size() > 1)
                         {
-                            p = USNCalc::FindPlane(&m_neighborsList);
-//                            c = USNCalc::FindCurve(&m_neighborsList);
+                            p = NOCCalc::FindPlane(&m_neighborsList);
+//                            c = NOCCalc::FindCurve(&m_neighborsList);
                         }
                         else if(m_neighborsList.size() == 1)
                         {
@@ -269,7 +269,7 @@ namespace ns3 {
         return count;
     }
 
-    uint8_t USNApp::RouteTo(NodeRef n) { //X-Y routing, with X first
+    uint8_t NOCApp::RouteTo(NodeRef n) { //X-Y routing, with X first
         uint8_t dir = 0b00000000;
 
         //with this algorithm, the nodes will first send the pck in order to make
@@ -324,7 +324,7 @@ namespace ns3 {
         return dir;
     }
 
-    NodeRef USNApp::NearestClusterHead(void) {
+    NodeRef NOCApp::NearestClusterHead(void) {
         NodeRef nr;
         
         if (MaxHops == 0) //if I'm reading from all nodes, there is no cluster head
@@ -366,7 +366,7 @@ namespace ns3 {
     }
 
     void
-    USNApp::NetworkDiscovery() {
+    NOCApp::NetworkDiscovery() {
 
         if (IsSink == true) {
 
@@ -375,10 +375,10 @@ namespace ns3 {
             me.y = 0;
             m_sinksList.push_back(me);
 
-            USNHeader hd;
+            NOCHeader hd;
             hd.CurrentX = 0;
             hd.CurrentY = 0;
-            hd.SetUSNProtocol(P_NETWORK_DISCOVERY);
+            hd.SetNOCProtocol(P_NETWORK_DISCOVERY);
             hd.OperationalMode = OperationalMode;
             hd.SerialNumber = m_SerialNumber.at(P_NETWORK_DISCOVERY);
             m_SerialNumber.at(P_NETWORK_DISCOVERY)++;
@@ -391,7 +391,7 @@ namespace ns3 {
     }
 
     bool
-    USNApp::NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    NOCApp::NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port) {
 
 
         //if (protocol == 1){ 
@@ -401,7 +401,7 @@ namespace ns3 {
         //            if (id == 43)
         //                cout << id;
 
-        USNHeader hd;
+        NOCHeader hd;
         pck->PeekHeader(hd);
 
         bool IsPresent = false;
@@ -418,7 +418,7 @@ namespace ns3 {
         if (IsPresent == false) {
             //            if (m_sinksList.size() == 0)
             //                ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US)); //Schedule the values announcements once, 
-            //Simulator::Schedule(Seconds(1), &USNApp::EventAnnouncement, this, 700);
+            //Simulator::Schedule(Seconds(1), &NOCApp::EventAnnouncement, this, 700);
 
             //when the first sinks is discovered
 
@@ -443,7 +443,7 @@ namespace ns3 {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void
-    USNApp::ValueAnnouncement(void) {
+    NOCApp::ValueAnnouncement(void) {
 
 
         //        uint32_t id = this->GetNode()->GetId();
@@ -452,9 +452,9 @@ namespace ns3 {
         //        }
 
         if (IsSink == false) {
-            Ptr<USNSensor> sensor = this->GetNode()->GetApplication(2)->GetObject<USNSensor>();
+            Ptr<NOCSensor> sensor = this->GetNode()->GetApplication(2)->GetObject<NOCSensor>();
 
-            USNHeader hd;
+            NOCHeader hd;
             hd.CurrentX = 0;
             hd.CurrentY = 0;
             hd.SensorValue = sensor->ReadSensor();
@@ -463,7 +463,7 @@ namespace ns3 {
 
             m_SerialNumber.at(P_VALUE_ANNOUNCEMENT)++; //one serial number per protocol is kept
 
-            hd.SetUSNProtocol(P_VALUE_ANNOUNCEMENT);
+            hd.SetNOCProtocol(P_VALUE_ANNOUNCEMENT);
 
 
             //for internal reference of the node app
@@ -515,7 +515,7 @@ namespace ns3 {
 
 
     bool
-    USNApp::ValueAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    NOCApp::ValueAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
 
         bool IsPresent = false;
         uint8_t i;
@@ -523,7 +523,7 @@ namespace ns3 {
         uint8_t id = this->GetNode()->GetId();
         id = id; //avoid the compiling error for unused variable
 
-        USNHeader hd;
+        NOCHeader hd;
         pck->PeekHeader(hd);
         
         uint8_t hops_count = abs(hd.CurrentX) + abs(hd.CurrentY);
@@ -627,7 +627,7 @@ namespace ns3 {
     }
 
     void
-    USNApp::EventAnnouncement(EventRef er) {
+    NOCApp::EventAnnouncement(EventRef er) {
 
         //        uint32_t id = this->GetNode()->GetId();
         //        if (id != 43 && id != 397) { //for debuging reasons
@@ -646,7 +646,7 @@ namespace ns3 {
             NodeRef sink = m_sinksList.at(0); //the sink can vary, depending on the errors count etc...
             uint8_t output_port = RouteTo(sink);
 
-            USNHeader hd;
+            NOCHeader hd;
 
             hd.CurrentX = 0; //now, this x y will be used to count in the oposite direction, in order to track the origin of the packet
             hd.CurrentY = 0;
@@ -659,7 +659,7 @@ namespace ns3 {
 
             hd.EventType = er.type;
 
-            hd.SetUSNProtocol(P_EVENT_ANNOUNCEMENT);
+            hd.SetNOCProtocol(P_EVENT_ANNOUNCEMENT);
             EventsAnnouncedCount++;
 
             Ptr<Packet> pck = Create<Packet>();
@@ -671,14 +671,14 @@ namespace ns3 {
             // after that, it pipeline the packet towards the sink
             //m_switch->SendSignal(0b00000001, DIR_DOWN); //Set bit 1 high
             //        Time t = Simulator::Now + MaxHops * MaxTransmissionTime * 1.1; //10% margin
-            //        Simulator::Schedule(t, &USNApp::EventAnnouncementTimeOut, this);            
+            //        Simulator::Schedule(t, &NOCApp::EventAnnouncementTimeOut, this);            
         }
 
 
     }
 
     bool
-    USNApp::EventAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    NOCApp::EventAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
         //The pck is transported in order to forward a packet with the same unique ID for tracing
         //prorposes
 
@@ -702,7 +702,7 @@ namespace ns3 {
 
             
 
-            USNHeader hd;
+            NOCHeader hd;
             pck->PeekHeader(hd);
             
             if (hd.EventType == EV_PLANE || hd.EventType == EV_CURVE) {

@@ -24,8 +24,8 @@
 // is not local to this simulator object.  It simply over-rides the transmit
 // method and uses an MPI Send operation instead.
 
-#ifndef USN_REMOTE_CHANNEL_H
-#define USN_REMOTE_CHANNEL_H
+#ifndef NOC_REMOTE_CHANNEL_H
+#define NOC_REMOTE_CHANNEL_H
 
 #include "noc-channel.h"
 
@@ -34,13 +34,13 @@ namespace ns3 {
 /**
  * \ingroup point-to-point
  */
-class USNRemoteChannel : public USNChannel
+class NOCRemoteChannel : public NOCChannel
 {
 public:
   static TypeId GetTypeId (void);
-  USNRemoteChannel ();
-  ~USNRemoteChannel ();
-  virtual bool TransmitStart (Ptr<Packet> p, Ptr<USNNetDevice> src, Time txTime);
+  NOCRemoteChannel ();
+  ~NOCRemoteChannel ();
+  virtual bool TransmitStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
 };
 }
 

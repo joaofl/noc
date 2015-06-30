@@ -153,26 +153,26 @@ namespace ns3 {
     
     
         TypeId
-    USNOutputData::GetTypeId(void) {
-        static TypeId tid = TypeId("ns3::USNOutputData")
+    NOCOutputData::GetTypeId(void) {
+        static TypeId tid = TypeId("ns3::NOCOutputData")
                 .SetParent<Application> ()
-                .AddConstructor<USNOutputData> ()
+                .AddConstructor<NOCOutputData> ()
                 ;
         return tid;
     }
         
-    USNOutputData::USNOutputData() {
+    NOCOutputData::NOCOutputData() {
         sink_neighbors.up.y = 100;
         sink_neighbors.down.y = -100;
         sink_neighbors.right.x = 100;
         sink_neighbors.left.x = -100;
     }
 
-    USNOutputData::~USNOutputData(){
+    NOCOutputData::~NOCOutputData(){
         
     }
     
-    uint8_t USNOutputData::WriteToFile(string filename, uint8_t n_size){
+    uint8_t NOCOutputData::WriteToFile(string filename, uint8_t n_size){
         
 //        DataFit p_sink;
 //        p_sink.x = 0; p_sink.y = 0; 
@@ -246,7 +246,7 @@ namespace ns3 {
         return 0;
     }
     
-    uint8_t USNOutputData::WritePointsToFile(string filename, uint8_t x_size, uint8_t y_size){
+    uint8_t NOCOutputData::WritePointsToFile(string filename, uint8_t x_size, uint8_t y_size){
         
         matrix data(x_size, vector <uint16_t>(y_size));
         
@@ -275,7 +275,7 @@ namespace ns3 {
         
     }
     
-    uint32_t USNOutputData::AddFit(DataFit p){
+    uint32_t NOCOutputData::AddFit(DataFit p){
         
         if (p.x > bounds.x_max) bounds.x_max = p.x;
         if (p.x < bounds.x_min) bounds.x_min = p.x;
@@ -299,7 +299,7 @@ namespace ns3 {
 
     
     
-    uint32_t USNOutputData::AddPoint(Point p){
+    uint32_t NOCOutputData::AddPoint(Point p){
         
         
         points.push_back(p);

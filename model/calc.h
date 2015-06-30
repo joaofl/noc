@@ -19,8 +19,8 @@
  */
 
 
-#ifndef USN_CALC_H
-#define USN_CALC_H
+#ifndef NOC_CALC_H
+#define NOC_CALC_H
 
 #include "noc-types.h"
 #include <math.h>
@@ -29,7 +29,7 @@
 
 namespace ns3 {
 
-    class USNCalc {
+    class NOCCalc {
     public:
         
         
@@ -59,5 +59,5 @@ namespace ns3 {
     };
 }
 
-#endif /* USN_H */
+#endif /* NOC_H */
 

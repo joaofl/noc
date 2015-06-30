@@ -18,8 +18,8 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#ifndef USN_APP_H
-#define USN_APP_H
+#ifndef NOC_APP_H
+#define NOC_APP_H
 
 
 #include <fstream>
@@ -50,7 +50,7 @@
 
 namespace ns3 {
 
-    class USNApp : public Application {
+    class NOCApp : public Application {
     public:
 
 
@@ -68,10 +68,10 @@ namespace ns3 {
                 OperationalMode;
         Time TimeStartOffset;
 
-        Ptr <USNOutputData> SinkReceivedData;
+        Ptr <NOCOutputData> SinkReceivedData;
         
-        USNApp();
-        virtual ~USNApp();
+        NOCApp();
+        virtual ~NOCApp();
 
         void Setup(bool IsSink);
         //void Setup ();
@@ -130,10 +130,10 @@ namespace ns3 {
         bool m_running;
         vector<EventRef> m_lastEvents;
 
-        Ptr<USNSwitch> m_switch;
+        Ptr<NOCSwitch> m_switch;
     };
 
 }
 
-#endif /* USN_APP_H */
+#endif /* NOC_APP_H */
 

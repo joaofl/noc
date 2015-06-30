@@ -19,8 +19,8 @@
  * 
  */
 
-#ifndef USN_SENSOR_H
-#define USN_SENSOR_H
+#ifndef NOC_SENSOR_H
+#define NOC_SENSOR_H
 
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
@@ -31,7 +31,7 @@
 
 namespace ns3 {
 
-    class USNSensor : public Application {
+    class NOCSensor : public Application {
     public:
         
         Coordinate SensorPosition;
@@ -40,8 +40,8 @@ namespace ns3 {
         
         uint32_t ReadSensor(void);
         
-        USNSensor();
-        virtual ~USNSensor();
+        NOCSensor();
+        virtual ~NOCSensor();
     private:
        virtual void StartApplication(void);
         virtual void StopApplication(void);

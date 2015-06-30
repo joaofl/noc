@@ -19,8 +19,8 @@
  */
 
 
-#ifndef USN_INPUT_DATA_H
-#define USN_INPUT_DATA_H
+#ifndef NOC_INPUT_DATA_H
+#define NOC_INPUT_DATA_H
 
 #include <errno.h>
 #include <fstream>
@@ -64,13 +64,13 @@ namespace ns3 {
         
     };
     
-    class USNOutputData : public Application {
+    class NOCOutputData : public Application {
     public:
         
         static TypeId GetTypeId (void);
         
-        USNOutputData();
-        virtual ~USNOutputData();
+        NOCOutputData();
+        virtual ~NOCOutputData();
         
         uint8_t WriteToFile(string, uint8_t);
         uint8_t WritePointsToFile(string filename, uint8_t x_size, uint8_t y_size);
@@ -108,5 +108,5 @@ namespace ns3 {
     
 }
 
-#endif /* USN_H */
+#endif /* NOC_H */
 
