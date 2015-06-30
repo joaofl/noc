@@ -22,7 +22,7 @@
 #define USN_HEADER_H
 
 #include "ns3/header.h"
-#include "usn-types.h"
+#include "noc-types.h"
 
 namespace ns3 {
 

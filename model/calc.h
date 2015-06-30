@@ -16,40 +16,48 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: João Loureiro <joflo@isep.ipp.pt>
- * 
  */
 
-#ifndef USN_SENSOR_H
-#define USN_SENSOR_H
 
-#include "ns3/core-module.h"
-#include "ns3/applications-module.h"
-//#include <gsl/gsl_rng.h>
+#ifndef USN_CALC_H
+#define USN_CALC_H
+
+#include "noc-types.h"
+#include <math.h>
 #include <stdio.h>
-#include "usn-types.h"
-#include "usn-io-data.h"
+#include <armadillo>
 
 namespace ns3 {
 
-    class USNSensor : public Application {
+    class USNCalc {
     public:
         
-        Coordinate SensorPosition;
         
-        UNSInputData * InputData;
+        static NodeRef FindMax(std::vector<NodeRef> * sn);
         
-        uint32_t ReadSensor(void);
+        static NodeRef FindMin(std::vector<NodeRef> * sn);
         
-        USNSensor();
-        virtual ~USNSensor();
-    private:
-       virtual void StartApplication(void);
-        virtual void StopApplication(void);
+//        static NodeRefPair FindGrad(std::vector<NodeRef> * sn);
+        
+        static float FindGrad(std::vector<NodeRef> * sn);
 
-        bool m_running;
-        uint32_t m_time_instant;
-        EventId m_sendEvent;
+        static uint32_t FindArc(std::vector<NodeRef> * sn);
+        
+        static float FindDistance(NodeRef a, NodeRef b);
+        
+        static DataFit FindPlane(std::vector<NodeRef> * sn);
+        
+        static DataFit FindCurve(std::vector<NodeRef> * sn);
+        
+        static DataFit CannyEdge(std::vector<NodeRef> * sn);
+        
+    private:
+        static NodeRef NodeAt(std::vector<NodeRef> * sn, int8_t, int8_t);
+
+//        
+
     };
 }
-#endif
+
+#endif /* USN_H */
 

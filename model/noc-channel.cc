@@ -22,13 +22,13 @@
  * 
  */
 
-#include "usn-channel.h"
-#include "usn-net-device.h"
+#include "noc-channel.h"
+#include "noc-net-device.h"
 #include "ns3/trace-source-accessor.h"
 #include "ns3/packet.h"
 #include "ns3/simulator.h"
 #include "ns3/log.h"
-#include "ns3/usn-net-device.h"
+#include "ns3/noc-net-device.h"
 
 NS_LOG_COMPONENT_DEFINE ("USNChannel");
 

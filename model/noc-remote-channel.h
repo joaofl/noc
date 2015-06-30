@@ -27,7 +27,7 @@
 #ifndef USN_REMOTE_CHANNEL_H
 #define USN_REMOTE_CHANNEL_H
 
-#include "usn-channel.h"
+#include "noc-channel.h"
 
 namespace ns3 {
 

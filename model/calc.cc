@@ -18,8 +18,8 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#include "usn-calc.h"
-#include "ns3/usn-calc.h"
+#include "calc.h"
+#include "ns3/calc.h"
 
 
 //#include "src/lte/helper/radio-bearer-stats-calculator.h"

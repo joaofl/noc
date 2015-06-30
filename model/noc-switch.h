@@ -34,11 +34,11 @@
 #include "ns3/ptr.h"
 #include "ns3/net-device-container.h"
 
-#include "usn-header.h"
-#include "usn-net-device.h"
-#include "usn-application.h"
-#include "usn-switch.h"
-#include "usn-types.h"
+#include "noc-header.h"
+#include "noc-net-device.h"
+#include "noc-application.h"
+#include "noc-switch.h"
+#include "noc-types.h"
 
 #define DIRECTION_ALL 0b11111111
 #define DIRECTION_E 0b00000001 //east

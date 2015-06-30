@@ -18,8 +18,8 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#include "usn-sensor.h"
-#include "ns3/usn-types.h"
+#include "sensor.h"
+#include "ns3/noc-types.h"
 
 namespace ns3 {
 

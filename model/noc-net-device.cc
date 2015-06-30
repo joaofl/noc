@@ -30,9 +30,9 @@
 #include "ns3/trace-source-accessor.h"
 #include "ns3/uinteger.h"
 #include "ns3/pointer.h"
-#include "usn-net-device.h"
-#include "usn-channel.h"
-#include "usn-header.h"
+#include "noc-net-device.h"
+#include "noc-channel.h"
+#include "noc-header.h"
 
 NS_LOG_COMPONENT_DEFINE("USNNetDevice");
 

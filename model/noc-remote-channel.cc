@@ -22,8 +22,8 @@
 
 #include <iostream>
 
-#include "usn-remote-channel.h"
-#include "usn-net-device.h"
+#include "noc-remote-channel.h"
+#include "noc-net-device.h"
 #include "ns3/packet.h"
 #include "ns3/simulator.h"
 #include "ns3/log.h"

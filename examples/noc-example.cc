@@ -35,16 +35,16 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 //#include "ns3/internet-module.h"
-#include "ns3/usn-module.h"
+#include "ns3/noc-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/netanim-module.h"
 #include "src/core/model/object-base.h"
 
-#include "src/usn/model/usn-application.h"
-#include "src/usn/model/usn-io-data.h"
-//#include "src/usn/model/usn-net-device.h"
-//#include "src/usn/model/usn-application.h"
+#include "src/noc/model/noc-application.h"
+#include "src/noc/model/sensor-data-io.h"
+//#include "src/noc/model/noc-net-device.h"
+//#include "src/noc/model/noc-application.h"
 //#include "ns3/simple-net-device.h"
 
 
@@ -55,7 +55,7 @@ NS_LOG_COMPONENT_DEFINE("USNExample");
 //ssh://aruntu@joaofl.ddns.net//media/hd/Joao/Repositorios/ns-3-dev
 
 //run command Netbeans
-//"${OUTPUT_PATH}" $(cat ~/usn-data/config/input-config.c.csv)
+//"${OUTPUT_PATH}" $(cat ~/noc-data/config/input-config.c.csv)
 
 using namespace std;
 using namespace ns3;
@@ -267,7 +267,7 @@ packet_exchanged_phy(string context, Ptr<const Packet> pck) {
 }
 
 //run command Netbeans
-//"${OUTPUT_PATH}" $(cat ~/usn-data/config/input-config.c.csv)
+//"${OUTPUT_PATH}" $(cat ~/noc-data/config/input-config.c.csv)
 
 int
 main(int argc, char *argv[]) {

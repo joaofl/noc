@@ -38,7 +38,7 @@
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
 
-#include "usn-types.h"
+#include "noc-types.h"
 
 
 

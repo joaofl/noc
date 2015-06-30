@@ -20,14 +20,14 @@
  */
 
 
-#include "usn-header.h"
-#include "usn-net-device.h"
-#include "usn-application.h"
-#include "usn-switch.h"
+#include "noc-header.h"
+#include "noc-net-device.h"
+#include "noc-application.h"
+#include "noc-switch.h"
 #include "src/core/model/object.h"
-#include "ns3/usn-types.h"
-#include "ns3/usn-header.h"
-#include "ns3/usn-switch.h"
+#include "ns3/noc-types.h"
+#include "ns3/noc-header.h"
+#include "ns3/noc-switch.h"
 
 
 using namespace std;

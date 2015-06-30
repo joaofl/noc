@@ -21,8 +21,8 @@
 
 #include <complex>
 
-#include "usn-io-data.h"
-#include "ns3/usn-types.h"
+#include "sensor-data-io.h"
+#include "ns3/noc-types.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 typedef struct stat Stat;

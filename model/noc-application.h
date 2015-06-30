@@ -32,14 +32,14 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 
-#include "usn-application.h"
-#include "usn-header.h"
-#include "usn-net-device.h"
-#include "usn-switch.h"
-#include "usn-types.h"
-#include "usn-sensor.h"
-#include "usn-calc.h"
-#include "usn-io-data.h"
+#include "noc-application.h"
+#include "noc-header.h"
+#include "noc-net-device.h"
+#include "noc-switch.h"
+#include "noc-types.h"
+#include "sensor.h"
+#include "calc.h"
+#include "sensor-data-io.h"
 
 #define DIR_ALL         0b00001111
 #define DIR_RIGHT       0b00000001

@@ -18,14 +18,14 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#include "ns3/usn-application.h"
-#include "ns3/usn-header.h"
-#include "ns3/usn-net-device.h"
-#include "ns3/usn-switch.h"
-#include "ns3/usn-calc.h"
-#include "ns3/usn-io-data.h"
-#include "usn-types.h"
-#include "usn-application.h"
+#include "ns3/noc-application.h"
+#include "ns3/noc-header.h"
+#include "ns3/noc-net-device.h"
+#include "ns3/noc-switch.h"
+#include "ns3/calc.h"
+#include "ns3/sensor-data-io.h"
+#include "noc-types.h"
+#include "noc-application.h"
 
 //using namespace ns3USNCalc;
 using namespace std;
