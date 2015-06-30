@@ -452,7 +452,7 @@ namespace ns3 {
         //        }
 
         if (IsSink == false) {
-            Ptr<NOCSensor> sensor = this->GetNode()->GetApplication(2)->GetObject<NOCSensor>();
+            Ptr<SENSOR> sensor = this->GetNode()->GetApplication(2)->GetObject<SENSOR>();
 
             NOCHeader hd;
             hd.CurrentX = 0;

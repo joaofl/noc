@@ -38,9 +38,9 @@ import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import matplotlib.animation as animation
 
-import usn_plots
-import usn_io
-import usn_calc
+import noc_plots
+import noc_io
+import noc_calc
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
@@ -568,7 +568,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
                 # self.input_data_list.append(self.convert_image(image))
                 # image_ant = image
 
-            self.input_data_list = usn_calc.normalize_data_array(self.input_data_list, self.sbSensorResolution.value())
+            self.input_data_list = noc_calc.normalize_data_array(self.input_data_list, self.sbSensorResolution.value())
 
             # self.countour_image = self.find_contour(im_file, show=0)
 
@@ -580,8 +580,8 @@ class MyWindowClass(QtGui.QWidget, form_class):
             self.timer_gd.start(200)
 
             filename = self.working_base_dir + "/plots/input-data"
-            usn_plots.matrix(self.input_data_list[ 0], filename + "-ti.eps")
-            usn_plots.matrix(self.input_data_list[-1], filename + "-tf.eps")
+            noc_plots.matrix(self.input_data_list[ 0], filename + "-ti.eps")
+            noc_plots.matrix(self.input_data_list[-1], filename + "-tf.eps")
 
 
         if errors == 0:
@@ -764,7 +764,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
         file_name = working_dir + "/out/packets-trace" + file_extension
 
         #load form an specific file
-        pck_trace = usn_io.load_list(file_name)
+        pck_trace = noc_io.load_list(file_name)
 
 
         if pck_trace == -1:
@@ -780,7 +780,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
         spliting_points = []
         ti = int(1e9 + 2 * period)
         for i in range(len(pck_trace)-1):
-            ta = int(pck_trace[i][usn_io.DEF_TIME])
+            ta = int(pck_trace[i][noc_io.DEF_TIME])
 
             if ta - ti >= period:
                 spliting_points.append(i)
@@ -790,7 +790,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
         num_cores = multiprocessing.cpu_count()
 
-        results = Parallel(n_jobs=num_cores)(delayed(usn_io.flow_trace)(pck_trace_split[i]) for i in range(len(pck_trace_split)))
+        results = Parallel(n_jobs=num_cores)(delayed(noc_io.flow_trace)(pck_trace_split[i]) for i in range(len(pck_trace_split)))
 
         flows = results[0]
 
@@ -875,7 +875,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
         number_of_transmissions.pop(0)
         em_count.pop(0)
-        usn_plots.plot2xy(em_count, number_of_transmissions, label_x='Neighborhood size ($n_{hops}$)', label_y1='EM packet count (10-e3)',
+        noc_plots.plot2xy(em_count, number_of_transmissions, label_x='Neighborhood size ($n_{hops}$)', label_y1='EM packet count (10-e3)',
                           label_y2='EA packet count', show=True, logscale=False, legend=['EM', 'EA'],
                           filename = self.working_base_dir + '/plots/em_x_ea.eps', two_axis=True)
 
@@ -907,10 +907,10 @@ class MyWindowClass(QtGui.QWidget, form_class):
     def pbActivityHistogram_clicked(self):
         flow = self.working_dir + '/out/flow-trace.csv'
         fn = self.working_dir + '/plots/activity-histogram.eps'
-        usn_plots.histogram(self.read_flow_trace_file(flow), fn, "", "Time [ms]", "Number of transmissions", bin_width=self.period * 1e3)
+        noc_plots.histogram(self.read_flow_trace_file(flow), fn, "", "Time [ms]", "Number of transmissions", bin_width=self.period * 1e3)
 
     def pbActivityHistogramMultiple_clicked(self):
-        files = usn_io.find_multiple_files(self.working_base_dir, 'flow-trace.csv')
+        files = noc_io.find_multiple_files(self.working_base_dir, 'flow-trace.csv')
         flows_list = []
         legends = []
         numbering = []
@@ -939,7 +939,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
         # usn_plots.histogram(flows_ds_count, filename=fn, show=True)
 
         fn = self.working_base_dir + '/plots/activity-histogram.eps'
-        usn_plots.histogram_multiple(flows_list, fn, "", "Time [ms]", "Number of DAs", legends=legends, bin_width=self.period * 1e3, show=True)
+        noc_plots.histogram_multiple(flows_list, fn, "", "Time [ms]", "Number of DAs", legends=legends, bin_width=self.period * 1e3, show=True)
 
     def pbpbNumberTransmissionsDS_clicked(self):
 
@@ -952,20 +952,20 @@ class MyWindowClass(QtGui.QWidget, form_class):
         packets_ds_count = []
 
         # plot here the duration of the DS phase
-        packet_trace_files = usn_io.find_multiple_files(self.working_base_dir, 'packets-trace.csv')
+        packet_trace_files = noc_io.find_multiple_files(self.working_base_dir, 'packets-trace.csv')
         for packet_trace_file in packet_trace_files:
-            packet_trace = usn_io.load_list(packet_trace_file)
+            packet_trace = noc_io.load_list(packet_trace_file)
             s = (packet_trace_file.split('/')[4].split('nw101x101s1n')[1])
             i = int(s[0])
             scenario = s[1] + s[2]
             for packet in packet_trace:
-                if int(packet[usn_io.DEF_PROTOCOL]) == usn_io.DEF_DATA_SHARING:
+                if int(packet[noc_io.DEF_PROTOCOL]) == noc_io.DEF_DATA_SHARING:
                     count_ds += 1
 
-                if int(packet[usn_io.DEF_PROTOCOL]) == usn_io.DEF_DATA_ANNOUCEMENT and scenario == 'FD':
+                if int(packet[noc_io.DEF_PROTOCOL]) == noc_io.DEF_DATA_ANNOUCEMENT and scenario == 'FD':
                     count_da_fd += 1
 
-                if int(packet[usn_io.DEF_PROTOCOL]) == usn_io.DEF_DATA_ANNOUCEMENT and scenario == 'CL':
+                if int(packet[noc_io.DEF_PROTOCOL]) == noc_io.DEF_DATA_ANNOUCEMENT and scenario == 'CL':
                     count_da_cl += 1
 
             packets_ds_count.append((i, count_ds, count_da_fd, count_da_cl))
@@ -980,12 +980,12 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
         print packets_ds_count
         fn = self.working_base_dir + '/plots/activity-ds.eps'
-        usn_plots.bar(packets_ds_count, show=True, legends=legends, filename=fn, label_x='$n_{hops}$', label_y='Number of transmissions')
+        noc_plots.bar(packets_ds_count, show=True, legends=legends, filename=fn, label_x='$n_{hops}$', label_y='Number of transmissions')
 
 
 
     def pbQueueSizeOverTime_clicked(self):
-        queue = usn_io.load_list(self.working_dir + '/out/queue-size-over-time.csv')
+        queue = noc_io.load_list(self.working_dir + '/out/queue-size-over-time.csv')
         queue = np.delete(queue, (0), axis=0)
 
         t0 = float(queue[0][0])
@@ -996,13 +996,13 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
 
 
-        usn_plots.plotxy(data1, show=True, logscale=False,
+        noc_plots.plotxy(data1, show=True, logscale=False,
                          filename = self.working_dir + '/plots/queue-size-over-time-p1.eps')
-        usn_plots.plotxy(data2, show=True, logscale=False,
+        noc_plots.plotxy(data2, show=True, logscale=False,
                          filename = self.working_dir + '/plots/queue-size-over-time-p0.eps')
 
     def pbQueueSizeOverTimeMultiple_clicked(self):
-        files = usn_io.find_multiple_files(self.working_base_dir, 'queue-size-over-time.csv')
+        files = noc_io.find_multiple_files(self.working_base_dir, 'queue-size-over-time.csv')
 
         data1 = []
         data2 = []
@@ -1011,7 +1011,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
         for file in files:
             i = int(file.split('/')[4].split('nw101x101s1n')[1])
-            queue = usn_io.load_list(file)
+            queue = noc_io.load_list(file)
             queue = np.delete(queue, (0), axis=0)
 
             max1 = np.max( [int(v[1]) for v in queue] )
@@ -1031,37 +1031,37 @@ class MyWindowClass(QtGui.QWidget, form_class):
         #                   label_y2='Maximum queue size', y_lim=[0, max], legend=['p0', 'p1'],
         #                   filename = self.working_base_dir + '/plots/queue-size-over-time.eps')
 
-        usn_plots.plotxy_multiple([data1, data2, data3], show=True, logscale=False, label_x='Neighborhood size ($n_{hops}$)',
+        noc_plots.plotxy_multiple([data1, data2, data3], show=True, logscale=False, label_x='Neighborhood size ($n_{hops}$)',
                           label_y='Maximum queue size',
                           y_lim=[0, max], legend=['p0', 'p1', 'p0 + p1'], plot_type='plot',
                           filename = self.working_base_dir + '/plots/queue-size-over-time.eps', legend_position=1)
 
     def pbIOCompare_clicked(self):
 
-        data_in = usn_io.load_sensors_data(self.working_dir + '/in/input-data.s.csv', t=1)
-        data_out = usn_io.load_sensors_data(self.working_dir + '/out/output-data-s-0.csv', t=0)
+        data_in = noc_io.load_sensors_data(self.working_dir + '/in/input-data.s.csv', t=1)
+        data_out = noc_io.load_sensors_data(self.working_dir + '/out/output-data-s-0.csv', t=0)
 
-        data_out = usn_calc.trim(data_out, data_in.shape[1], data_in.shape[0])
+        data_out = noc_calc.trim(data_out, data_in.shape[1], data_in.shape[0])
 
         data_out_rebuilt = deepcopy(data_out)
-        data_out_rebuilt = usn_calc.rebuild_plato(data_out_rebuilt)
+        data_out_rebuilt = noc_calc.rebuild_plato(data_out_rebuilt)
 
-        usn_plots.matrix(data_in, filename = self.working_dir + '/plots/input-data.eps')
-        usn_plots.matrix(data_out, filename = self.working_dir + '/plots/output-data.eps') #show both
-        usn_plots.matrix(data_out_rebuilt, filename = self.working_dir + '/plots/output-data-rebuilt.eps', show=True) #show both
+        noc_plots.matrix(data_in, filename = self.working_dir + '/plots/input-data.eps')
+        noc_plots.matrix(data_out, filename = self.working_dir + '/plots/output-data.eps') #show both
+        noc_plots.matrix(data_out_rebuilt, filename = self.working_dir + '/plots/output-data-rebuilt.eps', show=True) #show both
 
-        data_diff, mse = usn_calc.diff(data_in, data_out)
+        data_diff, mse = noc_calc.diff(data_in, data_out)
 
         print("\n mse = " + str(mse) + "\n")
 
-        usn_io.write_single_value(mse, filename = self.working_dir + '/plots/mse.csv')
+        noc_io.write_single_value(mse, filename = self.working_dir + '/plots/mse.csv')
 
-        usn_plots.matrix(data_diff, filename = self.working_dir + '/plots/data-diff.eps')
+        noc_plots.matrix(data_diff, filename = self.working_dir + '/plots/data-diff.eps')
 
         ###################################################################################
 
     def pbIOCompareError_clicked(self):
-        files = usn_io.find_multiple_files(self.working_base_dir, 'mse.csv')
+        files = noc_io.find_multiple_files(self.working_base_dir, 'mse.csv')
 
         data_set1 = []
         data_set2 = []
@@ -1069,38 +1069,38 @@ class MyWindowClass(QtGui.QWidget, form_class):
         for file in files:
             s = (file.split('/')[4].split('nw101x101s1n')[1])
             i = int(s[0])
-            data_set1.append([i, usn_io.load_single_value(file)])
+            data_set1.append([i, noc_io.load_single_value(file)])
 
-        files = usn_io.find_multiple_files(self.working_base_dir, 'packets-trace.csv')
+        files = noc_io.find_multiple_files(self.working_base_dir, 'packets-trace.csv')
 
         for file in files:
             s = (file.split('/')[4].split('nw101x101s1n')[1])
             i = int(s[0])
-            pck_trace = usn_io.load_list(file)
+            pck_trace = noc_io.load_list(file)
             # t = float(int(pck_trace[-1][1]) - int(pck_trace[0][1])) / 1000000
             t = float(int(pck_trace[-1][1]) - int(pck_trace[0][1])) / 8799
             data_set2.append([i, t])
 
 
-        usn_plots.plot2xy(data_set2, data_set1, label_x='Neighborhood size ($n_{hops}$)', label_y2='Mean square error (MSE)',
+        noc_plots.plot2xy(data_set2, data_set1, label_x='Neighborhood size ($n_{hops}$)', label_y2='Mean square error (MSE)',
                           label_y1='Max. end-to-end delay (TTS)', show=True, logscale=False, legend=['delay', 'MSE'],
                           filename = self.working_base_dir + '/plots/mse.eps', two_axis=True)
         #mean square error
         ####################################################################################
 
     def pbThroughput_clicked(self):
-        pck_trace = usn_io.load_list(self.working_dir + '/out/packets-trace.csv')
+        pck_trace = noc_io.load_list(self.working_dir + '/out/packets-trace.csv')
 
-        throughput = usn_calc.trhoughput(pck_trace)
+        throughput = noc_calc.trhoughput(pck_trace)
 
         print 'Total packets exchanged: ' + str(np.sum(throughput, 0))
 
         # usn_plots.plotxy(throughput, show=True, filename = self.working_dir + '/plots/throughput.eps', x_lim=[1100000000,1115600000], y_lim=[0,42000])
-        usn_plots.plotxy(throughput, show=True, logscale=True, filename = self.working_dir + '/plots/throughput.eps') #, x_lim=[9.05,9.06], y_lim=[0,42000])
+        noc_plots.plotxy(throughput, show=True, logscale=True, filename = self.working_dir + '/plots/throughput.eps') #, x_lim=[9.05,9.06], y_lim=[0,42000])
 
     def pbTrhoughputMultiple_clicked(self):
 
-        files = usn_io.find_multiple_files(self.working_base_dir, 'packets-trace.csv')
+        files = noc_io.find_multiple_files(self.working_base_dir, 'packets-trace.csv')
         legends = []
         throughputs = []
 
@@ -1108,16 +1108,16 @@ class MyWindowClass(QtGui.QWidget, form_class):
             s = (file.split('/')[4].split('nw101x101s1n')[1])
             # i = int(s[0])
             legends.append('$n_{hops}=' + s[0] + '$')
-            pck_trace = usn_io.load_list(file)
-            throughput = usn_calc.trhoughput(pck_trace)
+            pck_trace = noc_io.load_list(file)
+            throughput = noc_calc.trhoughput(pck_trace)
             throughputs.append(throughput)
 
-        usn_plots.plotxy_multiple(throughputs, label_x='Total execution time (TTS) in time slot', label_y='Number of packets received',
+        noc_plots.plotxy_multiple(throughputs, label_x='Total execution time (TTS) in time slot', label_y='Number of packets received',
                                   show=True, legend=legends, logscale=True,
                                   x_lim=[0,2600],
                                   filename = self.working_base_dir + '/plots/throughput.eps')
 
-        usn_plots.plotxy_multiple(throughputs, label_x='Total execution time (TTS) in time slot', label_y='Number of packets received',
+        noc_plots.plotxy_multiple(throughputs, label_x='Total execution time (TTS) in time slot', label_y='Number of packets received',
                                   show=True, legend=legends, x_lim=[0,60],y_lim=[1e2,1e5], logscale=True,
                                   filename = self.working_base_dir + '/plots/throughput-zoom.eps')
 
@@ -1131,7 +1131,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
         # lines = ['solid', 'dashed', 'dotted', 'dashdot', (0, (3.0, 4.0)), (0, (8.0, 8.0))]
         # linecycler = cycle(lines)
 
-        dists_files = usn_io.find_multiple_files(self.working_base_dir, 'contour-diff')
+        dists_files = noc_io.find_multiple_files(self.working_base_dir, 'contour-diff')
 
         for dir in dists_files:
             legends.append('n_hops=' + dir.split('/')[4].split('nw101x101s1n')[1])
@@ -1183,11 +1183,11 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
         # usn_plots.plotxy(mse,show=True , filename = self.working_dir + '/plots/mse.eps', logscale=False, label_y="MSE (1e-3)", label_x='n_hops', step=False)
 
-        files = usn_io.find_multiple_files(self.working_base_dir, 'packets-trace.csv')
+        files = noc_io.find_multiple_files(self.working_base_dir, 'packets-trace.csv')
         delay = []
         for file in files:
             i = int(file.split('/')[4].split('nw101x101s1n')[1])
-            pck_trace = usn_io.load_list(file)
+            pck_trace = noc_io.load_list(file)
             # t = float(int(pck_trace[-1][1]) - int(pck_trace[0][1])) / 1000000
             t = float(int(pck_trace[-1][1]) - int(pck_trace[0][1])) / 8799
             delay.append([i, t])
@@ -1197,7 +1197,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
         delay.pop(0)
 
-        usn_plots.plot2xy(delay, mse, label_x='Neighborhood size ($n_{hops}$)', label_y2='MSE (1e-3)',
+        noc_plots.plot2xy(delay, mse, label_x='Neighborhood size ($n_{hops}$)', label_y2='MSE (1e-3)',
                           label_y1='Max. end-to-end delay (TTS)', show=True, logscale=False, legend=['delay', 'MSE'],
                           filename = self.working_base_dir + '/plots/mse.eps', two_axis=True)
 
@@ -1305,7 +1305,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
 
         for l in self.flows_transmission_time:
 
-            dist = usn_calc.dist(l[3], l[4], self.sink_x, self.sink_y)[2] #get the element 2 of the array returned by the f
+            dist = noc_calc.dist(l[3], l[4], self.sink_x, self.sink_y)[2] #get the element 2 of the array returned by the f
 
             transmission_time = (l[2] - l[1])
             # self.listWidget.addItem(str(l[0]) + '\t(' + str(l[3]) + ',' + str(l[4]) + ') d=' + str(dist) + '\t' + str( (l[2] - l[1]) * 10E-6))

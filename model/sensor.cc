@@ -23,23 +23,23 @@
 
 namespace ns3 {
 
-    NOCSensor::NOCSensor()
+    SENSOR::SENSOR()
     : m_running(false){
     }
 
-    NOCSensor::~NOCSensor() {
+    SENSOR::~SENSOR() {
     }
 
 
     void
-    NOCSensor::StartApplication(void) {
+    SENSOR::StartApplication(void) {
 
         Ptr<Node> nd = this->GetNode();
         m_time_instant = 0;
         
     }
     
-    uint32_t NOCSensor::ReadSensor(void){
+    uint32_t SENSOR::ReadSensor(void){
         
         uint32_t r = InputData->ReadNode(m_time_instant, SensorPosition.x, SensorPosition.y);
         m_time_instant++;
@@ -50,7 +50,7 @@ namespace ns3 {
     }
 
     void
-    NOCSensor::StopApplication(void) {
+    SENSOR::StopApplication(void) {
         m_running = false;
 
         if (m_sendEvent.IsRunning()) {

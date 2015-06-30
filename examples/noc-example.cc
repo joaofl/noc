@@ -375,7 +375,7 @@ main(int argc, char *argv[]) {
 
         Ptr<NOCApp> my_noc_app = CreateObject<NOCApp> ();
         Ptr<NOCSwitch> my_noc_switch = CreateObject<NOCSwitch> ();
-        Ptr<NOCSensor> my_noc_sensor = CreateObject<NOCSensor> ();
+        Ptr<SENSOR> my_sensor = CreateObject<SENSOR> ();
 
         //Setup app
         my_noc_app->IsSink = false;
@@ -412,21 +412,21 @@ main(int argc, char *argv[]) {
         my_noc_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
 
         //Setup sensor
-        my_noc_sensor->SensorPosition.x = x;
-        my_noc_sensor->SensorPosition.y = y;
-        my_noc_sensor->InputData = &my_input_data;
+        my_sensor->SensorPosition.x = x;
+        my_sensor->SensorPosition.y = y;
+        my_sensor->InputData = &my_input_data;
 
 
         //Should be installed in this order!!!
         my_node_container.Get(i)->AddApplication(my_noc_app);
         my_node_container.Get(i)->AddApplication(my_noc_switch);
-        my_node_container.Get(i)->AddApplication(my_noc_sensor);
+        my_node_container.Get(i)->AddApplication(my_sensor);
 
 
 
         my_noc_app_container.Add(my_noc_app);
         my_noc_switch_container.Add(my_noc_switch);
-        my_noc_sensor_container.Add(my_noc_sensor);
+        my_noc_sensor_container.Add(my_sensor);
     }
 
     // Setting the sinks
