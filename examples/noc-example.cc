@@ -53,9 +53,10 @@ NS_LOG_COMPONENT_DEFINE("NOCExample");
 
 //myrepo
 //ssh://aruntu@joaofl.ddns.net//media/hd/Joao/Repositorios/ns-3-dev
+//https://bitbucket.org/joaofl/noc
 
 //run command Netbeans
-//"${OUTPUT_PATH}" $(cat ~/noc-data/config/input-config.c.csv)
+//"${OUTPUT_PATH}" $(cat ~/usn-data/config/input-config.c.csv)
 
 using namespace std;
 using namespace ns3;
@@ -352,7 +353,7 @@ main(int argc, char *argv[]) {
         
     //Install applications;
     
-    
+   
     ApplicationContainer my_noc_sink_app_container;
     ApplicationContainer my_noc_app_container;
     ApplicationContainer my_noc_switch_container;
@@ -367,6 +368,8 @@ main(int argc, char *argv[]) {
         return -1;
     }
     
+    
+   
     for (uint32_t i = 0; i < n_nodes; i++) {
 
 
@@ -374,18 +377,18 @@ main(int argc, char *argv[]) {
         uint32_t y = floor(i / size_y);
 
         Ptr<NOCApp> my_noc_app = CreateObject<NOCApp> ();
+//        Ptr<NOCApp> my_noc_app = my_noc_app_factory.Create ();
         Ptr<NOCSwitch> my_noc_switch = CreateObject<NOCSwitch> ();
         Ptr<SENSOR> my_sensor = CreateObject<SENSOR> ();
 
         //Setup app
         my_noc_app->IsSink = false;
         my_noc_app->MaxHops = size_neighborhood;
-        //my_noc_switch->SetStartTime(Seconds(0));
-        my_noc_app->SetStartTime(Seconds(0));
         my_noc_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
         my_noc_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
         my_noc_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
-        // detect the neighborhood
+        my_noc_app->SetStartTime(Seconds(0));
+
 
         //Setup Net Device's Callback
         uint8_t n_devices = my_node_container.Get(i)->GetNDevices();
@@ -395,7 +398,7 @@ main(int argc, char *argv[]) {
         for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
             my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<NOCNetDevice>();
 //            uint8_t n = my_net_device->GetNOCAddress();
-            ostringstream ss;
+            ostringstream ss; //Used as the context. From which node (x,y) the callback was generated.
             ss << i << "," << x << "," << y << "," << (int) j;
             my_net_device->TraceConnect("MacRx", ss.str(), MakeCallback(&packet_received_netdevice_mac));
             my_net_device->TraceConnect("MacTx", ss.str(), MakeCallback(&packet_sent_netdevice_mac));
@@ -421,8 +424,6 @@ main(int argc, char *argv[]) {
         my_node_container.Get(i)->AddApplication(my_noc_app);
         my_node_container.Get(i)->AddApplication(my_noc_switch);
         my_node_container.Get(i)->AddApplication(my_sensor);
-
-
 
         my_noc_app_container.Add(my_noc_app);
         my_noc_switch_container.Add(my_noc_switch);

@@ -207,7 +207,7 @@ private:
 //    cmd.AddValue("baudrate", "The baudrate of the node's communication ports [kbps]", baudrate);
 //    cmd.AddValue("io_data_dir", "Directory with the I/O simulation data", io_data_dir);
   
-  uint32_t m_sizeX, m_sizeY, m_baudrate, m_connectionWidth, m_queueSize, m_nodesCreated;
+  uint32_t m_sizeX, m_sizeY, m_baudrate, m_channelCount, m_queueSize, m_nodesCreated;
   std::string m_topology; //"Grid" only for now
   
 };

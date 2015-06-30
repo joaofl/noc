@@ -64,15 +64,15 @@ namespace ns3 {
         static TypeId GetTypeId(void);
 
 
-        uint32_t PacketsReceived;
-        uint32_t PacketsReceivedP1;
-        uint32_t PacketsReceivedP2;
-        uint32_t PacketsReceivedP3;
-
-        uint32_t PacketsSent;
-        uint32_t PacketsSentP1;
-        uint32_t PacketsSentP2;
-        uint32_t PacketsSentP3;
+//        uint32_t PacketsReceived;
+//        uint32_t PacketsReceivedP1;
+//        uint32_t PacketsReceivedP2;
+//        uint32_t PacketsReceivedP3;
+//
+//        uint32_t PacketsSent;
+//        uint32_t PacketsSentP1;
+//        uint32_t PacketsSentP2;
+//        uint32_t PacketsSentP3;
         
         uint32_t queue_size_prioritized;
         uint32_t queue_size;

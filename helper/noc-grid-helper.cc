@@ -77,7 +77,7 @@ void
     }
     else if (name.compare("ConnectionWidth") == 0) //Is the same
     {
-        m_connectionWidth = value;
+        m_channelCount = value;
     }
 }
 
