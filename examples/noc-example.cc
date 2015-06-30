@@ -35,27 +35,27 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 //#include "ns3/internet-module.h"
-#include "ns3/usn-module.h"
+#include "ns3/noc-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/netanim-module.h"
 #include "src/core/model/object-base.h"
 
-#include "src/usn/model/usn-application.h"
-#include "src/usn/model/usn-io-data.h"
-//#include "src/usn/model/usn-net-device.h"
-//#include "src/usn/model/usn-application.h"
+#include "src/noc/model/noc-application.h"
+#include "src/noc/model/sensor-data-io.h"
+//#include "src/noc/model/noc-net-device.h"
+//#include "src/noc/model/noc-application.h"
 //#include "ns3/simple-net-device.h"
 
 
-NS_LOG_COMPONENT_DEFINE("USNExample");
+NS_LOG_COMPONENT_DEFINE("NOCExample");
 
 
 //myrepo
 //ssh://aruntu@joaofl.ddns.net//media/hd/Joao/Repositorios/ns-3-dev
 
 //run command Netbeans
-//"${OUTPUT_PATH}" $(cat ~/usn-data/config/input-config.c.csv)
+//"${OUTPUT_PATH}" $(cat ~/noc-data/config/input-config.c.csv)
 
 using namespace std;
 using namespace ns3;
@@ -99,16 +99,16 @@ uint32_t start_offset;
 void
 packet_exchanged_switch_sink(string context, Ptr<const Packet> pck, uint8_t direction) {
     
-    USNHeader hd;
+    NOCHeader hd;
     pck->PeekHeader(hd);
-    if (hd.GetUSNProtocol() == P_EVENT_ANNOUNCEMENT) {
+    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
         file_packets_trace_sink
                 << "c,"
                 << Simulator::Now().GetNanoSeconds() << ","
                 << pck->GetUid() << ","
                 << context << "," //here «, inside context there is: node_number,x,y
                 << "p,"
-                << hd.GetUSNProtocol() << ","
+                << hd.GetNOCProtocol() << ","
                 << (int) hd.SerialNumber << ","
                 << (int) direction << ","
                 << (int) hd.EventType << ","
@@ -131,12 +131,12 @@ packet_sent_switch_sink(string context, Ptr<const Packet> pck) {
 
 void
 packet_exchanged_switch(string context, Ptr<const Packet> pck, uint8_t direction) {
-    USNHeader hd;
+    NOCHeader hd;
     pck->PeekHeader(hd);
     if (Simulator::Now().GetNanoSeconds() >= (log_start_at_period * sampling_period * 1000 + start_offset * 1000)){
         
 
-        if (hd.GetUSNProtocol() == P_EVENT_ANNOUNCEMENT ) {//|| hd.GetUSNProtocol() == P_VALUE_ANNOUNCEMENT) {
+        if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT ) {//|| hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
 
             //    if (pck->GetUid() == 104) {
             file_packets_trace
@@ -146,7 +146,7 @@ packet_exchanged_switch(string context, Ptr<const Packet> pck, uint8_t direction
                     << (int) direction << ","
                     << context << "," //here «, inside context there is: node_number,x,y
                     << "p,"
-                    << hd.GetUSNProtocol() << ","
+                    << hd.GetNOCProtocol() << ","
                     << (int) hd.SerialNumber << ","
                     << (int) hd.EventType << ","
                     << hd.EventData[0] << ","
@@ -156,7 +156,7 @@ packet_exchanged_switch(string context, Ptr<const Packet> pck, uint8_t direction
             //    }
         }
     }
-//    else if (hd.GetUSNProtocol() == P_VALUE_ANNOUNCEMENT) {
+//    else if (hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
 //        uint32_t now = Simulator::Now().GetNanoSeconds();
 //        
 //        if (value_annoucement_start_time == 0 || now - value_annoucement_start_time == 50000000){
@@ -185,9 +185,9 @@ packet_sent_switch(string context, Ptr<const Packet> pck) {
 
 void
 log_packet(string context, Ptr<const Packet> pck, uint8_t direction) {
-    USNHeader hd;
+    NOCHeader hd;
     pck->PeekHeader(hd);
-    if (hd.GetUSNProtocol() == P_EVENT_ANNOUNCEMENT) {
+    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
     //    if (pck->GetUid() == 104 || pck->GetUid() == 110 ) {
             file_packets_trace_net_device
             << "c,"
@@ -196,7 +196,7 @@ log_packet(string context, Ptr<const Packet> pck, uint8_t direction) {
             << (int) direction << ","
             << context << "," //here «, inside context there is: node_number, x, y, port_number
             << "p,"
-            << hd.GetUSNProtocol() << ","
+            << hd.GetNOCProtocol() << ","
             << (int) hd.SerialNumber << ","
             << (int) hd.EventType << ","
             << hd.EventData[0] << ","
@@ -223,7 +223,7 @@ log_queue_size(string context, Ptr<const Packet> pck){
     uint64_t time = Simulator::Now().GetNanoSeconds();
     uint32_t qs,qsp;
     
-    Ptr<USNNetDevice> nd = my_node_container.Get(node_n)->GetDevice(nd_n)->GetObject<USNNetDevice>();
+    Ptr<NOCNetDevice> nd = my_node_container.Get(node_n)->GetDevice(nd_n)->GetObject<NOCNetDevice>();
 
     qs = nd->queue_size;
     qsp = nd->queue_size_prioritized;
@@ -267,14 +267,14 @@ packet_exchanged_phy(string context, Ptr<const Packet> pck) {
 }
 
 //run command Netbeans
-//"${OUTPUT_PATH}" $(cat ~/usn-data/config/input-config.c.csv)
+//"${OUTPUT_PATH}" $(cat ~/noc-data/config/input-config.c.csv)
 
 int
 main(int argc, char *argv[]) {
 
-    //LogComponentEnable("USNNetDevice",LOG_LEVEL_ALL);
-    //LogComponentEnable("USNChannel",LOG_LEVEL_ALL);
-    //LogComponentEnable("USNHeader",LOG_LEVEL_ALL);
+    //LogComponentEnable("NOCNetDevice",LOG_LEVEL_ALL);
+    //LogComponentEnable("NOCChannel",LOG_LEVEL_ALL);
+    //LogComponentEnable("NOCHeader",LOG_LEVEL_ALL);
 
     
     
@@ -305,7 +305,7 @@ main(int argc, char *argv[]) {
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
         
-    string io_data_dir = homedir + "/usn-data";
+    string io_data_dir = homedir + "/noc-data";
     
     stringstream context_dir;
     context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
@@ -338,13 +338,6 @@ main(int argc, char *argv[]) {
         cout << "Error creating the directory " << dir_output << "\n";
     }
    
-
-    
-    
-    
-
-    
-    
     //Using the new helper
     GridHelper my_grid_network;
     my_grid_network.SetNetworkAttribute("SizeX", size_x);
@@ -360,10 +353,10 @@ main(int argc, char *argv[]) {
     //Install applications;
     
     
-    ApplicationContainer my_usn_sink_app_container;
-    ApplicationContainer my_usn_app_container;
-    ApplicationContainer my_usn_switch_container;
-    ApplicationContainer my_usn_sensor_container;
+    ApplicationContainer my_noc_sink_app_container;
+    ApplicationContainer my_noc_app_container;
+    ApplicationContainer my_noc_switch_container;
+    ApplicationContainer my_noc_sensor_container;
     
     uint32_t n_nodes = my_node_container.GetN();
     
@@ -380,28 +373,28 @@ main(int argc, char *argv[]) {
         uint32_t x = i % size_x;
         uint32_t y = floor(i / size_y);
 
-        Ptr<USNApp> my_usn_app = CreateObject<USNApp> ();
-        Ptr<USNSwitch> my_usn_switch = CreateObject<USNSwitch> ();
-        Ptr<USNSensor> my_usn_sensor = CreateObject<USNSensor> ();
+        Ptr<NOCApp> my_noc_app = CreateObject<NOCApp> ();
+        Ptr<NOCSwitch> my_noc_switch = CreateObject<NOCSwitch> ();
+        Ptr<SENSOR> my_sensor = CreateObject<SENSOR> ();
 
         //Setup app
-        my_usn_app->IsSink = false;
-        my_usn_app->MaxHops = size_neighborhood;
-        //my_usn_switch->SetStartTime(Seconds(0));
-        my_usn_app->SetStartTime(Seconds(0));
-        my_usn_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
-        my_usn_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
-        my_usn_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
+        my_noc_app->IsSink = false;
+        my_noc_app->MaxHops = size_neighborhood;
+        //my_noc_switch->SetStartTime(Seconds(0));
+        my_noc_app->SetStartTime(Seconds(0));
+        my_noc_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
+        my_noc_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
+        my_noc_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
         // detect the neighborhood
 
         //Setup Net Device's Callback
         uint8_t n_devices = my_node_container.Get(i)->GetNDevices();
         
-        Ptr<USNNetDevice> my_net_device;
+        Ptr<NOCNetDevice> my_net_device;
 
         for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
-            my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<USNNetDevice>();
-//            uint8_t n = my_net_device->GetUSNAddress();
+            my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<NOCNetDevice>();
+//            uint8_t n = my_net_device->GetNOCAddress();
             ostringstream ss;
             ss << i << "," << x << "," << y << "," << (int) j;
             my_net_device->TraceConnect("MacRx", ss.str(), MakeCallback(&packet_received_netdevice_mac));
@@ -415,25 +408,25 @@ main(int argc, char *argv[]) {
         ostringstream ss;
         ss << i << "," << x << "," << y;
 
-        my_usn_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
-        my_usn_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
+        my_noc_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
+        my_noc_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
 
         //Setup sensor
-        my_usn_sensor->SensorPosition.x = x;
-        my_usn_sensor->SensorPosition.y = y;
-        my_usn_sensor->InputData = &my_input_data;
+        my_sensor->SensorPosition.x = x;
+        my_sensor->SensorPosition.y = y;
+        my_sensor->InputData = &my_input_data;
 
 
         //Should be installed in this order!!!
-        my_node_container.Get(i)->AddApplication(my_usn_app);
-        my_node_container.Get(i)->AddApplication(my_usn_switch);
-        my_node_container.Get(i)->AddApplication(my_usn_sensor);
+        my_node_container.Get(i)->AddApplication(my_noc_app);
+        my_node_container.Get(i)->AddApplication(my_noc_switch);
+        my_node_container.Get(i)->AddApplication(my_sensor);
 
 
 
-        my_usn_app_container.Add(my_usn_app);
-        my_usn_switch_container.Add(my_usn_switch);
-        my_usn_sensor_container.Add(my_usn_sensor);
+        my_noc_app_container.Add(my_noc_app);
+        my_noc_switch_container.Add(my_noc_switch);
+        my_noc_sensor_container.Add(my_sensor);
     }
 
     // Setting the sinks
@@ -447,25 +440,25 @@ main(int argc, char *argv[]) {
         uint32_t x = floor((i + 1) * 2 * delta_x - delta_x);
         uint32_t y = floor((double) size_y / 2);
         uint32_t n = x + y * size_x;
-        my_usn_app_container.Get(n)->GetObject<USNApp>()->IsSink = true;
-        my_usn_app_container.Get(n)->GetObject<USNApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
-        my_usn_sink_app_container.Add(my_usn_app_container.Get(n)); //container with the sinks only
+        my_noc_app_container.Get(n)->GetObject<NOCApp>()->IsSink = true;
+        my_noc_app_container.Get(n)->GetObject<NOCApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
+        my_noc_sink_app_container.Add(my_noc_app_container.Get(n)); //container with the sinks only
         ostringstream ss;
         ss << n << "," << x << "," << y;
-        //        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
-        //        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
-        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
-        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
+        //        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
+        //        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
+        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
+        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
     }
 
     
 
 //     
-//   USNHelper my_usn;
-//    //    my_usn.SetDeviceAttribute("DataRate", StringValue("1Mbps"));
-//    my_usn.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
-//    //    my_usn.SetChannelAttribute("Delay", StringValue("0us"));
-//    my_usn.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
+//   NOCHelper my_noc;
+//    //    my_noc.SetDeviceAttribute("DataRate", StringValue("1Mbps"));
+//    my_noc.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
+//    //    my_noc.SetChannelAttribute("Delay", StringValue("0us"));
+//    my_noc.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
 
     
 
@@ -516,15 +509,15 @@ main(int argc, char *argv[]) {
     //Write to file the information the sinks have received
 //    ApplicationContainer::Iterator i;
 //    uint8_t s = 0;
-//    for (i = my_usn_sink_app_container.Begin(); i != my_usn_sink_app_container.End(); ++i) {
+//    for (i = my_noc_sink_app_container.Begin(); i != my_noc_sink_app_container.End(); ++i) {
 //        stringstream ss;
 //        ss << "output-data-s-" << (int)s << ".csv";
 //        filename = dir_output + ss.str();
 ////        if (operational_mode == 0)
-////            (*i)->GetObject<USNApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood); // some Application method
+////            (*i)->GetObject<NOCApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood); // some Application method
 ////        else if (operational_mode == 1)
-////            (*i)->GetObject<USNApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood);
-////       //     (*i)->GetObject<USNApp>()->SinkReceivedData->WritePointsToFile(filename, size_x, size_y);
+////            (*i)->GetObject<NOCApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood);
+////       //     (*i)->GetObject<NOCApp>()->SinkReceivedData->WritePointsToFile(filename, size_x, size_y);
 //        cout << "Log file created at: '" << filename << "'" << endl;
 //    }
     
@@ -539,7 +532,7 @@ main(int argc, char *argv[]) {
 
     cout << Simulator::Now().GetSeconds();
 
-    //    USNPlotData my_plots;
+    //    NOCPlotData my_plots;
     //    
     //    my_plots.PlotExample(dir);
 

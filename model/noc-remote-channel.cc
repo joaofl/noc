@@ -22,42 +22,42 @@
 
 #include <iostream>
 
-#include "usn-remote-channel.h"
-#include "usn-net-device.h"
+#include "noc-remote-channel.h"
+#include "noc-net-device.h"
 #include "ns3/packet.h"
 #include "ns3/simulator.h"
 #include "ns3/log.h"
 #include "ns3/mpi-interface.h"
 
-NS_LOG_COMPONENT_DEFINE ("USNRemoteChannel");
+NS_LOG_COMPONENT_DEFINE ("NOCRemoteChannel");
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (USNRemoteChannel)
+NS_OBJECT_ENSURE_REGISTERED (NOCRemoteChannel)
   ;
 
 TypeId
-USNRemoteChannel::GetTypeId (void)
+NOCRemoteChannel::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::USNRemoteChannel")
-    .SetParent<USNChannel> ()
-    .AddConstructor<USNRemoteChannel> ()
+  static TypeId tid = TypeId ("ns3::NOCRemoteChannel")
+    .SetParent<NOCChannel> ()
+    .AddConstructor<NOCRemoteChannel> ()
   ;
   return tid;
 }
 
-USNRemoteChannel::USNRemoteChannel ()
+NOCRemoteChannel::NOCRemoteChannel ()
 {
 }
 
-USNRemoteChannel::~USNRemoteChannel ()
+NOCRemoteChannel::~NOCRemoteChannel ()
 {
 }
 
 bool
-USNRemoteChannel::TransmitStart (
+NOCRemoteChannel::TransmitStart (
   Ptr<Packet> p,
-  Ptr<USNNetDevice> src,
+  Ptr<NOCNetDevice> src,
   Time txTime)
 {
   NS_LOG_FUNCTION (this << p << src);
@@ -66,7 +66,7 @@ USNRemoteChannel::TransmitStart (
   IsInitialized ();
 
   uint32_t wire = src == GetSource (0) ? 0 : 1;
-  Ptr<USNNetDevice> dst = GetDestination (wire);
+  Ptr<NOCNetDevice> dst = GetDestination (wire);
 
 #ifdef NS3_MPI
   // Calculate the rxTime (absolute)

@@ -15,39 +15,43 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
+ * Modified by: João Loureiro <joflo@isep.ipp.pt>
+ * from Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
 #include "ns3/abort.h"
 #include "ns3/log.h"
 #include "ns3/simulator.h"
-#include "ns3/usn-net-device.h"
-#include "ns3/usn-channel.h"
-#include "ns3/usn-remote-channel.h"
+#include "ns3/noc-net-device.h"
+#include "ns3/noc-channel.h"
+#include "ns3/noc-remote-channel.h"
 #include "ns3/queue.h"
 #include "ns3/config.h"
 #include "ns3/packet.h"
 #include "ns3/names.h"
 #include "ns3/mpi-interface.h"
 #include "ns3/mpi-receiver.h"
+#include "src/core/model/object-base.h"
 
 #include "ns3/trace-helper.h"
-#include "usn-helper.h"
+#include "noc-grid-helper.h"
+#include "ns3/application.h"
+#include "ns3/application-container.h"
 
-NS_LOG_COMPONENT_DEFINE ("USNHelper");
+NS_LOG_COMPONENT_DEFINE ("GridHelper");
 
 namespace ns3 {
 
-USNHelper::USNHelper ()
+GridHelper::GridHelper ()
 {
   m_queueFactory.SetTypeId ("ns3::DropTailQueue");
-  m_deviceFactory.SetTypeId ("ns3::USNNetDevice");
-  m_channelFactory.SetTypeId ("ns3::USNChannel");
-  m_remoteChannelFactory.SetTypeId ("ns3::USNRemoteChannel");
+  m_deviceFactory.SetTypeId ("ns3::NOCNetDevice");
+  m_channelFactory.SetTypeId ("ns3::NOCChannel");
+  m_remoteChannelFactory.SetTypeId ("ns3::NOCRemoteChannel");
 }
 
 void 
-USNHelper::SetQueue (std::string type,
+GridHelper::SetQueue (std::string type,
                               std::string n1, const AttributeValue &v1,
                               std::string n2, const AttributeValue &v2,
                               std::string n3, const AttributeValue &v3,
@@ -60,31 +64,144 @@ USNHelper::SetQueue (std::string type,
   m_queueFactory.Set (n4, v4);
 }
 
+void
+ GridHelper::SetNetworkAttribute (std::string name, const uint32_t value)
+{
+    if (name.compare("SizeX") == 0) //Is the same
+    {
+        m_sizeX = value;
+    }
+    else if (name.compare("SizeY") == 0) //Is the same
+    {
+        m_sizeY = value;
+    }
+    else if (name.compare("ConnectionWidth") == 0) //Is the same
+    {
+        m_connectionWidth = value;
+    }
+}
+
+NodeContainer
+GridHelper::InitializeNetwork()
+{
+    NetDeviceContainer my_net_device_container;
+    Ptr<NOCNetDevice> my_net_device;
+    Mac48Address my_mac_address;
+
+    NodeContainer my_node_container;
+    
+    my_node_container.Create(m_sizeX * m_sizeY);
+    
+//    uint32_t m_nodesCreated = my_node_container.GetN();
+    
+//    cout << "Network size = " << m_sizeX << " * " << m_sizeY << " = " << (unsigned int) n_nodes << endl;
+    // Net devices Address reference
+    //            4
+    //         _______
+    //        |       |
+    //     3  |  SN   |  1
+    //        |_______|
+    //           
+    //            2
+
+    //*************** POSITIONING ***********************
+
+    MobilityHelper nodes_mb; //mobility helper
+    uint32_t interspace = 10;
+
+
+    nodes_mb.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    nodes_mb.SetPositionAllocator("ns3::GridPositionAllocator",
+            "MinX", DoubleValue(0.0),
+            "MinY", DoubleValue(0.0),
+            "DeltaX", DoubleValue(interspace),
+            "DeltaY", DoubleValue(interspace),
+            "GridWidth", UintegerValue(m_sizeX),
+            "LayoutType", StringValue("RowFirst"));
+
+
+    nodes_mb.Install(my_node_container);
+
+    //********** Net Devices installation ***************
+
+
+    uint32_t node_this;
+    for (uint64_t y = 0; y < m_sizeY; y++) {
+        for (uint64_t x = 0; x < m_sizeX; x++) {
+
+            node_this = x + y * m_sizeX;
+
+            if (x != m_sizeX - 1) { //connect to the node in front of it
+                my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + 1));
+
+                my_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
+                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
+                my_net_device->SetNOCAddress(1);
+
+                my_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
+                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
+                my_net_device->SetNOCAddress(3);
+
+                my_net_device_container.Get(0)->Initialize();
+                my_net_device_container.Get(1)->Initialize();
+            }
+            if (y != m_sizeY - 1) { //connect to the node bellow
+                my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + m_sizeX));
+
+                my_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
+                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
+                my_net_device->SetNOCAddress(2);
+
+                my_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
+                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
+                my_net_device->SetNOCAddress(4);
+
+                my_net_device_container.Get(0)->Initialize();
+                my_net_device_container.Get(1)->Initialize();
+            }
+
+
+        }
+
+    }
+    
+    return my_node_container;
+}
+
+
+//ApplicationContainer
+//GridHelper::InstallApplication(NodeContainer nc)
+//{
+//    //**************** Application Installation ******************
+//    return 0;
+//}
+
+
 void 
-USNHelper::SetDeviceAttribute (std::string n1, const AttributeValue &v1)
+GridHelper::SetDeviceAttribute (std::string n1, const AttributeValue &v1)
 {
   m_deviceFactory.Set (n1, v1);
 }
 
 void 
-USNHelper::SetChannelAttribute (std::string n1, const AttributeValue &v1)
+GridHelper::SetChannelAttribute (std::string n1, const AttributeValue &v1)
 {
   m_channelFactory.Set (n1, v1);
   m_remoteChannelFactory.Set (n1, v1);
 }
 
 void 
-USNHelper::EnablePcapInternal (std::string prefix, Ptr<NetDevice> nd, bool promiscuous, bool explicitFilename)
+GridHelper::EnablePcapInternal (std::string prefix, Ptr<NetDevice> nd, bool promiscuous, bool explicitFilename)
 {
   //
   // All of the Pcap enable functions vector through here including the ones
   // that are wandering through all of devices on perhaps all of the nodes in
-  // the system.  We can only deal with devices of type USNNetDevice.
+  // the system.  We can only deal with devices of type NOCNetDevice.
   //
-  Ptr<USNNetDevice> device = nd->GetObject<USNNetDevice> ();
+  Ptr<NOCNetDevice> device = nd->GetObject<NOCNetDevice> ();
   if (device == 0)
     {
-      NS_LOG_INFO ("USNHelper::EnablePcapInternal(): Device " << device << " not of type ns3::USNNetDevice");
+      NS_LOG_INFO ("GridHelper::EnablePcapInternal(): Device " << device << " not of type ns3::NOCNetDevice");
       return;
     }
 
@@ -102,11 +219,11 @@ USNHelper::EnablePcapInternal (std::string prefix, Ptr<NetDevice> nd, bool promi
 
   Ptr<PcapFileWrapper> file = pcapHelper.CreateFile (filename, std::ios::out, 
                                                      PcapHelper::DLT_PPP);
-  pcapHelper.HookDefaultSink<USNNetDevice> (device, "PromiscSniffer", file);
+  pcapHelper.HookDefaultSink<NOCNetDevice> (device, "PromiscSniffer", file);
 }
 
 void 
-USNHelper::EnableAsciiInternal (
+GridHelper::EnableAsciiInternal (
   Ptr<OutputStreamWrapper> stream, 
   std::string prefix, 
   Ptr<NetDevice> nd,
@@ -115,13 +232,13 @@ USNHelper::EnableAsciiInternal (
   //
   // All of the ascii enable functions vector through here including the ones
   // that are wandering through all of devices on perhaps all of the nodes in
-  // the system.  We can only deal with devices of type USNNetDevice.
+  // the system.  We can only deal with devices of type NOCNetDevice.
   //
-  Ptr<USNNetDevice> device = nd->GetObject<USNNetDevice> ();
+  Ptr<NOCNetDevice> device = nd->GetObject<NOCNetDevice> ();
   if (device == 0)
     {
-      NS_LOG_INFO ("USNHelper::EnableAsciiInternal(): Device " << device << 
-                   " not of type ns3::USNNetDevice");
+      NS_LOG_INFO ("GridHelper::EnableAsciiInternal(): Device " << device << 
+                   " not of type ns3::NOCNetDevice");
       return;
     }
 
@@ -161,7 +278,7 @@ USNHelper::EnableAsciiInternal (
       //
       // The MacRx trace source provides our "r" event.
       //
-      asciiTraceHelper.HookDefaultReceiveSinkWithoutContext<USNNetDevice> (device, "MacRx", theStream);
+      asciiTraceHelper.HookDefaultReceiveSinkWithoutContext<NOCNetDevice> (device, "MacRx", theStream);
 
       //
       // The "+", '-', and 'd' events are driven by trace sources actually in the
@@ -173,7 +290,7 @@ USNHelper::EnableAsciiInternal (
       asciiTraceHelper.HookDefaultDequeueSinkWithoutContext<Queue> (queue, "Dequeue", theStream);
 
       // PhyRxDrop trace source for "d" event
-      asciiTraceHelper.HookDefaultDropSinkWithoutContext<USNNetDevice> (device, "PhyRxDrop", theStream);
+      asciiTraceHelper.HookDefaultDropSinkWithoutContext<NOCNetDevice> (device, "PhyRxDrop", theStream);
 
       return;
     }
@@ -194,45 +311,45 @@ USNHelper::EnableAsciiInternal (
   uint32_t deviceid = nd->GetIfIndex ();
   std::ostringstream oss;
 
-  oss << "/NodeList/" << nd->GetNode ()->GetId () << "/DeviceList/" << deviceid << "/$ns3::USNNetDevice/MacRx";
+  oss << "/NodeList/" << nd->GetNode ()->GetId () << "/DeviceList/" << deviceid << "/$ns3::NOCNetDevice/MacRx";
   Config::Connect (oss.str (), MakeBoundCallback (&AsciiTraceHelper::DefaultReceiveSinkWithContext, stream));
 
   oss.str ("");
-  oss << "/NodeList/" << nodeid << "/DeviceList/" << deviceid << "/$ns3::USNNetDevice/TxQueue/Enqueue";
+  oss << "/NodeList/" << nodeid << "/DeviceList/" << deviceid << "/$ns3::NOCNetDevice/TxQueue/Enqueue";
   Config::Connect (oss.str (), MakeBoundCallback (&AsciiTraceHelper::DefaultEnqueueSinkWithContext, stream));
 
   oss.str ("");
-  oss << "/NodeList/" << nodeid << "/DeviceList/" << deviceid << "/$ns3::USNNetDevice/TxQueue/Dequeue";
+  oss << "/NodeList/" << nodeid << "/DeviceList/" << deviceid << "/$ns3::NOCNetDevice/TxQueue/Dequeue";
   Config::Connect (oss.str (), MakeBoundCallback (&AsciiTraceHelper::DefaultDequeueSinkWithContext, stream));
 
   oss.str ("");
-  oss << "/NodeList/" << nodeid << "/DeviceList/" << deviceid << "/$ns3::USNNetDevice/TxQueue/Drop";
+  oss << "/NodeList/" << nodeid << "/DeviceList/" << deviceid << "/$ns3::NOCNetDevice/TxQueue/Drop";
   Config::Connect (oss.str (), MakeBoundCallback (&AsciiTraceHelper::DefaultDropSinkWithContext, stream));
 
   oss.str ("");
-  oss << "/NodeList/" << nodeid << "/DeviceList/" << deviceid << "/$ns3::USNNetDevice/PhyRxDrop";
+  oss << "/NodeList/" << nodeid << "/DeviceList/" << deviceid << "/$ns3::NOCNetDevice/PhyRxDrop";
   Config::Connect (oss.str (), MakeBoundCallback (&AsciiTraceHelper::DefaultDropSinkWithContext, stream));
 }
 
 NetDeviceContainer 
-USNHelper::Install (NodeContainer c)
+GridHelper::Install (NodeContainer c)
 {
   NS_ASSERT (c.GetN () == 2);
   return Install (c.Get (0), c.Get (1));
 }
 
 NetDeviceContainer 
-USNHelper::Install (Ptr<Node> a, Ptr<Node> b)
+GridHelper::Install (Ptr<Node> a, Ptr<Node> b)
 {
   NetDeviceContainer container;
 
-  Ptr<USNNetDevice> devA = m_deviceFactory.Create<USNNetDevice> ();
+  Ptr<NOCNetDevice> devA = m_deviceFactory.Create<NOCNetDevice> ();
   devA->SetAddress (Mac48Address::Allocate ());
   a->AddDevice (devA);
   Ptr<Queue> queueAp0 = m_queueFactory.Create<Queue> ();
   Ptr<Queue> queueAp1 = m_queueFactory.Create<Queue> ();
   devA->SetQueue (queueAp0, queueAp1);
-  Ptr<USNNetDevice> devB = m_deviceFactory.Create<USNNetDevice> ();
+  Ptr<NOCNetDevice> devB = m_deviceFactory.Create<NOCNetDevice> ();
   devB->SetAddress (Mac48Address::Allocate ());
   b->AddDevice (devB);
   Ptr<Queue> queueBp0 = m_queueFactory.Create<Queue> ();
@@ -242,7 +359,7 @@ USNHelper::Install (Ptr<Node> a, Ptr<Node> b)
   // (rank), and the rank is the same as this instance.  If both are true, 
   //use a normal p2p channel, otherwise use a remote channel
   bool useNormalChannel = true;
-  Ptr<USNChannel> channel = 0;
+  Ptr<NOCChannel> channel = 0;
 
   if (MpiInterface::IsEnabled ())
     {
@@ -256,15 +373,15 @@ USNHelper::Install (Ptr<Node> a, Ptr<Node> b)
     }
   if (useNormalChannel)
     {
-      channel = m_channelFactory.Create<USNChannel> ();
+      channel = m_channelFactory.Create<NOCChannel> ();
     }
   else
     {
-      channel = m_remoteChannelFactory.Create<USNRemoteChannel> ();
+      channel = m_remoteChannelFactory.Create<NOCRemoteChannel> ();
       Ptr<MpiReceiver> mpiRecA = CreateObject<MpiReceiver> ();
       Ptr<MpiReceiver> mpiRecB = CreateObject<MpiReceiver> ();
-      mpiRecA->SetReceiveCallback (MakeCallback (&USNNetDevice::Receive, devA));
-      mpiRecB->SetReceiveCallback (MakeCallback (&USNNetDevice::Receive, devB));
+      mpiRecA->SetReceiveCallback (MakeCallback (&NOCNetDevice::Receive, devA));
+      mpiRecB->SetReceiveCallback (MakeCallback (&NOCNetDevice::Receive, devB));
       devA->AggregateObject (mpiRecA);
       devB->AggregateObject (mpiRecB);
     }
@@ -278,21 +395,21 @@ USNHelper::Install (Ptr<Node> a, Ptr<Node> b)
 }
 
 NetDeviceContainer 
-USNHelper::Install (Ptr<Node> a, std::string bName)
+GridHelper::Install (Ptr<Node> a, std::string bName)
 {
   Ptr<Node> b = Names::Find<Node> (bName);
   return Install (a, b);
 }
 
 NetDeviceContainer 
-USNHelper::Install (std::string aName, Ptr<Node> b)
+GridHelper::Install (std::string aName, Ptr<Node> b)
 {
   Ptr<Node> a = Names::Find<Node> (aName);
   return Install (a, b);
 }
 
 NetDeviceContainer 
-USNHelper::Install (std::string aName, std::string bName)
+GridHelper::Install (std::string aName, std::string bName)
 {
   Ptr<Node> a = Names::Find<Node> (aName);
   Ptr<Node> b = Names::Find<Node> (bName);
@@ -300,3 +417,4 @@ USNHelper::Install (std::string aName, std::string bName)
 }
 
 } // namespace ns3
+

@@ -11,46 +11,44 @@ def configure(conf):
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('usn', ['core', 'mobility', 'network', 'mpi'])
+    module = bld.create_ns3_module('noc', ['core', 'mobility', 'network', 'mpi'])
     module.use.append("ARMADILLO")
     module.use.append("OPENCV")
     module.source = [
-        'helper/usn-helper.cc',
-        'helper/grid-helper.cc',
-        'model/usn-net-device.cc',
-        'model/usn-channel.cc',
-        'model/usn-remote-channel.cc',
-        'model/usn-header.cc',
-        'model/usn-application.cc',
-        'model/usn-calc.cc',
-        'model/usn-sensor.cc',
-        'model/usn-io-data.cc',
-        'model/usn-switch.cc',
+        'helper/noc-grid-helper.cc',
+        'model/noc-net-device.cc',
+        'model/noc-channel.cc',
+        'model/noc-remote-channel.cc',
+        'model/noc-header.cc',
+        'model/noc-application.cc',
+        'model/calc.cc',
+        'model/sensor.cc',
+        'model/sensor-data-io.cc',
+        'model/noc-switch.cc',
         'model/fast-edge.cc',
         'model/imageio.cc'
         ]
         
 
-    module_test = bld.create_ns3_module_test_library('usn')
+    module_test = bld.create_ns3_module_test_library('noc')
     module_test.source = [
-        'test/usn-test-suite.cc',
+        'test/noc-test-suite.cc',
         ]
 
     headers = bld(features='ns3header')
-    headers.module = 'usn'
+    headers.module = 'noc'
     headers.source = [
-        'helper/usn-helper.h',
-        'helper/grid-helper.h',
-        'model/usn-net-device.h',
-        'model/usn-channel.h',
-        'model/usn-remote-channel.h',
-        'model/usn-header.h',
-        'model/usn-application.h',
-        'model/usn-calc.h',
-        'model/usn-sensor.h',
-        'model/usn-types.h',
-        'model/usn-switch.h',
-        'model/usn-io-data.h',
+        'helper/noc-grid-helper.h',
+        'model/noc-net-device.h',
+        'model/noc-channel.h',
+        'model/noc-remote-channel.h',
+        'model/noc-header.h',
+        'model/noc-application.h',
+        'model/calc.h',
+        'model/sensor.h',
+        'model/noc-types.h',
+        'model/noc-switch.h',
+        'model/sensor-data-io.h',
         'model/fast-edge.h',
         'model/imageio.h'
         ]

@@ -18,28 +18,28 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#include "usn-sensor.h"
-#include "ns3/usn-types.h"
+#include "sensor.h"
+#include "ns3/noc-types.h"
 
 namespace ns3 {
 
-    USNSensor::USNSensor()
+    SENSOR::SENSOR()
     : m_running(false){
     }
 
-    USNSensor::~USNSensor() {
+    SENSOR::~SENSOR() {
     }
 
 
     void
-    USNSensor::StartApplication(void) {
+    SENSOR::StartApplication(void) {
 
         Ptr<Node> nd = this->GetNode();
         m_time_instant = 0;
         
     }
     
-    uint32_t USNSensor::ReadSensor(void){
+    uint32_t SENSOR::ReadSensor(void){
         
         uint32_t r = InputData->ReadNode(m_time_instant, SensorPosition.x, SensorPosition.y);
         m_time_instant++;
@@ -50,7 +50,7 @@ namespace ns3 {
     }
 
     void
-    USNSensor::StopApplication(void) {
+    SENSOR::StopApplication(void) {
         m_running = false;
 
         if (m_sendEvent.IsRunning()) {

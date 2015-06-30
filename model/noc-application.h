@@ -18,8 +18,8 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#ifndef USN_APP_H
-#define USN_APP_H
+#ifndef NOC_APP_H
+#define NOC_APP_H
 
 
 #include <fstream>
@@ -32,14 +32,14 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 
-#include "usn-application.h"
-#include "usn-header.h"
-#include "usn-net-device.h"
-#include "usn-switch.h"
-#include "usn-types.h"
-#include "usn-sensor.h"
-#include "usn-calc.h"
-#include "usn-io-data.h"
+#include "noc-application.h"
+#include "noc-header.h"
+#include "noc-net-device.h"
+#include "noc-switch.h"
+#include "noc-types.h"
+#include "sensor.h"
+#include "calc.h"
+#include "sensor-data-io.h"
 
 #define DIR_ALL         0b00001111
 #define DIR_RIGHT       0b00000001
@@ -50,7 +50,7 @@
 
 namespace ns3 {
 
-    class USNApp : public Application {
+    class NOCApp : public Application {
     public:
 
 
@@ -68,10 +68,10 @@ namespace ns3 {
                 OperationalMode;
         Time TimeStartOffset;
 
-        Ptr <USNOutputData> SinkReceivedData;
+        Ptr <NOCOutputData> SinkReceivedData;
         
-        USNApp();
-        virtual ~USNApp();
+        NOCApp();
+        virtual ~NOCApp();
 
         void Setup(bool IsSink);
         //void Setup ();
@@ -130,10 +130,10 @@ namespace ns3 {
         bool m_running;
         vector<EventRef> m_lastEvents;
 
-        Ptr<USNSwitch> m_switch;
+        Ptr<NOCSwitch> m_switch;
     };
 
 }
 
-#endif /* USN_APP_H */
+#endif /* NOC_APP_H */
 

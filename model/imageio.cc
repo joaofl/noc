@@ -31,7 +31,7 @@
 
 namespace ns3 {
 
-    void USNImageIO::write_pgm_image(struct image * img) 
+    void NOCImageIO::write_pgm_image(struct image * img) 
     {
             FILE *fp_out;
             int i = 0;
@@ -43,7 +43,7 @@ namespace ns3 {
             fclose(fp_out);
     }
 
-    int USNImageIO::read_pgm_hdr(FILE *fp, int *w, int *h)
+    int NOCImageIO::read_pgm_hdr(FILE *fp, int *w, int *h)
     {
             char filetype[4];
             int maxval;
@@ -54,7 +54,7 @@ namespace ns3 {
             }
     }
 
-    int USNImageIO::skipcomment(FILE *fp)
+    int NOCImageIO::skipcomment(FILE *fp)
     {
             int i;
             if((i = getc(fp)) == '#') {

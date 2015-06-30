@@ -20,8 +20,8 @@
  * 
  */
 
-#ifndef USN_NET_DEVICE_H
-#define USN_NET_DEVICE_H
+#ifndef NOC_NET_DEVICE_H
+#define NOC_NET_DEVICE_H
 
 #include <cstring>
 #include "ns3/address.h"
@@ -38,7 +38,7 @@
 namespace ns3 {
 
     class Queue;
-    class USNChannel;
+    class NOCChannel;
     class ErrorModel;
 
     /**
@@ -48,18 +48,18 @@ namespace ns3 {
 
     /**
      * \ingroup point-to-point
-     * \class USNNetDevice
+     * \class NOCNetDevice
      * \brief A Device for a Point to Point Network Link.
      *
-     * This USNNetDevice class specializes the NetDevice abstract
-     * base class.  Together with a USNChannel (and a peer 
-     * USNNetDevice), the class models, with some level of 
+     * This NOCNetDevice class specializes the NetDevice abstract
+     * base class.  Together with a NOCChannel (and a peer 
+     * NOCNetDevice), the class models, with some level of 
      * abstraction, a generic point-to-point or serial link.
      * Key parameters or objects that can be specified for this device 
      * include a queue, data rate, and interframe transmission gap (the 
-     * propagation delay is set in the USNChannel).
+     * propagation delay is set in the NOCChannel).
      */
-    class USNNetDevice : public NetDevice {
+    class NOCNetDevice : public NetDevice {
     public:
         static TypeId GetTypeId(void);
 
@@ -78,20 +78,20 @@ namespace ns3 {
         uint32_t queue_size;
 
         /**
-         * Construct a USNNetDevice
+         * Construct a NOCNetDevice
          *
-         * This is the constructor for the USNNetDevice.  It takes as a
+         * This is the constructor for the NOCNetDevice.  It takes as a
          * parameter a pointer to the Node to which this device is connected, 
          * as well as an optional DataRate object.
          */
-        USNNetDevice();
+        NOCNetDevice();
 
         /**
-         * Destroy a USNNetDevice
+         * Destroy a NOCNetDevice
          *
-         * This is the destructor for the USNNetDevice.
+         * This is the destructor for the NOCNetDevice.
          */
-        virtual ~USNNetDevice();
+        virtual ~NOCNetDevice();
 
         /**
          * Set the Data Rate used for transmission of packets.  The data rate is
@@ -116,12 +116,12 @@ namespace ns3 {
          *
          * @param ch Ptr to the channel to which this object is being attached.
          */
-        bool Attach(Ptr<USNChannel> ch);
+        bool Attach(Ptr<NOCChannel> ch);
 
         /**
-         * Attach a queue to the USNNetDevice.
+         * Attach a queue to the NOCNetDevice.
          *
-         * The USNNetDevice "owns" a queue that implements a queueing 
+         * The NOCNetDevice "owns" a queue that implements a queueing 
          * method such as DropTail or RED.
          *
          * @see Queue
@@ -138,9 +138,9 @@ namespace ns3 {
         Ptr<Queue> GetQueue(void) const;
 
         /**
-         * Attach a receive ErrorModel to the USNNetDevice.
+         * Attach a receive ErrorModel to the NOCNetDevice.
          *
-         * The USNNetDevice may optionally include an ErrorModel in
+         * The NOCNetDevice may optionally include an ErrorModel in
          * the packet receive chain.
          *
          * @see ErrorModel
@@ -149,14 +149,14 @@ namespace ns3 {
         void SetReceiveErrorModel(Ptr<ErrorModel> em);
 
         /**
-         * Receive a packet from a connected USNChannel.
+         * Receive a packet from a connected NOCChannel.
          *
-         * The USNNetDevice receives packets from its connected channel
+         * The NOCNetDevice receives packets from its connected channel
          * and forwards them up the protocol stack.  This is the public method
          * used by the channel to indicate that the last bit of a packet has 
          * arrived at the device.
          *
-         * @see USNChannel
+         * @see NOCChannel
          * @param p Ptr to the received packet.
          */
         void Receive(Ptr<Packet> p);
@@ -180,8 +180,8 @@ namespace ns3 {
         
         bool SendSignal(Ptr<Packet> packet);
 
-        void SetUSNAddress(uint32_t);
-        uint32_t GetUSNAddress(void);
+        void SetNOCAddress(uint32_t);
+        uint32_t GetNOCAddress(void);
 
         // The remaining methods are documented in ns3::NetDevice*
 
@@ -232,8 +232,8 @@ namespace ns3 {
 
     private:
 
-        USNNetDevice& operator =(const USNNetDevice &);
-        USNNetDevice(const USNNetDevice &);
+        NOCNetDevice& operator =(const NOCNetDevice &);
+        NOCNetDevice(const NOCNetDevice &);
 
         virtual void DoDispose(void);
 
@@ -267,13 +267,13 @@ namespace ns3 {
          * Start Sending a Packet Down the Wire.
          *
          * The TransmitStart method is the method that is used internally in the
-         * USNNetDevice to begin the process of sending a packet out on
+         * NOCNetDevice to begin the process of sending a packet out on
          * the channel.  The corresponding method is called on the channel to let
          * it know that the physical device this class represents has virtually
          * started sending signals.  An event is scheduled for the time at which
          * the bits have been completely transmitted.
          *
-         * @see USNChannel::TransmitStart ()
+         * @see NOCChannel::TransmitStart ()
          * @see TransmitCompleteEvent ()
          * @param p a reference to the packet to send
          * @returns true if success, false on failure
@@ -320,15 +320,15 @@ namespace ns3 {
         Time m_tInterframeGap;
 
         /**
-         * The USNChannel to which this USNNetDevice has been
+         * The NOCChannel to which this NOCNetDevice has been
          * attached.
-         * @see class USNChannel
+         * @see class NOCChannel
          */
-        Ptr<USNChannel> m_channel;
+        Ptr<NOCChannel> m_channel;
 
         /**
-         * The Queue which this USNNetDevice uses as a packet source.
-         * Management of this Queue has been delegated to the USNNetDevice
+         * The Queue which this NOCNetDevice uses as a packet source.
+         * Management of this Queue has been delegated to the NOCNetDevice
          * and it has the responsibility for deletion.
          * @see class Queue
          * @see class DropTailQueue
@@ -499,7 +499,7 @@ namespace ns3 {
          */
         uint32_t m_mtu;
 
-        uint32_t m_usn_address;
+        uint32_t m_noc_address;
 
         Ptr<Packet> m_currentPkt;
 

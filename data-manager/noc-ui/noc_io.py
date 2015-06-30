@@ -20,7 +20,7 @@ __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
 import csv
 import numpy as np
-import usn_calc
+import noc_calc
 import os
 from numpy.lib.npyio import savetxt
 
@@ -92,7 +92,7 @@ def flow_trace_parallel(pck_trace, i):
             flow[j][DEF_XF] = x_c
             flow[j][DEF_YF] = y_c
 
-            d = usn_calc.dist(flow[j][DEF_XI], flow[j][DEF_XF], flow[j][DEF_YI], flow[j][DEF_YF])
+            d = noc_calc.dist(flow[j][DEF_XI], flow[j][DEF_XF], flow[j][DEF_YI], flow[j][DEF_YF])
             flow[j][DEF_XD] = d[0]
             flow[j][DEF_YD] = d[1]
             flow[j][DEF_D] = d[2]
@@ -148,7 +148,7 @@ def flow_trace(pck_trace):
                 flows[j][DEF_XF] = x_c
                 flows[j][DEF_YF] = y_c
 
-                d = usn_calc.dist(flows[j][DEF_XI], flows[j][DEF_XF], flows[j][DEF_YI], flows[j][DEF_YF])
+                d = noc_calc.dist(flows[j][DEF_XI], flows[j][DEF_XF], flows[j][DEF_YI], flows[j][DEF_YF])
                 flows[j][DEF_XD] = d[0]
                 flows[j][DEF_YD] = d[1]
                 flows[j][DEF_D] = d[2]

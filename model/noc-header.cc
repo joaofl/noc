@@ -24,39 +24,39 @@
 #include "ns3/assert.h"
 #include "ns3/log.h"
 #include "ns3/header.h"
-#include "usn-header.h"
-#include "ns3/usn-types.h"
+#include "noc-header.h"
+#include "ns3/noc-types.h"
 #include "src/network/model/buffer.h"
 
-NS_LOG_COMPONENT_DEFINE("USNHeader");
+NS_LOG_COMPONENT_DEFINE("NOCHeader");
 
 namespace ns3 {
 
-    NS_OBJECT_ENSURE_REGISTERED(USNHeader)
+    NS_OBJECT_ENSURE_REGISTERED(NOCHeader)
     ;
 
-    USNHeader::USNHeader() {
+    NOCHeader::NOCHeader() {
     }
 
-    USNHeader::~USNHeader() {
+    NOCHeader::~NOCHeader() {
     }
 
     TypeId
-    USNHeader::GetTypeId(void) {
-        static TypeId tid = TypeId("ns3::USNHeader")
+    NOCHeader::GetTypeId(void) {
+        static TypeId tid = TypeId("ns3::NOCHeader")
                 .SetParent<Header> ()
-                .AddConstructor<USNHeader> ()
+                .AddConstructor<NOCHeader> ()
                 ;
         return tid;
     }
 
     TypeId
-    USNHeader::GetInstanceTypeId(void) const {
+    NOCHeader::GetInstanceTypeId(void) const {
         return GetTypeId();
     }
 
     void
-    USNHeader::Print(std::ostream &os) const {
+    NOCHeader::Print(std::ostream &os) const {
         //        std::string proto;
         //
         //        switch (m_protocol) {
@@ -77,11 +77,11 @@ namespace ns3 {
     }
 
     uint32_t
-    USNHeader::GetSerializedSize(void) const {
+    NOCHeader::GetSerializedSize(void) const {
         uint8_t s = 0;
-        switch (m_usn_protocol) {
+        switch (m_noc_protocol) {
             case P_NETWORK_DISCOVERY:
-                s += sizeof (m_usn_protocol);
+                s += sizeof (m_noc_protocol);
                 
                 s += sizeof (CurrentX);
                 s += sizeof (CurrentY);
@@ -93,7 +93,7 @@ namespace ns3 {
                 break;
 
             case P_VALUE_ANNOUNCEMENT:
-                s += sizeof (m_usn_protocol);
+                s += sizeof (m_noc_protocol);
                 
                 s += sizeof (CurrentX);
                 s += sizeof (CurrentY);
@@ -108,7 +108,7 @@ namespace ns3 {
                 break;
 
             case P_EVENT_ANNOUNCEMENT:
-                s += sizeof (m_usn_protocol);
+                s += sizeof (m_noc_protocol);
                 
                 s += sizeof (CurrentX);
                 s += sizeof (CurrentY);
@@ -129,11 +129,11 @@ namespace ns3 {
     }
     
     void
-    USNHeader::Serialize(Buffer::Iterator start) const {
+    NOCHeader::Serialize(Buffer::Iterator start) const {
 
-        switch (m_usn_protocol) {
+        switch (m_noc_protocol) {
             case P_NETWORK_DISCOVERY:
-                start.WriteU8(m_usn_protocol);
+                start.WriteU8(m_noc_protocol);
                 
                 start.WriteU8(CurrentX);
                 start.WriteU8(CurrentY);
@@ -144,7 +144,7 @@ namespace ns3 {
                 break;
 
             case P_VALUE_ANNOUNCEMENT:
-                start.WriteU8(m_usn_protocol);
+                start.WriteU8(m_noc_protocol);
                 
                 start.WriteU8(CurrentX);
                 start.WriteU8(CurrentY);
@@ -155,7 +155,7 @@ namespace ns3 {
                 break;
 
             case P_EVENT_ANNOUNCEMENT:
-                start.WriteU8(m_usn_protocol);
+                start.WriteU8(m_noc_protocol);
                 
                 start.WriteU8(CurrentX);
                 start.WriteU8(CurrentY);
@@ -176,11 +176,11 @@ namespace ns3 {
     }
 
     uint32_t
-    USNHeader::Deserialize(Buffer::Iterator start) {
+    NOCHeader::Deserialize(Buffer::Iterator start) {
         
-        (m_usn_protocol) = start.ReadU8();
+        (m_noc_protocol) = start.ReadU8();
         
-        switch (m_usn_protocol) {
+        switch (m_noc_protocol) {
             case P_NETWORK_DISCOVERY:
                 (CurrentX) = start.ReadU8();
                 (CurrentY) = start.ReadU8();
@@ -219,51 +219,51 @@ namespace ns3 {
     }
 
     void
-    USNHeader::SetUSNProtocol(uint16_t protocol) {
-        m_usn_protocol = protocol;
+    NOCHeader::SetNOCProtocol(uint16_t protocol) {
+        m_noc_protocol = protocol;
     }
 
     uint16_t
-    USNHeader::GetUSNProtocol(void) {
-        return m_usn_protocol;
+    NOCHeader::GetNOCProtocol(void) {
+        return m_noc_protocol;
     }
 
-    //    void USNHeader::SetCurrentX(int32_t x) {
+    //    void NOCHeader::SetCurrentX(int32_t x) {
     //        m_currentX = x;
     //    }
     //
-    //    int32_t USNHeader::GetCurrentX(void) {
+    //    int32_t NOCHeader::GetCurrentX(void) {
     //        return m_currentX;
     //    }
     //    
-    //    int32_t USNHeader::AddCurrentX(int32_t n) {
+    //    int32_t NOCHeader::AddCurrentX(int32_t n) {
     //        m_currentX += n;
     //        return m_currentX;
     //    }
     //
-    //    void USNHeader::SetCurrentY(int32_t y) {
+    //    void NOCHeader::SetCurrentY(int32_t y) {
     //        m_currentY = y;
     //    }
     //
-    //    int32_t USNHeader::GetCurrentY(void) {
+    //    int32_t NOCHeader::GetCurrentY(void) {
     //        return m_currentY;
     //    }
     //    
-    //    int32_t USNHeader::AddCurrentY(int32_t n) {
+    //    int32_t NOCHeader::AddCurrentY(int32_t n) {
     //        m_currentY += n;
     //        return m_currentY;
     //    }
 
-    //    void USNHeader::SetHopsCount(uint32_t n){
+    //    void NOCHeader::SetHopsCount(uint32_t n){
     //        m_hops_count = n;
     //    }
-    //    void USNHeader::SetSensorValue(uint32_t n){
+    //    void NOCHeader::SetSensorValue(uint32_t n){
     //        m_sensor_value = n;
     //    }
-    //    uint32_t USNHeader::GetHopsCount(void){
+    //    uint32_t NOCHeader::GetHopsCount(void){
     //        return m_hops_count;
     //    }
-    //    uint32_t USNHeader::GetSensorValue(void){
+    //    uint32_t NOCHeader::GetSensorValue(void){
     //        return m_sensor_value;
     //    }
 

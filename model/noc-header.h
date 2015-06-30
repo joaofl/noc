@@ -18,11 +18,11 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#ifndef USN_HEADER_H
-#define USN_HEADER_H
+#ifndef NOC_HEADER_H
+#define NOC_HEADER_H
 
 #include "ns3/header.h"
-#include "usn-types.h"
+#include "noc-types.h"
 
 namespace ns3 {
 
@@ -48,18 +48,18 @@ namespace ns3 {
      * to the packet.  The ns-3 way to do this is via a class that inherits from
      * class Header.
      */
-    class USNHeader : public Header {
+    class NOCHeader : public Header {
     public:
 
         /**
          * \brief Construct a PPP header.
          */
-        USNHeader();
+        NOCHeader();
 
         /**
          * \brief Destroy a PPP header.
          */
-        virtual ~USNHeader();
+        virtual ~NOCHeader();
         
 //        uint8_t HopsCount;
         uint16_t SensorValue;
@@ -106,7 +106,7 @@ namespace ns3 {
          *
          * \param protocol the protocol type being carried
          */
-        void SetUSNProtocol(uint16_t protocol);
+        void SetNOCProtocol(uint16_t protocol);
 
         /**
          * \brief Get the protocol type carried by this PPP packet
@@ -115,7 +115,7 @@ namespace ns3 {
          *
          * \return the protocol type being carried
          */
-        uint16_t GetUSNProtocol(void);
+        uint16_t GetNOCProtocol(void);
 
 //        /**
 //         * \brief Set the current X position of the packet, according to a given
@@ -157,7 +157,7 @@ namespace ns3 {
          * \brief The PPP protocol type of the payload packet
          */
 //        uint16_t m_protocol; 
-        uint8_t m_usn_protocol;
+        uint8_t m_noc_protocol;
         static const uint8_t m_max_header_size = 1 + 4 + 4 + 4 + 4 + 4;
         //int32_t m_currentX, m_currentY;
         //uint32_t m_hops_count, m_sensor_value;
@@ -167,4 +167,4 @@ namespace ns3 {
 } // namespace ns3
 
 
-#endif /* USN_HEADER_H */
+#endif /* NOC_HEADER_H */

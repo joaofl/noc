@@ -32,7 +32,7 @@ class Node;
 //class MobilityHelper;
 
 /**
- * \brief Build a set of USNNetDevice objects
+ * \brief Build a set of NOCNetDevice objects
  *
  * Normally we eschew multiple inheritance, however, the classes 
  * PcapUserHelperForDevice and AsciiTraceUserHelperForDevice are
@@ -42,7 +42,7 @@ class GridHelper : public PcapHelperForDevice, public AsciiTraceHelperForDevice
 {
 public:
   /**
-   * Create a USNHelper to make life easier when creating point to
+   * Create a NOCHelper to make life easier when creating point to
    * point networks.
    */
   GridHelper ();
@@ -66,7 +66,7 @@ public:
    * \param v4 the value of the attribute to set on the queue
    *
    * Set the type of queue to create and associated to each
-   * USNNetDevice created through USNHelper::Install.
+   * NOCNetDevice created through NOCHelper::Install.
    */
   void SetQueue (std::string type,
                  std::string n1 = "", const AttributeValue &v1 = EmptyAttributeValue (),
@@ -81,8 +81,8 @@ public:
    * \param name the name of the attribute to set
    * \param value the value of the attribute to set
    *
-   * Set these attributes on each ns3::USNNetDevice created
-   * by USNHelper::Install
+   * Set these attributes on each ns3::NOCNetDevice created
+   * by NOCHelper::Install
    */
   void SetDeviceAttribute (std::string name, const AttributeValue &value);
 
@@ -93,8 +93,8 @@ public:
    * \param name the name of the attribute to set
    * \param value the value of the attribute to set
    *
-   * Set these attribute on each ns3::USNChannel created
-   * by USNHelper::Install
+   * Set these attribute on each ns3::NOCChannel created
+   * by NOCHelper::Install
    */
   void SetChannelAttribute (std::string name, const AttributeValue &value);
 
@@ -116,12 +116,12 @@ public:
   /**
    * \param c a set of nodes
    *
-   * This method creates a ns3::USNChannel with the
-   * attributes configured by USNHelper::SetChannelAttribute,
+   * This method creates a ns3::NOCChannel with the
+   * attributes configured by NOCHelper::SetChannelAttribute,
    * then, for each node in the input container, we create a 
-   * ns3::USNNetDevice with the requested attributes, 
+   * ns3::NOCNetDevice with the requested attributes, 
    * a queue for this ns3::NetDevice, and associate the resulting 
-   * ns3::NetDevice with the ns3::Node and ns3::USNChannel.
+   * ns3::NetDevice with the ns3::Node and ns3::NOCChannel.
    */
   NetDeviceContainer Install (NodeContainer c);
 

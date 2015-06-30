@@ -19,8 +19,8 @@
  * 
  */
 
-#ifndef USN_SWITCH_H
-#define USN_SWITCH_H
+#ifndef NOC_SWITCH_H
+#define NOC_SWITCH_H
 
 
 #include <fstream>
@@ -34,11 +34,11 @@
 #include "ns3/ptr.h"
 #include "ns3/net-device-container.h"
 
-#include "usn-header.h"
-#include "usn-net-device.h"
-#include "usn-application.h"
-#include "usn-switch.h"
-#include "usn-types.h"
+#include "noc-header.h"
+#include "noc-net-device.h"
+#include "noc-application.h"
+#include "noc-switch.h"
+#include "noc-types.h"
 
 #define DIRECTION_ALL 0b11111111
 #define DIRECTION_E 0b00000001 //east
@@ -51,7 +51,7 @@
 using namespace std;
 namespace ns3 {
 
-    class USNSwitch : public Application {
+    class NOCSwitch : public Application {
     public:
 
         static TypeId GetTypeId (void);
@@ -69,8 +69,8 @@ namespace ns3 {
         TracedValue< stringstream* > PacketTrace;
         
 
-        USNSwitch();
-        virtual ~USNSwitch();
+        NOCSwitch();
+        virtual ~NOCSwitch();
 
         bool PacketReceive(Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol, const Address& sourceAddress);
         
@@ -100,5 +100,5 @@ namespace ns3 {
 
 }
 
-#endif /* USN_SWITCH_H */
+#endif /* NOC_SWITCH_H */
 

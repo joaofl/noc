@@ -20,7 +20,7 @@ __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
 import csv
 import numpy as np
-import usn_io
+import noc_io
 from copy import copy, deepcopy
 
 
@@ -29,7 +29,7 @@ def trhoughput(pck_trace, t_interval = 8799, offset=True):
     #8800 ns = 8,8 microseconds to send each packet with 8bytes each
 
     throughput = []
-    t0 = int(pck_trace[0][usn_io.DEF_TI])
+    t0 = int(pck_trace[0][noc_io.DEF_TI])
     i=0;
     count = 0
     count_a = 0
@@ -46,9 +46,9 @@ def trhoughput(pck_trace, t_interval = 8799, offset=True):
 
     for p in pck_trace:
 
-        if int(p[usn_io.DEF_DIRECTION]) == 1:
+        if int(p[noc_io.DEF_DIRECTION]) == 1:
 
-            if int(p[usn_io.DEF_TI]) < t_next:
+            if int(p[noc_io.DEF_TI]) < t_next:
                 count += 1
 
             else:

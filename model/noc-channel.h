@@ -22,8 +22,8 @@
 
 
 
-#ifndef USN_CHANNEL_H
-#define USN_CHANNEL_H
+#ifndef NOC_CHANNEL_H
+#define NOC_CHANNEL_H
 
 #include <list>
 #include "ns3/channel.h"
@@ -34,7 +34,7 @@
 
 namespace ns3 {
 
-class USNNetDevice;
+class NOCNetDevice;
 class Packet;
 
 /**
@@ -50,35 +50,35 @@ class Packet;
  * [0] wire to transmit on.  The second device gets the [1] wire.  There is a
  * state (IDLE, TRANSMITTING) associated with each wire.
  */
-class USNChannel : public Channel 
+class NOCChannel : public Channel 
 {
 public:
   static TypeId GetTypeId (void);
 
   /**
-   * \brief Create a USNChannel
+   * \brief Create a NOCChannel
    *
    * By default, you get a channel that
    * has zero transmission delay.
    */
-  USNChannel ();
+  NOCChannel ();
 
   /**
    * \brief Attach a given netdevice to this channel
    * \param device pointer to the netdevice to attach to the channel
    */
-  void Attach (Ptr<USNNetDevice> device);
+  void Attach (Ptr<NOCNetDevice> device);
 
   /**
    * \brief Transmit a packet over this channel
    * \param p Packet to transmit
-   * \param src Source USNNetDevice
+   * \param src Source NOCNetDevice
    * \param txTime Transmit time to apply
    * \returns true if successful (currently always true)
    */
-  virtual bool TransmitStart (Ptr<Packet> p, Ptr<USNNetDevice> src, Time txTime);
+  virtual bool TransmitStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
   
-  virtual bool TransmitSignalStart (Ptr<Packet> p, Ptr<USNNetDevice> src, Time txTime);
+  virtual bool TransmitSignalStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
   
   /**
    * \brief Get number of devices on this channel
@@ -87,11 +87,11 @@ public:
   virtual uint32_t GetNDevices (void) const;
 
   /*
-   * \brief Get USNNetDevice corresponding to index i on this channel
+   * \brief Get NOCNetDevice corresponding to index i on this channel
    * \param i Index number of the device requested
-   * \returns Ptr to USNNetDevice requested
+   * \returns Ptr to NOCNetDevice requested
    */
-  Ptr<USNNetDevice> GetUSNDevice (uint32_t i) const;
+  Ptr<NOCNetDevice> GetNOCDevice (uint32_t i) const;
 
   /*
    * \brief Get NetDevice corresponding to index i on this channel
@@ -116,18 +116,18 @@ protected:
   /*
    * \brief Get the net-device source 
    * \param i the link requested
-   * \returns Ptr to USNNetDevice source for the 
+   * \returns Ptr to NOCNetDevice source for the 
    * specified link
    */
-  Ptr<USNNetDevice> GetSource (uint32_t i) const;
+  Ptr<NOCNetDevice> GetSource (uint32_t i) const;
 
   /*
    * \brief Get the net-device destination
    * \param i the link requested
-   * \returns Ptr to USNNetDevice destination for 
+   * \returns Ptr to NOCNetDevice destination for 
    * the specified link
    */
-  Ptr<USNNetDevice> GetDestination (uint32_t i) const;
+  Ptr<NOCNetDevice> GetDestination (uint32_t i) const;
 
 private:
   // Each point to point link has exactly two net devices
@@ -150,7 +150,7 @@ private:
                  Ptr<NetDevice>,    // Receiving NetDevice
                  Time,              // Amount of time to transmit the pkt
                  Time               // Last bit receive time (relative to now)
-                 > m_txrxUSN;
+                 > m_txrxNOC;
 
   enum WireState
   {
@@ -166,8 +166,8 @@ private:
 public:
     Link() : m_state (INITIALIZING), m_src (0), m_dst (0) {}
     WireState                  m_state;
-    Ptr<USNNetDevice> m_src;
-    Ptr<USNNetDevice> m_dst;
+    Ptr<NOCNetDevice> m_src;
+    Ptr<NOCNetDevice> m_dst;
   };
 
   Link    m_link[N_DEVICES];

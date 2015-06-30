@@ -22,34 +22,34 @@
  * 
  */
 
-#include "usn-channel.h"
-#include "usn-net-device.h"
+#include "noc-channel.h"
+#include "noc-net-device.h"
 #include "ns3/trace-source-accessor.h"
 #include "ns3/packet.h"
 #include "ns3/simulator.h"
 #include "ns3/log.h"
-#include "ns3/usn-net-device.h"
+#include "ns3/noc-net-device.h"
 
-NS_LOG_COMPONENT_DEFINE ("USNChannel");
+NS_LOG_COMPONENT_DEFINE ("NOCChannel");
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (USNChannel)
+NS_OBJECT_ENSURE_REGISTERED (NOCChannel)
   ;
 
 TypeId 
-USNChannel::GetTypeId (void)
+NOCChannel::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::USNChannel")
+  static TypeId tid = TypeId ("ns3::NOCChannel")
     .SetParent<Channel> ()
-    .AddConstructor<USNChannel> ()
+    .AddConstructor<NOCChannel> ()
     .AddAttribute ("Delay", "Transmission delay through the channel",
                    TimeValue (Seconds (0)),
-                   MakeTimeAccessor (&USNChannel::m_delay),
+                   MakeTimeAccessor (&NOCChannel::m_delay),
                    MakeTimeChecker ())
-    .AddTraceSource ("TxRxUSN",
-                     "Trace source indicating transmission of packet from the USNChannel, used by the Animation interface.",
-                     MakeTraceSourceAccessor (&USNChannel::m_txrxUSN))
+    .AddTraceSource ("TxRxNOC",
+                     "Trace source indicating transmission of packet from the NOCChannel, used by the Animation interface.",
+                     MakeTraceSourceAccessor (&NOCChannel::m_txrxNOC))
   ;
   return tid;
 }
@@ -57,7 +57,7 @@ USNChannel::GetTypeId (void)
 //
 // By default, you get a channel that 
 // has an "infitely" fast transmission speed and zero delay.
-USNChannel::USNChannel()
+NOCChannel::NOCChannel()
   :
     Channel (),
     m_delay (Seconds (0.)),
@@ -67,7 +67,7 @@ USNChannel::USNChannel()
 }
 
 void
-USNChannel::Attach (Ptr<USNNetDevice> device)
+NOCChannel::Attach (Ptr<NOCNetDevice> device)
 {
   NS_LOG_FUNCTION (this << device);
   NS_ASSERT_MSG (m_nDevices < N_DEVICES, "Only two devices permitted");
@@ -88,9 +88,9 @@ USNChannel::Attach (Ptr<USNNetDevice> device)
 }
 
 bool
-USNChannel::TransmitStart (
+NOCChannel::TransmitStart (
   Ptr<Packet> p,
-  Ptr<USNNetDevice> src,
+  Ptr<NOCNetDevice> src,
   Time txTime)
 {
   NS_LOG_FUNCTION (this << p << src);
@@ -102,18 +102,18 @@ USNChannel::TransmitStart (
   uint32_t wire = src == m_link[0].m_src ? 0 : 1;
 
   Simulator::ScheduleWithContext (m_link[wire].m_dst->GetNode ()->GetId (),
-                                  txTime + m_delay, &USNNetDevice::Receive,
+                                  txTime + m_delay, &NOCNetDevice::Receive,
                                   m_link[wire].m_dst, p);
 
   // Call the tx anim callback on the net device
-  m_txrxUSN (p, src, m_link[wire].m_dst, txTime, txTime + m_delay);
+  m_txrxNOC (p, src, m_link[wire].m_dst, txTime, txTime + m_delay);
   return true;
 }
 
 bool
-USNChannel::TransmitSignalStart (
+NOCChannel::TransmitSignalStart (
   Ptr<Packet> p,
-  Ptr<USNNetDevice> src,
+  Ptr<NOCNetDevice> src,
   Time txTime)
 {
   NS_LOG_FUNCTION (this << p << src);
@@ -125,23 +125,23 @@ USNChannel::TransmitSignalStart (
   uint32_t wire = src == m_signal_link[0].m_src ? 0 : 1;
 
   Simulator::ScheduleWithContext (m_signal_link[wire].m_dst->GetNode ()->GetId (),
-                                  txTime + m_delay, &USNNetDevice::ReceiveSignal,
+                                  txTime + m_delay, &NOCNetDevice::ReceiveSignal,
                                   m_signal_link[wire].m_dst, p);
 
   // Call the tx anim callback on the net device
-  m_txrxUSN (p, src, m_link[wire].m_dst, txTime, txTime + m_delay);
+  m_txrxNOC (p, src, m_link[wire].m_dst, txTime, txTime + m_delay);
   return true;
 }
 
 uint32_t 
-USNChannel::GetNDevices (void) const
+NOCChannel::GetNDevices (void) const
 {
   NS_LOG_FUNCTION_NOARGS ();
   return m_nDevices;
 }
 
-Ptr<USNNetDevice>
-USNChannel::GetUSNDevice (uint32_t i) const
+Ptr<NOCNetDevice>
+NOCChannel::GetNOCDevice (uint32_t i) const
 {
   NS_LOG_FUNCTION_NOARGS ();
   NS_ASSERT (i < 2);
@@ -149,32 +149,32 @@ USNChannel::GetUSNDevice (uint32_t i) const
 }
 
 Ptr<NetDevice>
-USNChannel::GetDevice (uint32_t i) const
+NOCChannel::GetDevice (uint32_t i) const
 {
   NS_LOG_FUNCTION_NOARGS ();
-  return GetUSNDevice (i);
+  return GetNOCDevice (i);
 }
 
 Time
-USNChannel::GetDelay (void) const
+NOCChannel::GetDelay (void) const
 {
   return m_delay;
 }
 
-Ptr<USNNetDevice>
-USNChannel::GetSource (uint32_t i) const
+Ptr<NOCNetDevice>
+NOCChannel::GetSource (uint32_t i) const
 {
   return m_link[i].m_src;
 }
 
-Ptr<USNNetDevice>
-USNChannel::GetDestination (uint32_t i) const
+Ptr<NOCNetDevice>
+NOCChannel::GetDestination (uint32_t i) const
 {
   return m_link[i].m_dst;
 }
 
 bool
-USNChannel::IsInitialized (void) const
+NOCChannel::IsInitialized (void) const
 {
   NS_ASSERT (m_link[0].m_state != INITIALIZING);
   NS_ASSERT (m_link[1].m_state != INITIALIZING);
