@@ -8,7 +8,7 @@ It integrates with computational fluid dynamics to provide spatial and temporal 
 
 J. Loureiro, M. Albano, T. Cerqueira, R.R. Rangarajan, E. Tovar, “A module for the XDense architecture in ns-3”, Workshop on ns-3 (WNS3 ‘15), May 13th, 2015, pp. xxxxx, Castelldefels, Spain
 
-Scientific paper in preparation.
+Scientific paper accepted, to be published.
 
 
 # How do I get set up? #
