@@ -15,7 +15,7 @@ Scientific paper in preparation.
 
 To set it up, place the module inside the **src** dir of ns-3, install lib-armadillo, configure ns-3 and build it. Check the input parameters to run the example.
 
-Tested in version 3.18 of ns-3. Helpers and Testers not implemented yet.
+Tested in version 3.23 of ns-3. Helpers and Testers not implemented yet.
 
 Dependencies of the GUI (you need to install them before executing the user interface):
 
