@@ -169,94 +169,12 @@ GridHelper::InitializeNetwork()
 }
 
 
-ApplicationContainer
-GridHelper::InstallApplication(NodeContainer nc, &Application)
-{
-    //**************** Application Installation ******************
-
-    uint32_t n_nodes = nc.GetN();
-    
-    for (uint32_t i = 0; i < n_nodes; i++) {
-
-
-        uint32_t x = i % m_sizeX;
-        uint32_t y = floor(i / m_sizeX);
-
-
-        //Setup app
-        my_usn_app->IsSink = false;
-        my_usn_app->MaxHops = size_neighborhood;
-        //my_usn_switch->SetStartTime(Seconds(0));
-        my_usn_app->SetStartTime(Seconds(0));
-        my_usn_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
-        my_usn_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
-        my_usn_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
-        // detect the neighborhood
-
-        //Setup Net Device's Callback
-        uint8_t n_devices = my_node_container.Get(i)->GetNDevices();
-        
-        Ptr<USNNetDevice> my_net_device;
-
-        for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
-            my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<USNNetDevice>();
-//            uint8_t n = my_net_device->GetUSNAddress();
-            ostringstream ss;
-            ss << i << "," << x << "," << y << "," << (int) j;
-            my_net_device->TraceConnect("MacRx", ss.str(), MakeCallback(&packet_received_netdevice_mac));
-            my_net_device->TraceConnect("MacTx", ss.str(), MakeCallback(&packet_sent_netdevice_mac));
-            
-            my_net_device->TraceConnect("PhyTxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-            my_net_device->TraceConnect("PhyRxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-        }
-
-        //Setup switch
-        ostringstream ss;
-        ss << i << "," << x << "," << y;
-
-        my_usn_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
-        my_usn_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
-
-        //Setup sensor
-        my_usn_sensor->SensorPosition.x = x;
-        my_usn_sensor->SensorPosition.y = y;
-        my_usn_sensor->InputData = &my_input_data;
-
-
-        //Should be installed in this order!!!
-        my_node_container.Get(i)->AddApplication(my_usn_app);
-        my_node_container.Get(i)->AddApplication(my_usn_switch);
-        my_node_container.Get(i)->AddApplication(my_usn_sensor);
-
-
-
-        my_usn_app_container.Add(my_usn_app);
-        my_usn_switch_container.Add(my_usn_switch);
-        my_usn_sensor_container.Add(my_usn_sensor);
-    }
-
-    // Setting the sinks
-    //uint32_t nodes_n = m_sizeX * m_sizeY;
-
-    double delta_x = (double) m_sizeX / (2 * (double) sinks_n); 
-    // takes the individuals in the center of the network
-    //TODO: a way of manually setting it
-    
-    for (uint32_t i = 0; i < sinks_n; i++) {
-        uint32_t x = floor((i + 1) * 2 * delta_x - delta_x);
-        uint32_t y = floor((double) m_sizeY / 2);
-        uint32_t n = x + y * m_sizeX;
-        my_usn_app_container.Get(n)->GetObject<USNApp>()->IsSink = true;
-        my_usn_app_container.Get(n)->GetObject<USNApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
-        my_usn_sink_app_container.Add(my_usn_app_container.Get(n)); //container with the sinks only
-        ostringstream ss;
-        ss << n << "," << x << "," << y;
-        //        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
-        //        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
-        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
-        my_usn_switch_container.Get(n)->GetObject<USNSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
-    }
-}
+//ApplicationContainer
+//GridHelper::InstallApplication(NodeContainer nc)
+//{
+//    //**************** Application Installation ******************
+//    return 0;
+//}
 
 
 void 

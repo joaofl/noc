@@ -111,7 +111,7 @@ public:
   
   NodeContainer InitializeNetwork(void);
   
-  ApplicationContainer InstallApplication(NodeContainer nc, &Application);
+//  ApplicationContainer InstallApplication(NodeContainer nc, &Application);
   
   /**
    * \param c a set of nodes
