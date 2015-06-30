@@ -109,8 +109,9 @@ public:
    */
   void SetNetworkAttribute (std::string name, const uint32_t value);
   
-  void InitializeNetwork(void);
+  NodeContainer InitializeNetwork(void);
   
+//  ApplicationContainer InstallApplication(NodeContainer nc, &Application);
   
   /**
    * \param c a set of nodes
