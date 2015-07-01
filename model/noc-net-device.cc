@@ -242,7 +242,7 @@ namespace ns3 {
         else
             //in parallel, one packet takes one cycle to be transmitted, considering
             //that port and packet has both the same width.
-            txTime = Seconds(m_bps.CalculateTxTime( 1 ));
+            txTime = Seconds(m_bps.CalculateTxTime( 1 ) / 8); //the time required to sendo a single bit
         
         
         Time txCompleteTime = txTime + m_tInterframeGap;
