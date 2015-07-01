@@ -51,11 +51,19 @@ namespace ns3 {
                 MakeUintegerAccessor(&NOCNetDevice::SetMtu,
                 &NOCNetDevice::GetMtu),
                 MakeUintegerChecker<uint16_t> ())
+        
+                .AddAttribute("SerialComm",
+                "If the NetDevice uses serial or parallel communication",
+                BooleanValue(true),
+                MakeBooleanAccessor(&NOCNetDevice::m_serialComm),
+                MakeBooleanChecker())
+        
                 .AddAttribute("Address",
                 "The MAC address of this device.",
                 Mac48AddressValue(Mac48Address("ff:ff:ff:ff:ff:ff")),
                 MakeMac48AddressAccessor(&NOCNetDevice::m_address),
                 MakeMac48AddressChecker())
+        
                 .AddAttribute("DataRate",
                 "The default data rate for point to point links",
                 DataRateValue(DataRate("32768b/s")),
@@ -66,6 +74,7 @@ namespace ns3 {
                 PointerValue(),
                 MakePointerAccessor(&NOCNetDevice::m_receiveErrorModel),
                 MakePointerChecker<ErrorModel> ())
+        
                 .AddAttribute("InterframeGap",
                 "The time to wait between packet (frame) transmissions",
                 TimeValue(Seconds(0.0)),
@@ -225,7 +234,17 @@ namespace ns3 {
         m_phyTxBeginTrace(m_currentPkt);
 
         //TODO: here, implement the waiting time in such a way that I can simulate parallel connections
-        Time txTime = Seconds(m_bps.CalculateTxTime(p->GetSize()));
+        
+        Time txTime;
+        
+        if (m_serialComm == true)
+            txTime = Seconds(m_bps.CalculateTxTime( p->GetSize()));
+        else
+            //in parallel, one packet takes one cycle to be transmitted, considering
+            //that port and packet has both the same width.
+            txTime = Seconds(m_bps.CalculateTxTime( 1 ));
+        
+        
         Time txCompleteTime = txTime + m_tInterframeGap;
 
         NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");

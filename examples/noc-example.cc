@@ -345,6 +345,9 @@ main(int argc, char *argv[]) {
     my_grid_network.SetNetworkAttribute("SizeY", size_y);
     
     my_grid_network.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
+    my_grid_network.SetDeviceAttribute("InterframeGap", TimeValue(MilliSeconds(0)));
+    my_grid_network.SetDeviceAttribute("SerialComm", BooleanValue(false));
+    
     my_grid_network.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
     
     my_node_container = my_grid_network.InitializeNetwork();

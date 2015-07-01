@@ -34,6 +34,7 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 #include "ns3/mac48-address.h"
+#include "ns3/boolean.h"
 
 namespace ns3 {
 
@@ -482,6 +483,7 @@ namespace ns3 {
         Mac48Address m_address;
         NetDevice::ReceiveCallback m_rxCallback;
         NetDevice::PromiscReceiveCallback m_promiscCallback;
+        bool m_serialComm;
         
         NetDevice::ReceiveCallback m_rxSignalCallback;
         
