@@ -75,7 +75,7 @@ void
     {
         m_sizeY = value;
     }
-    else if (name.compare("ConnectionWidth") == 0) //Is the same
+    else if (name.compare("ChannelCount") == 0) //Is the same
     {
         m_channelCount = value;
     }
@@ -131,15 +131,20 @@ GridHelper::InitializeNetwork()
 
             node_this = x + y * m_sizeX;
 
+            //TODO: Here, perform a loop in order to create many net devices. per direction
+            //Although, the addresses should change, and different connections should be allowed
+            // (using a shared bus in one of them, for example. Or, connecting vertically with one
+            //bus, and horizontally with another bus, as in the Epiphany architecture
+           
             if (x != m_sizeX - 1) { //connect to the node in front of it
                 my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + 1));
 
                 my_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
-                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
+//                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
                 my_net_device->SetNOCAddress(1);
 
                 my_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
-                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
+//                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
                 my_net_device->SetNOCAddress(3);
 
                 my_net_device_container.Get(0)->Initialize();
@@ -149,11 +154,11 @@ GridHelper::InitializeNetwork()
                 my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + m_sizeX));
 
                 my_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
-                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
+//                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
                 my_net_device->SetNOCAddress(2);
 
                 my_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
-                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
+//                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
                 my_net_device->SetNOCAddress(4);
 
                 my_net_device_container.Get(0)->Initialize();

@@ -343,10 +343,15 @@ main(int argc, char *argv[]) {
     GridHelper my_grid_network;
     my_grid_network.SetNetworkAttribute("SizeX", size_x);
     my_grid_network.SetNetworkAttribute("SizeY", size_y);
+    my_grid_network.SetNetworkAttribute("ChannelCount", 3); //three net devices per direction
+                                                          //total 3 x 4 = 12
     
     my_grid_network.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
     my_grid_network.SetDeviceAttribute("InterframeGap", TimeValue(MilliSeconds(0)));
     my_grid_network.SetDeviceAttribute("SerialComm", BooleanValue(false));
+    //If the connection is not serial, then the packet size defines the link width,
+    //and one packet is transmitted in one tick of a given baudrate
+//    my_grid_network.SetDeviceAttribute("PacketSize", IntegerValue(4)); //in bytes
     
     my_grid_network.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
     
