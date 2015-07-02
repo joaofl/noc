@@ -109,6 +109,15 @@ public:
    */
   void SetNetworkAttribute (std::string name, const uint32_t value);
   
+  
+    // Net devices Address reference
+    //            4
+    //         _______
+    //        |       |
+    //     3  |  SN   |  1
+    //        |_______|
+    //           
+    //            2
   NodeContainer InitializeNetwork(void);
   
 //  ApplicationContainer InstallApplication(NodeContainer nc, &Application);

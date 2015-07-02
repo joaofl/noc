@@ -340,22 +340,22 @@ main(int argc, char *argv[]) {
     }
    
     //Using the new helper
-    GridHelper my_grid_network;
-    my_grid_network.SetNetworkAttribute("SizeX", size_x);
-    my_grid_network.SetNetworkAttribute("SizeY", size_y);
-    my_grid_network.SetNetworkAttribute("ChannelCount", 3); //three net devices per direction
+    GridHelper my_grid_network_helper;
+    my_grid_network_helper.SetNetworkAttribute("SizeX", size_x);
+    my_grid_network_helper.SetNetworkAttribute("SizeY", size_y);
+    my_grid_network_helper.SetNetworkAttribute("ChannelCount", 3); //three net devices per direction
                                                           //total 3 x 4 = 12
     
-    my_grid_network.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
-    my_grid_network.SetDeviceAttribute("InterframeGap", TimeValue(MilliSeconds(0)));
-    my_grid_network.SetDeviceAttribute("SerialComm", BooleanValue(false));
+    my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
+    my_grid_network_helper.SetDeviceAttribute("InterframeGap", TimeValue(MilliSeconds(0)));
+    my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(false));
     //If the connection is not serial, then the packet size defines the link width,
     //and one packet is transmitted in one tick of a given baudrate
 //    my_grid_network.SetDeviceAttribute("PacketSize", IntegerValue(4)); //in bytes
     
-    my_grid_network.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
+    my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
     
-    my_node_container = my_grid_network.InitializeNetwork();
+    my_node_container = my_grid_network_helper.InitializeNetwork();
     
            
         
@@ -386,7 +386,6 @@ main(int argc, char *argv[]) {
 
         Ptr<NOCApp> my_noc_app = CreateObject<NOCApp> ();
 //        Ptr<NOCApp> my_noc_app = my_noc_app_factory.Create ();
-        Ptr<NOCSwitch> my_noc_switch = CreateObject<NOCSwitch> ();
         Ptr<SENSOR> my_sensor = CreateObject<SENSOR> ();
 
         //Setup app
@@ -430,14 +429,16 @@ main(int argc, char *argv[]) {
 
         //Should be installed in this order!!!
         my_node_container.Get(i)->AddApplication(my_noc_app);
-        my_node_container.Get(i)->AddApplication(my_noc_switch);
+//        my_node_container.Get(i)->AddApplication(my_noc_switch);
         my_node_container.Get(i)->AddApplication(my_sensor);
 
         my_noc_app_container.Add(my_noc_app);
-        my_noc_switch_container.Add(my_noc_switch);
+//        my_noc_switch_container.Add(my_noc_switch);
         my_noc_sensor_container.Add(my_sensor);
     }
 
+    
+    
     // Setting the sinks
     //uint32_t nodes_n = m_sizeX * m_sizeY;
 
@@ -512,7 +513,7 @@ main(int argc, char *argv[]) {
 
     //**************** Output Printing ***************************
 
-    cout << "Finished executing..." << endl << endl;
+    cout << "Done!" << endl << endl;
     
     
     //Write to file the information the sinks have received

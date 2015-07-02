@@ -56,7 +56,8 @@ namespace ns3 {
 
         static TypeId GetTypeId (void);
         
-        const static uint8_t NumNetDevices = 4;
+//        const static uint8_t NumNetDevices = 4;
+        NetDeviceContainer NetDevices;
         
         bool IsSink;
         uint32_t MaxHops;

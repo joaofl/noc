@@ -171,12 +171,13 @@ namespace ns3 {
         NS_LOG_FUNCTION_NOARGS();
     }
 
-    void NOCNetDevice::SetNOCAddress(uint32_t a) {
-        m_noc_address = a;
+    void NOCNetDevice::SetNOCAddress(NOCNetDeviceAddress address){
+        m_noc_netdevice_address = address;
+//        m_noc_netdevice_address_group = group;
     }
 
     uint32_t NOCNetDevice::GetNOCAddress(void) {
-        return m_noc_address;
+        return m_noc_netdevice_address;
     }
 
     //    void

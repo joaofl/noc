@@ -37,6 +37,7 @@
 #include "noc-grid-helper.h"
 #include "ns3/application.h"
 #include "ns3/application-container.h"
+#include "src/noc/model/noc-switch.h"
 
 NS_LOG_COMPONENT_DEFINE ("GridHelper");
 
@@ -84,8 +85,18 @@ void
 NodeContainer
 GridHelper::InitializeNetwork()
 {
+    
+    // Net devices Address reference
+    //            4
+    //         _______
+    //        |       |
+    //     3  |  SN   |  1
+    //        |_______|
+    //           
+    //            2
+    
     NetDeviceContainer my_net_device_container;
-    Ptr<NOCNetDevice> my_net_device;
+    Ptr<NOCNetDevice> my_noc_net_device;
     Mac48Address my_mac_address;
 
     NodeContainer my_node_container;
@@ -95,14 +106,7 @@ GridHelper::InitializeNetwork()
 //    uint32_t m_nodesCreated = my_node_container.GetN();
     
 //    cout << "Network size = " << m_sizeX << " * " << m_sizeY << " = " << (unsigned int) n_nodes << endl;
-    // Net devices Address reference
-    //            4
-    //         _______
-    //        |       |
-    //     3  |  SN   |  1
-    //        |_______|
-    //           
-    //            2
+
 
     //*************** POSITIONING ***********************
 
@@ -122,14 +126,17 @@ GridHelper::InitializeNetwork()
 
     nodes_mb.Install(my_node_container);
 
-    //********** Net Devices installation ***************
+    //********** Net Devices installation in a mesh grid ***************
 
+    
 
     uint32_t node_this;
     for (uint64_t y = 0; y < m_sizeY; y++) {
         for (uint64_t x = 0; x < m_sizeX; x++) {
 
             node_this = x + y * m_sizeX;
+            
+
 
             //TODO: Here, perform a loop in order to create many net devices. per direction
             //Although, the addresses should change, and different connections should be allowed
@@ -139,13 +146,14 @@ GridHelper::InitializeNetwork()
             if (x != m_sizeX - 1) { //connect to the node in front of it
                 my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + 1));
 
-                my_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
+                my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
 //                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
-                my_net_device->SetNOCAddress(1);
+                my_noc_net_device->SetNOCAddress(1,1);
+                
 
-                my_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
+                my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
 //                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
-                my_net_device->SetNOCAddress(3);
+                my_noc_net_device->SetNOCAddress(1,3);
 
                 my_net_device_container.Get(0)->Initialize();
                 my_net_device_container.Get(1)->Initialize();
@@ -153,21 +161,37 @@ GridHelper::InitializeNetwork()
             if (y != m_sizeY - 1) { //connect to the node bellow
                 my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + m_sizeX));
 
-                my_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
+                my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>(); //netdevice of current node
 //                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
-                my_net_device->SetNOCAddress(2);
+                my_noc_net_device->SetNOCAddress(1,2);
 
-                my_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
+                my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>(); //remote netdevice
 //                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
-                my_net_device->SetNOCAddress(4);
+                my_noc_net_device->SetNOCAddress(1,4);
 
                 my_net_device_container.Get(0)->Initialize();
                 my_net_device_container.Get(1)->Initialize();
             }
 
 
+
         }
 
+    }
+    NodeContainer::Iterator n;
+    for (n = my_node_container.Begin() ; my_node_container.End() ; n++){
+        
+        Ptr<NOCSwitch> my_noc_switch = CreateObject<NOCSwitch> ();
+        
+        
+        for (uint8_t i = 0 ; i < m_channelCount ; i++){
+            my_noc_switch->NetDevices->Add(n->GetDevice(i+0)->GetObject<NOCNetDevice>());
+            my_noc_switch->NetDevices->Add(n->GetDevice(i+1)->GetObject<NOCNetDevice>());
+            my_noc_switch->NetDevices->Add(n->GetDevice(i+2)->GetObject<NOCNetDevice>());
+            my_noc_switch->NetDevices->Add(n->GetDevice(i+3)->GetObject<NOCNetDevice>());
+        }
+        n->AddApplication(my_noc_switch);
+//        my_noc_switch->NetDevices->Add(my_noc_net_device);
     }
     
     return my_node_container;
