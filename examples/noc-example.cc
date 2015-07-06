@@ -457,8 +457,8 @@ main(int argc, char *argv[]) {
         ss << n << "," << x << "," << y;
         //        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
         //        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
-        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
-        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
+//        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
+//        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
     }
 
     

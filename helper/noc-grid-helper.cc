@@ -38,6 +38,7 @@
 #include "ns3/application.h"
 #include "ns3/application-container.h"
 #include "ns3/noc-switch.h"
+#include "src/network/model/node.h"
 
 NS_LOG_COMPONENT_DEFINE ("GridHelper");
 
@@ -183,19 +184,15 @@ GridHelper::InitializeNetwork()
         
         Ptr<NOCSwitch> my_noc_switch = CreateObject<NOCSwitch> ();
         
-        
-//        for (uint8_t i = 0 ; i < m_channelCount ; i++){
-//            my_noc_switch->NetDevices.Add(n->GetDevice(i+0)->GetObject<NOCNetDevice>() );
-//            my_noc_switch->NetDevices.Add(n->GetDevice(i+1)->GetObject<NOCNetDevice>() );
-//            my_noc_switch->NetDevices.Add(n->GetDevice(i+2)->GetObject<NOCNetDevice>() );
-//            my_noc_switch->NetDevices.Add(n->GetDevice(i+3)->GetObject<NOCNetDevice>() );
-//        }
-//        n->AddApplication(my_noc_switch);
-//        my_noc_switch->NetDevices->Add(my_noc_net_device);
-        
-//        for (uint8_t i = 0 ; n->GetNDevices() ; i++){
-//            
-//        }
+//        Ptr<Node> node = my_node_container.Get(n->);
+
+//        uint16_t nd_count = node->GetNDevices();
+//        
+        for (uint8_t i = 0 ; i < (*n)->GetNDevices() ; i++){
+            my_noc_switch->NetDevices.Add((*n)->GetDevice(i)->GetObject<NOCNetDevice>() );
+        }
+//        
+        (*n)->AddApplication(my_noc_switch);
     }
     
     return my_node_container;
