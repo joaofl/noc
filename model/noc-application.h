@@ -32,7 +32,7 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 
-#include "noc-application.h"
+//#include "noc-application.h"
 #include "noc-header.h"
 #include "noc-net-device.h"
 #include "noc-switch.h"

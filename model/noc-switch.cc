@@ -100,7 +100,7 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
         //         pck->;
 
-        for (uint32_t i = 0; i < NumNetDevices; i++) { //sends one packet per netdevice installed, according to the bitmask received
+        for (uint32_t i = 0; i < node->GetNDevices(); i++) { //sends one packet per netdevice installed, according to the bitmask received
             uint8_t p = ports >> i;
             if ((p & 1) == 1) {
                 for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
@@ -162,7 +162,7 @@ namespace ns3 {
         m_switchTxTrace(pck);
 
         //starts sending the packets from port 1 to port 4.
-        for (uint32_t i = 0; i < NumNetDevices; i++) { //sends one packet per netdevice installed, according to the bitmask received
+        for (uint32_t i = 0 ; i < node->GetNDevices() ; i++) { //sends one packet per netdevice installed, according to the bitmask received
             uint8_t p = ports >> i;
             if ((p & 1) == 1) {
                 for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one

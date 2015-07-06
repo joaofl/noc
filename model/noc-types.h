@@ -94,10 +94,12 @@ typedef struct {
     bool detected;
 } EventRef;
 
-typedef struct {
-    uint8_t group;
-    uint8_t id;
-}NOCNetDeviceAddress;
+//typedef struct {
+//    uint8_t group;
+//    uint8_t id;
+//}NOCNetDeviceAddress;
+
+typedef uint16_t NOCNetDeviceAddress;
 
 #endif	/* DASDAS_H */
 

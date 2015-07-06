@@ -418,8 +418,8 @@ main(int argc, char *argv[]) {
         ostringstream ss;
         ss << i << "," << x << "," << y;
 
-        my_noc_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
-        my_noc_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
+//        my_noc_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
+//        my_noc_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
 
         //Setup sensor
         my_sensor->SensorPosition.x = x;

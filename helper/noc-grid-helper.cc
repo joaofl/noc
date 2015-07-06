@@ -33,11 +33,11 @@
 #include "ns3/mpi-receiver.h"
 #include "src/core/model/object-base.h"
 
-#include "ns3/trace-helper.h"
 #include "noc-grid-helper.h"
+#include "ns3/trace-helper.h"
 #include "ns3/application.h"
 #include "ns3/application-container.h"
-#include "src/noc/model/noc-switch.h"
+#include "ns3/noc-switch.h"
 
 NS_LOG_COMPONENT_DEFINE ("GridHelper");
 
@@ -147,13 +147,13 @@ GridHelper::InitializeNetwork()
                 my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + 1));
 
                 my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
-//                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
-                my_noc_net_device->SetNOCAddress(1,1);
+                my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
+                my_noc_net_device->SetNOCAddress(1);
                 
 
                 my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
-//                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
-                my_noc_net_device->SetNOCAddress(1,3);
+                my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
+                my_noc_net_device->SetNOCAddress(3);
 
                 my_net_device_container.Get(0)->Initialize();
                 my_net_device_container.Get(1)->Initialize();
@@ -162,12 +162,12 @@ GridHelper::InitializeNetwork()
                 my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + m_sizeX));
 
                 my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>(); //netdevice of current node
-//                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
-                my_noc_net_device->SetNOCAddress(1,2);
+                my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
+                my_noc_net_device->SetNOCAddress(2);
 
                 my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>(); //remote netdevice
-//                my_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
-                my_noc_net_device->SetNOCAddress(1,4);
+                my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
+                my_noc_net_device->SetNOCAddress(4);
 
                 my_net_device_container.Get(0)->Initialize();
                 my_net_device_container.Get(1)->Initialize();
@@ -179,19 +179,23 @@ GridHelper::InitializeNetwork()
 
     }
     NodeContainer::Iterator n;
-    for (n = my_node_container.Begin() ; my_node_container.End() ; n++){
+    for (n = my_node_container.Begin() ; n != my_node_container.End() ; n++){
         
         Ptr<NOCSwitch> my_noc_switch = CreateObject<NOCSwitch> ();
         
         
-        for (uint8_t i = 0 ; i < m_channelCount ; i++){
-            my_noc_switch->NetDevices->Add(n->GetDevice(i+0)->GetObject<NOCNetDevice>());
-            my_noc_switch->NetDevices->Add(n->GetDevice(i+1)->GetObject<NOCNetDevice>());
-            my_noc_switch->NetDevices->Add(n->GetDevice(i+2)->GetObject<NOCNetDevice>());
-            my_noc_switch->NetDevices->Add(n->GetDevice(i+3)->GetObject<NOCNetDevice>());
-        }
-        n->AddApplication(my_noc_switch);
+//        for (uint8_t i = 0 ; i < m_channelCount ; i++){
+//            my_noc_switch->NetDevices.Add(n->GetDevice(i+0)->GetObject<NOCNetDevice>() );
+//            my_noc_switch->NetDevices.Add(n->GetDevice(i+1)->GetObject<NOCNetDevice>() );
+//            my_noc_switch->NetDevices.Add(n->GetDevice(i+2)->GetObject<NOCNetDevice>() );
+//            my_noc_switch->NetDevices.Add(n->GetDevice(i+3)->GetObject<NOCNetDevice>() );
+//        }
+//        n->AddApplication(my_noc_switch);
 //        my_noc_switch->NetDevices->Add(my_noc_net_device);
+        
+//        for (uint8_t i = 0 ; n->GetNDevices() ; i++){
+//            
+//        }
     }
     
     return my_node_container;

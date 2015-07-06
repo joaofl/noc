@@ -176,7 +176,7 @@ namespace ns3 {
 //        m_noc_netdevice_address_group = group;
     }
 
-    uint32_t NOCNetDevice::GetNOCAddress(void) {
+    NOCNetDeviceAddress NOCNetDevice::GetNOCAddress(void) {
         return m_noc_netdevice_address;
     }
 
