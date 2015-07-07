@@ -83,7 +83,7 @@ namespace ns3 {
 
 
 
-        m_switch = this->GetNode()->GetApplication(1)->GetObject<NOCSwitch>();
+        m_switch = this->GetNode()->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCSwitch>();
 
         if (IsSink == true) {
             Simulator::Schedule(TimeStartOffset, &NOCApp::NetworkDiscovery, this);
@@ -452,7 +452,7 @@ namespace ns3 {
         //        }
 
         if (IsSink == false) {
-            Ptr<SENSOR> sensor = this->GetNode()->GetApplication(2)->GetObject<SENSOR>();
+            Ptr<SENSOR> sensor = this->GetNode()->GetApplication(INSTALLED_SENSOR)->GetObject<SENSOR>();
 
             NOCHeader hd;
             hd.CurrentX = 0;

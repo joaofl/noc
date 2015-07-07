@@ -272,18 +272,18 @@ namespace ns3 {
 
         if (noc_protocol == P_NETWORK_DISCOVERY) {
             PacketsReceived[P_NETWORK_DISCOVERY]++;
-            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(0)->GetObject<NOCApp>();
+            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(INSTALLED_NOC_APP)->GetObject<NOCApp>();
             m_app->NetworkDiscoveryReceived(pck_cp, origin_port);
 
         } else if (noc_protocol == P_VALUE_ANNOUNCEMENT) {
             PacketsReceived[P_VALUE_ANNOUNCEMENT]++;
-            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(0)->GetObject<NOCApp>();
+            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(INSTALLED_NOC_APP)->GetObject<NOCApp>();
             m_app->ValueAnnoucementReceived(pck_cp, origin_port);
 
         } else if (noc_protocol == P_EVENT_ANNOUNCEMENT) {
             PacketsReceived[P_EVENT_ANNOUNCEMENT]++;
 
-            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(0)->GetObject<NOCApp>();
+            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(INSTALLED_NOC_APP)->GetObject<NOCApp>();
             m_app->EventAnnoucementReceived(pck_cp, origin_port);
         }
 
