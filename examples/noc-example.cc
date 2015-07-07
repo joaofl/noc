@@ -385,7 +385,6 @@ main(int argc, char *argv[]) {
         uint32_t y = floor(i / size_y);
 
         Ptr<NOCApp> my_noc_app = CreateObject<NOCApp> ();
-//        Ptr<NOCApp> my_noc_app = my_noc_app_factory.Create ();
         Ptr<SENSOR> my_sensor = CreateObject<SENSOR> ();
 
         //Setup app
@@ -402,7 +401,8 @@ main(int argc, char *argv[]) {
         
         Ptr<NOCNetDevice> my_net_device;
 
-        for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
+        for (uint32_t j = 0; j < n_devices; j++) 
+        {
             my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<NOCNetDevice>();
 //            uint8_t n = my_net_device->GetNOCAddress();
             ostringstream ss; //Used as the context. From which node (x,y) the callback was generated.
@@ -429,11 +429,9 @@ main(int argc, char *argv[]) {
 
         //Should be installed in this order!!!
         my_node_container.Get(i)->AddApplication(my_noc_app);
-//        my_node_container.Get(i)->AddApplication(my_noc_switch);
         my_node_container.Get(i)->AddApplication(my_sensor);
 
         my_noc_app_container.Add(my_noc_app);
-//        my_noc_switch_container.Add(my_noc_switch);
         my_noc_sensor_container.Add(my_sensor);
     }
 

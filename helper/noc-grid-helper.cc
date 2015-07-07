@@ -104,8 +104,6 @@ GridHelper::InitializeNetwork()
     
     my_node_container.Create(m_sizeX * m_sizeY);
     
-//    uint32_t m_nodesCreated = my_node_container.GetN();
-    
 //    cout << "Network size = " << m_sizeX << " * " << m_sizeY << " = " << (unsigned int) n_nodes << endl;
 
 
@@ -184,27 +182,16 @@ GridHelper::InitializeNetwork()
         
         Ptr<NOCSwitch> my_noc_switch = CreateObject<NOCSwitch> ();
         
-//        Ptr<Node> node = my_node_container.Get(n->);
-
-//        uint16_t nd_count = node->GetNDevices();
-//        
-        for (uint8_t i = 0 ; i < (*n)->GetNDevices() ; i++){
+        for (uint8_t i = 0 ; i < (*n)->GetNDevices() ; i++)
+        {
             my_noc_switch->NetDevices.Add((*n)->GetDevice(i)->GetObject<NOCNetDevice>() );
         }
-//        
+        
         (*n)->AddApplication(my_noc_switch);
     }
     
     return my_node_container;
 }
-
-
-//ApplicationContainer
-//GridHelper::InstallApplication(NodeContainer nc)
-//{
-//    //**************** Application Installation ******************
-//    return 0;
-//}
 
 
 void 
