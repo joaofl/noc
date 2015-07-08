@@ -115,36 +115,36 @@ namespace ns3 {
         }
     }
     
-    void
-    NOCSwitch::SendPacket(Ptr<const Packet> pck, uint8_t ports){
-        //check if it will be sent to more then one port, if positive, some time
-        //drift will be inserted between each transmission in order to guarantee
-        //the expected transmission sequence, from east to north, or 1 to 4
-        
-        
-//        #ifdef DESYNCRONIZE
+//    void
+//    NOCSwitch::SendPacket(Ptr<const Packet> pck, uint8_t ports){
+//        //check if it will be sent to more then one port, if positive, some time
+//        //drift will be inserted between each transmission in order to guarantee
+//        //the expected transmission sequence, from east to north, or 1 to 4
+//        
+//        
+////        #ifdef DESYNCRONIZE
+////
+////        uint8_t n_ports = 0;
+////        
+////        for (uint8_t i = 0 ; i < NumNetDevices; i++){ //loops to all the bits to check which port should the packet be sent to
+////            if (((ports >> i) & 0b00000001) == 1){
+////                uint8_t port = 0b00000001 << i;
+////                
+////                Time t = NanoSeconds(n_ports);
+////                Simulator::Schedule(t, &NOCSwitch::SendSinglePacket, this, pck, port);
+//////                SendSinglePacket(pck, port);
+////                n_ports++;
+////            }
+////        }
+////        
+////        return;
+////        #endif
 //
-//        uint8_t n_ports = 0;
-//        
-//        for (uint8_t i = 0 ; i < NumNetDevices; i++){ //loops to all the bits to check which port should the packet be sent to
-//            if (((ports >> i) & 0b00000001) == 1){
-//                uint8_t port = 0b00000001 << i;
-//                
-//                Time t = NanoSeconds(n_ports);
-//                Simulator::Schedule(t, &NOCSwitch::SendSinglePacket, this, pck, port);
-////                SendSinglePacket(pck, port);
-//                n_ports++;
-//            }
-//        }
-//        
-//        return;
-//        #endif
-
-        SendSinglePacket(pck,ports);
-    }
+//        SendSinglePacket(pck,ports);
+//    }
     
     void
-    NOCSwitch::SendSinglePacket(Ptr<const Packet> pck, uint8_t ports) {
+    NOCSwitch::SendPacket(Ptr<const Packet> pck, uint8_t ports) {
 
         Ptr<Node> node = this->GetNode();
         uint8_t n_devices = node->GetNDevices();

@@ -417,9 +417,11 @@ main(int argc, char *argv[]) {
         //Setup switch
         ostringstream ss;
         ss << i << "," << x << "," << y;
+        
+        Ptr<NOCSwitch> my_noc_switch = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCSwitch>();
 
-//        my_noc_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
-//        my_noc_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
+        my_noc_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
+        my_noc_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
 
         //Setup sensor
         my_sensor->SensorPosition.x = x;
@@ -455,8 +457,12 @@ main(int argc, char *argv[]) {
         ss << n << "," << x << "," << y;
         //        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
         //        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
-//        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
-//        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
+        
+        Ptr<NOCSwitch> my_noc_switch = my_node_container.Get(n)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCSwitch>();
+
+        
+        my_noc_switch->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
+        my_noc_switch->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
     }
 
     
