@@ -24,6 +24,7 @@
 #include "ns3/log.h"
 #include "ns3/queue.h"
 #include "ns3/simulator.h"
+#include "ns3/noc-address.h"
 #include "ns3/mac48-address.h"
 #include "ns3/llc-snap-header.h"
 #include "ns3/error-model.h"
@@ -66,7 +67,7 @@ namespace ns3 {
         
                 .AddAttribute("DataRate",
                 "The default data rate for point to point links",
-                DataRateValue(DataRate("32768b/s")),
+                DataRateValue(DataRate("1Mb/s")),
                 MakeDataRateAccessor(&NOCNetDevice::m_bps),
                 MakeDataRateChecker())
                 .AddAttribute("ReceiveErrorModel",
@@ -171,12 +172,12 @@ namespace ns3 {
         NS_LOG_FUNCTION_NOARGS();
     }
 
-    void NOCNetDevice::SetNOCAddress(NOCNetDeviceAddress address){
+    void NOCNetDevice::SetNOCAddress(NOCAddress address){
         m_noc_netdevice_address = address;
 //        m_noc_netdevice_address_group = group;
     }
 
-    NOCNetDeviceAddress NOCNetDevice::GetNOCAddress(void) {
+    NOCAddress NOCNetDevice::GetNOCAddress(void) {
         return m_noc_netdevice_address;
     }
 

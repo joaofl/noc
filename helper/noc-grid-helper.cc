@@ -141,37 +141,41 @@ GridHelper::InitializeNetwork()
             //Although, the addresses should change, and different connections should be allowed
             // (using a shared bus in one of them, for example. Or, connecting vertically with one
             //bus, and horizontally with another bus, as in the Epiphany architecture
-           
-            if (x != m_sizeX - 1) { //connect to the node in front of it
-                my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + 1));
+ 
+            for (uint8_t i = 0 ; i < m_channelCount ; i++){
+                if (x != m_sizeX - 1) { //connect to the node in front of it
 
-                my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
-                my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
-                my_noc_net_device->SetNOCAddress(1);
-                
+                    my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + 1));
 
-                my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
-                my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
-                my_noc_net_device->SetNOCAddress(3);
+                    my_noc_net_device = my_net_device_container.Get(i + 0)->GetObject<NOCNetDevice>();
+                    my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
+                    my_noc_net_device->SetNOCAddress(1);
 
-                my_net_device_container.Get(0)->Initialize();
-                my_net_device_container.Get(1)->Initialize();
+
+                    my_noc_net_device = my_net_device_container.Get(i + 1)->GetObject<NOCNetDevice>();
+                    my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
+                    my_noc_net_device->SetNOCAddress(3);
+
+                    my_net_device_container.Get(i + 0)->Initialize();
+                    my_net_device_container.Get(i + 1)->Initialize();                    
+
+
+                }
+                if (y != m_sizeY - 1) { //connect to the node bellow
+                    my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + m_sizeX));
+
+                    my_noc_net_device = my_net_device_container.Get(i + 0)->GetObject<NOCNetDevice>(); //netdevice of current node
+                    my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
+                    my_noc_net_device->SetNOCAddress(2);
+
+                    my_noc_net_device = my_net_device_container.Get(i + 1)->GetObject<NOCNetDevice>(); //remote netdevice
+                    my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
+                    my_noc_net_device->SetNOCAddress(4);
+
+                    my_net_device_container.Get(i + 0)->Initialize();
+                    my_net_device_container.Get(i + 1)->Initialize();
+                }
             }
-            if (y != m_sizeY - 1) { //connect to the node bellow
-                my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + m_sizeX));
-
-                my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>(); //netdevice of current node
-                my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 2 - DOWN
-                my_noc_net_device->SetNOCAddress(2);
-
-                my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>(); //remote netdevice
-                my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 4 - UP
-                my_noc_net_device->SetNOCAddress(4);
-
-                my_net_device_container.Get(0)->Initialize();
-                my_net_device_container.Get(1)->Initialize();
-            }
-
 
 
         }

@@ -33,6 +33,7 @@
 #include "ns3/nstime.h"
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
+#include "ns3/noc-address.h"
 #include "ns3/mac48-address.h"
 #include "ns3/boolean.h"
 #include "noc-types.h"
@@ -182,8 +183,8 @@ namespace ns3 {
         
         bool SendSignal(Ptr<Packet> packet);
 
-        void SetNOCAddress(NOCNetDeviceAddress);
-        NOCNetDeviceAddress GetNOCAddress(void);
+        void SetNOCAddress(NOCAddress);
+        NOCAddress GetNOCAddress(void);
 
         // The remaining methods are documented in ns3::NetDevice*
 
@@ -502,7 +503,7 @@ namespace ns3 {
          */
         uint32_t m_mtu;
 
-        NOCNetDeviceAddress m_noc_netdevice_address;
+        NOCAddress m_noc_address;
 
         Ptr<Packet> m_currentPkt;
 

@@ -98,13 +98,15 @@ namespace ns3 {
         uint8_t n_devices = node->GetNDevices();
 
         Ptr<Packet> pck = Create<Packet>();
+        NOCAddress address;
         //         pck->;
 
         for (uint32_t i = 0; i < node->GetNDevices(); i++) { //sends one packet per netdevice installed, according to the bitmask received
             uint8_t p = ports >> i;
             if ((p & 1) == 1) {
                 for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
-                    if (node->GetDevice(j)->GetObject<NOCNetDevice>()->GetNOCAddress() == i + 1) {
+                    address = node->GetDevice(j)->GetObject<NOCNetDevice>()->GetNOCAddress();
+                    if (address == i + 1) {
 
                         node->GetDevice(j)->GetObject<NOCNetDevice>()->SendSignal(pck);
 
@@ -246,20 +248,15 @@ namespace ns3 {
 
         if (ad == 1) { //came from the right
             hd.CurrentX -= 1;
-            //            hd.OriginX += 1; //only in this case that this header will contain this field
-            //PortOfOrigin = 0b00000001;
-        } else if (ad == 2) {
+        } 
+        else if (ad == 2) {
             hd.CurrentY -= 1;
-            //            hd.OriginY += 1;
-            //PortOfOrigin = 0b00000010;
-        } else if (ad == 3) {
+        } 
+        else if (ad == 3) {
             hd.CurrentX += 1;
-            //            hd.OriginX -= 1;
-            //PortOfOrigin = 0b00000100;
-        } else if (ad == 4) {
+        } 
+        else if (ad == 4) {
             hd.CurrentY += 1;
-            //            hd.OriginY -= 1;
-            //PortOfOrigin = 0b00001000;
         }
 //        hd.HopsCount += 1;
         pck_cp->AddHeader(hd);
