@@ -75,9 +75,9 @@ namespace ns3 {
 
         bool PacketReceive(Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol, const Address& sourceAddress);
         
-        void SendSinglePacket(Ptr<const Packet> pck, uint8_t ports);
-        
         void SendPacket(Ptr<const Packet> pck, uint8_t ports);
+        
+//        void SendPacket(Ptr<const Packet> pck, uint8_t ports);
         
         void SendSignal(uint8_t bits, uint8_t ports);
         

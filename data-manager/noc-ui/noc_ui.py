@@ -377,7 +377,7 @@ class MyWindowClass(QtGui.QWidget, form_class):
         #self.pbGenerate_clicked()
         #TODO: replace the fixed string with the appropriated var
         self.teCommand.setText('Starting simulation. Please be patient')
-        cmd = './waf --run "src/usn/examples/usn-example $(cat /home/joao/usn-data/config/input-config.c.csv)"'
+        cmd = './waf --run "src/noc/examples/noc-example $(cat /home/joao/usn-data/config/input-config.c.csv)"'
         cmd_dir = self.tbNs3Dir.text()
 
         thread.start_new_thread(self.lunchSimulationProcess, (cmd,cmd_dir))
