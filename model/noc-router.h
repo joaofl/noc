@@ -37,7 +37,7 @@
 #include "noc-header.h"
 #include "noc-net-device.h"
 #include "noc-application.h"
-#include "noc-switch.h"
+#include "noc-router.h"
 #include "noc-types.h"
 
 #define DIRECTION_ALL 0b11111111
@@ -51,45 +51,53 @@
 using namespace std;
 namespace ns3 {
 
-    class NOCSwitch : public Application {
+    class NOCRouter : public Application {
     public:
 
         static TypeId GetTypeId (void);
         
 //        const static uint8_t NumNetDevices = 4;
-        NetDeviceContainer NetDevices;
+        
         
         bool IsSink;
         uint32_t MaxHops;
         Time TimeStartOffset;
-        uint32_t ValueAnnouncementsDone;
-        vector <uint32_t> PacketsReceived; //allocate for the number of protocols used, with the value 0 initialized on it
-        vector <uint32_t> PacketsSent;
-        
+//        uint32_t ValueAnnouncementsDone;
+//        vector <uint32_t> PacketsReceived; //allocate for the number of protocols used, with the value 0 initialized on it
+//        vector <uint32_t> PacketsSent;
+//        
 //        vector < stringstream* > PacketTrace;
         TracedValue< stringstream* > PacketTrace;
         
 
-        NOCSwitch();
-        virtual ~NOCSwitch();
+        NOCRouter();
+        virtual ~NOCRouter();
 
-        bool PacketReceive(Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol, const Address& sourceAddress);
+        bool ReceivePacket(Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol, const Address& sourceAddress);
         
         void SendPacket(Ptr<const Packet> pck, uint8_t ports);
         
 //        void SendPacket(Ptr<const Packet> pck, uint8_t ports);
         
-        void SendSignal(uint8_t bits, uint8_t ports);
+//        void SendSignal(uint8_t bits, uint8_t ports);
         
+        void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t x, uint32_t y, uint32_t network, uint8_t direction);
+        
+        Ptr<NOCNetDevice> GetNetDevice(uint8_t network, uint8_t direction);
+        
+        
+        uint8_t GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
+    
+        uint8_t GetNDevices(void);
         
         
     private:
 
-//        TracedCallback<Ptr<const Packet>, NodeRef > m_switchRxTrace;
-//        TracedCallback<Ptr<const Packet>, NodeRef > m_switchTxTrace;
+//        TracedCallback<Ptr<const Packet>, NodeRef > m_routerRxTrace;
+//        TracedCallback<Ptr<const Packet>, NodeRef > m_routerTxTrace;
 
-        TracedCallback<Ptr<const Packet> > m_switchRxTrace;
-        TracedCallback<Ptr<const Packet> > m_switchTxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerRxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerTxTrace;
         
         virtual void StartApplication(void);
         virtual void StopApplication(void);
@@ -97,6 +105,18 @@ namespace ns3 {
         bool m_running;
         EventId m_sendEvent;
         
+        NetDeviceContainer m_netDevices;
+        
+        typedef struct {
+            uint8_t container_index;
+            uint8_t cluster_id;
+            int32_t x; 
+            int32_t y;
+            uint8_t network_id;
+            uint8_t direction;
+        }NetDeviceInfo;
+        
+        std::vector<NetDeviceInfo> m_netDeviceInfoArray;
     };
 
 }

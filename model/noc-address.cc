@@ -21,6 +21,7 @@
 #include "ns3/address.h"
 #include "ns3/assert.h"
 #include "ns3/log.h"
+#include "ns3/noc-address.h"
 #include <iomanip>
 #include <iostream>
 #include <cstring>
@@ -60,11 +61,10 @@ ATTRIBUTE_HELPER_CPP (NOCAddress);
 NOCAddress::NOCAddress ()
 {
   NS_LOG_FUNCTION (this);
-  m_address.unique_id = 0;
-  m_address.x = 0;
-  m_address.y = 0;
-  m_address.network_id = 0;
-  m_address.direction = 0;
+  m_address[0] = 0;
+  m_address[1] = 0;
+  m_address[2] = 0;
+  m_address[3] = 0;
 }
 //NOCAddress::NOCAddress (const char *str)
 //{
@@ -97,18 +97,20 @@ NOCAddress::NOCAddress ()
 //    }
 //  NS_ASSERT (i == 6);
 //}
-//void 
-//NOCAddress::CopyFrom (const uint8_t buffer[6])
-//{
-//  NS_LOG_FUNCTION (this << &buffer);
-//  std::memcpy (m_address, buffer, 6);
-//}
-//void 
-//NOCAddress::CopyTo (uint8_t buffer[6]) const
-//{
-//  NS_LOG_FUNCTION (this << &buffer);
-//  std::memcpy (buffer, m_address, 6);
-//}
+
+void 
+NOCAddress::CopyFrom (const uint8_t buffer[4])
+{
+  NS_LOG_FUNCTION (this << &buffer);
+  std::memcpy (m_address, buffer, 4);
+}
+
+void 
+NOCAddress::CopyTo (uint8_t buffer[4]) const
+{
+  NS_LOG_FUNCTION (this << &buffer);
+  std::memcpy (buffer, m_address, 4);
+}
 //
 //bool 
 //NOCAddress::IsMatchingType (const Address &address)
@@ -116,50 +118,38 @@ NOCAddress::NOCAddress ()
 //  NS_LOG_FUNCTION (&address);  
 //  return address.CheckCompatible (GetType (), 6);
 //}
-//NOCAddress::operator Address () const
-//{
-//  return ConvertTo ();
-//}
-//Address 
-//NOCAddress::ConvertTo (void) const
-//{
-//  NS_LOG_FUNCTION (this);
-//  return Address (GetType (), m_address, 6);
-//}
-//NOCAddress 
-//NOCAddress::ConvertFrom (const Address &address)
-//{
-//  NS_LOG_FUNCTION (&address);
-//  NS_ASSERT (address.CheckCompatible (GetType (), 6));
-//  NOCAddress retval;
-//  address.CopyTo (retval.m_address);
-//  return retval;
-//}
-NOCAddress 
-NOCAddress::Allocate (int32_t x, int32_t y, uint8_t w, uint8_t d)
+NOCAddress::operator Address () const
 {
-  static uint64_t id = 0;
-  id++;
-  NOCAddress address;
-  address.m_address.unique_id = id;
-  address.m_address.x = x;
-  address.m_address.y = y;
-  address.m_address.network_id = w;
-  address.m_address.direction = d;
-  return address;
+  return ConvertTo ();
+}
+Address 
+NOCAddress::ConvertTo (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return Address (GetType (), m_address, 4);
+}
+NOCAddress 
+NOCAddress::ConvertFrom (const Address &address)
+{
+  NS_LOG_FUNCTION (&address);
+  NS_ASSERT (address.CheckCompatible (GetType (), 4)); //64 bits, 4 bytes
+  NOCAddress retval;
+  address.CopyTo (retval.m_address);
+  return retval;
 }
 
 NOCAddress 
 NOCAddress::Allocate (void)
 {
+  NS_LOG_FUNCTION_NOARGS ();
   static uint64_t id = 0;
   id++;
   NOCAddress address;
-  address.m_address.unique_id = id;
-  address.m_address.x = 0;
-  address.m_address.y = 0;
-  address.m_address.network_id = 0;
-  address.m_address.direction = 0;
+  address.m_address[0] = (id >> 24) & 0xff;
+  address.m_address[1] = (id >> 16) & 0xff;
+  address.m_address[2] = (id >> 8) & 0xff;
+  address.m_address[3] = (id >> 0) & 0xff;
+  
   return address;
 }
 

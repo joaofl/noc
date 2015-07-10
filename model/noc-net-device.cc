@@ -61,9 +61,9 @@ namespace ns3 {
         
                 .AddAttribute("Address",
                 "The MAC address of this device.",
-                Mac48AddressValue(Mac48Address("ff:ff:ff:ff:ff:ff")),
-                MakeMac48AddressAccessor(&NOCNetDevice::m_address),
-                MakeMac48AddressChecker())
+                NOCAddressValue(NOCAddress()),
+                MakeNOCAddressAccessor(&NOCNetDevice::m_address),
+                MakeNOCAddressChecker())
         
                 .AddAttribute("DataRate",
                 "The default data rate for point to point links",
@@ -172,14 +172,14 @@ namespace ns3 {
         NS_LOG_FUNCTION_NOARGS();
     }
 
-    void NOCNetDevice::SetNOCAddress(NOCAddress address){
-        m_noc_netdevice_address = address;
-//        m_noc_netdevice_address_group = group;
-    }
-
-    NOCAddress NOCNetDevice::GetNOCAddress(void) {
-        return m_noc_netdevice_address;
-    }
+//    void NOCNetDevice::SetNOCAddress(NOCAddress address){
+//        m_noc_netdevice_address = address;
+////        m_noc_netdevice_address_group = group;
+//    }
+//
+//    NOCAddress NOCNetDevice::GetNOCAddress(void) {
+//        return m_noc_netdevice_address;
+//    }
 
     //    void
     //    NOCNetDevice::AddHeader(Ptr<Packet> p, uint16_t protocolNumber) {
@@ -379,39 +379,39 @@ namespace ns3 {
         }
     }
 
-    void
-    NOCNetDevice::ReceiveSignal(Ptr<Packet> packet) {
-        NS_LOG_FUNCTION(this << packet);
-        uint16_t protocol = 0;
-
-        // 
-        // Hit the trace hooks.  All of these hooks are in the same place in this 
-        // device becuase it is so simple, but this is not usually the case in 
-        // more complicated devices.
-        //
-        m_snifferTrace(packet);
-        m_promiscSnifferTrace(packet);
-        m_phyRxEndTrace(packet);
-
-        //
-        // Strip off the point-to-point protocol header and forward this packet
-        // up the protocol stack.  Since this is a simple point-to-point link,
-        // there is no difference in what the promisc callback sees and what the
-        // normal receive callback sees.
-        //
-        //ProcessHeader (packet->Copy(), protocol);
-
-        if (!m_promiscCallback.IsNull()) {
-            m_macPromiscRxTrace(packet);
-
-            m_promiscCallback(this, packet, protocol, GetRemote(), GetAddress(), NetDevice::PACKET_HOST);
-        }
-
-        m_macRxTrace(packet);
-
-        m_rxSignalCallback(this, packet, protocol, GetRemote());
-
-    }
+//    void
+//    NOCNetDevice::ReceiveSignal(Ptr<Packet> packet) {
+//        NS_LOG_FUNCTION(this << packet);
+//        uint16_t protocol = 0;
+//
+//        // 
+//        // Hit the trace hooks.  All of these hooks are in the same place in this 
+//        // device becuase it is so simple, but this is not usually the case in 
+//        // more complicated devices.
+//        //
+//        m_snifferTrace(packet);
+//        m_promiscSnifferTrace(packet);
+//        m_phyRxEndTrace(packet);
+//
+//        //
+//        // Strip off the point-to-point protocol header and forward this packet
+//        // up the protocol stack.  Since this is a simple point-to-point link,
+//        // there is no difference in what the promisc callback sees and what the
+//        // normal receive callback sees.
+//        //
+//        //ProcessHeader (packet->Copy(), protocol);
+//
+//        if (!m_promiscCallback.IsNull()) {
+//            m_macPromiscRxTrace(packet);
+//
+//            m_promiscCallback(this, packet, protocol, GetRemote(), GetAddress(), NetDevice::PACKET_HOST);
+//        }
+//
+//        m_macRxTrace(packet);
+//
+//        m_rxSignalCallback(this, packet, protocol, GetRemote());
+//
+//    }
 
     void
     NOCNetDevice::NotifyLinkUp(void) {
@@ -442,7 +442,8 @@ namespace ns3 {
 
     void
     NOCNetDevice::SetAddress(Address address) {
-        m_address = Mac48Address::ConvertFrom(address);
+//        m_address = Mac48Address::ConvertFrom(address);
+        m_address = NOCAddress::ConvertFrom(address);
     }
 
     Address
@@ -460,22 +461,28 @@ namespace ns3 {
         m_linkChangeCallbacks.ConnectWithoutContext(callback);
     }
 
-    //
-    // This is a point-to-point device, so every transmission is a broadcast to
-    // all of the devices on the network.
-    //
+//    //
+//    // This is a point-to-point device, so every transmission is a broadcast to
+//    // all of the devices on the network.
+//    //
+//
+//    bool
+//    NOCNetDevice::IsBroadcast(void) const {
+//        return true;
+//    }
+//
 
     bool
     NOCNetDevice::IsBroadcast(void) const {
         return true;
     }
 
-    //
-    // We don't really need any addressing information since this is a 
-    // point-to-point device.  The base class NetDevice wants us to return a
-    // broadcast address, so we make up something reasonable.
-    //
-
+//    
+//     We don't really need any addressing information since this is a 
+//     point-to-point device.  The base class NetDevice wants us to return a
+//     broadcast address, so we make up something reasonable.
+//    
+//
     Address
     NOCNetDevice::GetBroadcast(void) const {
         return Mac48Address("ff:ff:ff:ff:ff:ff");
@@ -737,7 +744,7 @@ namespace ns3 {
 
     //    uint16_t
     //    NOCNetDevice::PppToEther(uint16_t proto) {
-    //        switch (proto) {
+    //        router (proto) {
     //            case 0x0021: return 0x0800; //IPv4
     //            case 0x0057: return 0x86DD; //IPv6
     //            default: NS_ASSERT_MSG(false, "PPP Protocol number not defined!");
@@ -747,7 +754,7 @@ namespace ns3 {
     //
     //    uint16_t
     //    NOCNetDevice::EtherToPpp(uint16_t proto) {
-    //        switch (proto) {
+    //        router (proto) {
     //            case 0x0800: return 0x0021; //IPv4
     //            case 0x86DD: return 0x0057; //IPv6
     //            default: NS_ASSERT_MSG(false, "PPP Protocol number not defined!");

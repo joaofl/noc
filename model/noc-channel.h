@@ -78,7 +78,7 @@ public:
    */
   virtual bool TransmitStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
   
-  virtual bool TransmitSignalStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
+//  virtual bool TransmitSignalStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
   
   /**
    * \brief Get number of devices on this channel

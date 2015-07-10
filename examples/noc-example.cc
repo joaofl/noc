@@ -98,7 +98,7 @@ uint32_t start_offset;
 
 
 void
-packet_exchanged_switch_sink(string context, Ptr<const Packet> pck, uint8_t direction) {
+packet_exchanged_router_sink(string context, Ptr<const Packet> pck, uint8_t direction) {
     
     NOCHeader hd;
     pck->PeekHeader(hd);
@@ -121,17 +121,17 @@ packet_exchanged_switch_sink(string context, Ptr<const Packet> pck, uint8_t dire
 }
 
 void
-packet_received_switch_sink(string context, Ptr<const Packet> pck) {
-    packet_exchanged_switch_sink(context, pck, 1); //1 = input
+packet_received_router_sink(string context, Ptr<const Packet> pck) {
+    packet_exchanged_router_sink(context, pck, 1); //1 = input
 }
 
 void
-packet_sent_switch_sink(string context, Ptr<const Packet> pck) {
-    packet_exchanged_switch_sink(context, pck, 0); //0 = output
+packet_sent_router_sink(string context, Ptr<const Packet> pck) {
+    packet_exchanged_router_sink(context, pck, 0); //0 = output
 }
 
 void
-packet_exchanged_switch(string context, Ptr<const Packet> pck, uint8_t direction) {
+packet_exchanged_router(string context, Ptr<const Packet> pck, uint8_t direction) {
     NOCHeader hd;
     pck->PeekHeader(hd);
     if (Simulator::Now().GetNanoSeconds() >= (log_start_at_period * sampling_period * 1000 + start_offset * 1000)){
@@ -174,13 +174,13 @@ packet_exchanged_switch(string context, Ptr<const Packet> pck, uint8_t direction
 }
 
 void
-packet_received_switch(string context, Ptr<const Packet> pck) {
-    packet_exchanged_switch(context, pck, 1); //1 = input - receives
+packet_received_router(string context, Ptr<const Packet> pck) {
+    packet_exchanged_router(context, pck, 1); //1 = input - receives
 }
 
 void
-packet_sent_switch(string context, Ptr<const Packet> pck) {
-    packet_exchanged_switch(context, pck, 0); //0 = output - sent
+packet_sent_router(string context, Ptr<const Packet> pck) {
+    packet_exchanged_router(context, pck, 0); //0 = output - sent
     //suppressed for now since it is somehow redundant information
 }
 
@@ -364,7 +364,7 @@ main(int argc, char *argv[]) {
    
     ApplicationContainer my_noc_sink_app_container;
     ApplicationContainer my_noc_app_container;
-    ApplicationContainer my_noc_switch_container;
+    ApplicationContainer my_noc_router_container;
     ApplicationContainer my_noc_sensor_container;
     
     uint32_t n_nodes = my_node_container.GetN();
@@ -414,14 +414,14 @@ main(int argc, char *argv[]) {
             my_net_device->TraceConnect("PhyRxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
         }
 
-        //Setup switch
+        //Setup router
         ostringstream ss;
         ss << i << "," << x << "," << y;
         
-        Ptr<NOCSwitch> my_noc_switch = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCSwitch>();
+        Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
 
-        my_noc_switch->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch));
-        my_noc_switch->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_switch));
+        my_noc_router->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_router));
+        my_noc_router->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_router));
 
         //Setup sensor
         my_sensor->SensorPosition.x = x;
@@ -455,14 +455,14 @@ main(int argc, char *argv[]) {
         my_noc_sink_app_container.Add(my_noc_app_container.Get(n)); //container with the sinks only
         ostringstream ss;
         ss << n << "," << x << "," << y;
-        //        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
-        //        my_noc_switch_container.Get(n)->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
+        //        my_noc_router_container.Get(n)->GetObject<NOCRouter>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
+        //        my_noc_router_container.Get(n)->GetObject<NOCRouter>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
         
-        Ptr<NOCSwitch> my_noc_switch = my_node_container.Get(n)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCSwitch>();
+        Ptr<NOCRouter> my_noc_router = my_node_container.Get(n)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
 
         
-        my_noc_switch->GetObject<NOCSwitch>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
-        my_noc_switch->GetObject<NOCSwitch>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_switch_sink));
+        my_noc_router->GetObject<NOCRouter>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_router_sink));
+        my_noc_router->GetObject<NOCRouter>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_router_sink));
     }
 
     

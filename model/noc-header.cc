@@ -59,7 +59,7 @@ namespace ns3 {
     NOCHeader::Print(std::ostream &os) const {
         //        std::string proto;
         //
-        //        switch (m_protocol) {
+        //        router (m_protocol) {
         //            case 0x0021: /* IPv4 */
         //                proto = "IP (0x0021)";
         //                break;

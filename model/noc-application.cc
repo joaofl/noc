@@ -21,7 +21,7 @@
 #include "ns3/noc-application.h"
 #include "ns3/noc-header.h"
 #include "ns3/noc-net-device.h"
-#include "ns3/noc-switch.h"
+#include "ns3/noc-router.h"
 #include "ns3/calc.h"
 #include "ns3/sensor-data-io.h"
 #include "noc-types.h"
@@ -65,8 +65,8 @@ namespace ns3 {
         MinNeighborhood = MaxHops * 2 * (MaxHops + 1) * 0.7; //add some tolerance.Ex 20%
         //        MinNeighborhood = MinNeighborhood * 0.8; 
 
-        EventsDetectedCount = 0;
-        EventsAnnouncedCount = 0;
+//        EventsDetectedCount = 0;
+//        EventsAnnouncedCount = 0;
         SensorValueLast = 0;
         //        CiclesToRun = 1;
         //        m_enable_detection = false;
@@ -83,7 +83,7 @@ namespace ns3 {
 
 
 
-        m_switch = this->GetNode()->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCSwitch>();
+        m_router = this->GetNode()->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
 
         if (IsSink == true) {
             Simulator::Schedule(TimeStartOffset, &NOCApp::NetworkDiscovery, this);
@@ -222,7 +222,7 @@ namespace ns3 {
                 if (g > tl && g < th) {
                     er.data[0] = g;
 //                    er.detected = true;
-                    EventsDetectedCount++;
+//                    EventsDetectedCount++;
 //                    er.type = EV_DELTA;
 
                     //                10% margin of variation from the previous to the actual detection
@@ -385,7 +385,7 @@ namespace ns3 {
 
             Ptr<Packet> pck = Create<Packet>();
             pck->AddHeader(hd);
-            m_switch->SendPacket(pck, DIR_ALL);
+            m_router->SendPacket(pck, DIR_ALL);
         }
 
     }
@@ -435,7 +435,7 @@ namespace ns3 {
             else
                 IsClusterHead = false;
 
-            m_switch->SendPacket(pck, DIR_ALL & (~origin_port));
+            m_router->SendPacket(pck, DIR_ALL & (~origin_port));
         }
 
         return true;
@@ -500,10 +500,10 @@ namespace ns3 {
 
             if (MaxHops > 0) {
                 if (OperationalMode == 1) { //event detection
-                    m_switch->SendPacket(pck, DIRECTION_ALL);
+                    m_router->SendPacket(pck, DIRECTION_ALL);
                 } else if (OperationalMode == OP_READ_ALL && IsClusterHead == 0) { //read all, send to cluster head only
                     uint8_t port = RouteTo(NearestClusterHead()); port=port;
-                    m_switch->SendPacket(pck, DIRECTION_ALL);
+                    m_router->SendPacket(pck, DIRECTION_ALL);
                 }
             }
 
@@ -557,21 +557,21 @@ namespace ns3 {
             if (hops_count < MaxHops) { //forward the packet
 
                 if (OperationalMode == 1) { //event detection
-                    m_switch->SendPacket(pck, DIRECTION_ALL & (~origin_port));
+                    m_router->SendPacket(pck, DIRECTION_ALL & (~origin_port));
                 }
                 if (OperationalMode == 0 && IsClusterHead == 0) { //read all, send to cluster head only
                     uint8_t port = RouteTo(NearestClusterHead());port=port;
-                    m_switch->SendPacket(pck, DIRECTION_ALL & (~origin_port));
-//                    m_switch->SendPacket(pck, DIRECTION_ALL & (~origin_port));
+                    m_router->SendPacket(pck, DIRECTION_ALL & (~origin_port));
+//                    m_router->SendPacket(pck, DIRECTION_ALL & (~origin_port));
                 }
                 
                 //                with a branch-based route
                 //                if (hd.CurrentY == 0) //if the packet is in the same line that it was originated from
-                //                    m_switch->SendPacket(pck, DIRECTION_ALL & (~origin_port));
+                //                    m_router->SendPacket(pck, DIRECTION_ALL & (~origin_port));
                 //                else if(hd.CurrentY > 0)
-                //                    m_switch->SendPacket(pck, DIRECTION_S);
+                //                    m_router->SendPacket(pck, DIRECTION_S);
                 //                else if(hd.CurrentY < 0)
-                //                    m_switch->SendPacket(pck, DIRECTION_N);
+                //                    m_router->SendPacket(pck, DIRECTION_N);
 
 
             }
@@ -601,11 +601,11 @@ namespace ns3 {
                 if (hops_count < MaxHops) {
 
                     if (OperationalMode == 1) { //event detection
-                        m_switch->SendPacket(pck, DIRECTION_ALL & (~origin_port));
+                        m_router->SendPacket(pck, DIRECTION_ALL & (~origin_port));
                     }
                     if (OperationalMode == 0 && IsClusterHead == 0) { //read all, send to cluster head only
                         uint8_t port = RouteTo(NearestClusterHead());port=port;
-                        m_switch->SendPacket(pck, DIRECTION_ALL & (~origin_port));
+                        m_router->SendPacket(pck, DIRECTION_ALL & (~origin_port));
                     }
                 }
                 
@@ -660,16 +660,16 @@ namespace ns3 {
             hd.EventType = er.type;
 
             hd.SetNOCProtocol(P_EVENT_ANNOUNCEMENT);
-            EventsAnnouncedCount++;
+//            EventsAnnouncedCount++;
 
             Ptr<Packet> pck = Create<Packet>();
             pck->AddHeader(hd);
-            m_switch->SendPacket(pck, output_port);
+            m_router->SendPacket(pck, output_port);
 
             // it first defines which port it should go through, in order to reach the sink
             // it then, requests a connection using the signaling bits.
             // after that, it pipeline the packet towards the sink
-            //m_switch->SendSignal(0b00000001, DIR_DOWN); //Set bit 1 high
+            //m_router->SendSignal(0b00000001, DIR_DOWN); //Set bit 1 high
             //        Time t = Simulator::Now + MaxHops * MaxTransmissionTime * 1.1; //10% margin
             //        Simulator::Schedule(t, &NOCApp::EventAnnouncementTimeOut, this);            
         }
@@ -696,7 +696,7 @@ namespace ns3 {
 
         if (sink.x != 0 || sink.y != 0) {
             uint8_t output_port = RouteTo(sink);
-            m_switch->SendPacket(pck, output_port);
+            m_router->SendPacket(pck, output_port);
         }
         else if (IsSink) { //just to make sure it is the sink (test)
 

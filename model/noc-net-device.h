@@ -164,7 +164,7 @@ namespace ns3 {
          */
         void Receive(Ptr<Packet> p);
         
-        void ReceiveSignal(Ptr<Packet> p);
+//        void ReceiveSignal(Ptr<Packet> p);
 
         /**
          * Sends a packet without the need of informing destination and protocol n.
@@ -183,8 +183,8 @@ namespace ns3 {
         
         bool SendSignal(Ptr<Packet> packet);
 
-        void SetNOCAddress(NOCAddress);
-        NOCAddress GetNOCAddress(void);
+//        void SetNOCAddress(NOCAddress);
+//        NOCAddress GetNOCAddress(void);
 
         // The remaining methods are documented in ns3::NetDevice*
 
@@ -482,7 +482,7 @@ namespace ns3 {
         TracedCallback<Ptr<const Packet> > m_promiscSnifferTrace;
 
         Ptr<Node> m_node;
-        Mac48Address m_address;
+        NOCAddress m_address;
         NetDevice::ReceiveCallback m_rxCallback;
         NetDevice::PromiscReceiveCallback m_promiscCallback;
         bool m_serialComm;

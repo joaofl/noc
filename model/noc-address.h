@@ -60,13 +60,13 @@ public:
    *
    * Copy the input address to our internal buffer.
    */
-  void CopyFrom (const uint8_t buffer[6]);
+  void CopyFrom (const uint8_t buffer[4]);
   /**
    * \param buffer address in network order
    *
    * Copy the internal address to the input buffer.
    */
-  void CopyTo (uint8_t buffer[6]) const;
+  void CopyTo (uint8_t buffer[4]) const;
 
   /**
    * \returns a new Address instance
@@ -91,22 +91,17 @@ public:
   /**
    * Allocate a new NOCAddress.
    * 
-   * \param 
-   *    x is the x coordinate of the node in which that netdevice is installed
-   *    y is the y coordinate of the node in which that netdevice is installed
-   *    w is the network to which that specific netdevice belongs to
-   *    d is the direction to which that netdevice is pointing to (N=1 S=2 E=3 W=4)
-   * 
-   * \returns newly allocated NOCAddress
+   * \returns newly allocated NOCAddress 
    */
-  static NOCAddress Allocate (int32_t x, int32_t y, uint8_t w, uint8_t d);
-  
   static NOCAddress Allocate (void);
 
 
   typedef void (* TracedCallback)(const NOCAddress value);
   
 private:
+    
+   uint8_t m_address[4];
+    
   /**
    * \returns a new Address instance
    *
@@ -167,14 +162,10 @@ private:
 
 //  uint8_t m_address[6]; //!< address value
   
-    struct {
-        uint64_t unique_id;
-        int32_t x; 
-        int32_t y;
-        uint8_t network_id;
-        uint8_t direction;
-    }m_address;
 
+
+    //total size 152 bits, 19 bytes
+    
 //typedef uint16_t NOCNetDeviceAddress;
   
 };
@@ -183,32 +174,28 @@ ATTRIBUTE_HELPER_HEADER (NOCAddress);
 
 inline bool operator == (const NOCAddress &a, const NOCAddress &b)
 {
-    if ((a.m_address.direction == a.m_address.direction) && 
-        (a.m_address.x == a.m_address.x) &&
-        (a.m_address.y == a.m_address.y) &&
-        (a.m_address.unique_id == a.m_address.unique_id) &&
-        (a.m_address.network_id == a.m_address.network_id))
+    if  ((a.m_address[0] == b.m_address[0]) &&
+        (a.m_address[1] == b.m_address[1])  &&
+        (a.m_address[2] == b.m_address[2])  &&
+        (a.m_address[3] == b.m_address[3]) )
         return 1;
-    else
-        return 0;
+    else return 0;  
             
 //  return memcmp (a.m_address, b.m_address, 6) == 0;
 }
 inline bool operator != (const NOCAddress &a, const NOCAddress &b)
 {
-    if ((a.m_address.direction != a.m_address.direction) ||
-        (a.m_address.x != a.m_address.x) ||
-        (a.m_address.y != a.m_address.y) ||
-        (a.m_address.unique_id != a.m_address.unique_id) ||
-        (a.m_address.network_id != a.m_address.network_id))
+    if  ((a.m_address[0] != b.m_address[0]) ||
+        (a.m_address[1] != b.m_address[1])  ||
+        (a.m_address[2] != b.m_address[2])  ||
+        (a.m_address[3] != b.m_address[3]) )
         return 1;
-    else
-        return 0;    
+    else return 0;    
 }
-//inline bool operator < (const NOCAddress &a, const NOCAddress &b)
-//{
-//  return memcmp (a.m_address, b.m_address, 6) < 0;
-//}
+inline bool operator < (const NOCAddress &a, const NOCAddress &b)
+{
+  return memcmp (a.m_address, b.m_address, 4) < 0;
+}
 
 std::ostream& operator<< (std::ostream& os, const NOCAddress & address);
 std::istream& operator>> (std::istream& is, NOCAddress & address);

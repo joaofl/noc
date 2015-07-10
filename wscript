@@ -25,7 +25,7 @@ def build(bld):
         'model/calc.cc',
         'model/sensor.cc',
         'model/sensor-data-io.cc',
-        'model/noc-switch.cc',
+        'model/noc-router.cc',
         'model/fast-edge.cc',
         'model/imageio.cc'
         ]
@@ -49,7 +49,7 @@ def build(bld):
         'model/calc.h',
         'model/sensor.h',
         'model/noc-types.h',
-        'model/noc-switch.h',
+        'model/noc-router.h',
         'model/sensor-data-io.h',
         'model/fast-edge.h',
         'model/imageio.h'

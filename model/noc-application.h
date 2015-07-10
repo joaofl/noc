@@ -35,7 +35,7 @@
 //#include "noc-application.h"
 #include "noc-header.h"
 #include "noc-net-device.h"
-#include "noc-switch.h"
+#include "noc-router.h"
 #include "noc-types.h"
 #include "sensor.h"
 #include "calc.h"
@@ -59,8 +59,8 @@ namespace ns3 {
              IsClusterHead;
         uint32_t MaxHops, 
                 MaxTransmissionTime,
-                EventsDetectedCount,
-                EventsAnnouncedCount,
+//                EventsDetectedCount,
+//                EventsAnnouncedCount,
                 SensorValueLast,
                 MinNeighborhood,
                 SamplingCycles,
@@ -130,7 +130,7 @@ namespace ns3 {
         bool m_running;
         vector<EventRef> m_lastEvents;
 
-        Ptr<NOCSwitch> m_switch;
+        Ptr<NOCRouter> m_router;
     };
 
 }
