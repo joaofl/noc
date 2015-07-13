@@ -52,7 +52,7 @@ namespace ns3 {
     /**
      * \ingroup point-to-point
      * \class NOCNetDevice
-     * \brief A Device for a Point to Point Network Link.
+     * \brief A Simple Device for a Point to Point Network Link.
      *
      * This NOCNetDevice class specializes the NetDevice abstract
      * base class.  Together with a NOCChannel (and a peer 

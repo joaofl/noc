@@ -84,7 +84,7 @@ namespace ns3 {
         void EventAnnouncement(EventRef);
         bool EventAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port);
 
-        uint8_t RouteTo(NodeRef);
+        
         NodeRef NearestClusterHead(void);
 
         void ScheduleValueAnnouncement(uint8_t n_times, Time period);

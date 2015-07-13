@@ -72,10 +72,22 @@ namespace ns3 {
 
         NOCRouter();
         virtual ~NOCRouter();
-
-        bool ReceivePacket(Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol, const Address& sourceAddress);
         
-        void SendPacket(Ptr<const Packet> pck, uint8_t ports);
+        // Basic comm functions//////////////////////
+
+        bool PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol, const Address& sourceAddress);
+        
+        void PacketSend(Ptr<const Packet> pck, uint8_t ports_mask);
+        
+        // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
+        
+        void PacketUnicast (Ptr<const Packet> pck, int32_t destination_x, int32_t destination_y);
+
+        void PacketMulticast (Ptr<const Packet> pck, uint8_t hops);
+
+        void PacketBroadcast (Ptr<const Packet> pck);
+        
+//        
         
 //        void SendPacket(Ptr<const Packet> pck, uint8_t ports);
         
@@ -95,6 +107,10 @@ namespace ns3 {
 
 //        TracedCallback<Ptr<const Packet>, NodeRef > m_routerRxTrace;
 //        TracedCallback<Ptr<const Packet>, NodeRef > m_routerTxTrace;
+        
+        
+        
+        uint8_t RouteTo(int32_t destination_x, int32_t destination_y);
 
         TracedCallback<Ptr<const Packet> > m_routerRxTrace;
         TracedCallback<Ptr<const Packet> > m_routerTxTrace;

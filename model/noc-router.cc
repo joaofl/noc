@@ -77,7 +77,7 @@ namespace ns3 {
         uint8_t n_devices = nd->GetNDevices();
 
         for (uint8_t i = 0; i < n_devices; i++) {
-            nd->GetDevice(i)->SetReceiveCallback(MakeCallback(&NOCRouter::ReceivePacket, this));
+            nd->GetDevice(i)->SetReceiveCallback(MakeCallback(&NOCRouter::PacketReceived, this));
         }
 
         //m_app = this->GetNode()->GetObject<NOCApp>();
@@ -146,8 +146,22 @@ namespace ns3 {
 //        SendSinglePacket(pck,ports);
 //    }
     
+    void NOCRouter::PacketUnicast (Ptr<const Packet> pck, int32_t destination_x, int32_t destination_y){
+        uint8_t output_port = RouteTo(destination_x, destination_y);
+        output_port = output_port;
+        
+    }
+
+    void NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t hops){
+        
+    }
+
+    void NOCRouter::PacketBroadcast (Ptr<const Packet> pck){
+        
+    }
+    
     void
-    NOCRouter::SendPacket(Ptr<const Packet> pck, uint8_t ports_mask){//, uint8_t optional network_id) {
+    NOCRouter::PacketSend(Ptr<const Packet> pck, uint8_t ports_mask){//, uint8_t optional network_id) {
         //TODO: This function should get the pck, the destination address, priority comes in the packet?, and network it should write to.
         // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
         // the addressing scheme sould allow: Broadcast (with limited radius (hops)) and unicast (to an specific X,Y location)
@@ -163,9 +177,11 @@ namespace ns3 {
 //        nr.x = 30;
 //        nr.y = 44;
 
-        Time t = Simulator::Now();
-        t = t;
+//        Time t = Simulator::Now();
+//        t = t;
         m_routerTxTrace(pck);
+        
+        
 
         //starts sending the packets from port 1 to port 4.
         for (uint32_t i = 0 ; i < this->GetNDevices() ; i++) { //sends one packet per netdevice installed, according to the bitmask received
@@ -249,7 +265,7 @@ namespace ns3 {
     }
 
     bool
-    NOCRouter::ReceivePacket(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t protocol, const Address& sourceAddress) {
+    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t protocol, const Address& sourceAddress) {
 
         //Check the origin of the packet to determine from which direction it
         //came from and the address of the sink. It also prepares the header in
@@ -344,6 +360,63 @@ namespace ns3 {
 
 
         return true;
+    }
+    
+    //Using XY routing
+    uint8_t NOCRouter::RouteTo(int32_t x, int32_t y) { //X-Y routing, with X first
+        
+        uint8_t dir = 0b00000000;
+
+        //with this algorithm, the nodes will first send the pck in order to make
+        // the delta x = 0, then, start moving along the y. 
+        //TODO: implement the clockwise or counter cw routing algorithms
+
+        //        if (n.x < 0) dir |= 0b00000001;
+        //        else if (n.x > 0) dir |= 0b00000100;
+        //
+        //        else if (n.y < 0) dir |= 0b00000010;
+        //        else if (n.y > 0) dir |= 0b00001000;
+
+
+        //clockwise routing
+
+        //find out which quadrant it is
+        if (x < 0 && y < 0) {
+            dir |= 0b00000001;
+            return dir;
+        } //send right first
+        if (x < 0 && y > 0) {
+            dir |= 0b00001000;
+            return dir;
+        } //send up first
+        if (x > 0 && y < 0) {
+            dir |= 0b00000010;
+            return dir;
+        } //send down first
+        if (x > 0 && y > 0) {
+            dir |= 0b00000100;
+            return dir;
+        } //send left first
+
+        //from now on, it is align to the sink in one of the 4 dir
+        if (x > 0) {
+            dir |= 0b00000100;
+            return dir;
+        } //send left then
+        if (x < 0) {
+            dir |= 0b00000001;
+            return dir;
+        } //send right then
+        if (y > 0) {
+            dir |= 0b00001000;
+            return dir;
+        } //send up then
+        if (y < 0) {
+            dir |= 0b00000010;
+            return dir;
+        } //send down then
+
+        return dir;
     }
 }
 
