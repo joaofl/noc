@@ -25,7 +25,6 @@
 #include "ns3/queue.h"
 #include "ns3/simulator.h"
 #include "ns3/noc-address.h"
-#include "ns3/mac48-address.h"
 #include "ns3/llc-snap-header.h"
 #include "ns3/error-model.h"
 #include "ns3/trace-source-accessor.h"
@@ -33,7 +32,6 @@
 #include "ns3/pointer.h"
 #include "noc-net-device.h"
 #include "noc-channel.h"
-#include "xdense-header.h"
 
 NS_LOG_COMPONENT_DEFINE("NOCNetDevice");
 
@@ -117,7 +115,7 @@ namespace ns3 {
                 MakeTraceSourceAccessor(&NOCNetDevice::m_macRxDropTrace))
 #endif
                 //
-                // Trace souces at the "bottom" of the net device, where packets transition
+                // Trace sources at the "bottom" of the net device, where packets transition
                 // to/from the channel.
                 //
                 .AddTraceSource("PhyTxBegin",
@@ -485,7 +483,7 @@ namespace ns3 {
 //
     Address
     NOCNetDevice::GetBroadcast(void) const {
-        return Mac48Address("ff:ff:ff:ff:ff:ff");
+        return NOCAddress();
     }
 
     bool
@@ -495,13 +493,13 @@ namespace ns3 {
 
     Address
     NOCNetDevice::GetMulticast(Ipv4Address multicastGroup) const {
-        return Mac48Address("01:00:5e:00:00:00");
+        return NOCAddress();
     }
 
     Address
     NOCNetDevice::GetMulticast(Ipv6Address addr) const {
         NS_LOG_FUNCTION(this << addr);
-        return Mac48Address("33:33:00:00:00:00");
+        return NOCAddress();
     }
 
     bool

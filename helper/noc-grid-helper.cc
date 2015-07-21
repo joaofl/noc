@@ -101,7 +101,7 @@ GridHelper::InitializeNetwork()
     NetDeviceContainer my_net_device_container;
     Ptr<NOCNetDevice> my_noc_net_device;
     Ptr<NOCRouter> my_noc_router;
-    Mac48Address my_mac_address;
+//    Mac48Address my_mac_address;
 
     NodeContainer my_node_container;
     

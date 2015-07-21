@@ -24,19 +24,15 @@
 
 
 #include <fstream>
-#include<sstream>
+#include <sstream>
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/address.h"
 #include "ns3/node.h"
-//#include "ns3/net-device.h"
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 #include "ns3/net-device-container.h"
-
-#include "xdense-header.h"
 #include "noc-net-device.h"
-//#include "noc-application.h"
 #include "noc-router.h"
 #include "noc-types.h"
 

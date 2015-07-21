@@ -19,14 +19,10 @@
  * 
  */
 
-
-#include "xdense-header.h"
 #include "noc-net-device.h"
-//#include "xdense-application.h"
 #include "noc-router.h"
 #include "src/core/model/object.h"
 #include "ns3/noc-types.h"
-#include "ns3/xdense-header.h"
 #include "ns3/noc-router.h"
 #include "src/network/model/node.h"
 
@@ -95,15 +91,15 @@ namespace ns3 {
    
     void NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y){
         Ptr<Packet> pck_cp = pck->Copy();
-        NOCHeader hd;
-        pck_cp->RemoveHeader(hd);
+//        NOCHeader hd;
+//        pck_cp->RemoveHeader(hd);
         
         //modifications on the header here.
         
         
         uint8_t output_port_mask = RouteTo(destination_x, destination_y);
        
-        pck_cp->AddHeader(hd);
+//        pck_cp->AddHeader(hd);
         this->PacketSend(pck_cp, network_id, output_port_mask, 0);
     }
 
@@ -125,8 +121,8 @@ namespace ns3 {
 //        uint8_t n_devices = node->GetNDevices();
 //        uint8_t priority = 0;
 
-        NOCHeader hd;
-        pck->PeekHeader(hd);
+//        NOCHeader hd;
+//        pck->PeekHeader(hd);
 
 //        NodeRef nr;
 //        nr.x = 30;

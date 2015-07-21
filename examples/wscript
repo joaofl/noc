@@ -1,6 +1,12 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
-def build(bld):
-    obj = bld.create_ns3_program('noc-example', ['noc'])
-    obj.source = 'noc-example.cc'
 
+def build(bld):
+    if not bld.env['ENABLE_EXAMPLES']:
+        return;
+
+    obj = bld.create_ns3_program('xdense-example', ['noc'])
+    obj.source = 'xdense-example.cc'
+
+    obj = bld.create_ns3_program('epiphany-example', ['noc'])
+    obj.source = 'epiphany-example.cc'
