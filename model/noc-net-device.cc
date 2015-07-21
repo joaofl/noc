@@ -33,7 +33,7 @@
 #include "ns3/pointer.h"
 #include "noc-net-device.h"
 #include "noc-channel.h"
-#include "noc-header.h"
+#include "xdense-header.h"
 
 NS_LOG_COMPONENT_DEFINE("NOCNetDevice");
 
@@ -493,16 +493,16 @@ namespace ns3 {
         return true;
     }
 
-//    Address
-//    NOCNetDevice::GetMulticast(Ipv4Address multicastGroup) const {
-//        return Mac48Address("01:00:5e:00:00:00");
-//    }
-//
-//    Address
-//    NOCNetDevice::GetMulticast(Ipv6Address addr) const {
-//        NS_LOG_FUNCTION(this << addr);
-//        return Mac48Address("33:33:00:00:00:00");
-//    }
+    Address
+    NOCNetDevice::GetMulticast(Ipv4Address multicastGroup) const {
+        return Mac48Address("01:00:5e:00:00:00");
+    }
+
+    Address
+    NOCNetDevice::GetMulticast(Ipv6Address addr) const {
+        NS_LOG_FUNCTION(this << addr);
+        return Mac48Address("33:33:00:00:00:00");
+    }
 
     bool
     NOCNetDevice::IsPointToPoint(void) const {

@@ -41,11 +41,11 @@
 #include "calc.h"
 #include "sensor-data-io.h"
 
-#define DIR_ALL         0b00001111
-#define DIR_RIGHT       0b00000001
-#define DIR_DOWN        0b00000010
-#define DIR_LEFT        0b00000100
-#define DIR_UP          0b00001000
+//#define DIR_ALL         0b00001111
+//#define DIR_RIGHT       0b00000001
+//#define DIR_DOWN        0b00000010
+//#define DIR_LEFT        0b00000100
+//#define DIR_UP          0b00001000
 
 
 namespace ns3 {

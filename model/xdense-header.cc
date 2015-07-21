@@ -24,7 +24,7 @@
 #include "ns3/assert.h"
 #include "ns3/log.h"
 #include "ns3/header.h"
-#include "noc-header.h"
+#include "xdense-header.h"
 #include "ns3/noc-types.h"
 #include "src/network/model/buffer.h"
 

@@ -41,7 +41,7 @@
 #include "ns3/netanim-module.h"
 #include "src/core/model/object-base.h"
 
-#include "src/noc/model/noc-application.h"
+#include "src/noc/model/xdense-application.h"
 #include "src/noc/model/sensor-data-io.h"
 //#include "src/noc/model/noc-net-device.h"
 //#include "src/noc/model/noc-application.h"

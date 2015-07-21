@@ -20,13 +20,13 @@
  */
 
 
-#include "noc-header.h"
+#include "xdense-header.h"
 #include "noc-net-device.h"
-#include "noc-application.h"
+//#include "xdense-application.h"
 #include "noc-router.h"
 #include "src/core/model/object.h"
 #include "ns3/noc-types.h"
-#include "ns3/noc-header.h"
+#include "ns3/xdense-header.h"
 #include "ns3/noc-router.h"
 #include "src/network/model/node.h"
 
@@ -60,27 +60,27 @@ namespace ns3 {
     //
     //    }
 
+    void 
+    NOCRouter::SetAttribute (std::string name, const uint8_t value){
+        if (name.compare("ChannelCount") == 0) //Is the same
+        {
+            m_channelCount = value;
+        }
+    }
+    
     void
     NOCRouter::StartApplication(void) {
 
-
-//        PacketsReceived.assign(P_COUNT, 0);
-//        PacketsSent.assign(P_COUNT, 0);
-
-        //        for (uint8_t i = 0; i < P_COUNT; i++) {
-        //            PacketTrace.push_back(new stringstream);
-        //        }
-
-
-        //Configure ();
-        Ptr<Node> nd = this->GetNode();
-        uint8_t n_devices = nd->GetNDevices();
-
-        for (uint8_t i = 0; i < n_devices; i++) {
-            nd->GetDevice(i)->SetReceiveCallback(MakeCallback(&NOCRouter::PacketReceived, this));
+//        uint8_t n = m_netDevices.GetN();
+//        uint8_t m = m_netDeviceInfoArray.size();
+//        n=n;
+//        m=m;
+        
+        
+        NetDeviceContainer::Iterator nd;
+        for (nd = m_netDevices.Begin() ; nd != m_netDevices.End() ; nd++){    
+            (*nd)->SetReceiveCallback(MakeCallback(&NOCRouter::PacketReceived, this));
         }
-
-        //m_app = this->GetNode()->GetObject<NOCApp>();
 
     }
 
@@ -92,81 +92,36 @@ namespace ns3 {
             Simulator::Cancel(m_sendEvent);
         }
     }
+   
+    void NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y){
+        Ptr<Packet> pck_cp = pck->Copy();
+        NOCHeader hd;
+        pck_cp->RemoveHeader(hd);
+        
+        //modifications on the header here.
+        
+        
+        uint8_t output_port_mask = RouteTo(destination_x, destination_y);
+       
+        pck_cp->AddHeader(hd);
+        this->PacketSend(pck_cp, network_id, output_port_mask, 0);
+    }
 
-//    void
-//    NOCRouter::SendSignal(uint8_t bits, uint8_t ports) {
-//        Ptr<Node> node = this->GetNode();
-//        uint8_t n_devices = node->GetNDevices();
-//
-//        Ptr<Packet> pck = Create<Packet>();
-//        NOCAddress address;
-//        //         pck->;
-//
-//        for (uint32_t i = 0; i < node->GetNDevices(); i++) { //sends one packet per netdevice installed, according to the bitmask received
-//            uint8_t p = ports >> i;
-//            if ((p & 1) == 1) {
-//                for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
-//                    address = node->GetDevice(j)->GetObject<NOCNetDevice>()->GetNOCAddress();
-//                    if (address == i + 1) {
-//
-//                        node->GetDevice(j)->GetObject<NOCNetDevice>()->SendSignal(pck);
-//
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//    }
-    
-//    void
-//    NOCRouter::SendPacket(Ptr<const Packet> pck, uint8_t ports){
-//        //check if it will be sent to more then one port, if positive, some time
-//        //drift will be inserted between each transmission in order to guarantee
-//        //the expected transmission sequence, from east to north, or 1 to 4
-//        
-//        
-////        #ifdef DESYNCRONIZE
-////
-////        uint8_t n_ports = 0;
-////        
-////        for (uint8_t i = 0 ; i < NumNetDevices; i++){ //loops to all the bits to check which port should the packet be sent to
-////            if (((ports >> i) & 0b00000001) == 1){
-////                uint8_t port = 0b00000001 << i;
-////                
-////                Time t = NanoSeconds(n_ports);
-////                Simulator::Schedule(t, &NOCRouter::SendSinglePacket, this, pck, port);
-//////                SendSinglePacket(pck, port);
-////                n_ports++;
-////            }
-////        }
-////        
-////        return;
-////        #endif
-//
-//        SendSinglePacket(pck,ports);
-//    }
-    
-    void NOCRouter::PacketUnicast (Ptr<const Packet> pck, int32_t destination_x, int32_t destination_y){
-        uint8_t output_port = RouteTo(destination_x, destination_y);
-        output_port = output_port;
+    void NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops){
         
     }
 
-    void NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t hops){
-        
-    }
-
-    void NOCRouter::PacketBroadcast (Ptr<const Packet> pck){
+    void NOCRouter::PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id){
         
     }
     
     void
-    NOCRouter::PacketSend(Ptr<const Packet> pck, uint8_t ports_mask){//, uint8_t optional network_id) {
+    NOCRouter::PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){//, uint8_t optional network_id) {
         //TODO: This function should get the pck, the destination address, priority comes in the packet?, and network it should write to.
         // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
         // the addressing scheme sould allow: Broadcast (with limited radius (hops)) and unicast (to an specific X,Y location)
 
-        Ptr<Node> node = this->GetNode();
+//        Ptr<Node> node = this->GetNode();
 //        uint8_t n_devices = node->GetNDevices();
 //        uint8_t priority = 0;
 
@@ -179,40 +134,55 @@ namespace ns3 {
 
 //        Time t = Simulator::Now();
 //        t = t;
+        
+//        uint8_t s = m_netDeviceInfoArray.size();
+        
+        for (uint8_t i = 0; i < m_channelCount; i++) 
+        {
+            //TODO: the arbitration policy should be considered here. Round robin for example
+            if ( (ports_mask >> DIRECTION_E) & 1) this->GetNetDevice(i, DIRECTION_E)->Send(pck->Copy());
+            if ( (ports_mask >> DIRECTION_S) & 1) this->GetNetDevice(i, DIRECTION_S)->Send(pck->Copy());
+            if ( (ports_mask >> DIRECTION_W) & 1) this->GetNetDevice(i, DIRECTION_W)->Send(pck->Copy());
+            if ( (ports_mask >> DIRECTION_N) & 1) this->GetNetDevice(i, DIRECTION_N)->Send(pck->Copy());
+        }
+
+        
         m_routerTxTrace(pck);
+        
+        
         
         
 
         //starts sending the packets from port 1 to port 4.
-        for (uint32_t i = 0 ; i < this->GetNDevices() ; i++) { //sends one packet per netdevice installed, according to the bitmask received
-            uint8_t p = ports_mask >> i;
-            if ((p & 1) == 1) {
-                
-//                for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
-////                    Ptr<NOCRouter> my_noc_router = node->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-//                    
-//                    
-////                    if (node->GetDevice(j)->GetObject<NOCNetDevice>()->GetAddress() == i + 1) {
-////
-////                        //TODO: this should be replaced by callbacks urgently
-////                        if (hd.GetNOCProtocol() == P_NETWORK_DISCOVERY) {
-////                            priority = 0;
-////                            PacketsSent [P_NETWORK_DISCOVERY]++;
-////                        } else if (hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
-////                            priority = 0;
-////                            PacketsSent [P_VALUE_ANNOUNCEMENT]++;
-////                        } else if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
-////                            priority = 1;
-////                            PacketsSent [P_EVENT_ANNOUNCEMENT]++;
-////                        }
-////
-////                        node->GetDevice(j)->GetObject<NOCNetDevice>()->Send(pck->Copy(), priority);
-////
-////                        break;
-////                    }
-//                }
-            }
-        }
+//        for (uint32_t i = 0 ; i < this->GetNDevices() ; i++) { //sends one packet per netdevice installed, according to the bitmask received
+//            uint8_t p = ports_mask >> i;
+//            if ((p & 1) == 1) {
+//                
+////                for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
+//////                    Ptr<NOCRouter> my_noc_router = node->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
+////                    
+////                    
+//////                    if (node->GetDevice(j)->GetObject<NOCNetDevice>()->GetAddress() == i + 1) {
+//////
+//////                        //TODO: this should be replaced by callbacks urgently
+//////                        if (hd.GetNOCProtocol() == P_NETWORK_DISCOVERY) {
+//////                            priority = 0;
+//////                            PacketsSent [P_NETWORK_DISCOVERY]++;
+//////                        } else if (hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
+//////                            priority = 0;
+//////                            PacketsSent [P_VALUE_ANNOUNCEMENT]++;
+//////                        } else if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
+//////                            priority = 1;
+//////                            PacketsSent [P_EVENT_ANNOUNCEMENT]++;
+//////                        }
+//////
+//////                        node->GetDevice(j)->GetObject<NOCNetDevice>()->Send(pck->Copy(), priority);
+//////
+//////                        break;
+//////                    }
+////                }
+//            }
+//        }
     }
     
     void

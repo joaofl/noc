@@ -34,17 +34,24 @@
 #include "ns3/ptr.h"
 #include "ns3/net-device-container.h"
 
-#include "noc-header.h"
+#include "xdense-header.h"
 #include "noc-net-device.h"
-#include "noc-application.h"
+//#include "noc-application.h"
 #include "noc-router.h"
 #include "noc-types.h"
 
-#define DIRECTION_ALL 0b11111111
-#define DIRECTION_E 0b00000001 //east
-#define DIRECTION_S 0b00000010 //south
-#define DIRECTION_W 0b00000100 //west
-#define DIRECTION_N 0b00001000 //north
+#define DIRECTION_E 1 //east
+#define DIRECTION_S 2 //south
+#define DIRECTION_W 3 //west
+#define DIRECTION_N 4 //north
+
+
+
+#define DIRECTION_MASK_ALL  0b00001111
+#define DIRECTION_MASK_E    0b00000001 //east
+#define DIRECTION_MASK_S    0b00000010 //south
+#define DIRECTION_MASK_W    0b00000100 //west
+#define DIRECTION_MASK_N    0b00001000 //north
 
 //#define DESYNCRONIZE
 
@@ -77,15 +84,17 @@ namespace ns3 {
 
         bool PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol, const Address& sourceAddress);
         
-        void PacketSend(Ptr<const Packet> pck, uint8_t ports_mask);
+//        void PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask);
+        
+        void PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
         
         // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
         
-        void PacketUnicast (Ptr<const Packet> pck, int32_t destination_x, int32_t destination_y);
+        void PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y);
 
-        void PacketMulticast (Ptr<const Packet> pck, uint8_t hops);
+        void PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops);
 
-        void PacketBroadcast (Ptr<const Packet> pck);
+        void PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
         
 //        
         
@@ -101,6 +110,16 @@ namespace ns3 {
         uint8_t GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
     
         uint8_t GetNDevices(void);
+        
+        /**
+         * Set an attribute value of a network general parameter.
+         *
+         * \param name the name of the attribute to set
+         * \param value the value of the attribute to set
+         *
+         * These parameters are the required info for the helper to create a grid of nodes
+         */
+        void SetAttribute (std::string name, const uint8_t value);
         
         
     private:
@@ -133,6 +152,8 @@ namespace ns3 {
         }NetDeviceInfo;
         
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
+        
+        uint8_t m_channelCount;
     };
 
 }

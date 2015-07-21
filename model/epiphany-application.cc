@@ -334,7 +334,7 @@ namespace ns3 {
             pck->AddHeader(hd);
             
             
-            m_router->PacketBroadcast(pck);
+            m_router->PacketBroadcast(pck, 0);
         }
 
     }
@@ -384,7 +384,7 @@ namespace ns3 {
             else
                 IsClusterHead = false;
 
-            m_router->PacketSend(pck, DIR_ALL & (~origin_port));
+            m_router->PacketSend(pck, 0, DIRECTION_MASK_ALL & (~origin_port), 0);
         }
 
         return true;
@@ -450,13 +450,13 @@ namespace ns3 {
             if (MaxHops > 0) {
                 if (OperationalMode == 1) { //event detection
 //                    m_router->PacketSend(pck, DIRECTION_ALL);
-                    m_router->PacketMulticast(pck, MaxHops);
+                    m_router->PacketMulticast(pck, 0, MaxHops);
                     
                 } 
                 else if (OperationalMode == OP_READ_ALL && IsClusterHead == 0) { //read all, send to cluster head only
 //                    uint8_t port = RouteTo(NearestClusterHead()); port=port;
 //                    m_router->PacketSend(pck, DIRECTION_ALL);
-                    m_router->PacketMulticast(pck, MaxHops);
+                    m_router->PacketMulticast(pck, 0, MaxHops);
                 }
             }
 
@@ -510,11 +510,11 @@ namespace ns3 {
             if (hops_count < MaxHops) { //forward the packet
 
                 if (OperationalMode == 1) { //event detection
-                    m_router->PacketSend(pck, DIRECTION_ALL & (~origin_port));
+                    m_router->PacketSend(pck, 0, DIRECTION_MASK_ALL & (~origin_port), 0);
                 }
                 if (OperationalMode == 0 && IsClusterHead == 0) { //read all, send to cluster head only
 //                    uint8_t port = RouteTo(NearestClusterHead());port=port;
-                    m_router->PacketSend(pck, DIRECTION_ALL & (~origin_port));
+                    m_router->PacketSend(pck, 0, DIRECTION_MASK_ALL & (~origin_port), 0);
 //                    m_router->PacketSend(pck, DIRECTION_ALL & (~origin_port));
                 }
                 
@@ -554,11 +554,11 @@ namespace ns3 {
                 if (hops_count < MaxHops) {
 
                     if (OperationalMode == 1) { //event detection
-                        m_router->PacketSend(pck, DIRECTION_ALL & (~origin_port));
+                        m_router->PacketSend(pck, 0, DIRECTION_MASK_ALL & (~origin_port), 0);
                     }
                     if (OperationalMode == 0 && IsClusterHead == 0) { //read all, send to cluster head only
 //                        uint8_t port = RouteTo(NearestClusterHead());port=port;
-                        m_router->PacketSend(pck, DIRECTION_ALL & (~origin_port));
+                        m_router->PacketSend(pck, 0, DIRECTION_MASK_ALL & (~origin_port), 0);
                     }
                 }
                 
@@ -617,7 +617,7 @@ namespace ns3 {
 
             Ptr<Packet> pck = Create<Packet>();
             pck->AddHeader(hd);
-            m_router->PacketUnicast(pck, sink.x, sink.y);
+            m_router->PacketUnicast(pck, 0, sink.x, sink.y);
 
             // it first defines which port it should go through, in order to reach the sink
             // it then, requests a connection using the signaling bits.
@@ -650,7 +650,7 @@ namespace ns3 {
         if (sink.x != 0 || sink.y != 0) {
 //            uint8_t output_port = RouteTo(sink);
 //            m_router->PacketSend(pck, output_port);
-            m_router->PacketUnicast(pck, sink.x, sink.y);
+            m_router->PacketUnicast(pck, 0, sink.x, sink.y);
         }
         else if (IsSink) { //just to make sure it is the sink (test)
 
