@@ -694,11 +694,6 @@ namespace ns3 {
     }
 
     void
-    NOCNetDevice::SetReceiveSignalCallback(NetDevice::ReceiveCallback cb) {
-        m_rxSignalCallback = cb;
-    }
-
-    void
     NOCNetDevice::SetPromiscReceiveCallback(NetDevice::PromiscReceiveCallback cb) {
         m_promiscCallback = cb;
     }

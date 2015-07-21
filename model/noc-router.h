@@ -120,11 +120,6 @@ namespace ns3 {
         
     private:
 
-//        TracedCallback<Ptr<const Packet>, NodeRef > m_routerRxTrace;
-//        TracedCallback<Ptr<const Packet>, NodeRef > m_routerTxTrace;
-        
-        
-        
         uint8_t RouteTo(int32_t destination_x, int32_t destination_y);
 
         TracedCallback<Ptr<const Packet> > m_routerRxTrace;
