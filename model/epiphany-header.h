@@ -18,8 +18,8 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#ifndef NOC_HEADER_H
-#define NOC_HEADER_H
+#ifndef EPIPHANY_HEADER_H
+#define EPIPHANY_HEADER_H
 
 #include "ns3/header.h"
 #include "noc-types.h"
@@ -31,18 +31,18 @@ namespace ns3 {
      * \brief NoC generalized packet header
      *
      */
-    class NOCHeader : public Header {
+    class EpiphanyHeader : public Header {
     public:
 
         /**
          * \brief Construct a NoC header.
          */
-        NOCHeader();
+        EpiphanyHeader();
 
         /**
          * \brief Destroy the NoC header.
          */
-        virtual ~NOCHeader();
+        virtual ~EpiphanyHeader();
         
         static TypeId GetTypeId(void);
         virtual TypeId GetInstanceTypeId(void) const;
@@ -87,4 +87,4 @@ namespace ns3 {
 } // namespace ns3
 
 
-#endif /* NOC_HEADER_H */
+#endif /* EPIPHANY_HEADER_H */

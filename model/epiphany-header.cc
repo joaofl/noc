@@ -24,39 +24,38 @@
 #include "ns3/assert.h"
 #include "ns3/log.h"
 #include "ns3/header.h"
-#include "noc-header.h"
+#include "epiphany-header.h"
 #include "ns3/noc-types.h"
 #include "src/network/model/buffer.h"
 
-NS_LOG_COMPONENT_DEFINE("NOCHeader");
+NS_LOG_COMPONENT_DEFINE("EpiphanyHeader");
 
 namespace ns3 {
 
-    NS_OBJECT_ENSURE_REGISTERED(NOCHeader)
-    ;
+    NS_OBJECT_ENSURE_REGISTERED(EpiphanyHeader);
 
-    NOCHeader::NOCHeader() {
+    EpiphanyHeader::EpiphanyHeader() {
     }
 
-    NOCHeader::~NOCHeader() {
+    EpiphanyHeader::~EpiphanyHeader() {
     }
 
     TypeId
-    NOCHeader::GetTypeId(void) {
-        static TypeId tid = TypeId("ns3::NOCHeader")
+    EpiphanyHeader::GetTypeId(void) {
+        static TypeId tid = TypeId("ns3::EpiphanyHeader")
                 .SetParent<Header> ()
-                .AddConstructor<NOCHeader> ()
+                .AddConstructor<EpiphanyHeader> ()
                 ;
         return tid;
     }
 
     TypeId
-    NOCHeader::GetInstanceTypeId(void) const {
+    EpiphanyHeader::GetInstanceTypeId(void) const {
         return GetTypeId();
     }
 
     void
-    NOCHeader::Print(std::ostream &os) const {
+    EpiphanyHeader::Print(std::ostream &os) const {
         uint8_t i;
         
         for (i = 0 ; i < m_packetSize ; i++){
@@ -66,14 +65,14 @@ namespace ns3 {
     }
 
     uint32_t
-    NOCHeader::GetSerializedSize(void) const {
+    EpiphanyHeader::GetSerializedSize(void) const {
 
         return m_packetSize;
 
     }
     
     void
-    NOCHeader::Serialize(Buffer::Iterator start) const {
+    EpiphanyHeader::Serialize(Buffer::Iterator start) const {
 
         uint8_t i;
         
@@ -84,7 +83,7 @@ namespace ns3 {
     }
 
     uint32_t
-    NOCHeader::Deserialize(Buffer::Iterator start) {
+    EpiphanyHeader::Deserialize(Buffer::Iterator start) {
         
         //TODO: do some safety check here.
         
