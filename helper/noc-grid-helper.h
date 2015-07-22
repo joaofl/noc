@@ -24,7 +24,7 @@
 #include "ns3/trace-helper.h"
 #include "ns3/mobility-module.h"
 
-#include "ns3/noc-application.h"
+//#include "ns3/noc-application.h"
 #include "ns3/noc-address.h"
 
 

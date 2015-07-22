@@ -213,8 +213,6 @@ namespace ns3 {
 
         virtual void SetReceiveCallback(NetDevice::ReceiveCallback cb);
 
-        virtual void SetReceiveSignalCallback(NetDevice::ReceiveCallback cb);
-        
         virtual Address GetMulticast(Ipv6Address addr) const;
 
         virtual void SetPromiscReceiveCallback(PromiscReceiveCallback cb);

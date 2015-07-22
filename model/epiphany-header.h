@@ -59,15 +59,28 @@ namespace ns3 {
         
         //Returns the number of bytes written to the pointer
         uint8_t GetPacketData(uint8_t &data);
+        
+        void SetPacketAddress(uint8_t x, uint8_t y);
 
+        Coordinate GetPacketAddress(void);
     private:
 
         /**
-         * \brief The NoC protocol type of the payload packet
+         * \brief The Epiphany packet
          */
         
+//        104 bits per cycle (32 bit address, 64 bits data, 4 bits control-mode,
+//        2 bits datamode, 2 bits for read/write access)
+        
         uint8_t m_packetSize;
-        uint8_t m_packetData[];
+        
+        uint8_t m_packetData[8];
+        
+        uint32_t m_packetAddress;
+        
+        uint8_t m_controlBits; //(4 control mode, 2 data mode, 2 r/w)
+        
+        //Control bits are as 
 
     };
 
