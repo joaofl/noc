@@ -18,13 +18,14 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#include "ns3/noc-header.h"
+
 #include "ns3/noc-net-device.h"
 #include "ns3/noc-router.h"
 #include "ns3/calc.h"
-#include "ns3/sensor-data-io.h"
+
 #include "noc-types.h"
 #include "epiphany-application.h"
+#include "epiphany-header.h"
 
 //using namespace ns3NOCCalc;
 using namespace std;

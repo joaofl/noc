@@ -98,5 +98,109 @@ namespace ns3 {
     }
     
     
+    //Returns the number of bytes written.
+    void 
+    EpiphanyHeader::SetPacketData(uint8_t data[], uint8_t bytes_count){
+        for (uint8_t i = 0 ; i < m_packetSize ; i++){
+            if (i < bytes_count)
+                m_packetData[i] = data[i];
+        }
+    }
+
+    //Returns the number of bytes written to the pointer
+    void 
+    EpiphanyHeader::GetPacketData(uint8_t data[], uint8_t bytes_count){
+        for (uint8_t i = 0 ; i < m_packetSize ; i++){
+            if (i < bytes_count)
+                data[i] = m_packetData[i];
+        }
+    }
+
+    void 
+    EpiphanyHeader::SetDestinationAddress(uint32_t add){
+        m_destAddress = add;
+    }
+
+    uint32_t 
+    EpiphanyHeader::GetDestinationAddress(void){
+        return m_destAddress;
+    }
+
+    void 
+    EpiphanyHeader::SetSourceAddress(uint32_t add){
+        m_srcAddress = add;
+    }
+
+    uint32_t 
+    EpiphanyHeader::GetSourceAddress(void){
+    
+        return m_srcAddress;
+    }
+
+    uint32_t 
+    EpiphanyHeader::ConvertXYtoAddress(uint8_t x, uint8_t y){
+    
+        
+        return 0;
+    }
+
+    Coordinate 
+    EpiphanyHeader::ConvertAddresstoXY(uint32_t address){
+        Coordinate c;
+        
+        return c;
+    }
+
+    void 
+    EpiphanyHeader::SetRWMode(uint8_t rw_mode){
+        m_mode = (m_mode & 0b11111100) | (rw_mode << 0); //check it
+        m_access = rw_mode & 0b00000001 >> 0;
+        m_access = rw_mode & 0b00000010 >> 1;
+    }
+    
+    uint8_t 
+    EpiphanyHeader::GetRWMode(void){
+        return m_write & m_access;
+    }
+    
+    void 
+    EpiphanyHeader::SetDataMode(uint8_t data_mode){
+        m_mode = (m_mode & 0b11110011) | (data_mode << 2); //check it
+        m_dataMode = data_mode;
+    }
+    
+    uint8_t 
+    EpiphanyHeader::GetDataMode(void){
+        return m_dataMode;
+    }
+
+    void 
+    EpiphanyHeader::SetCrtlMode(uint8_t ctrl_mode){
+        m_mode = (m_mode & 0b00001111) | (ctrl_mode << 4); //check it
+        m_ctrlMode = ctrl_mode;
+    }
+    
+    uint8_t 
+    EpiphanyHeader::GetCrtlMode(void){
+        return m_ctrlMode;
+    }
+    
+
+
+    void 
+    EpiphanyHeader::SetMode(uint8_t mode){
+        m_mode = mode;
+        
+        m_access    = (mode & 0b00000001) >> 0;     // [0:0]
+        m_write     = (mode & 0b00000010) >> 1;     // [1:1]        
+        m_dataMode  = (mode & 0b00001100) >> 2;     // [3:2]
+        m_ctrlMode  = (mode & 0b11110000) >> 4;     // [7:4]
+    }
+    
+    uint8_t 
+    EpiphanyHeader::GetMode(void){
+        return m_mode;
+    }
+    
 
 } // namespace ns3

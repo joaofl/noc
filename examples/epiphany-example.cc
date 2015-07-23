@@ -231,8 +231,12 @@ main(int argc, char *argv[]) {
     my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(false));
     
     //in bytes 104 bits epiphany e-link between nodes
-    my_grid_network_helper.SetDeviceAttribute("PacketSize", IntegerValue(13)); 
+    // this should be defined by the header.....
+//    my_grid_network_helper.SetDeviceAttribute("PacketSize", IntegerValue(13)); 
     //my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
+    
+    my_grid_network_helper.SetDeviceAttribute("InputQueueSize", IntegerValue(1));
+    my_grid_network_helper.SetDeviceAttribute("OutputQueueSize", IntegerValue(0));
     
     my_node_container = my_grid_network_helper.InitializeNetwork();
     uint32_t n_nodes = my_node_container.GetN();

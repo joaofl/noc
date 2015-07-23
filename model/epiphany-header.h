@@ -24,6 +24,49 @@
 #include "ns3/header.h"
 #include "noc-types.h"
 
+#define DATA_MODE_8b        0b00
+#define DATA_MODE_16b       0b01
+#define DATA_MODE_32b       0b10
+#define DATA_MODE_64b       0b11
+
+#define RW_MODE_WRITE       0b00
+#define RW_MODE_READ        0b01
+#define RW_MODE_C           0b10
+#define RW_MODE_D           0b11
+
+#define CRTL_MODE_0A         0b0000
+#define CRTL_MODE_0B         0b0001
+#define CRTL_MODE_0C         0b0010
+#define CRTL_MODE_0D         0b0011
+#define CRTL_MODE_0E         0b0100
+#define CRTL_MODE_0F         0b0101
+#define CRTL_MODE_0G         0b0110
+#define CRTL_MODE_0H         0b0111
+#define CRTL_MODE_0I         0b0000
+#define CRTL_MODE_0J         0b0001
+#define CRTL_MODE_0K         0b0010
+#define CRTL_MODE_0L         0b0011
+#define CRTL_MODE_0M         0b0100
+#define CRTL_MODE_0N         0b0101
+#define CRTL_MODE_0O         0b0110
+#define CRTL_MODE_0P         0b0111
+#define CRTL_MODE_1A         0b1000
+#define CRTL_MODE_1B         0b1001
+#define CRTL_MODE_1C         0b1010
+#define CRTL_MODE_1D         0b1011
+#define CRTL_MODE_1E         0b1100
+#define CRTL_MODE_1F         0b1101
+#define CRTL_MODE_1G         0b1110
+#define CRTL_MODE_1H         0b1111
+#define CRTL_MODE_1I         0b1000
+#define CRTL_MODE_1J         0b1001
+#define CRTL_MODE_1K         0b1010
+#define CRTL_MODE_1L         0b1011
+#define CRTL_MODE_1M         0b1100
+#define CRTL_MODE_1N         0b1101
+#define CRTL_MODE_1O         0b1110
+#define CRTL_MODE_1P         0b1111
+
 namespace ns3 {
 
     /**
@@ -51,18 +94,43 @@ namespace ns3 {
         virtual uint32_t Deserialize(Buffer::Iterator start);
         virtual uint32_t GetSerializedSize(void) const;
 
-        void SetPacketSize(uint8_t size);
-       uint8_t GetPacketSize(void);
+//        void SetPacketSize(uint8_t size);
+//       uint8_t GetPacketSize(void);
         
         //Returns the number of bytes written.
-        uint8_t SetPacketData(uint8_t &data);
+        void SetPacketData(uint8_t data[], uint8_t bytes_count);
         
         //Returns the number of bytes written to the pointer
-        uint8_t GetPacketData(uint8_t &data);
+        void GetPacketData(uint8_t data[], uint8_t bytes_count);
         
-        void SetPacketAddress(uint8_t x, uint8_t y);
+//        void SetDestinationAddress(uint8_t x, uint8_t y);
+        void SetDestinationAddress(uint32_t add);
+        
+//        void GetDestinationAddress(uint8_t x, uint8_t y);
+        uint32_t GetDestinationAddress(void);
+        
+//        void SetSourceAddress(uint8_t x, uint8_t y);
+        void SetSourceAddress(uint32_t add);
+        
+//        void GetDestinationAddress(uint8_t x, uint8_t y);
+        uint32_t GetSourceAddress(void);
+        
+        uint32_t ConvertXYtoAddress(uint8_t x, uint8_t y);
+        
+        Coordinate ConvertAddresstoXY(uint32_t address);
+        
+        void SetRWMode(uint8_t mode);
+        uint8_t GetRWMode(void);
+        
+        void SetDataMode(uint8_t mode);
+        uint8_t GetDataMode(void);
+        
+        void SetCrtlMode(uint8_t mode);
+        uint8_t GetCrtlMode(void);
 
-        Coordinate GetPacketAddress(void);
+        void SetMode(uint8_t mode);
+        uint8_t GetMode(void);
+        
     private:
 
         /**
@@ -72,18 +140,50 @@ namespace ns3 {
 //        104 bits per cycle (32 bit address, 64 bits data, 4 bits control-mode,
 //        2 bits datamode, 2 bits for read/write access)
         
-        uint8_t m_packetSize;
+        /*
+        EMESH PACKET FORMAT
+
+        The elink was born out of a need to connect multiple Epiphany chips together
+        and uses the eMesh 104 bit atomic packet structure for communication. 
+        The eMesh atomic packet consists of the following sub fields.
+
+        PACKET SUBFIELD     DESCRIPTION
+        access              Indicates a valid packet
+        write               A write transaction. Access & ~write indicates a read.
+        datamode[1:0]       Datasize (00=8b,01=16b,10=32b,11=64b)
+        ctrlmode[3:0]       Various packet modes for the Epiphany chip
+        dstraddr[31:0]      Address for write, read-request, or read-responses
+        data[31:0]          Data for write transaction, return data for read response
+        srcaddr[31:0]       Return address for read-request, upper data for 64 bit write
+        
+        */
+        
+
+        
+        static const uint8_t m_packetSize = 13;
         
         uint8_t m_packetData[8];
         
-        uint32_t m_packetAddress;
+        uint32_t m_destAddress;
         
-        uint8_t m_controlBits; //(4 control mode, 2 data mode, 2 r/w)
+        uint32_t m_srcAddress;
         
-        //Control bits are as 
+        uint8_t m_mode; //(4 control mode, 2 data mode, 2 r/w)
+                            //this is the combination of all below:
+
+        uint8_t m_access;      // [0:0]
+        uint8_t m_write;       // [1:1]        
+        uint8_t m_dataMode; // [3:2]
+        uint8_t m_ctrlMode; // [7:4]
+
+
+        
+        
 
     };
+    
 
+    
 } // namespace ns3
 
 
