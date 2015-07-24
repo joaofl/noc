@@ -27,6 +27,7 @@
 #include "epiphany-header.h"
 #include "ns3/noc-types.h"
 #include "src/network/model/buffer.h"
+#include "ns3/epiphany-header.h"
 
 NS_LOG_COMPONENT_DEFINE("EpiphanyHeader");
 
@@ -59,7 +60,7 @@ namespace ns3 {
         uint8_t i;
         
         for (i = 0 ; i < m_packetSize ; i++){
-            std::cout << "[" << i << "] " << m_packetData[i];
+            std::cout << "[" << i << "] " << m_data[i];
         }
         std::cout << std::endl;
     }
@@ -74,10 +75,26 @@ namespace ns3 {
     void
     EpiphanyHeader::Serialize(Buffer::Iterator start) const {
 
-        uint8_t i;
+//        PACKET SUBFIELD     DESCRIPTION
+            
+//        access              Indicates a valid packet
+//        write               A write transaction. Access & ~write indicates a read.
+//        datamode[1:0]       Datasize (00=8b,01=16b,10=32b,11=64b)
+//        ctrlmode[3:0]       Various packet modes for the Epiphany chip
         
-        for (i = 0 ; i < m_packetSize ; i++){
-            start.WriteU8(m_packetData[i]);
+//        dstraddr[31:0]      Address for write, read-request, or read-responses
+//        data[31:0]          Data for write transaction, return data for read response
+//        srcaddr[31:0]       Return address for read-request, upper data for 64 bit write
+        
+        start.WriteU8(m_mode);
+        start.WriteU32(m_destAddress);
+        
+        if (m_write == RW_MODE_WRITE){
+            start.Write(m_data, 8);
+        }
+        else if (m_write == RW_MODE_READ){
+            start.Write(m_data, 4);
+            start.WriteU32(m_srcAddress);
         }
         
     }
@@ -85,14 +102,18 @@ namespace ns3 {
     uint32_t
     EpiphanyHeader::Deserialize(Buffer::Iterator start) {
         
-        //TODO: do some safety check here.
+        m_mode = start.ReadU8();
+        this->SetMode(m_mode);
         
-        uint8_t i;
+        m_destAddress = start.ReadU32();
         
-        for (i = 0 ; i < m_packetSize ; i++){
-            m_packetData[i] = start.ReadU8();
-            
+        if (m_write == RW_MODE_WRITE){
+            start.Read(m_data, 8);
         }
+        else if (m_write == RW_MODE_READ){
+            start.Read(m_data, 4);
+            m_srcAddress = start.ReadU32();
+        }        
         
         return GetSerializedSize();
     }
@@ -103,7 +124,7 @@ namespace ns3 {
     EpiphanyHeader::SetPacketData(uint8_t data[], uint8_t bytes_count){
         for (uint8_t i = 0 ; i < m_packetSize ; i++){
             if (i < bytes_count)
-                m_packetData[i] = data[i];
+                m_data[i] = data[i];
         }
     }
 
@@ -112,7 +133,7 @@ namespace ns3 {
     EpiphanyHeader::GetPacketData(uint8_t data[], uint8_t bytes_count){
         for (uint8_t i = 0 ; i < m_packetSize ; i++){
             if (i < bytes_count)
-                data[i] = m_packetData[i];
+                data[i] = m_data[i];
         }
     }
 
@@ -128,6 +149,7 @@ namespace ns3 {
 
     void 
     EpiphanyHeader::SetSourceAddress(uint32_t add){
+        //TODO: implement some checking here
         m_srcAddress = add;
     }
 

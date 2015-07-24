@@ -235,8 +235,8 @@ main(int argc, char *argv[]) {
 //    my_grid_network_helper.SetDeviceAttribute("PacketSize", IntegerValue(13)); 
     //my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
     
-    my_grid_network_helper.SetDeviceAttribute("InputQueueSize", IntegerValue(1));
-    my_grid_network_helper.SetDeviceAttribute("OutputQueueSize", IntegerValue(0));
+//    my_grid_network_helper.SetDeviceAttribute("InputQueueSize", IntegerValue(1));
+//    my_grid_network_helper.SetDeviceAttribute("OutputQueueSize", IntegerValue(0));
     
     my_node_container = my_grid_network_helper.InitializeNetwork();
     uint32_t n_nodes = my_node_container.GetN();
@@ -257,6 +257,7 @@ main(int argc, char *argv[]) {
 
         Ptr<EpiphanyApp> my_ep_app = CreateObject<EpiphanyApp> ();
         my_ep_app->SetStartTime(Seconds(0));
+        my_ep_app->ScheduleDataWrites(1, MilliSeconds(10));
 
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
@@ -269,8 +270,9 @@ main(int argc, char *argv[]) {
         my_noc_router->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&log_packet));
 
         //Should be installed in this order!!!
-        my_node_container.Get(i)->AddApplication(my_ep_app);
-        my_noc_app_container.Add(my_ep_app);
+        my_node_container.Get(i)->AddApplication(my_ep_app); //Add the application to the node
+        my_noc_app_container.Add(my_ep_app); //Save the app to a container (just in case I need it later)
+        my_ep_app->AddRouter(my_noc_router);
     }
 
     
@@ -294,8 +296,8 @@ main(int argc, char *argv[]) {
     //**************** Output Printing ***************************
     file_packets_trace.close();
     
-    cout << Simulator::Now().GetSeconds();
-    cout << "Done!" << endl << endl;
+    cout << endl << "Done with simulating " << Simulator::Now().GetSeconds() << "s" << endl;
+    
     
     Simulator::Destroy();
     return 0;

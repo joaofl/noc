@@ -26,6 +26,7 @@
 #include "noc-types.h"
 #include "epiphany-application.h"
 #include "epiphany-header.h"
+#include "ns3/epiphany-header.h"
 
 //using namespace ns3NOCCalc;
 using namespace std;
@@ -48,28 +49,32 @@ namespace ns3 {
 
     void
     EpiphanyApp::StartApplication(void) {
-
-//        TimeStartOffset = Seconds(1);
-
-        m_router = this->GetNode()->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-
-//        ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
+        m_running = true;
+        
+        //ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
+        
+        m_router->SetReceiveCallback(MakeCallback(&EpiphanyApp::DataReceived, this));
     }
 
     void
     EpiphanyApp::StopApplication(void) {
         m_running = false;
     }
+    
+    void
+    EpiphanyApp::AddRouter(Ptr<NOCRouter> r) {
+        m_router = r;
+    }
 
-//    void
-//    EpiphanyApp::ScheduleValueAnnouncement(uint8_t n_times, Time period) {
-//
-//        for (uint8_t i = 0; i < n_times; i++) {
-//            Time t = MilliSeconds(period.GetMilliSeconds() * i + TimeStartOffset.GetMilliSeconds() + period.GetMilliSeconds());
-//            Simulator::Schedule(t, &EpiphanyApp::ValueAnnouncement, this);
-//        }
-//
-//    }
+    void
+    EpiphanyApp::ScheduleDataWrites(uint8_t n_times, Time period) {
+
+        for (uint8_t i = 0; i < n_times; i++) {
+            Time t = MilliSeconds(period.GetMilliSeconds() * i + period.GetMilliSeconds());
+            Simulator::Schedule(t, &EpiphanyApp::WriteData, this);
+        }
+
+    }
 //
 //
 //    NodeRef
@@ -94,7 +99,19 @@ namespace ns3 {
     void
     EpiphanyApp::WriteData(){
         
+        EpiphanyHeader h;
         
+        h.SetRWMode(EpiphanyHeader::RW_MODE_WRITE);
+//        h.SetCrtlMode(EpiphanyHeader::CRTL_MODE_0A);
+        h.SetDataMode(EpiphanyHeader::DATA_MODE_64b);
+        h.SetDestinationAddress(0);
+        
+        Ptr<Packet> pck = Create<Packet>();
+        pck->AddHeader(h);
+        
+        m_router->PacketSend(pck, 0, 0xFF, 0);
+        
+        std::cout << "Sent from: "<< Now() << ", " << this << endl;
     }
     void
     EpiphanyApp::WriteDataReceived(){
@@ -102,8 +119,14 @@ namespace ns3 {
         
     } 
    
-    
+    void
+    EpiphanyApp::DataReceived(Ptr<const Packet>){ 
+        std::cout << "Received by: " << Now() << ", " << this << endl;
     }
+        
+}
+
+    
 
     
 

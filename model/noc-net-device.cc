@@ -45,12 +45,13 @@ namespace ns3 {
         static TypeId tid = TypeId("ns3::NOCNetDevice")
                 .SetParent<NetDevice> ()
                 .AddConstructor<NOCNetDevice> ()
+                
                 .AddAttribute("Mtu", "The MAC-level Maximum Transmission Unit",
                 UintegerValue(DEFAULT_MTU),
                 MakeUintegerAccessor(&NOCNetDevice::SetMtu,
                 &NOCNetDevice::GetMtu),
                 MakeUintegerChecker<uint16_t> ())
-        
+         
                 .AddAttribute("SerialComm",
                 "If the NetDevice uses serial or parallel communication",
                 BooleanValue(true),
@@ -169,32 +170,6 @@ namespace ns3 {
     NOCNetDevice::~NOCNetDevice() {
         NS_LOG_FUNCTION_NOARGS();
     }
-
-//    void NOCNetDevice::SetNOCAddress(NOCAddress address){
-//        m_noc_netdevice_address = address;
-////        m_noc_netdevice_address_group = group;
-//    }
-//
-//    NOCAddress NOCNetDevice::GetNOCAddress(void) {
-//        return m_noc_netdevice_address;
-//    }
-
-    //    void
-    //    NOCNetDevice::AddHeader(Ptr<Packet> p, uint16_t protocolNumber) {
-    //        NS_LOG_FUNCTION_NOARGS();
-    //        NOCHeader ppp;
-    //        ppp.SetProtocol(EtherToPpp(protocolNumber));
-    //        p->AddHeader(ppp);
-    //    }
-    //
-    //    bool
-    //    NOCNetDevice::ProcessHeader(Ptr<Packet> p, uint16_t& param) {
-    //        NS_LOG_FUNCTION_NOARGS();
-    //        NOCHeader ppp;
-    //        p->RemoveHeader(ppp);
-    //        param = PppToEther(ppp.GetProtocol());
-    //        return true;
-    //    }
 
     void
     NOCNetDevice::DoDispose() {
@@ -643,26 +618,6 @@ namespace ns3 {
                 return r;
             }
         }
-    }
-
-    bool
-    NOCNetDevice::SendSignal(Ptr<Packet> packet) {
-
-        // If there's a transmission in progress, we enque the packet for later
-        // transmission; otherwise we send it now.
-        //
-        if (m_txSignalMachineState == READY) {
-            // 
-            // Even if the transmitter is immediately available, we still enqueue and
-            // dequeue the packet to hit the tracing hooks.
-            //            //
-            //            if (m_signal_queue->Enqueue(packet) == true) {
-            //                packet = m_signal_queue->Dequeue();
-            //                m_snifferTrace(packet);
-            //                m_promiscSnifferTrace(packet);
-            return SendSignal(packet);
-        }
-        return false;
     }
 
     bool

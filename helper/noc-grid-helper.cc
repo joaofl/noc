@@ -134,7 +134,7 @@ GridHelper::InitializeNetwork()
     NodeContainer::Iterator n;
     for (n = my_node_container.Begin() ; n != my_node_container.End() ; n++){    
         my_noc_router = CreateObject<NOCRouter> ();
-        my_noc_router->SetAttribute("ChannelCount", m_channelCount);
+        my_noc_router->SetAttribute("ChannelCount", UintegerValue(m_channelCount));
         (*n)->AddApplication(my_noc_router);
     }
     

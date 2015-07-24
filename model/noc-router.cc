@@ -39,6 +39,12 @@ namespace ns3 {
                 .AddConstructor<NOCRouter> ()
                 .AddTraceSource("SwitchRxTrace", "The packets received by the router of each node", MakeTraceSourceAccessor(&NOCRouter::m_routerRxTrace))
                 .AddTraceSource("SwitchTxTrace", "The packets sent by the router of each node", MakeTraceSourceAccessor(&NOCRouter::m_routerTxTrace))
+        
+                .AddAttribute("ChannelCount",
+                "Defines the number of NOCNetDevices installed at each direction",
+                UintegerValue(true),
+                MakeUintegerAccessor(&NOCRouter::m_channelCount),
+                MakeUintegerChecker<uint8_t>())
                 ;
         return tid;
     }
@@ -56,13 +62,13 @@ namespace ns3 {
     //
     //    }
 
-    void 
-    NOCRouter::SetAttribute (std::string name, const uint8_t value){
-        if (name.compare("ChannelCount") == 0) //Is the same
-        {
-            m_channelCount = value;
-        }
-    }
+//    void 
+//    NOCRouter::SetAttribute (std::string name, const uint8_t value){
+//        if (name.compare("ChannelCount") == 0) //Is the same
+//        {
+//            m_channelCount = value;
+//        }
+//    }
     
     void
     NOCRouter::StartApplication(void) {
@@ -72,6 +78,7 @@ namespace ns3 {
 //        n=n;
 //        m=m;
         
+        m_running = true;
         
         NetDeviceContainer::Iterator nd;
         for (nd = m_netDevices.Begin() ; nd != m_netDevices.End() ; nd++){    
@@ -117,68 +124,16 @@ namespace ns3 {
         // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
         // the addressing scheme sould allow: Broadcast (with limited radius (hops)) and unicast (to an specific X,Y location)
 
-//        Ptr<Node> node = this->GetNode();
-//        uint8_t n_devices = node->GetNDevices();
-//        uint8_t priority = 0;
 
-//        NOCHeader hd;
-//        pck->PeekHeader(hd);
-
-//        NodeRef nr;
-//        nr.x = 30;
-//        nr.y = 44;
-
-//        Time t = Simulator::Now();
-//        t = t;
-        
-//        uint8_t s = m_netDeviceInfoArray.size();
-        
-        for (uint8_t i = 0; i < m_channelCount; i++) 
-        {
-            //TODO: the arbitration policy should be considered here. Round robin for example
-            if ( (ports_mask >> DIRECTION_E) & 1) this->GetNetDevice(i, DIRECTION_E)->Send(pck->Copy());
-            if ( (ports_mask >> DIRECTION_S) & 1) this->GetNetDevice(i, DIRECTION_S)->Send(pck->Copy());
-            if ( (ports_mask >> DIRECTION_W) & 1) this->GetNetDevice(i, DIRECTION_W)->Send(pck->Copy());
-            if ( (ports_mask >> DIRECTION_N) & 1) this->GetNetDevice(i, DIRECTION_N)->Send(pck->Copy());
+        Ptr<NOCNetDevice> nd;
+        uint8_t i = network_id;
+//            //TODO: the arbitration policy should be considered here. Round robin for example
+        if ( (ports_mask >> DIRECTION_E) & 1){
+            nd = this->GetNetDevice(i, DIRECTION_E);
+            if (nd != NULL) nd->Send(pck->Copy());
         }
-
         
         m_routerTxTrace(pck);
-        
-        
-        
-        
-
-        //starts sending the packets from port 1 to port 4.
-//        for (uint32_t i = 0 ; i < this->GetNDevices() ; i++) { //sends one packet per netdevice installed, according to the bitmask received
-//            uint8_t p = ports_mask >> i;
-//            if ((p & 1) == 1) {
-//                
-////                for (uint32_t j = 0; j < n_devices; j++) { //iterate to find which netdevice is the correct one
-//////                    Ptr<NOCRouter> my_noc_router = node->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-////                    
-////                    
-//////                    if (node->GetDevice(j)->GetObject<NOCNetDevice>()->GetAddress() == i + 1) {
-//////
-//////                        //TODO: this should be replaced by callbacks urgently
-//////                        if (hd.GetNOCProtocol() == P_NETWORK_DISCOVERY) {
-//////                            priority = 0;
-//////                            PacketsSent [P_NETWORK_DISCOVERY]++;
-//////                        } else if (hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
-//////                            priority = 0;
-//////                            PacketsSent [P_VALUE_ANNOUNCEMENT]++;
-//////                        } else if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
-//////                            priority = 1;
-//////                            PacketsSent [P_EVENT_ANNOUNCEMENT]++;
-//////                        }
-//////
-//////                        node->GetDevice(j)->GetObject<NOCNetDevice>()->Send(pck->Copy(), priority);
-//////
-//////                        break;
-//////                    }
-////                }
-//            }
-//        }
     }
     
     void
@@ -209,7 +164,7 @@ namespace ns3 {
                 return nd;
             }
         }
-        return 0; //if the specified node was not found
+        return NULL; //if the specified node was not found
     }
     
 //    NetDeviceInfo
@@ -324,8 +279,13 @@ namespace ns3 {
 //            m_app->EventAnnoucementReceived(pck_cp, origin_port);
 //        }
 
+        m_receiveCallBack(pck_rcv->Copy());
 
         return true;
+    }
+    
+    void NOCRouter::SetReceiveCallback(ReceiveCallback cb){
+        m_receiveCallBack = cb;
     }
     
     //Using XY routing

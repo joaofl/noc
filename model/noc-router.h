@@ -25,6 +25,9 @@
 
 #include <fstream>
 #include <sstream>
+
+#include "ns3/callback.h"
+//#include "ns3/object.h"
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/address.h"
@@ -32,6 +35,7 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 #include "ns3/net-device-container.h"
+
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "noc-types.h"
@@ -107,16 +111,28 @@ namespace ns3 {
     
         uint8_t GetNDevices(void);
         
-        /**
-         * Set an attribute value of a network general parameter.
-         *
-         * \param name the name of the attribute to set
-         * \param value the value of the attribute to set
-         *
-         * These parameters are the required info for the helper to create a grid of nodes
-         */
-        void SetAttribute (std::string name, const uint8_t value);
         
+        
+        /**
+         * \param device a pointer to the net device which is calling this callback
+         * \param packet the packet received
+         * \param protocol the 16 bit protocol number associated with this packet.
+         *        This protocol number is expected to be the same protocol number
+         *        given to the Send method by the user on the sender side.
+         * \param sender the address of the sender
+         * \returns true if the callback could handle the packet successfully, false
+         *          otherwise.
+         */
+        typedef Callback< void, Ptr<const Packet> > ReceiveCallback;
+
+        /**
+         * \param cb callback to invoke whenever a packet has been received and must
+         *        be forwarded to the higher layers.
+         *
+         * Set the callback to be used to notify higher layers when a packet has been
+         * received.
+         */
+        void SetReceiveCallback(ReceiveCallback);
         
     private:
 
@@ -127,6 +143,8 @@ namespace ns3 {
         
         virtual void StartApplication(void);
         virtual void StopApplication(void);
+        
+        ReceiveCallback m_receiveCallBack;
 
         bool m_running;
         EventId m_sendEvent;

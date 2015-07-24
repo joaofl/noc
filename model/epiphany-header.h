@@ -24,48 +24,10 @@
 #include "ns3/header.h"
 #include "noc-types.h"
 
-#define DATA_MODE_8b        0b00
-#define DATA_MODE_16b       0b01
-#define DATA_MODE_32b       0b10
-#define DATA_MODE_64b       0b11
 
-#define RW_MODE_WRITE       0b00
-#define RW_MODE_READ        0b01
-#define RW_MODE_C           0b10
-#define RW_MODE_D           0b11
 
-#define CRTL_MODE_0A         0b0000
-#define CRTL_MODE_0B         0b0001
-#define CRTL_MODE_0C         0b0010
-#define CRTL_MODE_0D         0b0011
-#define CRTL_MODE_0E         0b0100
-#define CRTL_MODE_0F         0b0101
-#define CRTL_MODE_0G         0b0110
-#define CRTL_MODE_0H         0b0111
-#define CRTL_MODE_0I         0b0000
-#define CRTL_MODE_0J         0b0001
-#define CRTL_MODE_0K         0b0010
-#define CRTL_MODE_0L         0b0011
-#define CRTL_MODE_0M         0b0100
-#define CRTL_MODE_0N         0b0101
-#define CRTL_MODE_0O         0b0110
-#define CRTL_MODE_0P         0b0111
-#define CRTL_MODE_1A         0b1000
-#define CRTL_MODE_1B         0b1001
-#define CRTL_MODE_1C         0b1010
-#define CRTL_MODE_1D         0b1011
-#define CRTL_MODE_1E         0b1100
-#define CRTL_MODE_1F         0b1101
-#define CRTL_MODE_1G         0b1110
-#define CRTL_MODE_1H         0b1111
-#define CRTL_MODE_1I         0b1000
-#define CRTL_MODE_1J         0b1001
-#define CRTL_MODE_1K         0b1010
-#define CRTL_MODE_1L         0b1011
-#define CRTL_MODE_1M         0b1100
-#define CRTL_MODE_1N         0b1101
-#define CRTL_MODE_1O         0b1110
-#define CRTL_MODE_1P         0b1111
+
+
 
 namespace ns3 {
 
@@ -77,6 +39,54 @@ namespace ns3 {
     class EpiphanyHeader : public Header {
     public:
 
+        enum DataMode{
+            DATA_MODE_8b  = 0b00,
+            DATA_MODE_16b = 0b01,
+            DATA_MODE_32b = 0b10,
+            DATA_MODE_64b = 0b11
+        };
+        
+        enum RWMode{
+            RW_MODE_WRITE = 0b00,
+            RW_MODE_READ  = 0b01,
+            RW_MODE_C     = 0b10,
+            RW_MODE_D     = 0b11
+        };
+        
+        enum CtrlMode{
+        CRTL_MODE_0A  =  0b0000,
+        CRTL_MODE_0B  =  0b0001,
+        CRTL_MODE_0C  =  0b0010,
+        CRTL_MODE_0D  =  0b0011,
+        CRTL_MODE_0E  =  0b0100,
+        CRTL_MODE_0F  =  0b0101,
+        CRTL_MODE_0G  =  0b0110,
+        CRTL_MODE_0H  =  0b0111,
+        CRTL_MODE_0I  =  0b0000,
+        CRTL_MODE_0J  =  0b0001,
+        CRTL_MODE_0K  =  0b0010,
+        CRTL_MODE_0L  =  0b0011,
+        CRTL_MODE_0M  =  0b0100,
+        CRTL_MODE_0N  =  0b0101,
+        CRTL_MODE_0O  =  0b0110,
+        CRTL_MODE_0P  =  0b0111,
+        CRTL_MODE_1A  =  0b1000,
+        CRTL_MODE_1B  =  0b1001,
+        CRTL_MODE_1C  =  0b1010,
+        CRTL_MODE_1D  =  0b1011,
+        CRTL_MODE_1E  =  0b1100,
+        CRTL_MODE_1F  =  0b1101,
+        CRTL_MODE_1G  =  0b1110,
+        CRTL_MODE_1H  =  0b1111,
+        CRTL_MODE_1I  =  0b1000,
+        CRTL_MODE_1J  =  0b1001,
+        CRTL_MODE_1K  =  0b1010,
+        CRTL_MODE_1L  =  0b1011,
+        CRTL_MODE_1M  =  0b1100,
+        CRTL_MODE_1N  =  0b1101,
+        CRTL_MODE_1O  =  0b1110,
+        CRTL_MODE_1P  =  0b1111
+        };
         /**
          * \brief Construct a NoC header.
          */
@@ -162,7 +172,7 @@ namespace ns3 {
         
         static const uint8_t m_packetSize = 13;
         
-        uint8_t m_packetData[8];
+        uint8_t m_data[8];
         
         uint32_t m_destAddress;
         

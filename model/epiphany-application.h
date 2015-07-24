@@ -58,6 +58,12 @@ namespace ns3 {
     void ReadDataReceived(void);
     void WriteData(void);
     void WriteDataReceived(void);
+    
+    void DataReceived(Ptr<const Packet>);
+    
+    void AddRouter(Ptr<NOCRouter>  r);
+    
+    void ScheduleDataWrites(uint8_t n_times, Time period);
 
 
     private:
@@ -66,20 +72,7 @@ namespace ns3 {
         virtual void StopApplication(void);
 
 //        void ScheduleTx(void);
-//        //void SendPacket(void);
-//
-//        uint8_t DetectEvents(void);
 
-        //void SendPacket(uint8_t ports, Ptr<Packet> pck);
-
-
-
-//        std::vector<NodeRef> m_sinksList;
-//        std::vector<NodeRef> m_neighborsList;
-//
-//        uint32_t m_nPackets;
-//        vector <uint32_t> m_SerialNumber; //Serial NUmber
-//        DataRate m_dataRate;
         bool m_running;
 //        vector<EventRef> m_lastEvents;
 
