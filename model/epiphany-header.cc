@@ -115,7 +115,7 @@ namespace ns3 {
             m_srcAddress = start.ReadU32();
         }        
         
-        return GetSerializedSize();
+        return m_packetSize;
     }
     
     

@@ -43,6 +43,7 @@
 
 #include "src/noc/model/xdense-application.h"
 #include "src/noc/model/sensor-data-io.h"
+#include "src/noc/model/epiphany-header.h"
 //#include "src/noc/model/noc-net-device.h"
 //#include "src/noc/model/noc-application.h"
 //#include "ns3/simple-net-device.h"
@@ -99,24 +100,25 @@ uint32_t start_offset;
 
 void
 log_packet(string context, Ptr<const Packet> pck) {
-    NOCHeader hd;
+    EpiphanyHeader hd;
     pck->PeekHeader(hd);
-    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
-    //    if (pck->GetUid() == 104 || pck->GetUid() == 110 ) {
-            file_packets_trace_net_device
-            << "c,"
-            << Simulator::Now().GetNanoSeconds() << ","
-            << pck->GetUid() << ","
-//            << (int) direction << ","
-            << context << "," //here «, inside context there is: node_number, i/o, x, y, port_number
-            << "p,"
-            << hd.GetNOCProtocol() << ","
-            << (int) hd.SerialNumber << ","
-            << (int) hd.EventType << ","
-            << hd.EventData[0] << ","
-            << (int) hd.CurrentX << ","
-            << (int) hd.CurrentY << endl;
-    }        
+    hd.Print(std::cout);
+//    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
+//    //    if (pck->GetUid() == 104 || pck->GetUid() == 110 ) {
+//            file_packets_trace_net_device
+//            << "c,"
+//            << Simulator::Now().GetNanoSeconds() << ","
+//            << pck->GetUid() << ","
+////            << (int) direction << ","
+//            << context << "," //here «, inside context there is: node_number, i/o, x, y, port_number
+//            << "p,"
+//            << hd.GetNOCProtocol() << ","
+//            << (int) hd.SerialNumber << ","
+//            << (int) hd.EventType << ","
+//            << hd.EventData[0] << ","
+//            << (int) hd.CurrentX << ","
+//            << (int) hd.CurrentY << endl;
+//    }        
     
 }
 
