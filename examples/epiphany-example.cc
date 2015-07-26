@@ -160,17 +160,20 @@ main(int argc, char *argv[]) {
     my_grid_network_helper.SetNetworkAttribute("ChannelCount", 3);
     
     // 1GHz
+    my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(false));
     my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
     my_grid_network_helper.SetDeviceAttribute("InterframeGap", TimeValue(MilliSeconds(0)));
     
+//    my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(PicoSeconds(500)));
+    
     //If the connection is not serial, then the packet size defines the link width,
     //and one packet is transmitted in one tick of a given baudrate    
-    my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(false));
+    
     
     //in bytes 104 bits epiphany e-link between nodes
     // this should be defined by the header.....
 //    my_grid_network_helper.SetDeviceAttribute("PacketSize", IntegerValue(13)); 
-    my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(PicoSeconds(500)));
+
     
 //    my_grid_network_helper.SetDeviceAttribute("InputQueueSize", IntegerValue(1));
 //    my_grid_network_helper.SetDeviceAttribute("OutputQueueSize", IntegerValue(0));
