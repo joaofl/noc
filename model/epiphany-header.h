@@ -49,43 +49,44 @@ namespace ns3 {
         enum RWMode{
             RW_MODE_WRITE = 0b00,
             RW_MODE_READ  = 0b01,
-            RW_MODE_C     = 0b10,
-            RW_MODE_D     = 0b11
+            RW_MODE_C     = 0b10, //? 
+            RW_MODE_D     = 0b11  //?
         };
         
+        //TODO: Understand each one, and name the modes
         enum CtrlMode{
-        CRTL_MODE_0A  =  0b0000,
-        CRTL_MODE_0B  =  0b0001,
-        CRTL_MODE_0C  =  0b0010,
-        CRTL_MODE_0D  =  0b0011,
-        CRTL_MODE_0E  =  0b0100,
-        CRTL_MODE_0F  =  0b0101,
-        CRTL_MODE_0G  =  0b0110,
-        CRTL_MODE_0H  =  0b0111,
-        CRTL_MODE_0I  =  0b0000,
-        CRTL_MODE_0J  =  0b0001,
-        CRTL_MODE_0K  =  0b0010,
-        CRTL_MODE_0L  =  0b0011,
-        CRTL_MODE_0M  =  0b0100,
-        CRTL_MODE_0N  =  0b0101,
-        CRTL_MODE_0O  =  0b0110,
-        CRTL_MODE_0P  =  0b0111,
-        CRTL_MODE_1A  =  0b1000,
-        CRTL_MODE_1B  =  0b1001,
-        CRTL_MODE_1C  =  0b1010,
-        CRTL_MODE_1D  =  0b1011,
-        CRTL_MODE_1E  =  0b1100,
-        CRTL_MODE_1F  =  0b1101,
-        CRTL_MODE_1G  =  0b1110,
-        CRTL_MODE_1H  =  0b1111,
-        CRTL_MODE_1I  =  0b1000,
-        CRTL_MODE_1J  =  0b1001,
-        CRTL_MODE_1K  =  0b1010,
-        CRTL_MODE_1L  =  0b1011,
-        CRTL_MODE_1M  =  0b1100,
-        CRTL_MODE_1N  =  0b1101,
-        CRTL_MODE_1O  =  0b1110,
-        CRTL_MODE_1P  =  0b1111
+            CRTL_MODE_0A  =  0b0000,
+            CRTL_MODE_0B  =  0b0001,
+            CRTL_MODE_0C  =  0b0010,
+            CRTL_MODE_0D  =  0b0011,
+            CRTL_MODE_0E  =  0b0100,
+            CRTL_MODE_0F  =  0b0101,
+            CRTL_MODE_0G  =  0b0110,
+            CRTL_MODE_0H  =  0b0111,
+            CRTL_MODE_0I  =  0b0000,
+            CRTL_MODE_0J  =  0b0001,
+            CRTL_MODE_0K  =  0b0010,
+            CRTL_MODE_0L  =  0b0011,
+            CRTL_MODE_0M  =  0b0100,
+            CRTL_MODE_0N  =  0b0101,
+            CRTL_MODE_0O  =  0b0110,
+            CRTL_MODE_0P  =  0b0111,
+            CRTL_MODE_1A  =  0b1000,
+            CRTL_MODE_1B  =  0b1001,
+            CRTL_MODE_1C  =  0b1010,
+            CRTL_MODE_1D  =  0b1011,
+            CRTL_MODE_1E  =  0b1100,
+            CRTL_MODE_1F  =  0b1101,
+            CRTL_MODE_1G  =  0b1110,
+            CRTL_MODE_1H  =  0b1111,
+            CRTL_MODE_1I  =  0b1000,
+            CRTL_MODE_1J  =  0b1001,
+            CRTL_MODE_1K  =  0b1010,
+            CRTL_MODE_1L  =  0b1011,
+            CRTL_MODE_1M  =  0b1100,
+            CRTL_MODE_1N  =  0b1101,
+            CRTL_MODE_1O  =  0b1110,
+            CRTL_MODE_1P  =  0b1111
         };
         /**
          * \brief Construct a NoC header.
@@ -116,8 +117,16 @@ namespace ns3 {
 //        void SetDestinationAddress(uint8_t x, uint8_t y);
         void SetDestinationAddress(uint32_t add);
         
+        void SetDestinationAddressXY(int32_t x, int32_t y);
+        void SetDestinationAddressY(int32_t x);
+        void SetDestinationAddressX(int32_t y);
+        
+        
 //        void GetDestinationAddress(uint8_t x, uint8_t y);
         uint32_t GetDestinationAddress(void);
+        
+        int32_t GetDestinationAddressX(void);
+        int32_t GetDestinationAddressY(void);
         
 //        void SetSourceAddress(uint8_t x, uint8_t y);
         void SetSourceAddress(uint32_t add);
@@ -125,9 +134,9 @@ namespace ns3 {
 //        void GetDestinationAddress(uint8_t x, uint8_t y);
         uint32_t GetSourceAddress(void);
         
-        uint32_t ConvertXYtoAddress(uint8_t x, uint8_t y);
-        
-        Coordinate ConvertAddresstoXY(uint32_t address);
+//        uint32_t ConvertXYtoAddress(uint8_t x, uint8_t y);
+//        
+//        Coordinate ConvertAddresstoXY(uint32_t address);
         
         void SetRWMode(uint8_t mode);
         uint8_t GetRWMode(void);
@@ -176,6 +185,9 @@ namespace ns3 {
         
         uint32_t m_destAddress;
         
+        int32_t m_destAddressX;
+        int32_t m_destAddressY;        
+        
         uint32_t m_srcAddress;
         
         uint8_t m_mode; //(4 control mode, 2 data mode, 2 r/w)
@@ -186,6 +198,10 @@ namespace ns3 {
         uint8_t m_dataMode; // [3:2]
         uint8_t m_ctrlMode; // [7:4]
 
+        
+//        typedef struct AddressXY{
+//            uint32_t x, y;
+//        };
 
         
         

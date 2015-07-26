@@ -69,6 +69,8 @@ namespace ns3 {
 
         uint32_t queue_size_prioritized;
         uint32_t queue_size;
+        
+        
 
         /**
          * Construct a NOCNetDevice
@@ -175,6 +177,12 @@ namespace ns3 {
 
 //        void SetNOCAddress(NOCAddress);
 //        NOCAddress GetNOCAddress(void);
+        
+//        typedef Callback< void, Ptr<const Packet>, uint16_t > ReceiveCallback;
+        virtual void SetReceiveCallback(ReceiveCallback cb);
+        
+        
+        
 
         // The remaining methods are documented in ns3::NetDevice*
 
@@ -211,7 +219,7 @@ namespace ns3 {
 
         virtual bool NeedsArp(void) const;
 
-        virtual void SetReceiveCallback(NetDevice::ReceiveCallback cb);
+        
 
         virtual Address GetMulticast(Ipv6Address addr) const;
 
@@ -228,8 +236,10 @@ namespace ns3 {
 
         virtual void DoDispose(void);
 
+        
+        
     private:
-
+        
         /**
          * \returns the address of the remote device connected to this device
          * through the point to point channel.
@@ -492,6 +502,8 @@ namespace ns3 {
         NOCAddress m_noc_address;
 
         Ptr<Packet> m_currentPkt;
+        
+//        NOCReceiveCallback m_receiveCallback;
 
     };
 

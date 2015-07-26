@@ -67,11 +67,11 @@ namespace ns3 {
     }
 
     void
-    EpiphanyApp::ScheduleDataWrites(uint8_t n_times, Time period) {
+    EpiphanyApp::ScheduleDataWrites(uint8_t n_times, Time period, int32_t dest_x, int32_t dest_y) {
 
         for (uint8_t i = 0; i < n_times; i++) {
             Time t = MilliSeconds(period.GetMilliSeconds() * i + period.GetMilliSeconds());
-            Simulator::Schedule(t, &EpiphanyApp::WriteData, this);
+            Simulator::Schedule(t, &EpiphanyApp::WriteData, this, dest_x, dest_y);
         }
 
     }
@@ -97,7 +97,7 @@ namespace ns3 {
         
     }
     void
-    EpiphanyApp::WriteData(){
+    EpiphanyApp::WriteData(int32_t dest_x, int32_t dest_y){
         
         EpiphanyHeader h;
         uint8_t data[8];
@@ -105,8 +105,9 @@ namespace ns3 {
         
         h.SetRWMode(EpiphanyHeader::RW_MODE_WRITE);
 //        h.SetCrtlMode(EpiphanyHeader::CRTL_MODE_0A);
+        h.SetDestinationAddressXY(dest_x, dest_y);
         h.SetDataMode(EpiphanyHeader::DATA_MODE_64b);
-        h.SetDestinationAddress(0);
+//        h.SetDestinationAddress(0);
         h.SetPacketData(data, 1);
         
         Ptr<Packet> pck = Create<Packet>();
@@ -116,6 +117,11 @@ namespace ns3 {
         
 //        std::cout << "Sent from: "<< Now() << ", " << this << endl;
     }
+    
+//    EpiphanyApp::WriteData(Ptr<const Packet> pck){
+//    
+//    }
+    
     void
     EpiphanyApp::WriteDataReceived(Ptr<const Packet> pck){
         
@@ -123,7 +129,7 @@ namespace ns3 {
     } 
    
     void
-    EpiphanyApp::DataReceived(Ptr<const Packet> pck){ 
+    EpiphanyApp::DataReceived(Ptr<const Packet> pck, uint16_t direction){ 
 //        std::cout << "Received by: " << Now() << ", " << this << endl;
         EpiphanyHeader h;
         pck->PeekHeader(h);

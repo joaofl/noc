@@ -25,6 +25,7 @@
 #include "ns3/noc-types.h"
 #include "ns3/noc-router.h"
 #include "src/network/model/node.h"
+#include "ns3/epiphany-header.h"
 
 
 using namespace std;
@@ -126,14 +127,29 @@ namespace ns3 {
 
 
         Ptr<NOCNetDevice> nd;
-        uint8_t i = network_id;
 //            //TODO: the arbitration policy should be considered here. Round robin for example
-        if ( (ports_mask >> DIRECTION_E) & 1){
-            nd = this->GetNetDevice(i, DIRECTION_E);
+        if ( (ports_mask >> DIRECTION_N) & 1){
+            nd = this->GetNetDevice(network_id, DIRECTION_N);
             if (nd != NULL) nd->Send(pck->Copy());
+            m_routerTxTrace(pck);
+        }
+        if ( (ports_mask >> DIRECTION_S) & 1){
+            nd = this->GetNetDevice(network_id, DIRECTION_S);
+            if (nd != NULL) nd->Send(pck->Copy());
+            m_routerTxTrace(pck);
+        }
+        if ( (ports_mask >> DIRECTION_E) & 1){
+            nd = this->GetNetDevice(network_id, DIRECTION_E);
+            if (nd != NULL) nd->Send(pck->Copy());
+            m_routerTxTrace(pck);
+        }
+        if ( (ports_mask >> DIRECTION_W) & 1){
+            nd = this->GetNetDevice(network_id, DIRECTION_W);
+            if (nd != NULL) nd->Send(pck->Copy());
+            m_routerTxTrace(pck);
         }
         
-        m_routerTxTrace(pck);
+        
     }
     
     void
@@ -186,14 +202,29 @@ namespace ns3 {
     }
 
     bool
-    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t protocol, const Address& sourceAddress) {
+    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t direction, const Address& sourceAddress) {
 
         //TODO: It should check which port it requires to continue its trajectory. 
         //if not available, it stops, and block any port which migh require the same port.
         //this blocking should propagate till the sender.
+        
+        //TODO: dont know how to not specify a packet type.. It better be compatible
+        // with any packet with attribute "DestinationAddressX"
+        EpiphanyHeader h;
+        pck_rcv->PeekHeader(h);
+        
+//        int32_t x = h->GetAttribute("DestinationAddressX");
+//        int32_t y = h->GetAttribute("DestinationAddressY");
+  
+        int32_t x = h.GetDestinationAddressX();
+        int32_t y = h.GetDestinationAddressY();
+        
+        uint8_t output_port_mask = RouteTo(x, y);
+        
+        this->PacketSend(pck_rcv->Copy(), 0, output_port_mask, 0);
 
         m_routerRxTrace(pck_rcv->Copy()); //trance the packet after changing 
-        m_receiveCallBack(pck_rcv->Copy());
+        m_receiveCallBack(pck_rcv->Copy(), direction);
 
         return true;
     }

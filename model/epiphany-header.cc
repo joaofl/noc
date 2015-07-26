@@ -24,10 +24,10 @@
 #include "ns3/assert.h"
 #include "ns3/log.h"
 #include "ns3/header.h"
-#include "epiphany-header.h"
 #include "ns3/noc-types.h"
-#include "src/network/model/buffer.h"
-#include "ns3/epiphany-header.h"
+#include "ns3/buffer.h"
+
+#include "epiphany-header.h"
 
 NS_LOG_COMPONENT_DEFINE("EpiphanyHeader");
 
@@ -35,21 +35,27 @@ namespace ns3 {
 
     NS_OBJECT_ENSURE_REGISTERED(EpiphanyHeader);
 
-    EpiphanyHeader::EpiphanyHeader() {
-    }
-
-    EpiphanyHeader::~EpiphanyHeader() {
-    }
-
     TypeId
     EpiphanyHeader::GetTypeId(void) {
         static TypeId tid = TypeId("ns3::EpiphanyHeader")
                 .SetParent<Header> ()
                 .AddConstructor<EpiphanyHeader> ()
+        
+//                .AddAttribute("DestinationAddressX", "Destination address X coordinate",
+//                IntegerValue(0),
+//                MakeIntegerAccessor(&EpiphanyHeader::SetDestinationAddressX, &EpiphanyHeader::GetDestinationAddressX),
+//                MakeIntegerChecker<int> ())
+        
                 ;
         return tid;
     }
 
+    EpiphanyHeader::EpiphanyHeader() {
+    }
+
+    EpiphanyHeader::~EpiphanyHeader() {
+    }
+    
     TypeId
     EpiphanyHeader::GetInstanceTypeId(void) const {
         return GetTypeId();
@@ -149,15 +155,69 @@ namespace ns3 {
         }
     }
 
+    /*
+     * Address space for epiphany:
+     * 
+     * Core     Start Address       End Address     Size
+     * 0,0      00000000            00007FFF        32Kb
+     * 0,1      00100000            00107FFF        32Kb
+     * 0,2      00200000            00207FFF        32Kb
+     * 0,3      00300000            00307FFF        32Kb
+     * 
+     * 1,0      04000000            04007FFF        32Kb
+     * 1,1      04100000            04107FFF        32Kb
+     * 1,2      04200000            04207FFF        32Kb
+     * 1,3      04300000            04307FFF        32Kb
+     * 
+     * 2,0      08000000            08007FFF        32Kb
+     * 2,1      08100000            08107FFF        32Kb
+     * 2,2      08200000            08207FFF        32Kb
+     * 2,3      08300000            08307FFF        32Kb
+     * 
+     * 3,0      0C000000            0C007FFF        32Kb
+     * 3,1      0C100000            0C107FFF        32Kb
+     * 3,2      0C200000            0C207FFF        32Kb
+     * 3,3      0C300000            0C307FFF        32Kb
+     * 
+     * 
+     * 
+     */
+    
+       
     void 
     EpiphanyHeader::SetDestinationAddress(uint32_t add){
+        //TODO check if it is valid
         m_destAddress = add;
     }
-
+    
+    void 
+    EpiphanyHeader::SetDestinationAddressX(int32_t x){
+        m_destAddress = (m_destAddress & 0b10111111) | ((x * 4) << 6);
+    }
+    void 
+    EpiphanyHeader::SetDestinationAddressY(int32_t y){
+        m_destAddress = (m_destAddress & 0b11011111) | (y << 6);
+    }
+    void 
+    EpiphanyHeader::SetDestinationAddressXY(int32_t x, int32_t y){
+        m_destAddress = (m_destAddress & 0b10111111) | ((x * 4) << 6);
+        m_destAddress = (m_destAddress & 0b11011111) | (y << 6);
+    }
+    
+    
     uint32_t 
     EpiphanyHeader::GetDestinationAddress(void){
         return m_destAddress;
     }
+    int32_t 
+    EpiphanyHeader::GetDestinationAddressX(void){
+        return ((m_destAddress & 0b01000000) / 4) >> 6;
+    }
+    int32_t 
+    EpiphanyHeader::GetDestinationAddressY(void){
+        return ((m_destAddress & 0b00100000) >> 5);
+    }    
+    
 
     void 
     EpiphanyHeader::SetSourceAddress(uint32_t add){
@@ -171,23 +231,23 @@ namespace ns3 {
         return m_srcAddress;
     }
 
-    uint32_t 
-    EpiphanyHeader::ConvertXYtoAddress(uint8_t x, uint8_t y){
-    
-        
-        return 0;
-    }
-
-    Coordinate 
-    EpiphanyHeader::ConvertAddresstoXY(uint32_t address){
-        Coordinate c;
-        
-        return c;
-    }
+//    uint32_t 
+//    EpiphanyHeader::ConvertXYtoAddress(uint8_t x, uint8_t y){
+//    
+//        
+//        return 0;
+//    }
+//
+//    Coordinate 
+//    EpiphanyHeader::ConvertAddresstoXY(uint32_t address){
+//        Coordinate c;
+//        
+//        return c;
+//    }
 
     void 
     EpiphanyHeader::SetRWMode(uint8_t rw_mode){
-        m_mode = (m_mode & 0b11111100) | (rw_mode << 0); //check it
+        m_mode = (m_mode & 0b11111100) | (rw_mode << 0); 
         m_access = rw_mode & 0b00000001 >> 0;
         m_access = rw_mode & 0b00000010 >> 1;
     }
@@ -199,7 +259,7 @@ namespace ns3 {
     
     void 
     EpiphanyHeader::SetDataMode(uint8_t data_mode){
-        m_mode = (m_mode & 0b11110011) | (data_mode << 2); //check it
+        m_mode = (m_mode & 0b11110011) | (data_mode << 2); 
         m_dataMode = data_mode;
     }
     
@@ -210,7 +270,7 @@ namespace ns3 {
 
     void 
     EpiphanyHeader::SetCrtlMode(uint8_t ctrl_mode){
-        m_mode = (m_mode & 0b00001111) | (ctrl_mode << 4); //check it
+        m_mode = (m_mode & 0b00001111) | (ctrl_mode << 4);
         m_ctrlMode = ctrl_mode;
     }
     
@@ -228,7 +288,7 @@ namespace ns3 {
         m_access    = (mode & 0b00000001) >> 0;     // [0:0]
         m_write     = (mode & 0b00000010) >> 1;     // [1:1]        
         m_dataMode  = (mode & 0b00001100) >> 2;     // [3:2]
-        m_ctrlMode  = (mode & 0b11110000) >> 4;     // [7:4]
+        m_ctrlMode  = (mode & 0b11110000) >> 4;     // [7:4] //Should be flipped
     }
     
     uint8_t 

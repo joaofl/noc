@@ -54,12 +54,7 @@ using namespace std;
 using namespace ns3;
 
 ofstream file, 
-        file_packets_trace,
-        file_packets_trace_sink,
-        file_packets_trace_net_device, 
-        file_queue_size, 
-        file_queue_size_prioritized, 
-        file_value_annoucement_total_time;
+         file_packets_trace;
 
 string dir_output;
 string dir_input;
@@ -78,7 +73,7 @@ log_packet(string context, Ptr<const Packet> pck) {
     EpiphanyHeader hd;
     pck->PeekHeader(hd);
     
-    std::cout << Simulator::Now() << ", ";
+    std::cout << Simulator::Now() << ", " << context;
     hd.Print(std::cout);
 //    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
 //    //    if (pck->GetUid() == 104 || pck->GetUid() == 110 ) {
@@ -198,17 +193,18 @@ main(int argc, char *argv[]) {
         Ptr<EpiphanyApp> my_ep_app = CreateObject<EpiphanyApp> ();
         my_ep_app->SetStartTime(Seconds(0));
         
+        //Only t
         if ((x == 0) && (y == 0))
-            my_ep_app->ScheduleDataWrites(1, MilliSeconds(10));
+            my_ep_app->ScheduleDataWrites(1, MilliSeconds(10), 3, 3);
 
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
         
         ostringstream ss;
-        ss << i  << "i" << "," << x << "," << y;
+        ss << "i " << i << "," << x << "," << y << ",";
         my_noc_router->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&log_packet));
         
-        ss << i  << "o" << "," << x << "," << y;
+        ss << i  << "o" << "," << x << "," << y << ",";
         my_noc_router->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&log_packet));
 
         //Should be installed in this order!!!

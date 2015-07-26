@@ -123,7 +123,7 @@ namespace ns3 {
          * \returns true if the callback could handle the packet successfully, false
          *          otherwise.
          */
-        typedef Callback< void, Ptr<const Packet> > ReceiveCallback;
+        typedef Callback< void, Ptr<const Packet>, uint16_t > ReceiveCallback;
 
         /**
          * \param cb callback to invoke whenever a packet has been received and must

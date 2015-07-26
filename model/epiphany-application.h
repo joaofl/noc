@@ -56,14 +56,21 @@ namespace ns3 {
 
     void ReadData(void);
     void ReadDataReceived(Ptr<const Packet> pck);
-    void WriteData(void);
+    
+    /*
+     Write dumb data to an specific node given by x, y
+     */
+    void WriteData(int32_t dest_x, int32_t dest_y);
+        
+//    void WriteData(Ptr<const Packet> pck);
+    
     void WriteDataReceived(Ptr<const Packet> pck);
     
-    void DataReceived(Ptr<const Packet>);
+    void DataReceived(Ptr<const Packet>, uint16_t direction);
     
     void AddRouter(Ptr<NOCRouter>  r);
     
-    void ScheduleDataWrites(uint8_t n_times, Time period);
+    void ScheduleDataWrites(uint8_t n_times, Time period, int32_t x, int32_t y);
 
 
     private:
