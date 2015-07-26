@@ -55,9 +55,9 @@ namespace ns3 {
     virtual ~EpiphanyApp();
 
     void ReadData(void);
-    void ReadDataReceived(void);
+    void ReadDataReceived(Ptr<const Packet> pck);
     void WriteData(void);
-    void WriteDataReceived(void);
+    void WriteDataReceived(Ptr<const Packet> pck);
     
     void DataReceived(Ptr<const Packet>);
     

@@ -188,97 +188,11 @@ namespace ns3 {
     bool
     NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t protocol, const Address& sourceAddress) {
 
-        //Check the origin of the packet to determine from which direction it
-        //came from and the address of the sink. It also prepares the header in
-        //case it is forwarded to neighbors.
+        //TODO: It should check which port it requires to continue its trajectory. 
+        //if not available, it stops, and block any port which migh require the same port.
+        //this blocking should propagate till the sender.
 
-        // Net devices Address reference
-
-        //            4               4       
-        //         _______         _______    
-        //        |       |       |       |   
-        //     3  |  SN   |  1 3  |  SN   |  1
-        //        |_______|       |_______|   
-        //                                    
-        //            2               2               
-        //            4               4       
-        //         _______         _______    
-        //        |       |       |       |   
-        //     3  |  SN   |  1 3  |  SN   |  1
-        //        |_______|       |_______|   
-        //                                    
-        //            2               2       
-        //
-        //   ------------> +x
-        //   |
-        //   |
-        //   |
-        //   |
-        //   +y
-
-        //Protocol Numbering:
-        // 1: Network Discovery
-        // 2: Values Exchanging
-        // 3: Detection Announcement
-
-//        Ptr<Node> nd = this->GetNode();
-//
-//        Ptr<Packet> pck_cp = pck_rcv->Copy();
-//
-//        NOCHeader hd;
-//        pck_cp->RemoveHeader(hd);
-
-//        NodeRef nr;
-//        nr.x = 30;
-//        nr.y = 44;
-
-//        PacketsReceived[P_TOTAL]++;
-        //TODO: replace all this by callbacks
-        
-
-//        uint8_t noc_protocol = hd.GetNOCProtocol();
-//
-//        NOCAddress ad = device->GetObject<NOCNetDevice>()->GetAddress(); //Get the address of the device which generated the interruption
-//
-//        if (ad == 1) { //came from the right
-//            hd.CurrentX -= 1;
-//        } 
-//        else if (ad == 2) {
-//            hd.CurrentY -= 1;
-//        } 
-//        else if (ad == 3) {
-//            hd.CurrentX += 1;
-//        } 
-//        else if (ad == 4) {
-//            hd.CurrentY += 1;
-//        }
-////        hd.HopsCount += 1;
-//        pck_cp->AddHeader(hd);
-//
-//        m_routerRxTrace(pck_cp); //trance the packet after changing 
-//        
-//        uint8_t origin_port = 0b00000001 << (ad - 1);
-
-
-
-        //TODO: This should be in the app layer... Unless this are specific networking functions, like Broadcast or unicast
-//        if (noc_protocol == P_NETWORK_DISCOVERY) {
-//            PacketsReceived[P_NETWORK_DISCOVERY]++;
-//            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(INSTALLED_NOC_APP)->GetObject<NOCApp>();
-//            m_app->NetworkDiscoveryReceived(pck_cp, origin_port);
-//
-//        } else if (noc_protocol == P_VALUE_ANNOUNCEMENT) {
-//            PacketsReceived[P_VALUE_ANNOUNCEMENT]++;
-//            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(INSTALLED_NOC_APP)->GetObject<NOCApp>();
-//            m_app->ValueAnnoucementReceived(pck_cp, origin_port);
-//
-//        } else if (noc_protocol == P_EVENT_ANNOUNCEMENT) {
-//            PacketsReceived[P_EVENT_ANNOUNCEMENT]++;
-//
-//            Ptr<NOCApp> m_app = this->GetNode()->GetApplication(INSTALLED_NOC_APP)->GetObject<NOCApp>();
-//            m_app->EventAnnoucementReceived(pck_cp, origin_port);
-//        }
-
+        m_routerRxTrace(pck_rcv->Copy()); //trance the packet after changing 
         m_receiveCallBack(pck_rcv->Copy());
 
         return true;

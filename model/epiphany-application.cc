@@ -92,7 +92,7 @@ namespace ns3 {
         
     }
     void
-    EpiphanyApp::ReadDataReceived(){
+    EpiphanyApp::ReadDataReceived(Ptr<const Packet> pck){
         
         
     }
@@ -100,28 +100,41 @@ namespace ns3 {
     EpiphanyApp::WriteData(){
         
         EpiphanyHeader h;
+        uint8_t data[8];
+        data[0] = 77;
         
         h.SetRWMode(EpiphanyHeader::RW_MODE_WRITE);
 //        h.SetCrtlMode(EpiphanyHeader::CRTL_MODE_0A);
         h.SetDataMode(EpiphanyHeader::DATA_MODE_64b);
         h.SetDestinationAddress(0);
+        h.SetPacketData(data, 1);
         
         Ptr<Packet> pck = Create<Packet>();
         pck->AddHeader(h);
         
         m_router->PacketSend(pck, 0, 0xFF, 0);
         
-        std::cout << "Sent from: "<< Now() << ", " << this << endl;
+//        std::cout << "Sent from: "<< Now() << ", " << this << endl;
     }
     void
-    EpiphanyApp::WriteDataReceived(){
+    EpiphanyApp::WriteDataReceived(Ptr<const Packet> pck){
         
         
     } 
    
     void
-    EpiphanyApp::DataReceived(Ptr<const Packet>){ 
-        std::cout << "Received by: " << Now() << ", " << this << endl;
+    EpiphanyApp::DataReceived(Ptr<const Packet> pck){ 
+//        std::cout << "Received by: " << Now() << ", " << this << endl;
+        EpiphanyHeader h;
+        pck->PeekHeader(h);
+        
+        if (h.GetRWMode() == EpiphanyHeader::RW_MODE_WRITE){
+            this->WriteDataReceived(pck);
+        }
+        else if (h.GetRWMode() == EpiphanyHeader::RW_MODE_READ){
+            this->ReadDataReceived(pck);
+        }
+            
     }
         
 }

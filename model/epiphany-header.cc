@@ -57,12 +57,24 @@ namespace ns3 {
 
     void
     EpiphanyHeader::Print(std::ostream &os) const {
-        uint8_t i;
+//        uint8_t i;
+//        
+//        for (i = 0 ; i < m_packetSize ; i++){
+//            os << "[" << i << "] " << m_data[i];
+//        }
+//        std::cout << std::endl;
         
-        for (i = 0 ; i < m_packetSize ; i++){
-            std::cout << "[" << i << "] " << m_data[i];
+        os << "M " << (int) m_mode;
+        os << " DA " << m_destAddress;
+        
+        if (m_write == RW_MODE_WRITE){
+            os << " D " << (int) m_data[0];
         }
-        std::cout << std::endl;
+        else if (m_write == RW_MODE_READ){
+            os << " D " << (int) m_data[0];
+            os << " SA " << m_srcAddress;
+        }
+        os << std::endl;
     }
 
     uint32_t

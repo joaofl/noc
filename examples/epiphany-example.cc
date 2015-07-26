@@ -16,8 +16,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: João Loureiro <joflo@isep.ipp.pt>
- *         Michele Albano <mialb@isep.ipp.pt>
- *         Tiago Cerqueira <1090678@isep.ipp.pt>
  * 
  */
 
@@ -34,19 +32,12 @@
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
-//#include "ns3/internet-module.h"
 #include "ns3/noc-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/netanim-module.h"
 #include "src/core/model/object-base.h"
-
-#include "src/noc/model/xdense-application.h"
-#include "src/noc/model/sensor-data-io.h"
 #include "src/noc/model/epiphany-header.h"
-//#include "src/noc/model/noc-net-device.h"
-//#include "src/noc/model/noc-application.h"
-//#include "ns3/simple-net-device.h"
 
 
 NS_LOG_COMPONENT_DEFINE("NOCExample");
@@ -73,27 +64,11 @@ ofstream file,
 string dir_output;
 string dir_input;
 
-uint32_t global_sampling_period;
-
 string filename;
 
 uint16_t *received_data;
 
 NodeContainer my_node_container;
-
-uint32_t qs_a, qsp_a; //queue sizes from the previous cycle, to create the log of queue sizes.
-uint64_t time_a;
-
-uint32_t value_annoucement_start_time,
-        value_annoucement_end_time, 
-        value_annoucement_count;
-
-
-uint32_t sampling_cycles;
-uint32_t sampling_period; //at every 100.000.000 ns = 100ms default
-uint8_t log_start_at_period;
-uint32_t start_offset;
-
 
 
 
@@ -102,6 +77,8 @@ void
 log_packet(string context, Ptr<const Packet> pck) {
     EpiphanyHeader hd;
     pck->PeekHeader(hd);
+    
+    std::cout << Simulator::Now() << ", ";
     hd.Print(std::cout);
 //    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
 //    //    if (pck->GetUid() == 104 || pck->GetUid() == 110 ) {
@@ -120,48 +97,6 @@ log_packet(string context, Ptr<const Packet> pck) {
 //            << (int) hd.CurrentY << endl;
 //    }        
     
-}
-
-void
-log_queue_size(string context, Ptr<const Packet> pck){
-    //Extract data from the context string
-    uint32_t nd_n = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-    context.erase(context.find_last_of(','));
-    uint32_t y = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-    context.erase(context.find_last_of(','));
-    uint32_t x = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-    context.erase(context.find_last_of(','));
-    uint32_t node_n = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-      
-    x=x;
-    y=y;
-    
-    uint64_t time = Simulator::Now().GetNanoSeconds();
-    uint32_t qs,qsp;
-    
-    Ptr<NOCNetDevice> nd = my_node_container.Get(node_n)->GetDevice(nd_n)->GetObject<NOCNetDevice>();
-
-    qs = nd->queue_size;
-    qsp = nd->queue_size_prioritized;
-
-   
-    if (time > time_a){
-        
-        file_queue_size << time_a << ',' << qs_a << ',' << qsp_a << endl;  
-        
-        qs_a = 0;
-        qsp_a = 0;
-        time_a = time;
-    } 
-    else {
-        if (qs > qs_a) {
-            qs_a = qs;
-        }
-        if (qsp > qsp_a) {
-            qsp_a = qsp;
-        }
-    }
-//    }     
 }
 
 
@@ -235,7 +170,7 @@ main(int argc, char *argv[]) {
     //in bytes 104 bits epiphany e-link between nodes
     // this should be defined by the header.....
 //    my_grid_network_helper.SetDeviceAttribute("PacketSize", IntegerValue(13)); 
-    //my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
+    my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(PicoSeconds(500)));
     
 //    my_grid_network_helper.SetDeviceAttribute("InputQueueSize", IntegerValue(1));
 //    my_grid_network_helper.SetDeviceAttribute("OutputQueueSize", IntegerValue(0));
@@ -259,7 +194,9 @@ main(int argc, char *argv[]) {
 
         Ptr<EpiphanyApp> my_ep_app = CreateObject<EpiphanyApp> ();
         my_ep_app->SetStartTime(Seconds(0));
-        my_ep_app->ScheduleDataWrites(1, MilliSeconds(10));
+        
+        if ((x == 0) && (y == 0))
+            my_ep_app->ScheduleDataWrites(1, MilliSeconds(10));
 
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
