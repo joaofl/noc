@@ -81,6 +81,17 @@ namespace ns3 {
                 MakeTimeAccessor(&NOCNetDevice::m_tInterframeGap),
                 MakeTimeChecker())
 
+                .AddAttribute("ClockDrift",
+                "The delay caused by the clock drift between two hops",
+                TimeValue(PicoSeconds(0.0)),
+                MakeTimeAccessor(&NOCNetDevice::m_clockDrift),
+                MakeTimeChecker())   
+        
+                .AddAttribute("PacketDuration",
+                "The time the packet takes to be transmitted",
+                TimeValue(PicoSeconds(1500.0)),
+                MakeTimeAccessor(&NOCNetDevice::m_packetDuration),
+                MakeTimeChecker())
                 //
                 // Transmit queueing discipline for the device which includes its own set
                 // of trace hooks.
@@ -215,13 +226,20 @@ namespace ns3 {
         if (m_serialComm == true)
             txTime = Seconds(m_bps.CalculateTxTime( p->GetSize()));
         else
-            //in parallel, one packet takes one cycle to be transmitted, considering
-            //that port and packet has both the same width.
-            txTime = Seconds(m_bps.CalculateTxTime( 1 ) / 8); //the time required to sendo a single bit
+//            in parallel, one packet takes one cycle to be transmitted, considering
+//            that port and packet has both the same width.
+            txTime = m_packetDuration + m_clockDrift; //the time required to sendo a single bit
         
+        
+        //TODO: For some unknown reason, the value of packetDuration is not being
+        //transfered to the variable
+        txTime = PicoSeconds(1500);
         
         Time txCompleteTime = txTime + m_tInterframeGap;
+//        Time t = PicoSeconds(10000);
+//        Time txCompleteTime = t;
 
+        
         NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
         Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitComplete, this);
 
@@ -689,26 +707,6 @@ namespace ns3 {
         NS_LOG_FUNCTION_NOARGS();
         return m_mtu;
     }
-
-    //    uint16_t
-    //    NOCNetDevice::PppToEther(uint16_t proto) {
-    //        router (proto) {
-    //            case 0x0021: return 0x0800; //IPv4
-    //            case 0x0057: return 0x86DD; //IPv6
-    //            default: NS_ASSERT_MSG(false, "PPP Protocol number not defined!");
-    //        }
-    //        return 0;
-    //    }
-    //
-    //    uint16_t
-    //    NOCNetDevice::EtherToPpp(uint16_t proto) {
-    //        router (proto) {
-    //            case 0x0800: return 0x0021; //IPv4
-    //            case 0x86DD: return 0x0057; //IPv6
-    //            default: NS_ASSERT_MSG(false, "PPP Protocol number not defined!");
-    //        }
-    //        return 0;
-    //    }
 
 
 } // namespace ns3

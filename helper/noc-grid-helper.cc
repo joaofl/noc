@@ -161,7 +161,9 @@ GridHelper::InitializeNetwork()
 //                    my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 1 - RIGHT
                     my_noc_net_device->SetAddress(NOCAddress::Allocate());
                     my_noc_router = my_node_container.Get(node_this)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0,x,y,i,DIRECTION_E);
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0,x,y,i,NOCRouter::DIRECTION_E);
+                    my_noc_router->SetAttribute("AddressX", IntegerValue(x));
+                    my_noc_router->SetAttribute("AddressY", IntegerValue(y));
 //                    my_noc_net_device->SetNOCAddress(1);
 
 
@@ -169,8 +171,10 @@ GridHelper::InitializeNetwork()
 //                    my_noc_net_device->SetAddress(Mac48Address::Allocate()); //data port 3 - LEFT
                     my_noc_net_device->SetAddress(NOCAddress::Allocate());
                     my_noc_router = my_node_container.Get(node_this + 1)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0,x,y,i,DIRECTION_W);
-//                    my_noc_net_device->SetNOCAddress(3);
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0,x,y,i,NOCRouter::DIRECTION_W);
+                    my_noc_router->SetAttribute("AddressX", IntegerValue(x));
+                    my_noc_router->SetAttribute("AddressY", IntegerValue(y));
+                    //                    my_noc_net_device->SetNOCAddress(3);
 
                     my_net_device_container.Get(0)->Initialize();
                     my_net_device_container.Get(1)->Initialize();                    
@@ -184,13 +188,13 @@ GridHelper::InitializeNetwork()
                     my_noc_net_device->SetAddress(NOCAddress::Allocate()); //data port 2 - DOWN
 //                    my_noc_net_device->SetAddress(2);
                     my_noc_router = my_node_container.Get(node_this)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0,x,y,i,DIRECTION_S);
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0,x,y,i,NOCRouter::DIRECTION_S);
 
                     my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>(); //remote netdevice
                     my_noc_net_device->SetAddress(NOCAddress::Allocate()); //data port 4 - UP
 //                    my_noc_net_device->SetAddress(4);
                     my_noc_router = my_node_container.Get(node_this + m_sizeX)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0,x,y,i,DIRECTION_N);
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0,x,y,i,NOCRouter::DIRECTION_N);
 
                     my_net_device_container.Get(0)->Initialize();
                     my_net_device_container.Get(1)->Initialize();

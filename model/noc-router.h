@@ -40,21 +40,6 @@
 #include "noc-router.h"
 #include "noc-types.h"
 
-#define DIRECTION_E 1 //east
-#define DIRECTION_S 2 //south
-#define DIRECTION_W 3 //west
-#define DIRECTION_N 4 //north
-
-
-
-#define DIRECTION_MASK_ALL  0b00001111
-#define DIRECTION_MASK_E    0b00000001 //east
-#define DIRECTION_MASK_S    0b00000010 //south
-#define DIRECTION_MASK_W    0b00000100 //west
-#define DIRECTION_MASK_N    0b00001000 //north
-
-//#define DESYNCRONIZE
-
 using namespace std;
 namespace ns3 {
 
@@ -66,17 +51,27 @@ namespace ns3 {
 //        const static uint8_t NumNetDevices = 4;
         
         
-        bool IsSink;
-        uint32_t MaxHops;
-        Time TimeStartOffset;
-//        uint32_t ValueAnnouncementsDone;
-//        vector <uint32_t> PacketsReceived; //allocate for the number of protocols used, with the value 0 initialized on it
-//        vector <uint32_t> PacketsSent;
-//        
-//        vector < stringstream* > PacketTrace;
-        TracedValue< stringstream* > PacketTrace;
+//        bool IsSink;
+//        uint32_t MaxHops;
+//        Time TimeStartOffset;
+//        TracedValue< stringstream* > PacketTrace;
         
+        enum Directions{
+        DIRECTION_E        = 1, //east
+        DIRECTION_S        = 2, //south
+        DIRECTION_W        = 3, //west
+        DIRECTION_N        = 4 //north
+        };
 
+        enum DirectionsMasks {
+        DIRECTION_MASK_ALL = 0b00001111,
+        DIRECTION_MASK_E   = 0b00000001, //east
+        DIRECTION_MASK_S   = 0b00000010, //south
+        DIRECTION_MASK_W   = 0b00000100, //west
+        DIRECTION_MASK_N   = 0b00001000 //north
+        };
+
+        
         NOCRouter();
         virtual ~NOCRouter();
         
@@ -159,6 +154,8 @@ namespace ns3 {
             uint8_t network_id;
             uint8_t direction;
         }NetDeviceInfo;
+        
+        int32_t m_addressX, m_addressY;
         
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
         

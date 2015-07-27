@@ -61,8 +61,6 @@ string dir_input;
 
 string filename;
 
-uint16_t *received_data;
-
 NodeContainer my_node_container;
 
 
@@ -74,24 +72,8 @@ log_packet(string context, Ptr<const Packet> pck) {
     pck->PeekHeader(hd);
     
     std::cout << Simulator::Now() << ", " << context;
-    hd.Print(std::cout);
-//    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
-//    //    if (pck->GetUid() == 104 || pck->GetUid() == 110 ) {
-//            file_packets_trace_net_device
-//            << "c,"
-//            << Simulator::Now().GetNanoSeconds() << ","
-//            << pck->GetUid() << ","
-////            << (int) direction << ","
-//            << context << "," //here «, inside context there is: node_number, i/o, x, y, port_number
-//            << "p,"
-//            << hd.GetNOCProtocol() << ","
-//            << (int) hd.SerialNumber << ","
-//            << (int) hd.EventType << ","
-//            << hd.EventData[0] << ","
-//            << (int) hd.CurrentX << ","
-//            << (int) hd.CurrentY << endl;
-//    }        
-    
+    std::cout << " p "; 
+    hd.Print(std::cout);    
 }
 
 
@@ -101,15 +83,15 @@ main(int argc, char *argv[]) {
     //LogComponentEnable("NOCNetDevice",LOG_LEVEL_ALL);
     //LogComponentEnable("NOCChannel",LOG_LEVEL_ALL);
     //LogComponentEnable("NOCHeader",LOG_LEVEL_ALL);
-
-    
     
     // Default values
     uint32_t size_x = 4;
     uint32_t size_y = 4;
     
     //1000000 kHz =  1 GHz, which is the processor 
-    //frequency and the time it takes to transmit a packet
+    //frequency and the time it takes to transmit a packet.
+    //It takes 1 clock cycle, but since the next node has a clock drift of half
+    //cycle, the correct transmission time is 1,5ns per hop
     uint32_t baudrate = 1000000; 
 
     struct passwd *pw = getpwuid(getuid());
@@ -156,19 +138,14 @@ main(int argc, char *argv[]) {
     
     // 1GHz
     my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(false));
-    my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
-    my_grid_network_helper.SetDeviceAttribute("InterframeGap", TimeValue(MilliSeconds(0)));
+//    my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
+    my_grid_network_helper.SetDeviceAttribute("PacketDuration", TimeValue(PicoSeconds(1500.0)));
+//    my_grid_network_helper.SetDeviceAttribute("ClockDrift", TimeValue(PicoSeconds(500)));
     
 //    my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(PicoSeconds(500)));
     
     //If the connection is not serial, then the packet size defines the link width,
     //and one packet is transmitted in one tick of a given baudrate    
-    
-    
-    //in bytes 104 bits epiphany e-link between nodes
-    // this should be defined by the header.....
-//    my_grid_network_helper.SetDeviceAttribute("PacketSize", IntegerValue(13)); 
-
     
 //    my_grid_network_helper.SetDeviceAttribute("InputQueueSize", IntegerValue(1));
 //    my_grid_network_helper.SetDeviceAttribute("OutputQueueSize", IntegerValue(0));
@@ -195,17 +172,17 @@ main(int argc, char *argv[]) {
         
         //Only t
         if ((x == 0) && (y == 0))
-            my_ep_app->ScheduleDataWrites(1, MilliSeconds(10), 3, 3);
+            my_ep_app->ScheduleDataWrites(1, MicroSeconds(0), 3, 3);
 
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
         
-        ostringstream ss;
-        ss << "i " << i << "," << x << "," << y << ",";
-        my_noc_router->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&log_packet));
+        ostringstream ss_rx, ss_tx;
+        ss_rx << "i " << i << "," << x << "," << y << ",";
+        my_noc_router->TraceConnect("SwitchRxTrace", ss_rx.str(), MakeCallback(&log_packet));
         
-        ss << i  << "o" << "," << x << "," << y << ",";
-        my_noc_router->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&log_packet));
+        ss_tx << "o " << i << "," << x << "," << y << ",";
+        my_noc_router->TraceConnect("SwitchTxTrace", ss_tx.str(), MakeCallback(&log_packet));
 
         //Should be installed in this order!!!
         my_node_container.Get(i)->AddApplication(my_ep_app); //Add the application to the node
@@ -225,7 +202,9 @@ main(int argc, char *argv[]) {
     cout << "Log file created at: '" << filename << "'" << endl;
     file_packets_trace.open(filename.c_str(), ios::out);
 
-    Simulator::Stop(Seconds(20));
+    Time::SetResolution(Time::PS);
+    
+    Simulator::Stop(Seconds(1));
     Simulator::Run();
 
     //************************************************************

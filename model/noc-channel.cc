@@ -110,29 +110,6 @@ NOCChannel::TransmitStart (
   return true;
 }
 
-//bool
-//NOCChannel::TransmitSignalStart (
-//  Ptr<Packet> p,
-//  Ptr<NOCNetDevice> src,
-//  Time txTime)
-//{
-//  NS_LOG_FUNCTION (this << p << src);
-//  NS_LOG_LOGIC ("UID is " << p->GetUid () << ")");
-//
-//  NS_ASSERT (m_signal_link[0].m_state != INITIALIZING);
-//  NS_ASSERT (m_signal_link[1].m_state != INITIALIZING);
-//
-//  uint32_t wire = src == m_signal_link[0].m_src ? 0 : 1;
-//
-//  Simulator::ScheduleWithContext (m_signal_link[wire].m_dst->GetNode ()->GetId (),
-//                                  txTime + m_delay, &NOCNetDevice::ReceiveSignal,
-//                                  m_signal_link[wire].m_dst, p);
-//
-//  // Call the tx anim callback on the net device
-//  m_txrxNOC (p, src, m_link[wire].m_dst, txTime, txTime + m_delay);
-//  return true;
-//}
-
 uint32_t 
 NOCChannel::GetNDevices (void) const
 {

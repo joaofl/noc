@@ -46,6 +46,18 @@ namespace ns3 {
                 UintegerValue(true),
                 MakeUintegerAccessor(&NOCRouter::m_channelCount),
                 MakeUintegerChecker<uint8_t>())
+        
+                .AddAttribute("AddressX",
+                "The X coordinate of the router in the grid (required depending on the protocol)",
+                IntegerValue(0),
+                MakeIntegerAccessor(&NOCRouter::m_addressX),
+                MakeIntegerChecker<int32_t>())
+
+                .AddAttribute("AddressY",
+                "The Y coordinate of the router in the grid (required depending on the protocol)",
+                IntegerValue(0),
+                MakeIntegerAccessor(&NOCRouter::m_addressY),
+                MakeIntegerChecker<int32_t>())
                 ;
         return tid;
     }
@@ -98,17 +110,8 @@ namespace ns3 {
     }
    
     void NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y){
-        Ptr<Packet> pck_cp = pck->Copy();
-//        NOCHeader hd;
-//        pck_cp->RemoveHeader(hd);
-        
-        //modifications on the header here.
-        
-        
         uint8_t output_port_mask = RouteTo(destination_x, destination_y);
-       
-//        pck_cp->AddHeader(hd);
-        this->PacketSend(pck_cp, network_id, output_port_mask, 0);
+        this->PacketSend(pck->Copy(), network_id, output_port_mask, 0);
     }
 
     void NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops){
@@ -130,23 +133,31 @@ namespace ns3 {
 //            //TODO: the arbitration policy should be considered here. Round robin for example
         if ( (ports_mask >> DIRECTION_N) & 1){
             nd = this->GetNetDevice(network_id, DIRECTION_N);
-            if (nd != NULL) nd->Send(pck->Copy());
-            m_routerTxTrace(pck);
+            if (nd != NULL){   
+                m_routerTxTrace(pck);
+                nd->Send(pck->Copy());
+            }
         }
         if ( (ports_mask >> DIRECTION_S) & 1){
             nd = this->GetNetDevice(network_id, DIRECTION_S);
-            if (nd != NULL) nd->Send(pck->Copy());
-            m_routerTxTrace(pck);
+            if (nd != NULL){   
+                m_routerTxTrace(pck);
+                nd->Send(pck->Copy());
+            }
         }
         if ( (ports_mask >> DIRECTION_E) & 1){
             nd = this->GetNetDevice(network_id, DIRECTION_E);
-            if (nd != NULL) nd->Send(pck->Copy());
-            m_routerTxTrace(pck);
+            if (nd != NULL){   
+                m_routerTxTrace(pck);
+                nd->Send(pck->Copy());
+            }
         }
         if ( (ports_mask >> DIRECTION_W) & 1){
             nd = this->GetNetDevice(network_id, DIRECTION_W);
-            if (nd != NULL) nd->Send(pck->Copy());
-            m_routerTxTrace(pck);
+            if (nd != NULL){   
+                m_routerTxTrace(pck);
+                nd->Send(pck->Copy());
+            }
         }
         
         
@@ -210,6 +221,7 @@ namespace ns3 {
         
         //TODO: dont know how to not specify a packet type.. It better be compatible
         // with any packet with attribute "DestinationAddressX"
+        m_routerRxTrace(pck_rcv->Copy());
         EpiphanyHeader h;
         pck_rcv->PeekHeader(h);
         
@@ -219,13 +231,15 @@ namespace ns3 {
         int32_t x = h.GetDestinationAddressX();
         int32_t y = h.GetDestinationAddressY();
         
-        uint8_t output_port_mask = RouteTo(x, y);
+        //TODO: for some reason it is not getting in here
+        if (x == m_addressX && y == m_addressY){ //Reached its destination
+            m_receiveCallBack(pck_rcv->Copy(), direction);
+        }
+        else{
+            uint8_t output_port_mask = RouteTo(x, y);
+            this->PacketSend(pck_rcv->Copy(), 0, output_port_mask, 0);            
+        }
         
-        this->PacketSend(pck_rcv->Copy(), 0, output_port_mask, 0);
-
-        m_routerRxTrace(pck_rcv->Copy()); //trance the packet after changing 
-        m_receiveCallBack(pck_rcv->Copy(), direction);
-
         return true;
     }
     
@@ -241,53 +255,56 @@ namespace ns3 {
         //with this algorithm, the nodes will first send the pck in order to make
         // the delta x = 0, then, start moving along the y. 
         //TODO: implement the clockwise or counter cw routing algorithms
+        
+        if (y < m_addressY) dir |= NOCRouter::DIRECTION_MASK_E;
+        else if (y > m_addressY) dir |= NOCRouter::DIRECTION_MASK_W;
 
-        //        if (n.x < 0) dir |= 0b00000001;
-        //        else if (n.x > 0) dir |= 0b00000100;
-        //
-        //        else if (n.y < 0) dir |= 0b00000010;
-        //        else if (n.y > 0) dir |= 0b00001000;
+        else if (x < m_addressX) dir      |= NOCRouter::DIRECTION_MASK_N;
+        else if (x > m_addressX) dir |= NOCRouter::DIRECTION_MASK_S;
 
+
+
+        return dir;
 
         //clockwise routing
 
         //find out which quadrant it is
-        if (x < 0 && y < 0) {
-            dir |= 0b00000001;
-            return dir;
-        } //send right first
-        if (x < 0 && y > 0) {
-            dir |= 0b00001000;
-            return dir;
-        } //send up first
-        if (x > 0 && y < 0) {
-            dir |= 0b00000010;
-            return dir;
-        } //send down first
-        if (x > 0 && y > 0) {
-            dir |= 0b00000100;
-            return dir;
-        } //send left first
-
-        //from now on, it is align to the sink in one of the 4 dir
-        if (x > 0) {
-            dir |= 0b00000100;
-            return dir;
-        } //send left then
-        if (x < 0) {
-            dir |= 0b00000001;
-            return dir;
-        } //send right then
-        if (y > 0) {
-            dir |= 0b00001000;
-            return dir;
-        } //send up then
-        if (y < 0) {
-            dir |= 0b00000010;
-            return dir;
-        } //send down then
-
-        return dir;
+//        if (x < 0 && y < 0) {
+//            dir |= NOCRouter::DIRECTION_MASK_E;
+//            return dir;
+//        } //send right first
+//        if (x < 0 && y > 0) {
+//            dir |= NOCRouter::DIRECTION_MASK_N;
+//            return dir;
+//        } //send up first
+//        if (x > 0 && y < 0) {
+//            dir |= NOCRouter::DIRECTION_MASK_S;
+//            return dir;
+//        } //send down first
+//        if (x > 0 && y > 0) {
+//            dir |= NOCRouter::DIRECTION_MASK_W;
+//            return dir;
+//        } //send left first
+//
+//        //from now on, it is align to the sink in one of the 4 dir
+//        if (x > 0) {
+//            dir |= NOCRouter::DIRECTION_MASK_W;
+//            return dir;
+//        } //send left then
+//        if (x < 0) {
+//            dir |= NOCRouter::DIRECTION_MASK_E;
+//            return dir;
+//        } //send right then
+//        if (y > 0) {
+//            dir |= NOCRouter::DIRECTION_MASK_N;
+//            return dir;
+//        } //send up then
+//        if (y < 0) {
+//            dir |= NOCRouter::DIRECTION_MASK_E;
+//            return dir;
+//        } //send down then
+//
+//        return dir;
     }
 }
 

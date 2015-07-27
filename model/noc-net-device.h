@@ -485,6 +485,10 @@ namespace ns3 {
         NetDevice::PromiscReceiveCallback m_promiscCallback;
         bool m_serialComm;
         
+        Time m_clockDrift;
+        
+        Time m_packetDuration;
+        
         uint32_t m_ifIndex;
         bool m_linkUp;
         TracedCallback<> m_linkChangeCallbacks;

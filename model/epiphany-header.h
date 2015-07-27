@@ -118,8 +118,8 @@ namespace ns3 {
         void SetDestinationAddress(uint32_t add);
         
         void SetDestinationAddressXY(int32_t x, int32_t y);
-        void SetDestinationAddressY(int32_t x);
-        void SetDestinationAddressX(int32_t y);
+//        void SetDestinationAddressY(int32_t x);
+//        void SetDestinationAddressX(int32_t y);
         
         
 //        void GetDestinationAddress(uint8_t x, uint8_t y);

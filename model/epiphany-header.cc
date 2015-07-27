@@ -70,15 +70,17 @@ namespace ns3 {
 //        }
 //        std::cout << std::endl;
         
-        os << "M " << (int) m_mode;
-        os << " DA " << m_destAddress;
+        os << "M " << (int) this->m_mode;
+        os << " DA " << this->m_destAddress;
+        os << " DA " << (int) this->m_destAddressX;
+        os << "," << (int) this->m_destAddressY;
         
         if (m_write == RW_MODE_WRITE){
-            os << " D " << (int) m_data[0];
+            os << " D " << (int) this->m_data[0];
         }
         else if (m_write == RW_MODE_READ){
-            os << " D " << (int) m_data[0];
-            os << " SA " << m_srcAddress;
+            os << " D " << (int) this->m_data[0];
+            os << " SA " << this->m_srcAddress;
         }
         os << std::endl;
     }
@@ -124,6 +126,7 @@ namespace ns3 {
         this->SetMode(m_mode);
         
         m_destAddress = start.ReadU32();
+        this->SetDestinationAddress(m_destAddress);
         
         if (m_write == RW_MODE_WRITE){
             start.Read(m_data, 8);
@@ -178,30 +181,21 @@ namespace ns3 {
      * 3,1      0C100000            0C107FFF        32Kb
      * 3,2      0C200000            0C207FFF        32Kb
      * 3,3      0C300000            0C307FFF        32Kb
-     * 
-     * 
-     * 
      */
     
-       
     void 
     EpiphanyHeader::SetDestinationAddress(uint32_t add){
         //TODO check if it is valid
         m_destAddress = add;
+        m_destAddressX = ((m_destAddress & (0xFF000000)) / 4 ) >> 6 * 4;
+        m_destAddressY = ((m_destAddress &  0x00F00000) >> 5 * 4);
     }
-    
-    void 
-    EpiphanyHeader::SetDestinationAddressX(int32_t x){
-        m_destAddress = (m_destAddress & 0b10111111) | ((x * 4) << 6);
-    }
-    void 
-    EpiphanyHeader::SetDestinationAddressY(int32_t y){
-        m_destAddress = (m_destAddress & 0b11011111) | (y << 6);
-    }
+
     void 
     EpiphanyHeader::SetDestinationAddressXY(int32_t x, int32_t y){
-        m_destAddress = (m_destAddress & 0b10111111) | ((x * 4) << 6);
-        m_destAddress = (m_destAddress & 0b11011111) | (y << 6);
+        m_destAddress = ((x * 4) << 6 * 4) | (y << 5 * 4);
+        m_destAddressX = x;
+        m_destAddressY = y;
     }
     
     
@@ -211,11 +205,11 @@ namespace ns3 {
     }
     int32_t 
     EpiphanyHeader::GetDestinationAddressX(void){
-        return ((m_destAddress & 0b01000000) / 4) >> 6;
+        return m_destAddressX;
     }
     int32_t 
     EpiphanyHeader::GetDestinationAddressY(void){
-        return ((m_destAddress & 0b00100000) >> 5);
+        return m_destAddressY;
     }    
     
 
@@ -249,7 +243,7 @@ namespace ns3 {
     EpiphanyHeader::SetRWMode(uint8_t rw_mode){
         m_mode = (m_mode & 0b11111100) | (rw_mode << 0); 
         m_access = rw_mode & 0b00000001 >> 0;
-        m_access = rw_mode & 0b00000010 >> 1;
+        m_access |= rw_mode & 0b00000010 >> 1;
     }
     
     uint8_t 
