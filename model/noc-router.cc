@@ -38,8 +38,16 @@ namespace ns3 {
         static TypeId tid = TypeId("ns3::NOCRouter")
                 .SetParent<Application> ()
                 .AddConstructor<NOCRouter> ()
-                .AddTraceSource("SwitchRxTrace", "The packets received by the router of each node", MakeTraceSourceAccessor(&NOCRouter::m_routerRxTrace))
-                .AddTraceSource("SwitchTxTrace", "The packets sent by the router of each node", MakeTraceSourceAccessor(&NOCRouter::m_routerTxTrace))
+        
+                .AddTraceSource("SwitchRxTrace", 
+                "The packets received by the router of each node",
+                MakeTraceSourceAccessor(&NOCRouter::m_routerRxTrace),
+                "ns3::NOCRouter::SwitchRxTrace")
+        
+                .AddTraceSource("SwitchTxTrace", 
+                "The packets sent by the router of each node",
+                MakeTraceSourceAccessor(&NOCRouter::m_routerTxTrace),
+                "ns3::NOCRouter::SwitchTxTrace")
         
                 .AddAttribute("ChannelCount",
                 "Defines the number of NOCNetDevices installed at each direction",
@@ -250,17 +258,17 @@ namespace ns3 {
     //Using XY routing
     uint8_t NOCRouter::RouteTo(int32_t x, int32_t y) { //X-Y routing, with X first
         
-        uint8_t dir = 0b00000000;
+        uint8_t dir;
 
         //with this algorithm, the nodes will first send the pck in order to make
         // the delta x = 0, then, start moving along the y. 
         //TODO: implement the clockwise or counter cw routing algorithms
         
-        if (y < m_addressY) dir |= NOCRouter::DIRECTION_MASK_E;
-        else if (y > m_addressY) dir |= NOCRouter::DIRECTION_MASK_W;
+        if      (m_addressY < y)    dir = NOCRouter::DIRECTION_MASK_S;
+        else if (m_addressY > y)    dir = NOCRouter::DIRECTION_MASK_N;
 
-        else if (x < m_addressX) dir      |= NOCRouter::DIRECTION_MASK_N;
-        else if (x > m_addressX) dir |= NOCRouter::DIRECTION_MASK_S;
+        else if (m_addressX < x)    dir = NOCRouter::DIRECTION_MASK_E;
+        else if (m_addressX > x)    dir = NOCRouter::DIRECTION_MASK_W;
 
 
 

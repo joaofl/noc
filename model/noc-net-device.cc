@@ -83,15 +83,21 @@ namespace ns3 {
 
                 .AddAttribute("ClockDrift",
                 "The delay caused by the clock drift between two hops",
-                TimeValue(PicoSeconds(0.0)),
+                TimeValue(Seconds(0.0)),
                 MakeTimeAccessor(&NOCNetDevice::m_clockDrift),
                 MakeTimeChecker())   
         
-                .AddAttribute("PacketDuration",
-                "The time the packet takes to be transmitted",
-                TimeValue(PicoSeconds(1500.0)),
-                MakeTimeAccessor(&NOCNetDevice::m_packetDuration),
-                MakeTimeChecker())
+                .AddAttribute("ClockShift",
+                "How much neighboring node's clock is shifted (value between 0 and 1 (0 and 100%))",
+                DoubleValue(0),
+                MakeDoubleAccessor(&NOCNetDevice::m_clockShift),
+                MakeDoubleChecker<double_t>()) 
+        
+//                .AddAttribute("PacketDuration",
+//                "The time the packet takes to be transmitted",
+//                TimeValue(PicoSeconds(1500.0)),
+//                MakeTimeAccessor(&NOCNetDevice::m_packetDuration),
+//                MakeTimeChecker())
                 //
                 // Transmit queueing discipline for the device which includes its own set
                 // of trace hooks.
@@ -108,18 +114,22 @@ namespace ns3 {
                 //
                 .AddTraceSource("MacTx",
                 "Trace source indicating a packet has arrived for transmission by this device",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_macTxTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macTxTrace),
+                "ns3::NOCNetDevice::MacTxTrace")
                 .AddTraceSource("MacTxDrop",
                 "Trace source indicating a packet has been dropped by the device before transmission",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_macTxDropTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macTxDropTrace),
+                "ns3::NOCNetDevice::MacTxDropTrace")
                 .AddTraceSource("MacPromiscRx",
                 "A packet has been received by this device, has been passed up from the physical layer "
                 "and is being forwarded up the local protocol stack.  This is a promiscuous trace,",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_macPromiscRxTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macPromiscRxTrace),
+                "ns3::NOCNetDevice::MacPromiscRxTrace")
                 .AddTraceSource("MacRx",
                 "A packet has been received by this device, has been passed up from the physical layer "
                 "and is being forwarded up the local protocol stack.  This is a non-promiscuous trace,",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_macRxTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macRxTrace),
+                "ns3::NOCNetDevice::MacRxTrace")
 #if 0
                 // Not currently implemented for this device
                 .AddTraceSource("MacRxDrop",
@@ -132,13 +142,16 @@ namespace ns3 {
                 //
                 .AddTraceSource("PhyTxBegin",
                 "Trace source indicating a packet has begun transmitting over the channel",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxBeginTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxBeginTrace),
+                "ns3::NOCNetDevice::PhyTxBegin")
                 .AddTraceSource("PhyTxEnd",
                 "Trace source indicating a packet has been completely transmitted over the channel",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxEndTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxEndTrace),
+                "ns3::NOCNetDevice::PhyTxEnd")
                 .AddTraceSource("PhyTxDrop",
                 "Trace source indicating a packet has been dropped by the device during transmission",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxDropTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxDropTrace),
+                "ns3::NOCNetDevice::PhyTxDrop")
 #if 0
                 // Not currently implemented for this device
                 .AddTraceSource("PhyRxBegin",
@@ -147,10 +160,13 @@ namespace ns3 {
 #endif
                 .AddTraceSource("PhyRxEnd",
                 "Trace source indicating a packet has been completely received by the device",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyRxEndTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyRxEndTrace),
+                "ns3::NOCNetDevice::PhyRxEnd")
+        
                 .AddTraceSource("PhyRxDrop",
                 "Trace source indicating a packet has been dropped by the device during reception",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyRxDropTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyRxDropTrace),
+                "ns3::NOCNetDevice::PhyRxDrop")
 
                 //
                 // Trace sources designed to simulate a packet sniffer facility (tcpdump).
@@ -159,10 +175,13 @@ namespace ns3 {
                 //
                 .AddTraceSource("Sniffer",
                 "Trace source simulating a non-promiscuous packet sniffer attached to the device",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_snifferTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_snifferTrace),
+                "ns3::NOCNetDevice::Sniffer")
+        
                 .AddTraceSource("PromiscSniffer",
                 "Trace source simulating a promiscuous packet sniffer attached to the device",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_promiscSnifferTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_promiscSnifferTrace),
+                "ns3::NOCNetDevice::PromiscSniffer")
                 ;
         return tid;
     }
@@ -219,26 +238,22 @@ namespace ns3 {
         m_currentPkt = p;
         m_phyTxBeginTrace(m_currentPkt);
 
-        //TODO: here, implement the waiting time in such a way that I can simulate parallel connections
-        
+        //the time required to send a single bit
+        Time oneBitTransmissionTime = PicoSeconds(m_bps.CalculateBitsTxTime(1));
         Time txTime;
         
-        if (m_serialComm == true)
-            txTime = Seconds(m_bps.CalculateTxTime( p->GetSize()));
-        else
+        if (m_serialComm == true){
+            txTime =  PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() * p->GetSize() * 8);
+            txTime += oneBitTransmissionTime * m_clockShift;
+        }
+        else{
 //            in parallel, one packet takes one cycle to be transmitted, considering
 //            that port and packet has both the same width.
-            txTime = m_packetDuration + m_clockDrift; //the time required to sendo a single bit
-        
-        
-        //TODO: For some unknown reason, the value of packetDuration is not being
-        //transfered to the variable
-        txTime = PicoSeconds(1500);
+            txTime = PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() + 
+                    oneBitTransmissionTime.GetPicoSeconds() * m_clockShift); 
+        }
         
         Time txCompleteTime = txTime + m_tInterframeGap;
-//        Time t = PicoSeconds(10000);
-//        Time txCompleteTime = t;
-
         
         NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
         Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitComplete, this);
@@ -370,40 +385,6 @@ namespace ns3 {
         }
     }
 
-//    void
-//    NOCNetDevice::ReceiveSignal(Ptr<Packet> packet) {
-//        NS_LOG_FUNCTION(this << packet);
-//        uint16_t protocol = 0;
-//
-//        // 
-//        // Hit the trace hooks.  All of these hooks are in the same place in this 
-//        // device becuase it is so simple, but this is not usually the case in 
-//        // more complicated devices.
-//        //
-//        m_snifferTrace(packet);
-//        m_promiscSnifferTrace(packet);
-//        m_phyRxEndTrace(packet);
-//
-//        //
-//        // Strip off the point-to-point protocol header and forward this packet
-//        // up the protocol stack.  Since this is a simple point-to-point link,
-//        // there is no difference in what the promisc callback sees and what the
-//        // normal receive callback sees.
-//        //
-//        //ProcessHeader (packet->Copy(), protocol);
-//
-//        if (!m_promiscCallback.IsNull()) {
-//            m_macPromiscRxTrace(packet);
-//
-//            m_promiscCallback(this, packet, protocol, GetRemote(), GetAddress(), NetDevice::PACKET_HOST);
-//        }
-//
-//        m_macRxTrace(packet);
-//
-//        m_rxSignalCallback(this, packet, protocol, GetRemote());
-//
-//    }
-
     void
     NOCNetDevice::NotifyLinkUp(void) {
         m_linkUp = true;
@@ -499,7 +480,7 @@ namespace ns3 {
     NOCNetDevice::IsPointToPoint(void) const {
         return true;
     }
-
+//
     bool
     NOCNetDevice::IsBridge(void) const {
         return false;

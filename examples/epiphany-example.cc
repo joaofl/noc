@@ -92,7 +92,7 @@ main(int argc, char *argv[]) {
     //frequency and the time it takes to transmit a packet.
     //It takes 1 clock cycle, but since the next node has a clock drift of half
     //cycle, the correct transmission time is 1,5ns per hop
-    uint32_t baudrate = 1000000; 
+//    uint32_t baudrate = 1000000; 
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
@@ -108,7 +108,7 @@ main(int argc, char *argv[]) {
     CommandLine cmd;
     cmd.AddValue("size_x", "Network size in the X axe", size_x);
     cmd.AddValue("size_y", "Network size in the Y axe", size_y);
-    cmd.AddValue("baudrate", "Communication bauldrate in kHz", baudrate);
+//    cmd.AddValue("baudrate", "Communication bauldrate in kHz", baudrate);
 //    cmd.AddValue("channel_count", "Communication bauldrate in kHz", baudrate);
 //    cmd.AddValue("channel_width", "Communication bauldrate in kHz", baudrate);
 //    cmd.AddValue("parallel_comm", "Communication bauldrate in kHz", baudrate);
@@ -138,10 +138,20 @@ main(int argc, char *argv[]) {
     
     // 1GHz
     my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(false));
-//    my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
-    my_grid_network_helper.SetDeviceAttribute("PacketDuration", TimeValue(PicoSeconds(1500.0)));
-//    my_grid_network_helper.SetDeviceAttribute("ClockDrift", TimeValue(PicoSeconds(500)));
+    my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate("1Gbps")));
+//    my_grid_network_helper.SetDeviceAttribute("PacketDuration", TimeValue(PicoSeconds(1000.0)));
+    /*
+     *How much neighboring node's clock is shifted. This delays the reading
+     * once by this value, if the packet is in parallel in series.
+     */ 
+    my_grid_network_helper.SetDeviceAttribute("ClockShift", DoubleValue(0.5));    
     
+    /*
+     *TODO: Drift should be a rate in which every node's clock get shifted. Happens
+     * in scenarios where the clock is not shared.
+     */ 
+//    my_grid_network_helper.SetDeviceAttribute("ClockDrift", TimeValue(PicoSeconds(500)));
+
 //    my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(PicoSeconds(500)));
     
     //If the connection is not serial, then the packet size defines the link width,
@@ -173,6 +183,9 @@ main(int argc, char *argv[]) {
         //Only t
         if ((x == 0) && (y == 0))
             my_ep_app->ScheduleDataWrites(1, MicroSeconds(0), 3, 3);
+        
+        if ((x == 3) && (y == 3))
+            my_ep_app->ScheduleDataWrites(1, MicroSeconds(0), 0, 0);
 
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();

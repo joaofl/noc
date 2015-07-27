@@ -487,10 +487,13 @@ namespace ns3 {
         
         Time m_clockDrift;
         
-        Time m_packetDuration;
+        double_t m_clockShift;
+        
+//        Time m_packetDuration;
         
         uint32_t m_ifIndex;
         bool m_linkUp;
+        
         TracedCallback<> m_linkChangeCallbacks;
 
         static const uint16_t DEFAULT_MTU = 1500;

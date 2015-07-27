@@ -163,15 +163,15 @@ private:
   
   class Link
   {
-public:
-    Link() : m_state (INITIALIZING), m_src (0), m_dst (0) {}
-    WireState                  m_state;
-    Ptr<NOCNetDevice> m_src;
-    Ptr<NOCNetDevice> m_dst;
+    public:
+        Link() : m_state (INITIALIZING), m_src (0), m_dst (0) {}
+        WireState                  m_state;
+        Ptr<NOCNetDevice> m_src;
+        Ptr<NOCNetDevice> m_dst;
   };
 
   Link    m_link[N_DEVICES];
-  Link    m_signal_link[N_DEVICES];
+//  Link    m_signal_link[N_DEVICES];
 };
 
 } // namespace ns3

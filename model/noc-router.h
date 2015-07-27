@@ -57,18 +57,18 @@ namespace ns3 {
 //        TracedValue< stringstream* > PacketTrace;
         
         enum Directions{
-        DIRECTION_E        = 1, //east
-        DIRECTION_S        = 2, //south
-        DIRECTION_W        = 3, //west
-        DIRECTION_N        = 4 //north
+            DIRECTION_E        = 0, //east
+            DIRECTION_S        = 1, //south
+            DIRECTION_W        = 2, //west
+            DIRECTION_N        = 3 //north
         };
 
         enum DirectionsMasks {
-        DIRECTION_MASK_ALL = 0b00001111,
-        DIRECTION_MASK_E   = 0b00000001, //east
-        DIRECTION_MASK_S   = 0b00000010, //south
-        DIRECTION_MASK_W   = 0b00000100, //west
-        DIRECTION_MASK_N   = 0b00001000 //north
+            DIRECTION_MASK_E   = 0b00000001, //east
+            DIRECTION_MASK_S   = 0b00000010, //south
+            DIRECTION_MASK_W   = 0b00000100, //west
+            DIRECTION_MASK_N   = 0b00001000, //north
+            DIRECTION_MASK_ALL = 0b00001111
         };
 
         

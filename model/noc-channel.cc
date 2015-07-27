@@ -49,7 +49,8 @@ NOCChannel::GetTypeId (void)
                    MakeTimeChecker ())
     .AddTraceSource ("TxRxNOC",
                      "Trace source indicating transmission of packet from the NOCChannel, used by the Animation interface.",
-                     MakeTraceSourceAccessor (&NOCChannel::m_txrxNOC))
+                     MakeTraceSourceAccessor (&NOCChannel::m_txrxNOC),
+                    "ns3::NOCChannel::TxRx")
   ;
   return tid;
 }

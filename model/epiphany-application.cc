@@ -103,17 +103,14 @@ namespace ns3 {
         data[0] = 77;
         
         h.SetRWMode(EpiphanyHeader::RW_MODE_WRITE);
-//        h.SetCrtlMode(EpiphanyHeader::CRTL_MODE_0A);
-        h.SetDestinationAddressXY(dest_x, dest_y);
-        h.SetDestinationAddress(0x0C300000);
+        h.SetCrtlMode(EpiphanyHeader::CRTL_MODE_0A);
         h.SetDataMode(EpiphanyHeader::DATA_MODE_64b);
-//        h.SetDestinationAddress(0);
+        h.SetDestinationAddressXY(dest_x, dest_y);
         h.SetPacketData(data, 1);
         
         Ptr<Packet> pck = Create<Packet>();
         pck->AddHeader(h);
 
-//        m_router->PacketUnicast(pck, 0, 0xFF, 0);
         m_router->PacketUnicast(pck, 0, dest_x, dest_y);
         
 //        std::cout << "Sent from: "<< Ntow() << ", " << this << endl;
@@ -141,12 +138,12 @@ namespace ns3 {
     void
     EpiphanyApp::WriteDataReceived(Ptr<const Packet> pck){
         
-        std::cout << "Data packet successfully received in its destination" << endl;
+        std::cout << "Write data packet successfully received." << endl;
     }   
     void
     EpiphanyApp::ReadDataReceived(Ptr<const Packet> pck){
         
-        
+        std::cout << "Read data packet successfully received." << endl;
     }
         
 }
