@@ -165,7 +165,7 @@ private:
   {
     public:
         Link() : m_state (INITIALIZING), m_src (0), m_dst (0) {}
-        WireState                  m_state;
+        WireState         m_state;
         Ptr<NOCNetDevice> m_src;
         Ptr<NOCNetDevice> m_dst;
   };

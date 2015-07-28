@@ -70,8 +70,9 @@ namespace ns3 {
     
     void AddRouter(Ptr<NOCRouter>  r);
     
-    void ScheduleDataWrites(uint8_t n_times, Time period, int32_t x, int32_t y);
+    void ScheduleDataWrites(uint64_t n_times, Time period, int32_t x, int32_t y);
 
+    double_t GetTotalThroughput(void);
 
     private:
 
@@ -82,6 +83,8 @@ namespace ns3 {
 
         bool m_running;
 //        vector<EventRef> m_lastEvents;
+        
+        double_t m_totalThroughput;
 
         Ptr<NOCRouter> m_router;
     };

@@ -69,7 +69,7 @@ namespace ns3 {
     }
 
     void
-    EpiphanyApp::ScheduleDataWrites(uint8_t n_times, Time period, int32_t dest_x, int32_t dest_y) {
+    EpiphanyApp::ScheduleDataWrites(uint64_t n_times, Time period, int32_t dest_x, int32_t dest_y) {
 
         for (uint8_t i = 0; i < n_times; i++) {
             Time t = PicoSeconds(period.GetPicoSeconds() * i + period.GetPicoSeconds());
@@ -110,8 +110,9 @@ namespace ns3 {
         
         Ptr<Packet> pck = Create<Packet>();
         pck->AddHeader(h);
-
-        m_router->PacketUnicast(pck, 0, dest_x, dest_y);
+        
+        for (uint8_t i = 0 ; i < 10 ; i++)
+            m_router->PacketUnicast(pck, 0, dest_x, dest_y);
         
 //        std::cout << "Sent from: "<< Ntow() << ", " << this << endl;
     }
@@ -137,9 +138,30 @@ namespace ns3 {
     
     void
     EpiphanyApp::WriteDataReceived(Ptr<const Packet> pck){
+        static Time ti = PicoSeconds(0);
+        static Time tf = PicoSeconds(0);
+        static double_t packet_count = 0;
         
-        std::cout << "Write data packet successfully received." << endl;
+        packet_count++;
+        
+        Time tnow = Simulator::Now();
+        
+        if (ti == PicoSeconds(0)){
+            ti = tnow;
+        }
+        if (tnow > tf){
+            tf = tnow;
+            m_totalThroughput = (packet_count * 8) / (tf - ti).ToDouble(Time::US); // *8 is because each packet has 8 bytes for data. output in MB/s
+
+            std::cout << "Packets count = " << packet_count <<", Total throughput = " << m_totalThroughput << " MB/s" << endl;            
+        }    
     }   
+    
+    double_t
+    EpiphanyApp::GetTotalThroughput(void){
+        return m_totalThroughput;
+    }
+    
     void
     EpiphanyApp::ReadDataReceived(Ptr<const Packet> pck){
         

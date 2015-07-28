@@ -181,11 +181,12 @@ main(int argc, char *argv[]) {
         my_ep_app->SetStartTime(Seconds(0));
         
         //Only t
-        if ((x == 0) && (y == 0))
-            my_ep_app->ScheduleDataWrites(1, MicroSeconds(0), 3, 3);
-        
-        if ((x == 3) && (y == 3))
-            my_ep_app->ScheduleDataWrites(1, MicroSeconds(0), 0, 0);
+        if ((x == 0) && (y == 0)){
+//            my_ep_app->ScheduleDataWrites(1, MicroSeconds(0), 3, 3);
+        }
+        else{ //((x == 3) && (y == 3)) All to one example
+            my_ep_app->ScheduleDataWrites(1, PicoSeconds(0), 0, 0);
+        }
 
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
@@ -217,7 +218,7 @@ main(int argc, char *argv[]) {
 
     Time::SetResolution(Time::PS);
     
-    Simulator::Stop(Seconds(1));
+    Simulator::Stop(Seconds(1000000000));
     Simulator::Run();
 
     //************************************************************
