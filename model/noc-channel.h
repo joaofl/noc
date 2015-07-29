@@ -99,7 +99,9 @@ public:
    * \returns Ptr to NetDevice requested
    */
   virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
-
+  
+  bool GetRemoteWait(Ptr<NOCNetDevice> src);
+  
 protected:
   /*
    * \brief Get the delay associated with this channel
@@ -113,6 +115,8 @@ protected:
    */
   bool IsInitialized (void) const;
 
+  
+  
   /*
    * \brief Get the net-device source 
    * \param i the link requested
@@ -160,18 +164,17 @@ private:
     PROPAGATING
   };
   
-  
   class Link
   {
     public:
         Link() : m_state (INITIALIZING), m_src (0), m_dst (0) {}
         WireState         m_state;
+//        WaitWireState     m_wait;
         Ptr<NOCNetDevice> m_src;
         Ptr<NOCNetDevice> m_dst;
   };
 
   Link    m_link[N_DEVICES];
-//  Link    m_signal_link[N_DEVICES];
 };
 
 } // namespace ns3

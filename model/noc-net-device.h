@@ -142,6 +142,20 @@ namespace ns3 {
          * @param em Ptr to the ErrorModel.
          */
         void SetReceiveErrorModel(Ptr<ErrorModel> em);
+        
+         /*
+         * This function is called by the channel, once the remote net-device
+         * starts to write to the channel. This should allow the current NetDevice
+         * to rise the Wait signal.
+         */
+        void RemoteTransmitStarted(void);
+        
+        
+        bool GetRemoteWait(void);
+
+        bool GetLocalWait(void);
+        
+        void SetLocalWait(bool);        
 
         /**
          * Receive a packet from a connected NOCChannel.
@@ -173,7 +187,7 @@ namespace ns3 {
          */
         bool Send(Ptr<Packet> packet, uint8_t priority);
         
-        bool SendSignal(Ptr<Packet> packet);
+//        bool SendSignal(Ptr<Packet> packet);
 
 //        void SetNOCAddress(NOCAddress);
 //        NOCAddress GetNOCAddress(void);
@@ -304,7 +318,9 @@ namespace ns3 {
          */
         TxMachineState m_txMachineState;
         
-        TxMachineState m_txSignalMachineState;
+        
+        
+//        TxMachineState m_txSignalMachineState;
 
         /**
          * The data rate that the Net Device uses to simulate packet transmission
@@ -494,6 +510,8 @@ namespace ns3 {
         uint32_t m_ifIndex;
         bool m_linkUp;
         
+        bool m_wait;
+       
         TracedCallback<> m_linkChangeCallbacks;
 
         static const uint16_t DEFAULT_MTU = 1500;

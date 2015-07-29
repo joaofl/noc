@@ -81,15 +81,15 @@ namespace ns3 {
         
 //        void PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask);
         
-        void PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
+        
         
         // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
         
-        void PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y);
+        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y);
 
-        void PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops);
+        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops);
 
-        void PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
+        bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
         
 //        
         
@@ -135,9 +135,16 @@ namespace ns3 {
 
         TracedCallback<Ptr<const Packet> > m_routerRxTrace;
         TracedCallback<Ptr<const Packet> > m_routerTxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerTxDropTrace;
         
         virtual void StartApplication(void);
         virtual void StopApplication(void);
+        
+        bool PacketForward(Ptr<const Packet> pck, 
+            uint8_t network_id, uint8_t originPort, uint8_t destinationPort, uint8_t priority);
+        
+        bool PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
+        bool PacketSendSingleDir (Ptr<const Packet> pck, uint8_t network_id, uint8_t port, uint8_t priority);
         
         ReceiveCallback m_receiveCallBack;
 

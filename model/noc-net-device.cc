@@ -81,11 +81,11 @@ namespace ns3 {
                 MakeTimeAccessor(&NOCNetDevice::m_tInterframeGap),
                 MakeTimeChecker())
 
-                .AddAttribute("ClockDrift",
-                "The delay caused by the clock drift between two hops",
-                TimeValue(Seconds(0.0)),
-                MakeTimeAccessor(&NOCNetDevice::m_clockDrift),
-                MakeTimeChecker())   
+//                .AddAttribute("ClockDrift",
+//                "The delay caused by the clock drift between two hops",
+//                TimeValue(Seconds(0.0)),
+//                MakeTimeAccessor(&NOCNetDevice::m_clockDrift),
+//                MakeTimeChecker())   
         
                 .AddAttribute("ClockShift",
                 "How much neighboring node's clock is shifted (value between 0 and 1 (0 and 100%))",
@@ -191,6 +191,7 @@ namespace ns3 {
     m_txMachineState(READY),
     m_channel(0),
     m_linkUp(false),
+//    m_wait(READY),
     m_currentPkt(0) {
         NS_LOG_FUNCTION(this);
         queue_size_prioritized = 0;
@@ -265,6 +266,31 @@ namespace ns3 {
         return result;
     }
 
+    void 
+    NOCNetDevice::RemoteTransmitStarted(void){
+        SetLocalWait(true);
+        //Callback here to the switch
+    }
+    
+    bool 
+    NOCNetDevice::GetRemoteWait(void){
+        
+        return m_channel->GetRemoteWait(this);
+//        bool w = false;
+//        
+//        return w;
+    }
+    bool
+    NOCNetDevice::GetLocalWait() {
+        return m_wait;
+    }
+
+
+    void 
+    NOCNetDevice::SetLocalWait(bool w){
+        m_wait = w;
+    }
+    
     void
     NOCNetDevice::TransmitComplete(void) {
         NS_LOG_FUNCTION_NOARGS();
@@ -491,49 +517,7 @@ namespace ns3 {
             Ptr<Packet> packet,
             const Address &dest,
             uint16_t protocolNumber) {
-        NS_LOG_FUNCTION_NOARGS();
-        NS_LOG_LOGIC("p=" << packet << ", dest=" << &dest);
-        NS_LOG_LOGIC("UID is " << packet->GetUid());
-
-        //
-        // If IsLinkUp() is false it means there is no channel to send any packet 
-        // over so we just hit the drop trace on the packet and return an error.
-        //
-        if (IsLinkUp() == false) {
-            m_macTxDropTrace(packet);
-            return false;
-        }
-
-        //
-        // Stick a point to point protocol header on the packet in preparation for
-        // shoving it out the door.
-        //
-        //AddHeader(packet, protocolNumber);
-
-        m_macTxTrace(packet);
-
-        //
-        // If there's a transmission in progress, we enque the packet for later
-        // transmission; otherwise we send it now.
-        //
-        if (m_txMachineState == READY) {
-            // 
-            // Even if the transmitter is immediately available, we still enqueue and
-            // dequeue the packet to hit the tracing hooks.
-            //
-            if (m_queue->Enqueue(packet) == true) {
-                packet = m_queue->Dequeue();
-                m_snifferTrace(packet);
-                m_promiscSnifferTrace(packet);
-                return TransmitStart(packet);
-            } else {
-                // Enqueue may fail (overflow)
-                m_macTxDropTrace(packet);
-                return false;
-            }
-        } else {
-            return m_queue->Enqueue(packet);
-        }
+        return false;
     }
 
     bool
@@ -559,28 +543,22 @@ namespace ns3 {
             m_macTxDropTrace(packet);
             return false;
         }
-
-        //
-        // Stick a point to point protocol header on the packet in preparation for
-        // shoving it out the door.
-        //
-        //AddHeader (packet, protocolNumber);
-
-        m_macTxTrace(packet);
-
-
         //
         // If there's a transmission in progress, we enque the packet for later
         // transmission; otherwise we send it now.
         //
         if (m_txMachineState == READY) {
 
+            //TODO: change queue to an array of queue, so multiple priorities
+            //can be utilized
             if (priority > 0) {
                 if (m_queue_prioritized->Enqueue(packet) == true) {
                     queue_size_prioritized = m_queue_prioritized->GetNPackets();
                     packet = m_queue_prioritized->Dequeue();
                     m_snifferTrace(packet);
                     m_promiscSnifferTrace(packet);
+                    m_macTxTrace(packet);
+                    
                     return TransmitStart(packet);
                 } else {
                     // Enqueue may fail (overflow)
@@ -643,7 +621,7 @@ namespace ns3 {
     }
 
     void
-    NOCNetDevice::SetReceiveCallback(NetDevice::ReceiveCallback cb) {
+    NOCNetDevice::SetReceiveCallback(NOCNetDevice::ReceiveCallback cb) {
         m_rxCallback = cb;
     }
 

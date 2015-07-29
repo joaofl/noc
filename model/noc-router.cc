@@ -49,6 +49,11 @@ namespace ns3 {
                 MakeTraceSourceAccessor(&NOCRouter::m_routerTxTrace),
                 "ns3::NOCRouter::SwitchTxTrace")
         
+                .AddTraceSource("SwitchTxDropTrace", 
+                "The packets sent by the router of each node",
+                MakeTraceSourceAccessor(&NOCRouter::m_routerTxDropTrace),
+                "ns3::NOCRouter::SwitchTxDropTrace")
+        
                 .AddAttribute("ChannelCount",
                 "Defines the number of NOCNetDevices installed at each direction",
                 UintegerValue(true),
@@ -117,58 +122,120 @@ namespace ns3 {
         }
     }
    
-    void NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y){
-        uint8_t output_port_mask = RouteTo(destination_x, destination_y);
-        this->PacketSend(pck->Copy(), network_id, output_port_mask, 0);
+    bool NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y){
+        uint8_t output_port = RouteTo(destination_x, destination_y);
+        return this->PacketSendSingleDir(pck->Copy(), network_id, output_port, 0);
     }
 
-    void NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops){
-        
+    bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops){
+        return false;
     }
 
-    void NOCRouter::PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id){
-        
+    bool NOCRouter::PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id){
+        return false;
     }
     
-    void
+    bool
     NOCRouter::PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){//, uint8_t optional network_id) {
         //TODO: This function should get the pck, the destination address, priority comes in the packet?, and network it should write to.
         // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
         // the addressing scheme sould allow: Broadcast (with limited radius (hops)) and unicast (to an specific X,Y location)
 
+        //TODO:
+//        uint8_t out_ports_count = CountOnes(ports_mask);
 
         Ptr<NOCNetDevice> nd;
 //            //TODO: the arbitration policy should be considered here. Round robin for example
         if ( (ports_mask >> DIRECTION_N) & 1){
-            nd = this->GetNetDevice(network_id, DIRECTION_N);
-            if (nd != NULL){   
-                m_routerTxTrace(pck);
-                nd->Send(pck->Copy());
-            }
+            PacketSendSingleDir(pck->Copy(), network_id, DIRECTION_N, priority);
         }
         if ( (ports_mask >> DIRECTION_S) & 1){
-            nd = this->GetNetDevice(network_id, DIRECTION_S);
-            if (nd != NULL){   
-                m_routerTxTrace(pck);
-                nd->Send(pck->Copy());
-            }
+            PacketSendSingleDir(pck->Copy(), network_id, DIRECTION_S, priority);
         }
         if ( (ports_mask >> DIRECTION_E) & 1){
-            nd = this->GetNetDevice(network_id, DIRECTION_E);
-            if (nd != NULL){   
-                m_routerTxTrace(pck);
-                nd->Send(pck->Copy());
-            }
+            PacketSendSingleDir(pck->Copy(), network_id, DIRECTION_E, priority);
         }
         if ( (ports_mask >> DIRECTION_W) & 1){
-            nd = this->GetNetDevice(network_id, DIRECTION_W);
+            PacketSendSingleDir(pck->Copy(), network_id, DIRECTION_W, priority);
+        }
+        return false;
+    }
+    
+        bool
+    NOCRouter::PacketSendSingleDir (Ptr<const Packet> pck, uint8_t network_id, uint8_t port, uint8_t priority){
+        Ptr<NOCNetDevice> nd;
+//            //TODO: the arbitration policy should be considered here. Round robin for example
+        
+            nd = this->GetNetDevice(network_id, port);
             if (nd != NULL){   
-                m_routerTxTrace(pck);
-                nd->Send(pck->Copy());
+                
+                if (nd->Send(pck->Copy())){
+                    m_routerTxTrace(pck);
+                    return true;
+                }
+                else{
+                    m_routerTxDropTrace(pck);
+                    return false;
+                }
             }
+            return false;
+    }
+    
+    bool
+    NOCRouter::PacketForward(Ptr<const Packet> pck, 
+            uint8_t network_id, uint8_t originPort, uint8_t destinationPort, uint8_t priority){
+        //TODO: This function should get the pck, the destination address, priority comes in the packet?, and network it should write to.
+        // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
+        // the addressing scheme sould allow: Broadcast (with limited radius (hops)) and unicast (to an specific X,Y location)
+        
+        if (GetNetDevice(0, destinationPort)->GetRemoteWait() == false){
+           PacketSendSingleDir(pck->Copy(), network_id, destinationPort, priority);
+           GetNetDevice(0, originPort)->SetLocalWait(false);
+           return true;
+        }
+        return false;
+    }
+    
+
+    
+    bool
+    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t direction, const Address& sourceAddress) {
+
+        //TODO: It should check which port it requires to continue its trajectory. 
+        //if not available, it stops, and block any port which might require the same port.
+        //this blocking should propagate till the sender.
+        
+        //TODO: dont know how to not specify a packet type.. It better be compatible
+        // with any packet with attribute "DestinationAddressX"
+        m_routerRxTrace(pck_rcv->Copy());
+        EpiphanyHeader h;
+        pck_rcv->PeekHeader(h);
+        
+        Ptr<NOCNetDevice> nd = device->GetObject<NOCNetDevice>();
+        
+        
+        
+//        int32_t x = h->GetAttribute("DestinationAddressX");
+//        int32_t y = h->GetAttribute("DestinationAddressY");
+  
+        int32_t x = h.GetDestinationAddressX();
+        int32_t y = h.GetDestinationAddressY();
+        
+        if (x == m_addressX && y == m_addressY){ //Reached its destination
+            m_receiveCallBack(pck_rcv->Copy(), direction);
+        }
+        else{ //IF UNICAST
+            uint8_t input_port = m_netDeviceInfoArray[nd->GetIfIndex()].direction;
+            uint8_t output_port = RouteTo(x, y);
+            this->PacketForward(pck_rcv->Copy(), 0, input_port, output_port, 0);    
+//            this->PacketSend(pck_rcv->Copy(), 0, output_port_mask, 0);
         }
         
-        
+        return true;
+    }
+    
+    void NOCRouter::SetReceiveCallback(ReceiveCallback cb){
+        m_receiveCallBack = cb;
     }
     
     void
@@ -220,40 +287,6 @@ namespace ns3 {
         return m_netDevices.GetN();
     }
 
-    bool
-    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t direction, const Address& sourceAddress) {
-
-        //TODO: It should check which port it requires to continue its trajectory. 
-        //if not available, it stops, and block any port which migh require the same port.
-        //this blocking should propagate till the sender.
-        
-        //TODO: dont know how to not specify a packet type.. It better be compatible
-        // with any packet with attribute "DestinationAddressX"
-        m_routerRxTrace(pck_rcv->Copy());
-        EpiphanyHeader h;
-        pck_rcv->PeekHeader(h);
-        
-//        int32_t x = h->GetAttribute("DestinationAddressX");
-//        int32_t y = h->GetAttribute("DestinationAddressY");
-  
-        int32_t x = h.GetDestinationAddressX();
-        int32_t y = h.GetDestinationAddressY();
-        
-        //TODO: for some reason it is not getting in here
-        if (x == m_addressX && y == m_addressY){ //Reached its destination
-            m_receiveCallBack(pck_rcv->Copy(), direction);
-        }
-        else{
-            uint8_t output_port_mask = RouteTo(x, y);
-            this->PacketSend(pck_rcv->Copy(), 0, output_port_mask, 0);            
-        }
-        
-        return true;
-    }
-    
-    void NOCRouter::SetReceiveCallback(ReceiveCallback cb){
-        m_receiveCallBack = cb;
-    }
     
     //Using XY routing
     uint8_t NOCRouter::RouteTo(int32_t x, int32_t y) { //X-Y routing, with X first
@@ -264,11 +297,11 @@ namespace ns3 {
         // the delta x = 0, then, start moving along the y. 
         //TODO: implement the clockwise or counter cw routing algorithms
         
-        if      (m_addressY < y)    dir = NOCRouter::DIRECTION_MASK_S;
-        else if (m_addressY > y)    dir = NOCRouter::DIRECTION_MASK_N;
+        if      (m_addressY < y)    dir = NOCRouter::DIRECTION_S;
+        else if (m_addressY > y)    dir = NOCRouter::DIRECTION_N;
 
-        else if (m_addressX < x)    dir = NOCRouter::DIRECTION_MASK_E;
-        else if (m_addressX > x)    dir = NOCRouter::DIRECTION_MASK_W;
+        else if (m_addressX < x)    dir = NOCRouter::DIRECTION_E;
+        else if (m_addressX > x)    dir = NOCRouter::DIRECTION_W;
 
 
 

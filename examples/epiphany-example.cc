@@ -218,7 +218,7 @@ main(int argc, char *argv[]) {
 
     Time::SetResolution(Time::PS);
     
-    Simulator::Stop(Seconds(1000000000));
+    Simulator::Stop(Seconds(1));
     Simulator::Run();
 
     //************************************************************
