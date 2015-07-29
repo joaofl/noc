@@ -332,6 +332,8 @@ namespace ns3 {
             TransmitStart(p);
             return;
         }
+        
+        SetLocalWait(false);
     }
 
     bool

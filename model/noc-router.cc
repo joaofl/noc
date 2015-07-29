@@ -193,6 +193,7 @@ namespace ns3 {
            GetNetDevice(0, originPort)->SetLocalWait(false);
            return true;
         }
+        m_routerTxDropTrace(pck);
         return false;
     }
     
