@@ -60,7 +60,8 @@ namespace ns3 {
             DIRECTION_E        = 0, //east
             DIRECTION_S        = 1, //south
             DIRECTION_W        = 2, //west
-            DIRECTION_N        = 3 //north
+            DIRECTION_N        = 3, //north
+            DIRECTION_L        = 4  //Internal, local processor
         };
 
         enum DirectionsMasks {
@@ -68,7 +69,8 @@ namespace ns3 {
             DIRECTION_MASK_S   = 0b00000010, //south
             DIRECTION_MASK_W   = 0b00000100, //west
             DIRECTION_MASK_N   = 0b00001000, //north
-            DIRECTION_MASK_ALL = 0b00001111
+            DIRECTION_MASK_L   = 0b00010000, //north
+            DIRECTION_MASK_ALL = 0b00011111
         };
 
         
@@ -106,7 +108,9 @@ namespace ns3 {
     
         uint8_t GetNDevices(void);
         
+        void RemoteWaitChanged(Ptr<NOCNetDevice> nd, uint8_t direction);
         
+        uint8_t ServePorts(void);
         
         /**
          * \param device a pointer to the net device which is calling this callback
@@ -131,7 +135,13 @@ namespace ns3 {
         
     private:
 
-        uint8_t RouteTo(int32_t destination_x, int32_t destination_y);
+        enum RoutingAlgo{
+            COLUMN_FIRST,
+            ROW_FIRST,
+            CLOCKWISE
+        };
+        
+        uint8_t RouteTo(uint8_t routing_alg, int32_t destination_x, int32_t destination_y);
 
         TracedCallback<Ptr<const Packet> > m_routerRxTrace;
         TracedCallback<Ptr<const Packet> > m_routerTxTrace;
@@ -143,8 +153,8 @@ namespace ns3 {
         bool PacketForward(Ptr<const Packet> pck, 
             uint8_t network_id, uint8_t originPort, uint8_t destinationPort, uint8_t priority);
         
-        bool PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
-        bool PacketSendSingleDir (Ptr<const Packet> pck, uint8_t network_id, uint8_t port, uint8_t priority);
+        bool PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
+        bool PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port, uint8_t priority);
         
         ReceiveCallback m_receiveCallBack;
 
@@ -154,12 +164,14 @@ namespace ns3 {
         NetDeviceContainer m_netDevices;
         
         typedef struct {
-            uint8_t container_index;
             uint8_t cluster_id;
             int32_t x; 
             int32_t y;
             uint8_t network_id;
             uint8_t direction;
+            bool    wait;
+            Ptr<NOCNetDevice> nd_pointer;
+            Ptr<Packet> pck_buffer;
         }NetDeviceInfo;
         
         int32_t m_addressX, m_addressY;

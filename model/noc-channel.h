@@ -100,7 +100,7 @@ public:
    */
   virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
   
-  bool GetRemoteWait(Ptr<NOCNetDevice> src);
+//  bool GetRemoteWait(Ptr<NOCNetDevice> src);
   
 protected:
   /*

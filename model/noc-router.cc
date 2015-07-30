@@ -121,10 +121,68 @@ namespace ns3 {
             Simulator::Cancel(m_sendEvent);
         }
     }
-   
+
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    
+    void NOCRouter::SetReceiveCallback(ReceiveCallback cb){
+        m_receiveCallBack = cb;
+    }
+    
+    void
+    NOCRouter::AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t x, uint32_t y, uint32_t network, uint8_t direction){
+        NetDeviceInfo nd_info;
+        
+        nd_info.cluster_id = cluster;
+        nd_info.x = x;
+        nd_info.y = y;
+        nd_info.network_id = network;
+        nd_info.direction = direction;
+        nd_info.nd_pointer = nd;
+        nd_info.wait = false;
+//        nd_info.container_index = m_netDevices.GetN() - 1; //get the index in which it is stored at the net device container
+              
+        m_netDeviceInfoArray.push_back(nd_info);
+        nd->SetIfIndex(m_netDeviceInfoArray.size() - 1);
+                
+        m_netDevices.Add(nd);
+    }
+    
+    Ptr<NOCNetDevice>
+    NOCRouter::GetNetDevice(uint8_t network, uint8_t direction){
+        for (uint8_t i = 0 ; i < m_netDeviceInfoArray.size() ; i++){
+            NetDeviceInfo nd_info = m_netDeviceInfoArray[i];
+            if (nd_info.direction == direction && nd_info.network_id == network){
+                return nd_info.nd_pointer;
+            }
+        }
+        return NULL; //if the specified node was not found
+    }
+    
+//    NetDeviceInfo
+//    uint8_t
+//    NOCRouter::GetNetDeviceInfo(Ptr<NOCNetDevice> nd){
+////        NetDeviceInfo nd_info;
+//        for (uint8_t i = 0 ; i < m_netDeviceInfoArray.size() ; i++){
+//            if (nd->GetAddress() == m_netDevices.Get(i)->GetAddress())
+//            {
+////                return m_netDeviceInfoArray.at(nd->GetIfIndex()); //From the index initially set
+//            }
+//        }
+//        return 0; //if the specified node was not found
+//    }
+    
+    uint8_t
+    NOCRouter::GetNDevices(void){
+        return m_netDevices.GetN();
+    }    
+    
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    
     bool NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y){
-        uint8_t output_port = RouteTo(destination_x, destination_y);
-        return this->PacketSendSingleDir(pck->Copy(), network_id, output_port, 0);
+        uint8_t output_port = RouteTo(COLUMN_FIRST, destination_x, destination_y);
+        return this->PacketSendSingle(pck->Copy(), network_id, output_port, 0);
     }
 
     bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops){
@@ -136,7 +194,7 @@ namespace ns3 {
     }
     
     bool
-    NOCRouter::PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){//, uint8_t optional network_id) {
+    NOCRouter::PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){//, uint8_t optional network_id) {
         //TODO: This function should get the pck, the destination address, priority comes in the packet?, and network it should write to.
         // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
         // the addressing scheme sould allow: Broadcast (with limited radius (hops)) and unicast (to an specific X,Y location)
@@ -147,22 +205,25 @@ namespace ns3 {
         Ptr<NOCNetDevice> nd;
 //            //TODO: the arbitration policy should be considered here. Round robin for example
         if ( (ports_mask >> DIRECTION_N) & 1){
-            PacketSendSingleDir(pck->Copy(), network_id, DIRECTION_N, priority);
+            PacketSendSingle(pck->Copy(), network_id, DIRECTION_N, priority);
         }
         if ( (ports_mask >> DIRECTION_S) & 1){
-            PacketSendSingleDir(pck->Copy(), network_id, DIRECTION_S, priority);
+            PacketSendSingle(pck->Copy(), network_id, DIRECTION_S, priority);
         }
         if ( (ports_mask >> DIRECTION_E) & 1){
-            PacketSendSingleDir(pck->Copy(), network_id, DIRECTION_E, priority);
+            PacketSendSingle(pck->Copy(), network_id, DIRECTION_E, priority);
         }
         if ( (ports_mask >> DIRECTION_W) & 1){
-            PacketSendSingleDir(pck->Copy(), network_id, DIRECTION_W, priority);
+            PacketSendSingle(pck->Copy(), network_id, DIRECTION_W, priority);
+        }
+        if ( (ports_mask >> DIRECTION_L) & 1){
+            m_receiveCallBack(pck->Copy(), DIRECTION_L); //Loopback
         }
         return false;
     }
     
-        bool
-    NOCRouter::PacketSendSingleDir (Ptr<const Packet> pck, uint8_t network_id, uint8_t port, uint8_t priority){
+    bool
+    NOCRouter::PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port, uint8_t priority){
         Ptr<NOCNetDevice> nd;
 //            //TODO: the arbitration policy should be considered here. Round robin for example
         
@@ -180,27 +241,12 @@ namespace ns3 {
             }
             return false;
     }
+       
+    
     
     bool
-    NOCRouter::PacketForward(Ptr<const Packet> pck, 
-            uint8_t network_id, uint8_t originPort, uint8_t destinationPort, uint8_t priority){
-        //TODO: This function should get the pck, the destination address, priority comes in the packet?, and network it should write to.
-        // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
-        // the addressing scheme sould allow: Broadcast (with limited radius (hops)) and unicast (to an specific X,Y location)
-        
-        if (GetNetDevice(0, destinationPort)->GetRemoteWait() == false){
-           PacketSendSingleDir(pck->Copy(), network_id, destinationPort, priority);
-           GetNetDevice(0, originPort)->SetLocalWait(false);
-           return true;
-        }
-        m_routerTxDropTrace(pck);
-        return false;
-    }
-    
-
-    
-    bool
-    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, uint16_t direction, const Address& sourceAddress) {
+    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck_rcv, 
+            uint16_t direction, const Address& sourceAddress) {
 
         //TODO: It should check which port it requires to continue its trajectory. 
         //if not available, it stops, and block any port which might require the same port.
@@ -213,7 +259,7 @@ namespace ns3 {
         pck_rcv->PeekHeader(h);
         
         Ptr<NOCNetDevice> nd = device->GetObject<NOCNetDevice>();
-        
+        uint8_t input_port = m_netDeviceInfoArray[nd->GetIfIndex()].direction;
         
         
 //        int32_t x = h->GetAttribute("DestinationAddressX");
@@ -222,131 +268,56 @@ namespace ns3 {
         int32_t x = h.GetDestinationAddressX();
         int32_t y = h.GetDestinationAddressY();
         
-        if (x == m_addressX && y == m_addressY){ //Reached its destination
-            m_receiveCallBack(pck_rcv->Copy(), direction);
+        uint8_t output_port = RouteTo(COLUMN_FIRST, x, y);
+        
+        if (output_port == DIRECTION_L){ //Reached its destination
+            m_receiveCallBack(pck_rcv->Copy(), input_port);
         }
         else{ //IF UNICAST
-            uint8_t input_port = m_netDeviceInfoArray[nd->GetIfIndex()].direction;
-            uint8_t output_port = RouteTo(x, y);
-            this->PacketForward(pck_rcv->Copy(), 0, input_port, output_port, 0);    
-//            this->PacketSend(pck_rcv->Copy(), 0, output_port_mask, 0);
+//            uint8_t input_port = m_netDeviceInfoArray[nd->GetIfIndex()].direction;
+            
+//            this->PacketForward(pck_rcv->Copy(), 0, input_port, output_port, 0);    
+            this->PacketSendSingle(pck_rcv->Copy(), 0, output_port, 0);
         }
         
         return true;
     }
     
-    void NOCRouter::SetReceiveCallback(ReceiveCallback cb){
-        m_receiveCallBack = cb;
-    }
-    
-    void
-    NOCRouter::AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t x, uint32_t y, uint32_t network, uint8_t direction){
-        NetDeviceInfo info;
+    void NOCRouter::RemoteWaitChanged(Ptr<NOCNetDevice> nd, uint8_t direction){
         
-        m_netDevices.Add(nd);
-        
-        info.cluster_id = cluster;
-        info.x = x;
-        info.y = y;
-        info.network_id = network;
-        info.direction = direction;
-        info.container_index = m_netDevices.GetN() - 1; //get the index in which it is stored at the net device container
-       
-        
-        m_netDeviceInfoArray.push_back(info);
-        
-        nd->SetIfIndex(m_netDeviceInfoArray.size() - 1);
     }
-    
-    Ptr<NOCNetDevice>
-    NOCRouter::GetNetDevice(uint8_t network, uint8_t direction){
-        for (uint8_t i = 0 ; i < m_netDeviceInfoArray.size() ; i++){
-            NetDeviceInfo nd_info = m_netDeviceInfoArray[i];
-            if (nd_info.direction == direction && nd_info.network_id == network){
-                Ptr<NOCNetDevice> nd = m_netDevices.Get(nd_info.container_index)->GetObject<NOCNetDevice>();
-                return nd;
-            }
-        }
-        return NULL; //if the specified node was not found
-    }
-    
-//    NetDeviceInfo
-    uint8_t
-    NOCRouter::GetNetDeviceInfo(Ptr<NOCNetDevice> nd){
-//        NetDeviceInfo nd_info;
-        for (uint8_t i = 0 ; i < m_netDeviceInfoArray.size() ; i++){
-            if (nd->GetAddress() == m_netDevices.Get(i)->GetAddress())
-            {
-//                return m_netDeviceInfoArray.at(nd->GetIfIndex()); //From the index initially set
-            }
-        }
-        return 0; //if the specified node was not found
-    }
-    
-    uint8_t
-    NOCRouter::GetNDevices(void){
-        return m_netDevices.GetN();
-    }
-
     
     //Using XY routing
-    uint8_t NOCRouter::RouteTo(int32_t x, int32_t y) { //X-Y routing, with X first
+    uint8_t NOCRouter::RouteTo(uint8_t routing_alg, int32_t x, int32_t y) { //X-Y routing, with X first
         
         uint8_t dir;
 
-        //with this algorithm, the nodes will first send the pck in order to make
-        // the delta x = 0, then, start moving along the y. 
-        //TODO: implement the clockwise or counter cw routing algorithms
-        
-        if      (m_addressY < y)    dir = NOCRouter::DIRECTION_S;
-        else if (m_addressY > y)    dir = NOCRouter::DIRECTION_N;
+        switch (routing_alg){       
+            case COLUMN_FIRST:
+                if      (m_addressY < y)    dir = NOCRouter::DIRECTION_S;
+                else if (m_addressY > y)    dir = NOCRouter::DIRECTION_N;
 
-        else if (m_addressX < x)    dir = NOCRouter::DIRECTION_E;
-        else if (m_addressX > x)    dir = NOCRouter::DIRECTION_W;
+                else if (m_addressX < x)    dir = NOCRouter::DIRECTION_E;
+                else if (m_addressX > x)    dir = NOCRouter::DIRECTION_W;
 
+                else if (m_addressX == x && m_addressY == y) 
+                                            dir = NOCRouter::DIRECTION_L;
+                break;
+            
+            case ROW_FIRST:
+                if      (m_addressX < x)    dir = NOCRouter::DIRECTION_E;
+                else if (m_addressX > x)    dir = NOCRouter::DIRECTION_W;
+                
+                else if (m_addressY < y)    dir = NOCRouter::DIRECTION_S;
+                else if (m_addressY > y)    dir = NOCRouter::DIRECTION_N;
 
-
+                else if (m_addressX == x && m_addressY == y) 
+                                            dir = NOCRouter::DIRECTION_L;
+                break;                
+            case CLOCKWISE:
+                break;
+        }
         return dir;
-
-        //clockwise routing
-
-        //find out which quadrant it is
-//        if (x < 0 && y < 0) {
-//            dir |= NOCRouter::DIRECTION_MASK_E;
-//            return dir;
-//        } //send right first
-//        if (x < 0 && y > 0) {
-//            dir |= NOCRouter::DIRECTION_MASK_N;
-//            return dir;
-//        } //send up first
-//        if (x > 0 && y < 0) {
-//            dir |= NOCRouter::DIRECTION_MASK_S;
-//            return dir;
-//        } //send down first
-//        if (x > 0 && y > 0) {
-//            dir |= NOCRouter::DIRECTION_MASK_W;
-//            return dir;
-//        } //send left first
-//
-//        //from now on, it is align to the sink in one of the 4 dir
-//        if (x > 0) {
-//            dir |= NOCRouter::DIRECTION_MASK_W;
-//            return dir;
-//        } //send left then
-//        if (x < 0) {
-//            dir |= NOCRouter::DIRECTION_MASK_E;
-//            return dir;
-//        } //send right then
-//        if (y > 0) {
-//            dir |= NOCRouter::DIRECTION_MASK_N;
-//            return dir;
-//        } //send up then
-//        if (y < 0) {
-//            dir |= NOCRouter::DIRECTION_MASK_E;
-//            return dir;
-//        } //send down then
-//
-//        return dir;
     }
 }
 

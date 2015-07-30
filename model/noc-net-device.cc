@@ -268,28 +268,28 @@ namespace ns3 {
 
     void 
     NOCNetDevice::RemoteTransmitStarted(void){
-        SetLocalWait(true);
+//        SetLocalWait(true);
         //Callback here to the switch
     }
     
-    bool 
-    NOCNetDevice::GetRemoteWait(void){
-        
-        return m_channel->GetRemoteWait(this);
-//        bool w = false;
+//    bool 
+//    NOCNetDevice::GetRemoteWait(void){
 //        
-//        return w;
-    }
-    bool
-    NOCNetDevice::GetLocalWait() {
-        return m_wait;
-    }
-
-
-    void 
-    NOCNetDevice::SetLocalWait(bool w){
-        m_wait = w;
-    }
+//        return m_channel->GetRemoteWait(this);
+////        bool w = false;
+////        
+////        return w;
+//    }
+//    bool
+//    NOCNetDevice::GetLocalWait() {
+//        return m_wait;
+//    }
+//
+//
+//    void 
+//    NOCNetDevice::SetLocalWait(bool w){
+//        m_wait = w;
+//    }
     
     void
     NOCNetDevice::TransmitComplete(void) {
@@ -332,8 +332,6 @@ namespace ns3 {
             TransmitStart(p);
             return;
         }
-        
-        SetLocalWait(false);
     }
 
     bool

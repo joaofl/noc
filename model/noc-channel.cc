@@ -119,12 +119,12 @@ NOCChannel::TransmitStart (
 }
 
 
-bool
-NOCChannel::GetRemoteWait(Ptr<NOCNetDevice> src) {
-    uint32_t wire = src == m_link[0].m_src ? 0 : 1;
-    
-    return m_link[wire].m_dst->GetLocalWait();
-}
+//bool
+//NOCChannel::GetRemoteWait(Ptr<NOCNetDevice> src) {
+//    uint32_t wire = src == m_link[0].m_src ? 0 : 1;
+//    
+//    return m_link[wire].m_dst->GetLocalWait();
+//}
 
 
 uint32_t 

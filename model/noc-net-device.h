@@ -70,7 +70,9 @@ namespace ns3 {
         uint32_t queue_size_prioritized;
         uint32_t queue_size;
         
+        typedef Callback< void, Ptr<const Packet>, uint16_t > SignalChanged;
         
+        void SetSignalReadCallback (SignalChanged);
 
         /**
          * Construct a NOCNetDevice
@@ -151,11 +153,11 @@ namespace ns3 {
         void RemoteTransmitStarted(void);
         
         
-        bool GetRemoteWait(void);
-
-        bool GetLocalWait(void);
-        
-        void SetLocalWait(bool);        
+//        bool GetRemoteWait(void);
+//
+//        bool GetLocalWait(void);
+//        
+//        void SetLocalWait(bool);        
 
         /**
          * Receive a packet from a connected NOCChannel.
