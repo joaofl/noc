@@ -284,8 +284,15 @@ namespace ns3 {
     
     void 
     NOCRouter::RemoteTransmissionStarted(Ptr<NOCNetDevice> nd_this, Ptr<NOCNetDevice> nd_src, uint8_t direction){
-        NetDeviceInfo nd_i = GetNetDeviceInfo(nd_this);
-        std::cout << "L: " << m_addressX << "," << m_addressY << endl;
+//        NetDeviceInfo nd_i = GetNetDeviceInfo(nd_this);
+        uint8_t x=0;
+        uint8_t y=0;
+//        if (direction == DIRECTION_N) y=-1;
+//        else if (direction == DIRECTION_S) y=1;
+//        else if (direction == DIRECTION_E) x=-1;
+//        else if (direction == DIRECTION_W) x=1;
+        
+        std::cout  << Simulator::Now().GetPicoSeconds() << "Someone started transmitting to me: " << m_addressX + x << "," << m_addressY + y << endl;
     }
     
     //Using XY routing

@@ -105,8 +105,8 @@ NOCChannel::TransmitStart (
 //  m_link[wire].m_wait = WAIT; //The remote node sets the the Wait
 //                              //bit up as soon as it starts receiving a pck
   
-  Simulator::ScheduleNow (&NOCNetDevice::RemoteTransmitStarted, m_link[wire].m_src, 
-                                    m_link[wire].m_dst);
+  Simulator::ScheduleNow (&NOCNetDevice::RemoteTransmitStarted, m_link[wire].m_dst, 
+                                    m_link[wire].m_src);
   
   
   Simulator::ScheduleWithContext (m_link[wire].m_dst->GetNode ()->GetId (),

@@ -184,7 +184,7 @@ main(int argc, char *argv[]) {
         if ((x == 0) && (y == 0)){
 //            my_ep_app->ScheduleDataWrites(1, MicroSeconds(0), 3, 3);
         }
-        else{ //((x == 3) && (y == 3)) All to one example
+        else if ((x == 3) && (y == 3)){ //All to one example
             my_ep_app->ScheduleDataWrites(1, PicoSeconds(0), 0, 0);
         }
 
