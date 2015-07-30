@@ -108,7 +108,8 @@ namespace ns3 {
         
         NetDeviceContainer::Iterator nd;
         for (nd = m_netDevices.Begin() ; nd != m_netDevices.End() ; nd++){    
-            (*nd)->SetReceiveCallback(MakeCallback(&NOCRouter::PacketReceived, this));
+            (*nd)->GetObject<NOCNetDevice>()->SetReceiveCallback(MakeCallback(&NOCRouter::PacketReceived, this));
+            (*nd)->GetObject<NOCNetDevice>()->AddRemoteTransmitStartedCallback(MakeCallback(&NOCRouter::RemoteTransmissionStarted, this));
         }
 
     }
@@ -130,21 +131,19 @@ namespace ns3 {
     }
     
     void
-    NOCRouter::AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t x, uint32_t y, uint32_t network, uint8_t direction){
+    NOCRouter::AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t network, uint8_t direction){
         NetDeviceInfo nd_info;
         
         nd_info.cluster_id = cluster;
-        nd_info.x = x;
-        nd_info.y = y;
+//        nd_info.x = x;
+//        nd_info.y = y;
         nd_info.network_id = network;
         nd_info.direction = direction;
         nd_info.nd_pointer = nd;
         nd_info.wait = false;
-//        nd_info.container_index = m_netDevices.GetN() - 1; //get the index in which it is stored at the net device container
-              
         m_netDeviceInfoArray.push_back(nd_info);
-        nd->SetIfIndex(m_netDeviceInfoArray.size() - 1);
-                
+        
+        nd->SetIfIndex(m_netDeviceInfoArray.size() - 1);        
         m_netDevices.Add(nd);
     }
     
@@ -159,18 +158,18 @@ namespace ns3 {
         return NULL; //if the specified node was not found
     }
     
-//    NetDeviceInfo
-//    uint8_t
-//    NOCRouter::GetNetDeviceInfo(Ptr<NOCNetDevice> nd){
-////        NetDeviceInfo nd_info;
-//        for (uint8_t i = 0 ; i < m_netDeviceInfoArray.size() ; i++){
-//            if (nd->GetAddress() == m_netDevices.Get(i)->GetAddress())
-//            {
-////                return m_netDeviceInfoArray.at(nd->GetIfIndex()); //From the index initially set
-//            }
-//        }
-//        return 0; //if the specified node was not found
-//    }
+    
+    NOCRouter::NetDeviceInfo 
+    NOCRouter::GetNetDeviceInfo(Ptr<NOCNetDevice> nd) {
+        for (uint8_t i = 0 ; i < m_netDeviceInfoArray.size() ; i++){
+            if (nd == m_netDeviceInfoArray[i].nd_pointer)
+            {
+                return m_netDeviceInfoArray[i]; //From the index initially set
+            }
+        }
+        NetDeviceInfo r;
+        return r; //if the specified node was not found        
+    }
     
     uint8_t
     NOCRouter::GetNDevices(void){
@@ -260,7 +259,7 @@ namespace ns3 {
         
         Ptr<NOCNetDevice> nd = device->GetObject<NOCNetDevice>();
         uint8_t input_port = m_netDeviceInfoArray[nd->GetIfIndex()].direction;
-        
+//        uint8_t input_port = 
         
 //        int32_t x = h->GetAttribute("DestinationAddressX");
 //        int32_t y = h->GetAttribute("DestinationAddressY");
@@ -283,8 +282,10 @@ namespace ns3 {
         return true;
     }
     
-    void NOCRouter::RemoteWaitChanged(Ptr<NOCNetDevice> nd, uint8_t direction){
-        
+    void 
+    NOCRouter::RemoteTransmissionStarted(Ptr<NOCNetDevice> nd_this, Ptr<NOCNetDevice> nd_src, uint8_t direction){
+        NetDeviceInfo nd_i = GetNetDeviceInfo(nd_this);
+        std::cout << "L: " << m_addressX << "," << m_addressY << endl;
     }
     
     //Using XY routing

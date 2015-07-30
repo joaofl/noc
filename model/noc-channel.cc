@@ -105,7 +105,7 @@ NOCChannel::TransmitStart (
 //  m_link[wire].m_wait = WAIT; //The remote node sets the the Wait
 //                              //bit up as soon as it starts receiving a pck
   
-  Simulator::ScheduleNow (&NOCNetDevice::RemoteTransmitStarted, 
+  Simulator::ScheduleNow (&NOCNetDevice::RemoteTransmitStarted, m_link[wire].m_src, 
                                     m_link[wire].m_dst);
   
   
@@ -117,15 +117,6 @@ NOCChannel::TransmitStart (
   m_txrxNOC (p, src, m_link[wire].m_dst, txTime, txTime + m_delay);
   return true;
 }
-
-
-//bool
-//NOCChannel::GetRemoteWait(Ptr<NOCNetDevice> src) {
-//    uint32_t wire = src == m_link[0].m_src ? 0 : 1;
-//    
-//    return m_link[wire].m_dst->GetLocalWait();
-//}
-
 
 uint32_t 
 NOCChannel::GetNDevices (void) const

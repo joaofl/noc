@@ -73,6 +73,16 @@ namespace ns3 {
             DIRECTION_MASK_ALL = 0b00011111
         };
 
+        typedef struct {
+            uint8_t cluster_id;
+//            int32_t x; 
+//            int32_t y;
+            uint8_t network_id;
+            uint8_t direction;
+            bool    wait;
+            Ptr<NOCNetDevice> nd_pointer;
+            Ptr<Packet> pck_buffer;
+        }NetDeviceInfo;
         
         NOCRouter();
         virtual ~NOCRouter();
@@ -99,16 +109,15 @@ namespace ns3 {
         
 //        void SendSignal(uint8_t bits, uint8_t ports);
         
-        void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t x, uint32_t y, uint32_t network, uint8_t direction);
+        void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t network, uint8_t direction);
         
         Ptr<NOCNetDevice> GetNetDevice(uint8_t network, uint8_t direction);
         
-        
-        uint8_t GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
+        NetDeviceInfo GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
     
         uint8_t GetNDevices(void);
         
-        void RemoteWaitChanged(Ptr<NOCNetDevice> nd, uint8_t direction);
+        void RemoteTransmissionStarted(Ptr<NOCNetDevice> nd_dest, Ptr<NOCNetDevice> nd_src, uint8_t direction);
         
         uint8_t ServePorts(void);
         
@@ -162,17 +171,6 @@ namespace ns3 {
         EventId m_sendEvent;
         
         NetDeviceContainer m_netDevices;
-        
-        typedef struct {
-            uint8_t cluster_id;
-            int32_t x; 
-            int32_t y;
-            uint8_t network_id;
-            uint8_t direction;
-            bool    wait;
-            Ptr<NOCNetDevice> nd_pointer;
-            Ptr<Packet> pck_buffer;
-        }NetDeviceInfo;
         
         int32_t m_addressX, m_addressY;
         

@@ -132,9 +132,16 @@ GridHelper::InitializeNetwork()
 
     //Installing the router in every node
     NodeContainer::Iterator n;
-    for (n = my_node_container.Begin() ; n != my_node_container.End() ; n++){    
+    uint32_t i = 0;
+    for (n = my_node_container.Begin() ; n != my_node_container.End() ; n++){ 
+        int32_t x = i % m_sizeX;
+        int32_t y = floor(i / m_sizeY);
+        i++;
+        
         my_noc_router = CreateObject<NOCRouter> ();
         my_noc_router->SetAttribute("ChannelCount", UintegerValue(m_channelCount));
+        my_noc_router->SetAttribute("AddressX", IntegerValue(x));
+        my_noc_router->SetAttribute("AddressY", IntegerValue(y));
         (*n)->AddApplication(my_noc_router);
     }
     
@@ -158,16 +165,12 @@ GridHelper::InitializeNetwork()
                     my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
                     my_noc_net_device->SetAddress(NOCAddress::Allocate());
                     my_noc_router = my_node_container.Get(node_this)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0, x, y, i, NOCRouter::DIRECTION_E);
-                    my_noc_router->SetAttribute("AddressX", IntegerValue(x));
-                    my_noc_router->SetAttribute("AddressY", IntegerValue(y));
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRouter::DIRECTION_E);
 
                     my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
                     my_noc_net_device->SetAddress(NOCAddress::Allocate());
                     my_noc_router = my_node_container.Get(node_this + 1)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0, x, y, i, NOCRouter::DIRECTION_W);
-                    my_noc_router->SetAttribute("AddressX", IntegerValue(x + 1));
-                    my_noc_router->SetAttribute("AddressY", IntegerValue(y));
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRouter::DIRECTION_W);
 
                     my_net_device_container.Get(0)->Initialize();
                     my_net_device_container.Get(1)->Initialize();                    
@@ -180,16 +183,12 @@ GridHelper::InitializeNetwork()
                     my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>(); //netdevice of current node
                     my_noc_net_device->SetAddress(NOCAddress::Allocate()); //data port 2 - DOWN
                     my_noc_router = my_node_container.Get(node_this)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0, x, y, i, NOCRouter::DIRECTION_S);
-                    my_noc_router->SetAttribute("AddressX", IntegerValue(x));
-                    my_noc_router->SetAttribute("AddressY", IntegerValue(y));
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRouter::DIRECTION_S);
 
                     my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>(); //remote netdevice
                     my_noc_net_device->SetAddress(NOCAddress::Allocate()); //data port 4 - UP
                     my_noc_router = my_node_container.Get(node_this + m_sizeX)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0, x, y, i, NOCRouter::DIRECTION_N);
-                    my_noc_router->SetAttribute("AddressX", IntegerValue(x));
-                    my_noc_router->SetAttribute("AddressY", IntegerValue(y + m_sizeX));                    
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRouter::DIRECTION_N);                 
 
                     my_net_device_container.Get(0)->Initialize();
                     my_net_device_container.Get(1)->Initialize();
@@ -197,11 +196,6 @@ GridHelper::InitializeNetwork()
             }
         }
     }
-    
-//    NodeContainer::Iterator n;
-//    for (n = my_node_container.Begin() ; n != my_node_container.End() ; n++){    
-//        (*n)->GetApplication(INSTALLED_NOC_SWITCH)->;
-//    }
     
     return my_node_container;
 }

@@ -32,6 +32,7 @@
 #include "ns3/pointer.h"
 #include "noc-net-device.h"
 #include "noc-channel.h"
+#include "ns3/noc-net-device.h"
 
 NS_LOG_COMPONENT_DEFINE("NOCNetDevice");
 
@@ -267,9 +268,8 @@ namespace ns3 {
     }
 
     void 
-    NOCNetDevice::RemoteTransmitStarted(void){
-//        SetLocalWait(true);
-        //Callback here to the switch
+    NOCNetDevice::RemoteTransmitStarted(Ptr<NOCNetDevice> nd_src){
+        m_transmissionStartedCallback(this, nd_src, 1);
     }
     
 //    bool 
@@ -459,6 +459,10 @@ namespace ns3 {
         m_linkChangeCallbacks.ConnectWithoutContext(callback);
     }
 
+    void
+    NOCNetDevice::AddRemoteTransmitStartedCallback(RemoteTransmissionStartedCallback cb) {
+        m_transmissionStartedCallback = cb;
+    }
 //    //
 //    // This is a point-to-point device, so every transmission is a broadcast to
 //    // all of the devices on the network.

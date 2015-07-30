@@ -150,7 +150,7 @@ namespace ns3 {
          * starts to write to the channel. This should allow the current NetDevice
          * to rise the Wait signal.
          */
-        void RemoteTransmitStarted(void);
+        void RemoteTransmitStarted(Ptr<NOCNetDevice> nd_src);
         
         
 //        bool GetRemoteWait(void);
@@ -198,6 +198,10 @@ namespace ns3 {
         virtual void SetReceiveCallback(ReceiveCallback cb);
         
         
+        
+        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<NOCNetDevice>, uint8_t > RemoteTransmissionStartedCallback;
+        
+        void AddRemoteTransmitStartedCallback(RemoteTransmissionStartedCallback callback);
         
 
         // The remaining methods are documented in ns3::NetDevice*
@@ -512,8 +516,11 @@ namespace ns3 {
         uint32_t m_ifIndex;
         bool m_linkUp;
         
-        bool m_wait;
-       
+//        bool m_wait;
+        
+        
+        RemoteTransmissionStartedCallback m_transmissionStartedCallback;
+        
         TracedCallback<> m_linkChangeCallbacks;
 
         static const uint16_t DEFAULT_MTU = 1500;
