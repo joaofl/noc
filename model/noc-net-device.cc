@@ -272,25 +272,18 @@ namespace ns3 {
         m_transmissionStartedCallback(this, nd_src, 1);
     }
     
-//    bool 
-//    NOCNetDevice::GetRemoteWait(void){
-//        
-//        return m_channel->GetRemoteWait(this);
-////        bool w = false;
-////        
-////        return w;
-//    }
-//    bool
-//    NOCNetDevice::GetLocalWait() {
-//        return m_wait;
-//    }
-//
-//
-//    void 
-//    NOCNetDevice::SetLocalWait(bool w){
-//        m_wait = w;
-//    }
-    
+    bool 
+    NOCNetDevice::GetRemoteWait(void){
+        return m_channel->GetRemoteWait(this);
+    }
+    bool
+    NOCNetDevice::GetLocalWait(void) {
+        return m_wait;
+    }
+    bool
+    NOCNetDevice::SetLocalWait(void) {
+        return m_wait;
+    }    
     void
     NOCNetDevice::TransmitComplete(void) {
         NS_LOG_FUNCTION_NOARGS();

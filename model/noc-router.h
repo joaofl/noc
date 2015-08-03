@@ -75,8 +75,6 @@ namespace ns3 {
 
         typedef struct {
             uint8_t cluster_id;
-//            int32_t x; 
-//            int32_t y;
             uint8_t network_id;
             uint8_t direction;
             bool    wait;
@@ -114,6 +112,8 @@ namespace ns3 {
         Ptr<NOCNetDevice> GetNetDevice(uint8_t network, uint8_t direction);
         
         NetDeviceInfo GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
+        
+        bool GetRemoteWaitState(uint8_t network, uint8_t direction);
     
         uint8_t GetNDevices(void);
         
@@ -144,7 +144,7 @@ namespace ns3 {
         
     private:
 
-        enum RoutingAlgo{
+        enum RoutingAlgos{
             COLUMN_FIRST,
             ROW_FIRST,
             CLOCKWISE
@@ -159,8 +159,8 @@ namespace ns3 {
         virtual void StartApplication(void);
         virtual void StopApplication(void);
         
-        bool PacketForward(Ptr<const Packet> pck, 
-            uint8_t network_id, uint8_t originPort, uint8_t destinationPort, uint8_t priority);
+//        bool PacketForward(Ptr<const Packet> pck, 
+//            uint8_t network_id, uint8_t originPort, uint8_t destinationPort, uint8_t priority);
         
         bool PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
         bool PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port, uint8_t priority);

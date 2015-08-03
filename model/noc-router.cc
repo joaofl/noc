@@ -284,17 +284,24 @@ namespace ns3 {
     
     void 
     NOCRouter::RemoteTransmissionStarted(Ptr<NOCNetDevice> nd_this, Ptr<NOCNetDevice> nd_src, uint8_t direction){
-//        NetDeviceInfo nd_i = GetNetDeviceInfo(nd_this);
-        uint8_t x=0;
-        uint8_t y=0;
-//        if (direction == DIRECTION_N) y=-1;
-//        else if (direction == DIRECTION_S) y=1;
-//        else if (direction == DIRECTION_E) x=-1;
-//        else if (direction == DIRECTION_W) x=1;
         
-        std::cout  << Simulator::Now().GetPicoSeconds() << "Someone started transmitting to me: " << m_addressX + x << "," << m_addressY + y << endl;
+        std::cout  << Simulator::Now().GetPicoSeconds() << "Someone started transmitting to me: " << m_addressX << "," << m_addressY << endl;
     }
     
+    bool
+    NOCRouter::GetRemoteWaitState(uint8_t network, uint8_t direction){
+        
+        return true;
+    }
+    bool
+    NOCRouter::GetWaitState(uint8_t network, uint8_t direction){
+        return m_netDeviceInfoArray.at(nd->GetIfIndex()).wait;
+    }
+    void
+    NOCRouter::SetWaitState(Ptr<NOCNetDevice> nd, bool state){
+        m_netDeviceInfoArray.at(nd->GetIfIndex()).wait = state;
+        nd->SetWaitState(state);
+    }
     //Using XY routing
     uint8_t NOCRouter::RouteTo(uint8_t routing_alg, int32_t x, int32_t y) { //X-Y routing, with X first
         
