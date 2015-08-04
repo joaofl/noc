@@ -144,7 +144,7 @@ main(int argc, char *argv[]) {
      *How much neighboring node's clock is shifted. This delays the reading
      * once by this value, if the packet is in parallel in series.
      */ 
-    my_grid_network_helper.SetDeviceAttribute("ClockShift", DoubleValue(0.5));    
+    my_grid_network_helper.SetDeviceAttribute("ClockSkew", DoubleValue(0.5));    
     
     /*
      *TODO: Drift should be a rate in which every node's clock get shifted. Happens

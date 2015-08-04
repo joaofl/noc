@@ -19,13 +19,15 @@
  * 
  */
 
+
+#include "src/core/model/object.h"
+#include "src/network/model/node.h"
+#include "epiphany-header.h"
+
+//#include "noc-types.h"
 #include "noc-net-device.h"
 #include "noc-router.h"
-#include "src/core/model/object.h"
-#include "ns3/noc-types.h"
-#include "ns3/noc-router.h"
-#include "src/network/model/node.h"
-#include "ns3/epiphany-header.h"
+#include "ns3/noc-net-device.h"
 
 
 using namespace std;
@@ -98,20 +100,14 @@ namespace ns3 {
     
     void
     NOCRouter::StartApplication(void) {
-
-//        uint8_t n = m_netDevices.GetN();
-//        uint8_t m = m_netDeviceInfoArray.size();
-//        n=n;
-//        m=m;
-        
         m_running = true;
         
         NetDeviceContainer::Iterator nd;
         for (nd = m_netDevices.Begin() ; nd != m_netDevices.End() ; nd++){    
             (*nd)->GetObject<NOCNetDevice>()->SetReceiveCallback(MakeCallback(&NOCRouter::PacketReceived, this));
-            (*nd)->GetObject<NOCNetDevice>()->AddRemoteTransmitStartedCallback(MakeCallback(&NOCRouter::RemoteTransmissionStarted, this));
+            (*nd)->GetObject<NOCNetDevice>()->SetRemoteSignalChangedCallback(MakeCallback(&NOCRouter::RemoteWaitChanged, this));
+            (*nd)->GetObject<NOCNetDevice>()->SetLocalSignalChangedCallback(MakeCallback(&NOCRouter::LocalWaitChanged, this));
         }
-
     }
 
     void
@@ -135,13 +131,12 @@ namespace ns3 {
         NetDeviceInfo nd_info;
         
         nd_info.cluster_id = cluster;
-//        nd_info.x = x;
-//        nd_info.y = y;
         nd_info.network_id = network;
         nd_info.direction = direction;
         nd_info.nd_pointer = nd;
         nd_info.wait = false;
         m_netDeviceInfoArray.push_back(nd_info);
+        m_remoteNetDeviceInfoArray.push_back(nd_info);
         
         nd->SetIfIndex(m_netDeviceInfoArray.size() - 1);        
         m_netDevices.Add(nd);
@@ -270,41 +265,34 @@ namespace ns3 {
         
         if (output_port == DIRECTION_L){ //Reached its destination
             m_receiveCallBack(pck_rcv->Copy(), input_port);
+            //Packet was consumed, no need to wait anymore
+            nd->SetLocalWait(false);
         }
-        else{ //IF UNICAST   
+        else{ //IF UNICAST
             this->PacketSendSingle(pck_rcv->Copy(), 0, output_port, 0);
+            //Packet was consumed, no need to wait anymore
+            nd->SetLocalWait(false);
         }
         
         return true;
     }
     
-    void 
-    NOCRouter::RemoteTransmissionStarted(Ptr<NOCNetDevice> nd_this, Ptr<NOCNetDevice> nd_src, uint8_t direction){
-        SetLocalWait(nd_this, true);
-        std::cout  << Simulator::Now().GetPicoSeconds() << "Someone started transmitting to me: " << m_addressX << "," << m_addressY << endl;
+    void
+    NOCRouter::RemoteWaitChanged(std::string signal, Ptr<NOCNetDevice> nd_this, bool wait_state){
+
+        m_remoteNetDeviceInfoArray.at(nd_this->GetIfIndex()).wait = wait_state;
+        cout << Simulator::Now() << " RWC " << m_addressX << "," << m_addressY << " s: " << wait_state << endl;
     }
     void
-    NOCRouter::RemoteWaitChanged(uint8_t network, uint8_t direction, bool wait_state){
+    NOCRouter::LocalWaitChanged(std::string signal, Ptr<NOCNetDevice> nd_this, bool wait_state){
         /* Here, check if wait was set low. In this case, check if there are buffered
          * packets that want to use that port. Serve all the sources using round
          * robin police.
          */
+        m_netDeviceInfoArray.at(nd_this->GetIfIndex()).wait = wait_state;
+        cout << Simulator::Now() << " LWC " << m_addressX << "," << m_addressY << " s: " << wait_state << endl;
     }
-    
-    bool
-    NOCRouter::GetRemoteWait(uint8_t network, uint8_t direction){
-        
-        return true;
-    }
-    bool
-    NOCRouter::GetLocalWait(uint8_t network, uint8_t direction){
-        return m_netDeviceInfoArray.at(nd->GetIfIndex()).wait;
-    }
-    void
-    NOCRouter::SetLocalWait(Ptr<NOCNetDevice> nd, bool state){
-        m_netDeviceInfoArray.at(nd->GetIfIndex()).wait = state;
-        nd->SetWait(state);
-    }
+
     
     //Using XY routing
     uint8_t NOCRouter::RouteTo(uint8_t routing_alg, int32_t x, int32_t y) { //X-Y routing, with X first

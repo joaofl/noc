@@ -114,15 +114,12 @@ namespace ns3 {
         NetDeviceInfo GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
     
         uint8_t GetNDevices(void);
+      
+//        uint8_t ServePorts(void);
         
-        void RemoteTransmissionStarted(Ptr<NOCNetDevice> nd_dest, Ptr<NOCNetDevice> nd_src, uint8_t direction);
-        
-        uint8_t ServePorts(void);
-        
-        void RemoteWaitChanged(uint8_t network, uint8_t direction, bool wait_state);
-        bool GetRemoteWait(uint8_t network, uint8_t direction);
-        bool GetLocalWait(uint8_t network, uint8_t direction);
-        void SetLocalWait(Ptr<NOCNetDevice> nd, bool state);
+        void RemoteWaitChanged(std::string signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
+        void LocalWaitChanged(std::string signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
+ 
         
         /**
          * \param device a pointer to the net device which is calling this callback
@@ -178,6 +175,9 @@ namespace ns3 {
         int32_t m_addressX, m_addressY;
         
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
+        
+        //Used to keep track of the wait signals
+        std::vector<NetDeviceInfo> m_remoteNetDeviceInfoArray;
         
         uint8_t m_channelCount;
     };

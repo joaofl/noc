@@ -55,6 +55,12 @@ class NOCChannel : public Channel
 public:
   static TypeId GetTypeId (void);
 
+  enum WireSignals
+  {
+      REMOTE_TRANSMISSION_STARTED,
+      WAIT
+  };
+  
   /**
    * \brief Create a NOCChannel
    *
@@ -78,7 +84,8 @@ public:
    */
   virtual bool TransmitStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
   
-//  virtual bool TransmitSignalStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
+  
+  void PropagateSignal (uint8_t singnalName, bool signal, Ptr<NOCNetDevice> src, Time txTime);
   
   /**
    * \brief Get number of devices on this channel
@@ -100,8 +107,7 @@ public:
    */
   virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
   
-//  bool GetRemoteWait(Ptr<NOCNetDevice> src);
-  
+
 protected:
   /*
    * \brief Get the delay associated with this channel
@@ -163,6 +169,7 @@ private:
     TRANSMITTING,
     PROPAGATING
   };
+  
   
   class Link
   {

@@ -24,15 +24,16 @@
 #include "ns3/log.h"
 #include "ns3/queue.h"
 #include "ns3/simulator.h"
-#include "ns3/noc-address.h"
 #include "ns3/llc-snap-header.h"
 #include "ns3/error-model.h"
 #include "ns3/trace-source-accessor.h"
 #include "ns3/uinteger.h"
+#include "ns3/double.h"
 #include "ns3/pointer.h"
+
+#include "noc-address.h"
 #include "noc-net-device.h"
 #include "noc-channel.h"
-#include "ns3/noc-net-device.h"
 
 NS_LOG_COMPONENT_DEFINE("NOCNetDevice");
 
@@ -88,10 +89,10 @@ namespace ns3 {
 //                MakeTimeAccessor(&NOCNetDevice::m_clockDrift),
 //                MakeTimeChecker())   
         
-                .AddAttribute("ClockShift",
-                "How much neighboring node's clock is shifted (value between 0 and 1 (0 and 100%))",
+                .AddAttribute("ClockSkew",
+                "A factor that define how much each node's clock is skewed compared to a reference (value between 0 and 1 (0 and 100%))",
                 DoubleValue(0),
-                MakeDoubleAccessor(&NOCNetDevice::m_clockShift),
+                MakeDoubleAccessor(&NOCNetDevice::m_clockSkew),
                 MakeDoubleChecker<double_t>()) 
         
 //                .AddAttribute("PacketDuration",
@@ -192,7 +193,8 @@ namespace ns3 {
     m_txMachineState(READY),
     m_channel(0),
     m_linkUp(false),
-//    m_wait(READY),
+    m_wait(false),
+    m_remoteWait(false),
     m_currentPkt(0) {
         NS_LOG_FUNCTION(this);
         queue_size_prioritized = 0;
@@ -246,13 +248,13 @@ namespace ns3 {
         
         if (m_serialComm == true){
             txTime =  PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() * p->GetSize() * 8);
-            txTime += oneBitTransmissionTime * m_clockShift;
+            txTime += oneBitTransmissionTime * m_clockSkew;
         }
         else{
 //            in parallel, one packet takes one cycle to be transmitted, considering
 //            that port and packet has both the same width.
             txTime = PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() + 
-                    oneBitTransmissionTime.GetPicoSeconds() * m_clockShift); 
+                    oneBitTransmissionTime.GetPicoSeconds() * m_clockSkew); 
         }
         
         Time txCompleteTime = txTime + m_tInterframeGap;
@@ -268,22 +270,54 @@ namespace ns3 {
     }
 
     void 
-    NOCNetDevice::RemoteTransmitStarted(Ptr<NOCNetDevice> nd_src){
-        m_transmissionStartedCallback(this, nd_src, 1);
+    NOCNetDevice::SetRemoteSignalChangedCallback(SignalChangedCallback cb){
+        m_remoteWaitChanged = cb;
+    }
+
+    void 
+    NOCNetDevice::SetLocalSignalChangedCallback(SignalChangedCallback cb){
+        m_localWaitChanged = cb;
     }
     
-    bool 
-    NOCNetDevice::GetRemoteWait(void){
-        return m_channel->GetRemoteWait(this);
+    void 
+    NOCNetDevice::RemoteSignalChanged(uint8_t signalName, bool signal){
+        if (signalName == NOCChannel::REMOTE_TRANSMISSION_STARTED){
+            /* 
+            * On the rising edge of the first bits being transmitted to this node,
+            * the wait signal is rised up to ensure no other packet is sent until
+            * the received packet is dispatched from the input buffer.
+            */
+            SetLocalWait(signal);
+        }
+        else if(signalName == NOCChannel::WAIT){
+            m_remoteWait = signal;
+            m_remoteWaitChanged("Wait", this, m_remoteWait);            
+        }
     }
+    
+    bool
+    NOCNetDevice::GetRemoteWait(void){
+        return m_remoteWait;
+    }
+    
     bool
     NOCNetDevice::GetLocalWait(void) {
         return m_wait;
     }
-    bool
-    NOCNetDevice::SetLocalWait(void) {
-        return m_wait;
-    }    
+    
+    void
+    NOCNetDevice::SetLocalWait(bool wait) {
+        if (m_wait != wait){
+            m_wait = wait;
+            //This simulate a pin being risen in one device, causing an interruption
+            //in the device connected to it
+            m_channel->PropagateSignal(NOCChannel::WAIT, m_wait, this, PicoSeconds(0));
+            
+            //Callback to upper layers to announce the local change
+            m_localWaitChanged("Wait", this, m_wait);
+        }
+    }
+    
     void
     NOCNetDevice::TransmitComplete(void) {
         NS_LOG_FUNCTION_NOARGS();
@@ -451,21 +485,6 @@ namespace ns3 {
     NOCNetDevice::AddLinkChangeCallback(Callback<void> callback) {
         m_linkChangeCallbacks.ConnectWithoutContext(callback);
     }
-
-    void
-    NOCNetDevice::AddRemoteTransmitStartedCallback(RemoteTransmissionStartedCallback cb) {
-        m_transmissionStartedCallback = cb;
-    }
-//    //
-//    // This is a point-to-point device, so every transmission is a broadcast to
-//    // all of the devices on the network.
-//    //
-//
-//    bool
-//    NOCNetDevice::IsBroadcast(void) const {
-//        return true;
-//    }
-//
 
     bool
     NOCNetDevice::IsBroadcast(void) const {

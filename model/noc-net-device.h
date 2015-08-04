@@ -33,10 +33,9 @@
 #include "ns3/nstime.h"
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
-#include "ns3/noc-address.h"
-//#include "ns3/mac48-address.h"
 #include "ns3/boolean.h"
-#include "noc-types.h"
+
+#include "noc-address.h"
 
 namespace ns3 {
 
@@ -145,19 +144,14 @@ namespace ns3 {
          */
         void SetReceiveErrorModel(Ptr<ErrorModel> em);
         
-         /*
-         * This function is called by the channel, once the remote net-device
-         * starts to write to the channel. This should allow the current NetDevice
-         * to rise the Wait signal.
-         */
-        void RemoteTransmitStarted(Ptr<NOCNetDevice> nd_src);
         
-        
-//        bool GetRemoteWait(void);
+        void RemoteSignalChanged(uint8_t signalName, bool);
 //
-//        bool GetLocalWait(void);
-//        
-//        void SetLocalWait(bool);        
+        bool GetRemoteWait(void);
+        
+        bool GetLocalWait(void);
+        
+        void SetLocalWait(bool);     
 
         /**
          * Receive a packet from a connected NOCChannel.
@@ -199,9 +193,17 @@ namespace ns3 {
         
         
         
-        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<NOCNetDevice>, uint8_t > RemoteTransmissionStartedCallback;
+//        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<NOCNetDevice>, uint8_t > RemoteTransmissionStartedCallback;
         
-        void AddRemoteTransmitStartedCallback(RemoteTransmissionStartedCallback callback);
+        
+        
+//        void AddRemoteTransmitStartedCallback(RemoteTransmissionStartedCallback callback);
+        
+        typedef Callback< void, std::string, Ptr<NOCNetDevice>, bool > SignalChangedCallback;
+        
+        void SetRemoteSignalChangedCallback(SignalChangedCallback);
+        
+        void SetLocalSignalChangedCallback(SignalChangedCallback);
         
 
         // The remaining methods are documented in ns3::NetDevice*
@@ -507,19 +509,17 @@ namespace ns3 {
         NetDevice::PromiscReceiveCallback m_promiscCallback;
         bool m_serialComm;
         
-        Time m_clockDrift;
-        
-        double_t m_clockShift;
-        
-//        Time m_packetDuration;
+        double_t m_clockSkew;
         
         uint32_t m_ifIndex;
         bool m_linkUp;
         
-//        bool m_wait;
+        bool m_wait, m_remoteWait;
         
+//        
+//        RemoteTransmissionStartedCallback m_transmissionStartedCallback;
         
-        RemoteTransmissionStartedCallback m_transmissionStartedCallback;
+        SignalChangedCallback m_localWaitChanged, m_remoteWaitChanged;
         
         TracedCallback<> m_linkChangeCallbacks;
 
