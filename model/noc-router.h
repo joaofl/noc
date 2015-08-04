@@ -112,14 +112,17 @@ namespace ns3 {
         Ptr<NOCNetDevice> GetNetDevice(uint8_t network, uint8_t direction);
         
         NetDeviceInfo GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
-        
-        bool GetRemoteWaitState(uint8_t network, uint8_t direction);
     
         uint8_t GetNDevices(void);
         
         void RemoteTransmissionStarted(Ptr<NOCNetDevice> nd_dest, Ptr<NOCNetDevice> nd_src, uint8_t direction);
         
         uint8_t ServePorts(void);
+        
+        void RemoteWaitChanged(uint8_t network, uint8_t direction, bool wait_state);
+        bool GetRemoteWait(uint8_t network, uint8_t direction);
+        bool GetLocalWait(uint8_t network, uint8_t direction);
+        void SetLocalWait(Ptr<NOCNetDevice> nd, bool state);
         
         /**
          * \param device a pointer to the net device which is calling this callback

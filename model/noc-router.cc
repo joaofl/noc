@@ -259,8 +259,7 @@ namespace ns3 {
         
         Ptr<NOCNetDevice> nd = device->GetObject<NOCNetDevice>();
         uint8_t input_port = m_netDeviceInfoArray[nd->GetIfIndex()].direction;
-//        uint8_t input_port = 
-        
+
 //        int32_t x = h->GetAttribute("DestinationAddressX");
 //        int32_t y = h->GetAttribute("DestinationAddressY");
   
@@ -272,10 +271,7 @@ namespace ns3 {
         if (output_port == DIRECTION_L){ //Reached its destination
             m_receiveCallBack(pck_rcv->Copy(), input_port);
         }
-        else{ //IF UNICAST
-//            uint8_t input_port = m_netDeviceInfoArray[nd->GetIfIndex()].direction;
-            
-//            this->PacketForward(pck_rcv->Copy(), 0, input_port, output_port, 0);    
+        else{ //IF UNICAST   
             this->PacketSendSingle(pck_rcv->Copy(), 0, output_port, 0);
         }
         
@@ -284,24 +280,32 @@ namespace ns3 {
     
     void 
     NOCRouter::RemoteTransmissionStarted(Ptr<NOCNetDevice> nd_this, Ptr<NOCNetDevice> nd_src, uint8_t direction){
-        
+        SetLocalWait(nd_this, true);
         std::cout  << Simulator::Now().GetPicoSeconds() << "Someone started transmitting to me: " << m_addressX << "," << m_addressY << endl;
+    }
+    void
+    NOCRouter::RemoteWaitChanged(uint8_t network, uint8_t direction, bool wait_state){
+        /* Here, check if wait was set low. In this case, check if there are buffered
+         * packets that want to use that port. Serve all the sources using round
+         * robin police.
+         */
     }
     
     bool
-    NOCRouter::GetRemoteWaitState(uint8_t network, uint8_t direction){
+    NOCRouter::GetRemoteWait(uint8_t network, uint8_t direction){
         
         return true;
     }
     bool
-    NOCRouter::GetWaitState(uint8_t network, uint8_t direction){
+    NOCRouter::GetLocalWait(uint8_t network, uint8_t direction){
         return m_netDeviceInfoArray.at(nd->GetIfIndex()).wait;
     }
     void
-    NOCRouter::SetWaitState(Ptr<NOCNetDevice> nd, bool state){
+    NOCRouter::SetLocalWait(Ptr<NOCNetDevice> nd, bool state){
         m_netDeviceInfoArray.at(nd->GetIfIndex()).wait = state;
-        nd->SetWaitState(state);
+        nd->SetWait(state);
     }
+    
     //Using XY routing
     uint8_t NOCRouter::RouteTo(uint8_t routing_alg, int32_t x, int32_t y) { //X-Y routing, with X first
         
