@@ -28,6 +28,7 @@
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "ns3/noc-net-device.h"
+#include "ns3/noc-router.h"
 
 
 using namespace std;
@@ -135,8 +136,9 @@ namespace ns3 {
         nd_info.direction = direction;
         nd_info.nd_pointer = nd;
         nd_info.wait = false;
+        nd_info.wait_remote = false;
+        nd_info.pck_buffered = false;
         m_netDeviceInfoArray.push_back(nd_info);
-        m_remoteNetDeviceInfoArray.push_back(nd_info);
         
         nd->SetIfIndex(m_netDeviceInfoArray.size() - 1);        
         m_netDevices.Add(nd);
@@ -145,12 +147,35 @@ namespace ns3 {
     Ptr<NOCNetDevice>
     NOCRouter::GetNetDevice(uint8_t network, uint8_t direction){
         for (uint8_t i = 0 ; i < m_netDeviceInfoArray.size() ; i++){
-            NetDeviceInfo nd_info = m_netDeviceInfoArray[i];
+            NetDeviceInfo nd_info = m_netDeviceInfoArray.at(i);
             if (nd_info.direction == direction && nd_info.network_id == network){
                 return nd_info.nd_pointer;
             }
         }
         return NULL; //if the specified node was not found
+    }
+    NOCRouter::NetDeviceInfo
+    NOCRouter::GetNetDeviceInfo(uint8_t network, uint8_t direction){
+        NetDeviceInfo nd_info;
+        for (uint8_t i = 0 ; i < m_netDeviceInfoArray.size() ; i++){
+            nd_info = m_netDeviceInfoArray.at(i);
+            if (nd_info.direction == direction && nd_info.network_id == network){
+                return nd_info;
+            }
+        }
+        nd_info.cluster_id = 99;
+        return nd_info; //if the specified node was not found
+    }
+    int8_t
+    NOCRouter::GetNetDeviceInfoIndex(uint8_t network, uint8_t direction){
+        NetDeviceInfo nd_info;
+        for (uint8_t i = 0 ; i < m_netDeviceInfoArray.size() ; i++){
+            nd_info = m_netDeviceInfoArray.at(i);
+            if (nd_info.direction == direction && nd_info.network_id == network){
+                return i;
+            }
+        }
+        return -1; //if the specified node was not found
     }
     
     
@@ -173,10 +198,94 @@ namespace ns3 {
     
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
+    void 
+    NOCRouter::ServePorts(void) {
+//        static uint8_t output_port = DIRECTION_E;
+        
+        int8_t i;// = GetNetDeviceInfo(MESH_W, output_port);
+        
+//        switch (output_port){
+            
+//            case (DIRECTION_E):
+                i = GetNetDeviceInfoIndex(MESH_W, DIRECTION_E);
+                if (i != -1)
+                if (m_netDeviceInfoArray[i].pck_buffered == true){
+                    if (m_netDeviceInfoArray[i].wait_remote == false){
+                        this->PacketSendSingle(m_netDeviceInfoArray[i].pck_buffer->Copy(),
+                                m_netDeviceInfoArray[i].nd_pointer, P0);
+                        
+                        m_netDeviceInfoArray[i].nd_pointer->SetLocalWait(false);
+                        m_netDeviceInfoArray[i].pck_buffered = false;
+                    }
+                }
+                
+//                output_port = DIRECTION_S;
+//                break;
+//                
+//            case (DIRECTION_S):
+                i = GetNetDeviceInfoIndex(MESH_W, DIRECTION_S);
+                if (i != -1)
+                if (m_netDeviceInfoArray[i].pck_buffered == true){
+                    if (m_netDeviceInfoArray[i].wait_remote == false){
+                        this->PacketSendSingle(m_netDeviceInfoArray[i].pck_buffer->Copy(),
+                                m_netDeviceInfoArray[i].nd_pointer, P0);
+                        
+                        m_netDeviceInfoArray[i].nd_pointer->SetLocalWait(false);
+                        m_netDeviceInfoArray[i].pck_buffered = false;
+                    }
+                }
+                
+//                output_port = DIRECTION_W;
+//                break;
+                
+//            case (DIRECTION_W):
+                i = GetNetDeviceInfoIndex(MESH_W, DIRECTION_W);
+                if (i != -1)
+                if (m_netDeviceInfoArray[i].pck_buffered == true){
+                    if (m_netDeviceInfoArray[i].wait_remote == false){
+                        this->PacketSendSingle(m_netDeviceInfoArray[i].pck_buffer->Copy(),
+                                m_netDeviceInfoArray[i].nd_pointer, P0);
+                        
+                        m_netDeviceInfoArray[i].nd_pointer->SetLocalWait(false);
+                        m_netDeviceInfoArray[i].pck_buffered = false;
+                    }
+                }
+                
+//                output_port = DIRECTION_N;
+//                break;
+                
+//            case (DIRECTION_N):
+                //If there is a packet buffered, send it
+                //wait will only be high if this port has just received a pck,
+                //and has not served it
+                i = GetNetDeviceInfoIndex(MESH_W, DIRECTION_N);
+                if (i != -1)
+                if (m_netDeviceInfoArray[i].pck_buffered == true){
+                    if (m_netDeviceInfoArray[i].wait_remote == false){
+                        this->PacketSendSingle(m_netDeviceInfoArray[i].pck_buffer->Copy(),
+                                m_netDeviceInfoArray[i].nd_pointer, P0);
+                        
+                        m_netDeviceInfoArray[i].nd_pointer->SetLocalWait(false);
+                        m_netDeviceInfoArray[i].pck_buffered = false;
+                    }
+                }
+
+                
+//                output_port = DIRECTION_E;
+//                break;
+            
+//        }
+        //delay one cycle here, and re-execute it if there is still packets to be sent
+        //if no packet was sent, serve another port without delay (best effort)
+//        ServePorts();
+//        Simulator::Schedule(PicoSeconds(1), &NOCRouter::ServePorts, this);
+    }
+
+    
     
     bool NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y){
         uint8_t output_port = RouteTo(COLUMN_FIRST, destination_x, destination_y);
-        return this->PacketSendSingle(pck->Copy(), network_id, output_port, 0);
+        return this->PacketSendSingle(pck->Copy(), GetNetDevice(network_id, output_port), 0);
     }
 
     bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops){
@@ -196,19 +305,17 @@ namespace ns3 {
         //TODO:
 //        uint8_t out_ports_count = CountOnes(ports_mask);
 
-        Ptr<NOCNetDevice> nd;
-//            //TODO: the arbitration policy should be considered here. Round robin for example
         if ( (ports_mask >> DIRECTION_N) & 1){
-            PacketSendSingle(pck->Copy(), network_id, DIRECTION_N, priority);
+            PacketSendSingle(pck->Copy(), GetNetDevice(network_id, DIRECTION_N), priority);
         }
         if ( (ports_mask >> DIRECTION_S) & 1){
-            PacketSendSingle(pck->Copy(), network_id, DIRECTION_S, priority);
+            PacketSendSingle(pck->Copy(), GetNetDevice(network_id, DIRECTION_S), priority);
         }
         if ( (ports_mask >> DIRECTION_E) & 1){
-            PacketSendSingle(pck->Copy(), network_id, DIRECTION_E, priority);
+            PacketSendSingle(pck->Copy(), GetNetDevice(network_id, DIRECTION_E), priority);
         }
         if ( (ports_mask >> DIRECTION_W) & 1){
-            PacketSendSingle(pck->Copy(), network_id, DIRECTION_W, priority);
+            PacketSendSingle(pck->Copy(), GetNetDevice(network_id, DIRECTION_W), priority);
         }
         if ( (ports_mask >> DIRECTION_L) & 1){
             m_receiveCallBack(pck->Copy(), DIRECTION_L); //Loopback
@@ -217,23 +324,16 @@ namespace ns3 {
     }
     
     bool
-    NOCRouter::PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port, uint8_t priority){
-        Ptr<NOCNetDevice> nd;
-//            //TODO: the arbitration policy should be considered here. Round robin for example
-        
-            nd = this->GetNetDevice(network_id, port);
-            if (nd != NULL){   
-                
-                if (nd->Send(pck->Copy())){
-                    m_routerTxTrace(pck);
-                    return true;
-                }
-                else{
-                    m_routerTxDropTrace(pck);
-                    return false;
-                }
-            }
+    NOCRouter::PacketSendSingle(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd, uint8_t priority){
+        if (nd->Send(pck->Copy())){
+            m_routerTxTrace(pck);
+            return true;
+        }
+        else{
+            m_routerTxDropTrace(pck);
             return false;
+        }
+        return false;
     }
        
     
@@ -253,7 +353,10 @@ namespace ns3 {
         pck_rcv->PeekHeader(h);
         
         Ptr<NOCNetDevice> nd = device->GetObject<NOCNetDevice>();
-        uint8_t input_port = m_netDeviceInfoArray[nd->GetIfIndex()].direction;
+        
+        NetDeviceInfo info = m_netDeviceInfoArray[nd->GetIfIndex()];
+        uint8_t input_port = info.direction;
+        uint8_t network = info.network_id;
 
 //        int32_t x = h->GetAttribute("DestinationAddressX");
 //        int32_t y = h->GetAttribute("DestinationAddressY");
@@ -269,8 +372,11 @@ namespace ns3 {
             nd->SetLocalWait(false);
         }
         else{ //IF UNICAST
-            this->PacketSendSingle(pck_rcv->Copy(), 0, output_port, 0);
-            //Packet was consumed, no need to wait anymore
+            uint8_t i = GetNetDeviceInfoIndex(network, output_port);
+            m_netDeviceInfoArray[i].pck_buffer = pck_rcv->Copy();
+            m_netDeviceInfoArray[i].pck_buffered = true;
+            
+            ServePorts();
             nd->SetLocalWait(false);
         }
         
@@ -279,8 +385,8 @@ namespace ns3 {
     
     void
     NOCRouter::RemoteWaitChanged(std::string signal, Ptr<NOCNetDevice> nd_this, bool wait_state){
-
-        m_remoteNetDeviceInfoArray.at(nd_this->GetIfIndex()).wait = wait_state;
+        
+        m_netDeviceInfoArray.at(nd_this->GetIfIndex()).wait_remote = wait_state;
         cout << Simulator::Now() << " RWC " << m_addressX << "," << m_addressY << " s: " << wait_state << endl;
     }
     void
@@ -290,6 +396,9 @@ namespace ns3 {
          * robin police.
          */
         m_netDeviceInfoArray.at(nd_this->GetIfIndex()).wait = wait_state;
+        
+//        ServePorts();
+        
         cout << Simulator::Now() << " LWC " << m_addressX << "," << m_addressY << " s: " << wait_state << endl;
     }
 

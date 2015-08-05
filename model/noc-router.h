@@ -56,6 +56,17 @@ namespace ns3 {
 //        Time TimeStartOffset;
 //        TracedValue< stringstream* > PacketTrace;
         
+        enum Networks{
+            MESH_W = 0,
+            MESH_R = 1,
+            MESH_X = 2
+        };
+        
+        enum Priority{
+            P0,
+            P1
+        };
+        
         enum Directions{
             DIRECTION_E        = 0, //east
             DIRECTION_S        = 1, //south
@@ -78,8 +89,10 @@ namespace ns3 {
             uint8_t network_id;
             uint8_t direction;
             bool    wait;
+            bool    wait_remote;
             Ptr<NOCNetDevice> nd_pointer;
             Ptr<Packet> pck_buffer;
+            bool pck_buffered;
         }NetDeviceInfo;
         
         NOCRouter();
@@ -113,9 +126,13 @@ namespace ns3 {
         
         NetDeviceInfo GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
     
+        NetDeviceInfo GetNetDeviceInfo(uint8_t network, uint8_t direction);
+        
+        int8_t GetNetDeviceInfoIndex(uint8_t network, uint8_t direction);
+        
         uint8_t GetNDevices(void);
       
-//        uint8_t ServePorts(void);
+        void ServePorts(void);
         
         void RemoteWaitChanged(std::string signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
         void LocalWaitChanged(std::string signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
@@ -163,7 +180,7 @@ namespace ns3 {
 //            uint8_t network_id, uint8_t originPort, uint8_t destinationPort, uint8_t priority);
         
         bool PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
-        bool PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port, uint8_t priority);
+        bool PacketSendSingle(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd, uint8_t priority);
         
         ReceiveCallback m_receiveCallBack;
 
@@ -176,8 +193,6 @@ namespace ns3 {
         
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
         
-        //Used to keep track of the wait signals
-        std::vector<NetDeviceInfo> m_remoteNetDeviceInfoArray;
         
         uint8_t m_channelCount;
     };
