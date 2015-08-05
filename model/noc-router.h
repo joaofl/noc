@@ -27,7 +27,6 @@
 #include <sstream>
 
 #include "ns3/callback.h"
-//#include "ns3/object.h"
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/address.h"
@@ -56,11 +55,13 @@ namespace ns3 {
 //        Time TimeStartOffset;
 //        TracedValue< stringstream* > PacketTrace;
         
-        enum Networks{
-            MESH_W = 0,
-            MESH_R = 1,
-            MESH_X = 2
-        };
+        
+        //names are architecture dependant
+//        enum Networks{
+//            MESH_W = 0,
+//            MESH_R = 1,
+//            MESH_X = 2
+//        };
         
         enum Priority{
             P0,
@@ -129,13 +130,15 @@ namespace ns3 {
         NetDeviceInfo GetNetDeviceInfo(uint8_t network, uint8_t direction);
         
         int8_t GetNetDeviceInfoIndex(uint8_t network, uint8_t direction);
+        int8_t GetNetDeviceInfoIndex(Ptr<NOCNetDevice> nd);
         
         uint8_t GetNDevices(void);
       
-        void ServePorts(void);
+        void ServePackets(void);
+        void ServePacket(uint8_t in, uint8_t out);
         
-        void RemoteWaitChanged(std::string signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
-        void LocalWaitChanged(std::string signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
+        void RemoteWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
+        void LocalWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
  
         
         /**
@@ -193,6 +196,7 @@ namespace ns3 {
         
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
         
+        uint8_t m_port_to_serve;
         
         uint8_t m_channelCount;
     };

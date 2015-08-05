@@ -199,7 +199,7 @@ namespace ns3 {
         
 //        void AddRemoteTransmitStartedCallback(RemoteTransmissionStartedCallback callback);
         
-        typedef Callback< void, std::string, Ptr<NOCNetDevice>, bool > SignalChangedCallback;
+        typedef Callback< void, uint8_t, Ptr<NOCNetDevice>, bool > SignalChangedCallback;
         
         void SetRemoteSignalChangedCallback(SignalChangedCallback);
         

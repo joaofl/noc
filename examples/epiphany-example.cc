@@ -185,7 +185,7 @@ main(int argc, char *argv[]) {
 //            my_ep_app->ScheduleDataWrites(1, MicroSeconds(0), 3, 3);
         }
         else if ((x == 3) && (y == 3)){ //All to one example
-            my_ep_app->ScheduleDataWrites(1, PicoSeconds(0), 0, 0);
+            my_ep_app->ScheduleDataWrites(10, PicoSeconds(0), 0, 0);
         }
 
         //Setup router
@@ -218,7 +218,7 @@ main(int argc, char *argv[]) {
 
     Time::SetResolution(Time::PS);
     
-    Simulator::Stop(Seconds(1));
+    Simulator::Stop(MicroSeconds(10));
     Simulator::Run();
 
     //************************************************************
@@ -227,7 +227,7 @@ main(int argc, char *argv[]) {
     //**************** Output Printing ***************************
     file_packets_trace.close();
     
-    cout << endl << "Done with simulating " << Simulator::Now().GetSeconds() << "s" << endl;
+    cout << endl << "Done with simulating " << Simulator::Now() << endl;
     
     
     Simulator::Destroy();

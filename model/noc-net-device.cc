@@ -291,7 +291,7 @@ namespace ns3 {
         }
         else if(signalName == NOCChannel::WAIT){
             m_remoteWait = signal;
-            m_remoteWaitChanged("Wait", this, m_remoteWait);            
+            m_remoteWaitChanged(NOCChannel::WAIT, this, m_remoteWait);            
         }
     }
     
@@ -314,7 +314,7 @@ namespace ns3 {
             m_channel->PropagateSignal(NOCChannel::WAIT, m_wait, this, PicoSeconds(0));
             
             //Callback to upper layers to announce the local change
-            m_localWaitChanged("Wait", this, m_wait);
+            m_localWaitChanged(NOCChannel::WAIT, this, m_wait);
         }
     }
     
