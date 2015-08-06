@@ -138,13 +138,13 @@ main(int argc, char *argv[]) {
     
     // 1GHz
     my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(false));
-    my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate("1Gbps")));
+    my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate("2Gbps")));
 //    my_grid_network_helper.SetDeviceAttribute("PacketDuration", TimeValue(PicoSeconds(1000.0)));
     /*
      *How much neighboring node's clock is shifted. This delays the reading
      * once by this value, if the packet is in parallel in series.
      */ 
-    my_grid_network_helper.SetDeviceAttribute("ClockSkew", DoubleValue(0.5));    
+//    my_grid_network_helper.SetDeviceAttribute("ClockSkew", DoubleValue(0.5));    
     
     /*
      *TODO: Drift should be a rate in which every node's clock get shifted. Happens
@@ -185,7 +185,7 @@ main(int argc, char *argv[]) {
 //            my_ep_app->ScheduleDataWrites(1, MicroSeconds(0), 3, 3);
         }
         else if ((x == 3) && (y == 3)){ //All to one example
-            my_ep_app->ScheduleDataWrites(10, PicoSeconds(0), 0, 0);
+            my_ep_app->ScheduleDataWrites(1, PicoSeconds(0), 0, 0);
         }
 
         //Setup router
