@@ -33,19 +33,19 @@
 #include "ns3/ptr.h"
 
 //#include "noc-application.h"
-#include "noc-header.h"
+#include "xdense-header.h"
 #include "noc-net-device.h"
-#include "noc-switch.h"
+#include "noc-router.h"
 #include "noc-types.h"
 #include "sensor.h"
 #include "calc.h"
 #include "sensor-data-io.h"
 
-#define DIR_ALL         0b00001111
-#define DIR_RIGHT       0b00000001
-#define DIR_DOWN        0b00000010
-#define DIR_LEFT        0b00000100
-#define DIR_UP          0b00001000
+//#define DIR_ALL         0b00001111
+//#define DIR_RIGHT       0b00000001
+//#define DIR_DOWN        0b00000010
+//#define DIR_LEFT        0b00000100
+//#define DIR_UP          0b00001000
 
 
 namespace ns3 {
@@ -59,8 +59,8 @@ namespace ns3 {
              IsClusterHead;
         uint32_t MaxHops, 
                 MaxTransmissionTime,
-                EventsDetectedCount,
-                EventsAnnouncedCount,
+//                EventsDetectedCount,
+//                EventsAnnouncedCount,
                 SensorValueLast,
                 MinNeighborhood,
                 SamplingCycles,
@@ -84,7 +84,7 @@ namespace ns3 {
         void EventAnnouncement(EventRef);
         bool EventAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port);
 
-        uint8_t RouteTo(NodeRef);
+        
         NodeRef NearestClusterHead(void);
 
         void ScheduleValueAnnouncement(uint8_t n_times, Time period);
@@ -130,7 +130,7 @@ namespace ns3 {
         bool m_running;
         vector<EventRef> m_lastEvents;
 
-        Ptr<NOCSwitch> m_switch;
+        Ptr<NOCRouter> m_router;
     };
 
 }

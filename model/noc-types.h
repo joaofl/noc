@@ -103,7 +103,7 @@ typedef struct {
 //    uint8_t id;
 //}NOCNetDeviceAddress;
 
-typedef uint16_t NOCNetDeviceAddress;
+//typedef uint16_t NOCNetDeviceAddress;
 
 #endif	/* DASDAS_H */
 

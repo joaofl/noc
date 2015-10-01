@@ -24,7 +24,7 @@
 #include "ns3/assert.h"
 #include "ns3/log.h"
 #include "ns3/header.h"
-#include "noc-header.h"
+#include "xdense-header.h"
 #include "ns3/noc-types.h"
 #include "src/network/model/buffer.h"
 
@@ -59,7 +59,7 @@ namespace ns3 {
     NOCHeader::Print(std::ostream &os) const {
         //        std::string proto;
         //
-        //        switch (m_protocol) {
+        //        router (m_protocol) {
         //            case 0x0021: /* IPv4 */
         //                proto = "IP (0x0021)";
         //                break;

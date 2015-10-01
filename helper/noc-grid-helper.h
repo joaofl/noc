@@ -24,7 +24,8 @@
 #include "ns3/trace-helper.h"
 #include "ns3/mobility-module.h"
 
-#include "ns3/noc-application.h"
+//#include "ns3/noc-application.h"
+#include "ns3/noc-address.h"
 
 
 namespace ns3 {
@@ -207,17 +208,7 @@ private:
   ObjectFactory m_channelFactory;
   ObjectFactory m_remoteChannelFactory;
   ObjectFactory m_deviceFactory;
-  
-//    cmd.AddValue("size_x", "Network size in the X axe", size_x);
-//    cmd.AddValue("size_y", "Network size in the Y axe", size_y);
-//    cmd.AddValue("operational_mode", "Operate by detecting events (=1) or for sampling all the network (=0)", operational_mode);
-//    cmd.AddValue("size_neighborhood", "Neighborhood size", size_neighborhood);
-//    cmd.AddValue("sinks_n", "Network size in the X axe", sinks_n);
-//    cmd.AddValue("sampling_cycles", "The number of times each node should sample its sensor, and perform data exchange", sampling_cycles);
-//    cmd.AddValue("sampling_period", "The period between each sensor sampling [us]", sampling_period);
-//    cmd.AddValue("log_start_at_period", "The period from witch logging starts", log_start_at_period);
-//    cmd.AddValue("baudrate", "The baudrate of the node's communication ports [kbps]", baudrate);
-//    cmd.AddValue("io_data_dir", "Directory with the I/O simulation data", io_data_dir);
+ 
   
   uint32_t m_sizeX, m_sizeY, m_baudrate, m_channelCount, m_queueSize, m_nodesCreated;
   std::string m_topology; //"Grid" only for now

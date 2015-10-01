@@ -19,12 +19,19 @@ def build(bld):
         'model/noc-net-device.cc',
         'model/noc-channel.cc',
         'model/noc-remote-channel.cc',
-        'model/noc-header.cc',
-        'model/noc-application.cc',
-        'model/calc.cc',
+        'model/noc-router.cc',
+        'model/noc-address.cc',
+
+        'model/xdense-header.cc',
+        'model/xdense-application.cc',
+
+        'model/epiphany-header.cc',
+        'model/epiphany-application.cc',
+
         'model/sensor.cc',
-        'model/sensor-data-io.cc',
-        'model/noc-switch.cc',
+        'model/sensor-data-io.cc',        
+
+        'model/calc.cc',
         'model/fast-edge.cc',
         'model/imageio.cc'
         ]
@@ -42,13 +49,20 @@ def build(bld):
         'model/noc-net-device.h',
         'model/noc-channel.h',
         'model/noc-remote-channel.h',
-        'model/noc-header.h',
-        'model/noc-application.h',
-        'model/calc.h',
-        'model/sensor.h',
+        'model/noc-address.h',
         'model/noc-types.h',
-        'model/noc-switch.h',
+        'model/noc-router.h',
+
+        'model/xdense-header.h',
+        'model/xdense-application.h',
+
+        'model/epiphany-header.h',
+        'model/epiphany-application.h',
+
+        'model/sensor.h',
         'model/sensor-data-io.h',
+
+        'model/calc.h',
         'model/fast-edge.h',
         'model/imageio.h'
         ]

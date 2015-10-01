@@ -33,9 +33,9 @@
 #include "ns3/nstime.h"
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
-#include "ns3/mac48-address.h"
 #include "ns3/boolean.h"
-#include "noc-types.h"
+
+#include "noc-address.h"
 
 namespace ns3 {
 
@@ -51,7 +51,7 @@ namespace ns3 {
     /**
      * \ingroup point-to-point
      * \class NOCNetDevice
-     * \brief A Device for a Point to Point Network Link.
+     * \brief A Simple Device for a Point to Point Network Link.
      *
      * This NOCNetDevice class specializes the NetDevice abstract
      * base class.  Together with a NOCChannel (and a peer 
@@ -66,18 +66,12 @@ namespace ns3 {
         static TypeId GetTypeId(void);
 
 
-//        uint32_t PacketsReceived;
-//        uint32_t PacketsReceivedP1;
-//        uint32_t PacketsReceivedP2;
-//        uint32_t PacketsReceivedP3;
-//
-//        uint32_t PacketsSent;
-//        uint32_t PacketsSentP1;
-//        uint32_t PacketsSentP2;
-//        uint32_t PacketsSentP3;
-        
         uint32_t queue_size_prioritized;
         uint32_t queue_size;
+        
+        typedef Callback< void, Ptr<const Packet>, uint16_t > SignalChanged;
+        
+        void SetSignalReadCallback (SignalChanged);
 
         /**
          * Construct a NOCNetDevice
@@ -149,6 +143,15 @@ namespace ns3 {
          * @param em Ptr to the ErrorModel.
          */
         void SetReceiveErrorModel(Ptr<ErrorModel> em);
+        
+        
+        void RemoteSignalChanged(uint8_t signalName, bool);
+//
+        bool GetRemoteWait(void);
+        
+        bool GetLocalWait(void);
+        
+        void SetLocalWait(bool);     
 
         /**
          * Receive a packet from a connected NOCChannel.
@@ -163,7 +166,7 @@ namespace ns3 {
          */
         void Receive(Ptr<Packet> p);
         
-        void ReceiveSignal(Ptr<Packet> p);
+//        void ReceiveSignal(Ptr<Packet> p);
 
         /**
          * Sends a packet without the need of informing destination and protocol n.
@@ -180,10 +183,28 @@ namespace ns3 {
          */
         bool Send(Ptr<Packet> packet, uint8_t priority);
         
-        bool SendSignal(Ptr<Packet> packet);
+//        bool SendSignal(Ptr<Packet> packet);
 
-        void SetNOCAddress(NOCNetDeviceAddress);
-        NOCNetDeviceAddress GetNOCAddress(void);
+//        void SetNOCAddress(NOCAddress);
+//        NOCAddress GetNOCAddress(void);
+        
+//        typedef Callback< void, Ptr<const Packet>, uint16_t > ReceiveCallback;
+        virtual void SetReceiveCallback(ReceiveCallback cb);
+        
+        
+        
+//        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<NOCNetDevice>, uint8_t > RemoteTransmissionStartedCallback;
+        
+        
+        
+//        void AddRemoteTransmitStartedCallback(RemoteTransmissionStartedCallback callback);
+        
+        typedef Callback< void, uint8_t, Ptr<NOCNetDevice>, bool > SignalChangedCallback;
+        
+        void SetRemoteSignalChangedCallback(SignalChangedCallback);
+        
+        void SetLocalSignalChangedCallback(SignalChangedCallback);
+        
 
         // The remaining methods are documented in ns3::NetDevice*
 
@@ -220,10 +241,8 @@ namespace ns3 {
 
         virtual bool NeedsArp(void) const;
 
-        virtual void SetReceiveCallback(NetDevice::ReceiveCallback cb);
-
-        virtual void SetReceiveSignalCallback(NetDevice::ReceiveCallback cb);
         
+
         virtual Address GetMulticast(Ipv6Address addr) const;
 
         virtual void SetPromiscReceiveCallback(PromiscReceiveCallback cb);
@@ -239,8 +258,10 @@ namespace ns3 {
 
         virtual void DoDispose(void);
 
+        
+        
     private:
-
+        
         /**
          * \returns the address of the remote device connected to this device
          * through the point to point channel.
@@ -305,7 +326,9 @@ namespace ns3 {
          */
         TxMachineState m_txMachineState;
         
-        TxMachineState m_txSignalMachineState;
+        
+        
+//        TxMachineState m_txSignalMachineState;
 
         /**
          * The data rate that the Net Device uses to simulate packet transmission
@@ -481,15 +504,23 @@ namespace ns3 {
         TracedCallback<Ptr<const Packet> > m_promiscSnifferTrace;
 
         Ptr<Node> m_node;
-        Mac48Address m_address;
+        NOCAddress m_address;
         NetDevice::ReceiveCallback m_rxCallback;
         NetDevice::PromiscReceiveCallback m_promiscCallback;
         bool m_serialComm;
         
-        NetDevice::ReceiveCallback m_rxSignalCallback;
+        double_t m_clockSkew;
         
         uint32_t m_ifIndex;
         bool m_linkUp;
+        
+        bool m_wait, m_remoteWait;
+        
+//        
+//        RemoteTransmissionStartedCallback m_transmissionStartedCallback;
+        
+        SignalChangedCallback m_localWaitChanged, m_remoteWaitChanged;
+        
         TracedCallback<> m_linkChangeCallbacks;
 
         static const uint16_t DEFAULT_MTU = 1500;
@@ -502,9 +533,11 @@ namespace ns3 {
          */
         uint32_t m_mtu;
 
-        NOCNetDeviceAddress m_noc_netdevice_address;
+        NOCAddress m_noc_address;
 
         Ptr<Packet> m_currentPkt;
+        
+//        NOCReceiveCallback m_receiveCallback;
 
     };
 

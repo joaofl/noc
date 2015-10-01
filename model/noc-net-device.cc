@@ -24,15 +24,16 @@
 #include "ns3/log.h"
 #include "ns3/queue.h"
 #include "ns3/simulator.h"
-#include "ns3/mac48-address.h"
 #include "ns3/llc-snap-header.h"
 #include "ns3/error-model.h"
 #include "ns3/trace-source-accessor.h"
 #include "ns3/uinteger.h"
+#include "ns3/double.h"
 #include "ns3/pointer.h"
+
+#include "noc-address.h"
 #include "noc-net-device.h"
 #include "noc-channel.h"
-#include "noc-header.h"
 
 NS_LOG_COMPONENT_DEFINE("NOCNetDevice");
 
@@ -46,12 +47,13 @@ namespace ns3 {
         static TypeId tid = TypeId("ns3::NOCNetDevice")
                 .SetParent<NetDevice> ()
                 .AddConstructor<NOCNetDevice> ()
+                
                 .AddAttribute("Mtu", "The MAC-level Maximum Transmission Unit",
                 UintegerValue(DEFAULT_MTU),
                 MakeUintegerAccessor(&NOCNetDevice::SetMtu,
                 &NOCNetDevice::GetMtu),
                 MakeUintegerChecker<uint16_t> ())
-        
+         
                 .AddAttribute("SerialComm",
                 "If the NetDevice uses serial or parallel communication",
                 BooleanValue(true),
@@ -60,13 +62,13 @@ namespace ns3 {
         
                 .AddAttribute("Address",
                 "The MAC address of this device.",
-                Mac48AddressValue(Mac48Address("ff:ff:ff:ff:ff:ff")),
-                MakeMac48AddressAccessor(&NOCNetDevice::m_address),
-                MakeMac48AddressChecker())
+                NOCAddressValue(NOCAddress()),
+                MakeNOCAddressAccessor(&NOCNetDevice::m_address),
+                MakeNOCAddressChecker())
         
                 .AddAttribute("DataRate",
                 "The default data rate for point to point links",
-                DataRateValue(DataRate("32768b/s")),
+                DataRateValue(DataRate("1Mb/s")),
                 MakeDataRateAccessor(&NOCNetDevice::m_bps),
                 MakeDataRateChecker())
                 .AddAttribute("ReceiveErrorModel",
@@ -81,6 +83,23 @@ namespace ns3 {
                 MakeTimeAccessor(&NOCNetDevice::m_tInterframeGap),
                 MakeTimeChecker())
 
+//                .AddAttribute("ClockDrift",
+//                "The delay caused by the clock drift between two hops",
+//                TimeValue(Seconds(0.0)),
+//                MakeTimeAccessor(&NOCNetDevice::m_clockDrift),
+//                MakeTimeChecker())   
+        
+                .AddAttribute("ClockSkew",
+                "A factor that define how much each node's clock is skewed compared to a reference (value between 0 and 1 (0 and 100%))",
+                DoubleValue(0),
+                MakeDoubleAccessor(&NOCNetDevice::m_clockSkew),
+                MakeDoubleChecker<double_t>()) 
+        
+//                .AddAttribute("PacketDuration",
+//                "The time the packet takes to be transmitted",
+//                TimeValue(PicoSeconds(1500.0)),
+//                MakeTimeAccessor(&NOCNetDevice::m_packetDuration),
+//                MakeTimeChecker())
                 //
                 // Transmit queueing discipline for the device which includes its own set
                 // of trace hooks.
@@ -97,18 +116,22 @@ namespace ns3 {
                 //
                 .AddTraceSource("MacTx",
                 "Trace source indicating a packet has arrived for transmission by this device",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_macTxTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macTxTrace),
+                "ns3::NOCNetDevice::MacTxTrace")
                 .AddTraceSource("MacTxDrop",
                 "Trace source indicating a packet has been dropped by the device before transmission",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_macTxDropTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macTxDropTrace),
+                "ns3::NOCNetDevice::MacTxDropTrace")
                 .AddTraceSource("MacPromiscRx",
                 "A packet has been received by this device, has been passed up from the physical layer "
                 "and is being forwarded up the local protocol stack.  This is a promiscuous trace,",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_macPromiscRxTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macPromiscRxTrace),
+                "ns3::NOCNetDevice::MacPromiscRxTrace")
                 .AddTraceSource("MacRx",
                 "A packet has been received by this device, has been passed up from the physical layer "
                 "and is being forwarded up the local protocol stack.  This is a non-promiscuous trace,",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_macRxTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macRxTrace),
+                "ns3::NOCNetDevice::MacRxTrace")
 #if 0
                 // Not currently implemented for this device
                 .AddTraceSource("MacRxDrop",
@@ -116,18 +139,21 @@ namespace ns3 {
                 MakeTraceSourceAccessor(&NOCNetDevice::m_macRxDropTrace))
 #endif
                 //
-                // Trace souces at the "bottom" of the net device, where packets transition
+                // Trace sources at the "bottom" of the net device, where packets transition
                 // to/from the channel.
                 //
                 .AddTraceSource("PhyTxBegin",
                 "Trace source indicating a packet has begun transmitting over the channel",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxBeginTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxBeginTrace),
+                "ns3::NOCNetDevice::PhyTxBegin")
                 .AddTraceSource("PhyTxEnd",
                 "Trace source indicating a packet has been completely transmitted over the channel",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxEndTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxEndTrace),
+                "ns3::NOCNetDevice::PhyTxEnd")
                 .AddTraceSource("PhyTxDrop",
                 "Trace source indicating a packet has been dropped by the device during transmission",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxDropTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyTxDropTrace),
+                "ns3::NOCNetDevice::PhyTxDrop")
 #if 0
                 // Not currently implemented for this device
                 .AddTraceSource("PhyRxBegin",
@@ -136,10 +162,13 @@ namespace ns3 {
 #endif
                 .AddTraceSource("PhyRxEnd",
                 "Trace source indicating a packet has been completely received by the device",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyRxEndTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyRxEndTrace),
+                "ns3::NOCNetDevice::PhyRxEnd")
+        
                 .AddTraceSource("PhyRxDrop",
                 "Trace source indicating a packet has been dropped by the device during reception",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_phyRxDropTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_phyRxDropTrace),
+                "ns3::NOCNetDevice::PhyRxDrop")
 
                 //
                 // Trace sources designed to simulate a packet sniffer facility (tcpdump).
@@ -148,10 +177,13 @@ namespace ns3 {
                 //
                 .AddTraceSource("Sniffer",
                 "Trace source simulating a non-promiscuous packet sniffer attached to the device",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_snifferTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_snifferTrace),
+                "ns3::NOCNetDevice::Sniffer")
+        
                 .AddTraceSource("PromiscSniffer",
                 "Trace source simulating a promiscuous packet sniffer attached to the device",
-                MakeTraceSourceAccessor(&NOCNetDevice::m_promiscSnifferTrace))
+                MakeTraceSourceAccessor(&NOCNetDevice::m_promiscSnifferTrace),
+                "ns3::NOCNetDevice::PromiscSniffer")
                 ;
         return tid;
     }
@@ -161,6 +193,8 @@ namespace ns3 {
     m_txMachineState(READY),
     m_channel(0),
     m_linkUp(false),
+    m_wait(false),
+    m_remoteWait(false),
     m_currentPkt(0) {
         NS_LOG_FUNCTION(this);
         queue_size_prioritized = 0;
@@ -170,32 +204,6 @@ namespace ns3 {
     NOCNetDevice::~NOCNetDevice() {
         NS_LOG_FUNCTION_NOARGS();
     }
-
-    void NOCNetDevice::SetNOCAddress(NOCNetDeviceAddress address){
-        m_noc_netdevice_address = address;
-//        m_noc_netdevice_address_group = group;
-    }
-
-    NOCNetDeviceAddress NOCNetDevice::GetNOCAddress(void) {
-        return m_noc_netdevice_address;
-    }
-
-    //    void
-    //    NOCNetDevice::AddHeader(Ptr<Packet> p, uint16_t protocolNumber) {
-    //        NS_LOG_FUNCTION_NOARGS();
-    //        NOCHeader ppp;
-    //        ppp.SetProtocol(EtherToPpp(protocolNumber));
-    //        p->AddHeader(ppp);
-    //    }
-    //
-    //    bool
-    //    NOCNetDevice::ProcessHeader(Ptr<Packet> p, uint16_t& param) {
-    //        NS_LOG_FUNCTION_NOARGS();
-    //        NOCHeader ppp;
-    //        p->RemoveHeader(ppp);
-    //        param = PppToEther(ppp.GetProtocol());
-    //        return true;
-    //    }
 
     void
     NOCNetDevice::DoDispose() {
@@ -234,20 +242,23 @@ namespace ns3 {
         m_currentPkt = p;
         m_phyTxBeginTrace(m_currentPkt);
 
-        //TODO: here, implement the waiting time in such a way that I can simulate parallel connections
-        
+        //the time required to send a single bit
+        Time oneBitTransmissionTime = PicoSeconds(m_bps.CalculateBitsTxTime(1));
         Time txTime;
         
-        if (m_serialComm == true)
-            txTime = Seconds(m_bps.CalculateTxTime( p->GetSize()));
-        else
-            //in parallel, one packet takes one cycle to be transmitted, considering
-            //that port and packet has both the same width.
-            txTime = Seconds(m_bps.CalculateTxTime( 1 ) / 8); //the time required to sendo a single bit
-        
+        if (m_serialComm == true){
+            txTime =  PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() * p->GetSize() * 8);
+            txTime += oneBitTransmissionTime * m_clockSkew;
+        }
+        else{
+//            in parallel, one packet takes one cycle to be transmitted, considering
+//            that port and packet has both the same width.
+            txTime = PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() + 
+                    oneBitTransmissionTime.GetPicoSeconds() * m_clockSkew); 
+        }
         
         Time txCompleteTime = txTime + m_tInterframeGap;
-
+        
         NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
         Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitComplete, this);
 
@@ -258,6 +269,55 @@ namespace ns3 {
         return result;
     }
 
+    void 
+    NOCNetDevice::SetRemoteSignalChangedCallback(SignalChangedCallback cb){
+        m_remoteWaitChanged = cb;
+    }
+
+    void 
+    NOCNetDevice::SetLocalSignalChangedCallback(SignalChangedCallback cb){
+        m_localWaitChanged = cb;
+    }
+    
+    void 
+    NOCNetDevice::RemoteSignalChanged(uint8_t signalName, bool signal){
+        if (signalName == NOCChannel::REMOTE_TRANSMISSION_STARTED){
+            /* 
+            * On the rising edge of the first bits being transmitted to this node,
+            * the wait signal is rised up to ensure no other packet is sent until
+            * the received packet is dispatched from the input buffer.
+            */
+            SetLocalWait(signal);
+        }
+        else if(signalName == NOCChannel::WAIT){
+            m_remoteWait = signal;
+            m_remoteWaitChanged(NOCChannel::WAIT, this, m_remoteWait);            
+        }
+    }
+    
+    bool
+    NOCNetDevice::GetRemoteWait(void){
+        return m_remoteWait;
+    }
+    
+    bool
+    NOCNetDevice::GetLocalWait(void) {
+        return m_wait;
+    }
+    
+    void
+    NOCNetDevice::SetLocalWait(bool wait) {
+        if (m_wait != wait){
+            m_wait = wait;
+            //This simulate a pin being risen in one device, causing an interruption
+            //in the device connected to it
+            m_channel->PropagateSignal(NOCChannel::WAIT, m_wait, this, PicoSeconds(0));
+            
+            //Callback to upper layers to announce the local change
+            m_localWaitChanged(NOCChannel::WAIT, this, m_wait);
+        }
+    }
+    
     void
     NOCNetDevice::TransmitComplete(void) {
         NS_LOG_FUNCTION_NOARGS();
@@ -379,40 +439,6 @@ namespace ns3 {
     }
 
     void
-    NOCNetDevice::ReceiveSignal(Ptr<Packet> packet) {
-        NS_LOG_FUNCTION(this << packet);
-        uint16_t protocol = 0;
-
-        // 
-        // Hit the trace hooks.  All of these hooks are in the same place in this 
-        // device becuase it is so simple, but this is not usually the case in 
-        // more complicated devices.
-        //
-        m_snifferTrace(packet);
-        m_promiscSnifferTrace(packet);
-        m_phyRxEndTrace(packet);
-
-        //
-        // Strip off the point-to-point protocol header and forward this packet
-        // up the protocol stack.  Since this is a simple point-to-point link,
-        // there is no difference in what the promisc callback sees and what the
-        // normal receive callback sees.
-        //
-        //ProcessHeader (packet->Copy(), protocol);
-
-        if (!m_promiscCallback.IsNull()) {
-            m_macPromiscRxTrace(packet);
-
-            m_promiscCallback(this, packet, protocol, GetRemote(), GetAddress(), NetDevice::PACKET_HOST);
-        }
-
-        m_macRxTrace(packet);
-
-        m_rxSignalCallback(this, packet, protocol, GetRemote());
-
-    }
-
-    void
     NOCNetDevice::NotifyLinkUp(void) {
         m_linkUp = true;
         m_linkChangeCallbacks();
@@ -441,7 +467,8 @@ namespace ns3 {
 
     void
     NOCNetDevice::SetAddress(Address address) {
-        m_address = Mac48Address::ConvertFrom(address);
+//        m_address = Mac48Address::ConvertFrom(address);
+        m_address = NOCAddress::ConvertFrom(address);
     }
 
     Address
@@ -459,25 +486,20 @@ namespace ns3 {
         m_linkChangeCallbacks.ConnectWithoutContext(callback);
     }
 
-    //
-    // This is a point-to-point device, so every transmission is a broadcast to
-    // all of the devices on the network.
-    //
-
     bool
     NOCNetDevice::IsBroadcast(void) const {
         return true;
     }
 
-    //
-    // We don't really need any addressing information since this is a 
-    // point-to-point device.  The base class NetDevice wants us to return a
-    // broadcast address, so we make up something reasonable.
-    //
-
+//    
+//     We don't really need any addressing information since this is a 
+//     point-to-point device.  The base class NetDevice wants us to return a
+//     broadcast address, so we make up something reasonable.
+//    
+//
     Address
     NOCNetDevice::GetBroadcast(void) const {
-        return Mac48Address("ff:ff:ff:ff:ff:ff");
+        return NOCAddress();
     }
 
     bool
@@ -487,20 +509,20 @@ namespace ns3 {
 
     Address
     NOCNetDevice::GetMulticast(Ipv4Address multicastGroup) const {
-        return Mac48Address("01:00:5e:00:00:00");
+        return NOCAddress();
     }
 
     Address
     NOCNetDevice::GetMulticast(Ipv6Address addr) const {
         NS_LOG_FUNCTION(this << addr);
-        return Mac48Address("33:33:00:00:00:00");
+        return NOCAddress();
     }
 
     bool
     NOCNetDevice::IsPointToPoint(void) const {
         return true;
     }
-
+//
     bool
     NOCNetDevice::IsBridge(void) const {
         return false;
@@ -511,49 +533,7 @@ namespace ns3 {
             Ptr<Packet> packet,
             const Address &dest,
             uint16_t protocolNumber) {
-        NS_LOG_FUNCTION_NOARGS();
-        NS_LOG_LOGIC("p=" << packet << ", dest=" << &dest);
-        NS_LOG_LOGIC("UID is " << packet->GetUid());
-
-        //
-        // If IsLinkUp() is false it means there is no channel to send any packet 
-        // over so we just hit the drop trace on the packet and return an error.
-        //
-        if (IsLinkUp() == false) {
-            m_macTxDropTrace(packet);
-            return false;
-        }
-
-        //
-        // Stick a point to point protocol header on the packet in preparation for
-        // shoving it out the door.
-        //
-        //AddHeader(packet, protocolNumber);
-
-        m_macTxTrace(packet);
-
-        //
-        // If there's a transmission in progress, we enque the packet for later
-        // transmission; otherwise we send it now.
-        //
-        if (m_txMachineState == READY) {
-            // 
-            // Even if the transmitter is immediately available, we still enqueue and
-            // dequeue the packet to hit the tracing hooks.
-            //
-            if (m_queue->Enqueue(packet) == true) {
-                packet = m_queue->Dequeue();
-                m_snifferTrace(packet);
-                m_promiscSnifferTrace(packet);
-                return TransmitStart(packet);
-            } else {
-                // Enqueue may fail (overflow)
-                m_macTxDropTrace(packet);
-                return false;
-            }
-        } else {
-            return m_queue->Enqueue(packet);
-        }
+        return false;
     }
 
     bool
@@ -579,28 +559,22 @@ namespace ns3 {
             m_macTxDropTrace(packet);
             return false;
         }
-
-        //
-        // Stick a point to point protocol header on the packet in preparation for
-        // shoving it out the door.
-        //
-        //AddHeader (packet, protocolNumber);
-
-        m_macTxTrace(packet);
-
-
         //
         // If there's a transmission in progress, we enque the packet for later
         // transmission; otherwise we send it now.
         //
         if (m_txMachineState == READY) {
 
+            //TODO: change queue to an array of queue, so multiple priorities
+            //can be utilized
             if (priority > 0) {
                 if (m_queue_prioritized->Enqueue(packet) == true) {
                     queue_size_prioritized = m_queue_prioritized->GetNPackets();
                     packet = m_queue_prioritized->Dequeue();
                     m_snifferTrace(packet);
                     m_promiscSnifferTrace(packet);
+                    m_macTxTrace(packet);
+                    
                     return TransmitStart(packet);
                 } else {
                     // Enqueue may fail (overflow)
@@ -640,26 +614,6 @@ namespace ns3 {
     }
 
     bool
-    NOCNetDevice::SendSignal(Ptr<Packet> packet) {
-
-        // If there's a transmission in progress, we enque the packet for later
-        // transmission; otherwise we send it now.
-        //
-        if (m_txSignalMachineState == READY) {
-            // 
-            // Even if the transmitter is immediately available, we still enqueue and
-            // dequeue the packet to hit the tracing hooks.
-            //            //
-            //            if (m_signal_queue->Enqueue(packet) == true) {
-            //                packet = m_signal_queue->Dequeue();
-            //                m_snifferTrace(packet);
-            //                m_promiscSnifferTrace(packet);
-            return SendSignal(packet);
-        }
-        return false;
-    }
-
-    bool
     NOCNetDevice::SendFrom(Ptr<Packet> packet,
             const Address &source,
             const Address &dest,
@@ -683,13 +637,8 @@ namespace ns3 {
     }
 
     void
-    NOCNetDevice::SetReceiveCallback(NetDevice::ReceiveCallback cb) {
+    NOCNetDevice::SetReceiveCallback(NOCNetDevice::ReceiveCallback cb) {
         m_rxCallback = cb;
-    }
-
-    void
-    NOCNetDevice::SetReceiveSignalCallback(NetDevice::ReceiveCallback cb) {
-        m_rxSignalCallback = cb;
     }
 
     void
@@ -733,26 +682,6 @@ namespace ns3 {
         NS_LOG_FUNCTION_NOARGS();
         return m_mtu;
     }
-
-    //    uint16_t
-    //    NOCNetDevice::PppToEther(uint16_t proto) {
-    //        switch (proto) {
-    //            case 0x0021: return 0x0800; //IPv4
-    //            case 0x0057: return 0x86DD; //IPv6
-    //            default: NS_ASSERT_MSG(false, "PPP Protocol number not defined!");
-    //        }
-    //        return 0;
-    //    }
-    //
-    //    uint16_t
-    //    NOCNetDevice::EtherToPpp(uint16_t proto) {
-    //        switch (proto) {
-    //            case 0x0800: return 0x0021; //IPv4
-    //            case 0x86DD: return 0x0057; //IPv6
-    //            default: NS_ASSERT_MSG(false, "PPP Protocol number not defined!");
-    //        }
-    //        return 0;
-    //    }
 
 
 } // namespace ns3

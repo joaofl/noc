@@ -55,6 +55,12 @@ class NOCChannel : public Channel
 public:
   static TypeId GetTypeId (void);
 
+  enum WireSignals
+  {
+      REMOTE_TRANSMISSION_STARTED,
+      WAIT
+  };
+  
   /**
    * \brief Create a NOCChannel
    *
@@ -78,7 +84,8 @@ public:
    */
   virtual bool TransmitStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
   
-  virtual bool TransmitSignalStart (Ptr<Packet> p, Ptr<NOCNetDevice> src, Time txTime);
+  
+  void PropagateSignal (uint8_t singnalName, bool signal, Ptr<NOCNetDevice> src, Time txTime);
   
   /**
    * \brief Get number of devices on this channel
@@ -99,6 +106,7 @@ public:
    * \returns Ptr to NetDevice requested
    */
   virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
+  
 
 protected:
   /*
@@ -113,6 +121,8 @@ protected:
    */
   bool IsInitialized (void) const;
 
+  
+  
   /*
    * \brief Get the net-device source 
    * \param i the link requested
@@ -163,15 +173,15 @@ private:
   
   class Link
   {
-public:
-    Link() : m_state (INITIALIZING), m_src (0), m_dst (0) {}
-    WireState                  m_state;
-    Ptr<NOCNetDevice> m_src;
-    Ptr<NOCNetDevice> m_dst;
+    public:
+        Link() : m_state (INITIALIZING), m_src (0), m_dst (0) {}
+        WireState         m_state;
+//        WaitWireState     m_wait;
+        Ptr<NOCNetDevice> m_src;
+        Ptr<NOCNetDevice> m_dst;
   };
 
   Link    m_link[N_DEVICES];
-  Link    m_signal_link[N_DEVICES];
 };
 
 } // namespace ns3
