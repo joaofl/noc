@@ -16,7 +16,7 @@ class noc_ui(QtGui.QMainWindow, form_class):
         super(noc_ui, self).__init__()
         self.setupUi(self)
 
-        # self.pbGenerateConfig.clicked.connect(self.pbGenerateConfig_clicked)
+        self.pbGenerateConfig.clicked.connect(self.pbGenerateConfig_clicked)
 
         self.show()
 

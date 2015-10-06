@@ -63,8 +63,19 @@
      <height>504</height>
     </size>
    </property>
+   <property name="font">
+    <font>
+     <weight>50</weight>
+     <bold>false</bold>
+     <underline>false</underline>
+     <kerning>true</kerning>
+    </font>
+   </property>
    <property name="features">
     <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>   Simulation input parameters</string>
@@ -378,7 +389,7 @@
   </action>
   <action name="actionPacket_tracer">
    <property name="text">
-    <string>Packet tracer</string>
+    <string>Flow tracer</string>
    </property>
   </action>
  </widget>
