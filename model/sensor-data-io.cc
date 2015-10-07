@@ -88,7 +88,7 @@ int mkpath(const char *path, mode_t mode)
 namespace ns3 {
 
     uint8_t
-    UNSInputData::LoadFromFile(string fn) {
+    NOCInputData::LoadFromFile(string fn) {
 
         //        float data[38][27];
         ifstream file(fn.c_str());
@@ -133,7 +133,7 @@ namespace ns3 {
         return r;
     }
     
-    uint32_t UNSInputData::ReadNode(uint32_t t, uint32_t x, uint32_t y) {
+    uint32_t NOCInputData::ReadNode(uint32_t t, uint32_t x, uint32_t y) {
         //
         //        vector<uint32_t> line;
         //        uint32_t data;

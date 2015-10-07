@@ -16,40 +16,39 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: João Loureiro <joflo@isep.ipp.pt>
- * 
  */
 
-#ifndef SENSOR_H
-#define SENSOR_H
+#ifndef NOCHEADER_H
+#define	NOCHEADER_H
 
-#include "ns3/core-module.h"
-#include "ns3/applications-module.h"
-//#include <gsl/gsl_rng.h>
-#include <stdio.h>
-#include "noc-types.h"
-#include "sensor-data-io.h"
+#include "ns3/header.h"
 
 namespace ns3 {
-
-    class SENSOR : public Application {
+    class NOCHeader : public Header  {
     public:
-        
-        Coordinate SensorPosition;
-        
-        NOCInputData * InputData;
-        
-        uint32_t ReadSensor(void);
-        
-        SENSOR();
-        virtual ~SENSOR();
-    private:
-       virtual void StartApplication(void);
-        virtual void StopApplication(void);
+        /**
+         * \brief Construct a NoC header.
+         */
+        EpiphanyHeader();
 
-        bool m_running;
-        uint32_t m_time_instant;
-        EventId m_sendEvent;
-    };
+        /**
+         * \brief Destroy the NoC header.
+         */
+        virtual ~EpiphanyHeader();
+        
+        static TypeId GetTypeId(void);
+        virtual TypeId GetInstanceTypeId(void) const;
+        virtual void Print(std::ostream &os) const;
+        virtual void Serialize(Buffer::Iterator start) const;
+        virtual uint32_t Deserialize(Buffer::Iterator start);
+        virtual uint32_t GetSerializedSize(void) const;
+        
+        
+    private:
+
+    };    
 }
-#endif
+
+
+#endif	/* NOCHEADER_H */
 

@@ -82,18 +82,21 @@ namespace ns3 {
             DIRECTION_MASK_W   = 0b00000100, //west
             DIRECTION_MASK_N   = 0b00001000, //north
             DIRECTION_MASK_L   = 0b00010000, //north
-            DIRECTION_MASK_ALL = 0b00011111
+            DIRECTION_MASK_ALL = 0b00011111,
+            DIRECTION_MASK_ALL_EXCEPT_LOCAL = 0b00001111
+                    
         };
 
         typedef struct {
+            uint32_t unique_id; //not used so far
             uint8_t cluster_id;
             uint8_t network_id;
             uint8_t direction;
             bool    wait;
             bool    wait_remote;
             Ptr<NOCNetDevice> nd_pointer;
-            Ptr<Packet> pck_buffer;
-            bool pck_buffered;
+//            Ptr<Packet> pck_buffer;
+//            bool pck_buffered;
         }NetDeviceInfo;
         
         NOCRouter();

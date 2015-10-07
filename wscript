@@ -21,6 +21,7 @@ def build(bld):
         'model/noc-remote-channel.cc',
         'model/noc-router.cc',
         'model/noc-address.cc',
+        'model/noc-header.cc',
 
         'model/xdense-header.cc',
         'model/xdense-application.cc',
@@ -52,6 +53,7 @@ def build(bld):
         'model/noc-address.h',
         'model/noc-types.h',
         'model/noc-router.h',
+        'model/noc-header.h',
 
         'model/xdense-header.h',
         'model/xdense-application.h',

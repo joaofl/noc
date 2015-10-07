@@ -33,6 +33,7 @@
 #include <pwd.h>
 
 #include "ns3/core-module.h"
+#include "ns3/config-store-module.h"
 #include "ns3/network-module.h"
 //#include "ns3/internet-module.h"
 #include "ns3/noc-module.h"
@@ -370,7 +371,7 @@ main(int argc, char *argv[]) {
     uint32_t n_nodes = my_node_container.GetN();
     
         //TODO: this should be done inside the sensor module
-    UNSInputData my_input_data;
+    NOCInputData my_input_data;
     if ( my_input_data.LoadFromFile(dir_input + "input-data.s.csv")  == 0){
         cout << "Error loading the input data file at " << dir_input << "input-data.s.csv";
         return -1;
