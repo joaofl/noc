@@ -18,22 +18,21 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#include "ns3/xdense-application.h"
-#include "ns3/xdense-header.h"
-#include "ns3/noc-net-device.h"
-#include "ns3/noc-router.h"
-#include "ns3/calc.h"
-#include "ns3/sensor-data-io.h"
-#include "noc-types.h"
 #include "xdense-application.h"
+#include "xdense-header.h"
+#include "noc-net-device.h"
+#include "noc-router.h"
+#include "calc.h"
+#include "sensor-data-io.h"
+#include "noc-types.h"
 
 //using namespace ns3NOCCalc;
 using namespace std;
 namespace ns3 {
 
-    NS_LOG_COMPONENT_DEFINE("NOCApplication");
+    NS_LOG_COMPONENT_DEFINE("XDenseApplication");
 
-    NOCApp::NOCApp()
+    XDenseApp::XDenseApp()
     :
     //    m_packetSize(0),
     m_nPackets(0),
@@ -46,18 +45,18 @@ namespace ns3 {
     {
     }
 
-    NOCApp::~NOCApp() {
+    XDenseApp::~XDenseApp() {
         //  m_socket = 0;
     }
 
     //    void
-    //    NOCApp::Setup(bool IsSink) {
+    //    XDenseApp::Setup(bool IsSink) {
     //        IsSink = IsSink;
     //
     //    }
 
     void
-    NOCApp::StartApplication(void) {
+    XDenseApp::StartApplication(void) {
 
         TimeStartOffset = Seconds(1);
         // this is all the possible neighbors. it excludes the nodes in the edges,
@@ -86,7 +85,7 @@ namespace ns3 {
         m_router = this->GetNode()->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
 
         if (IsSink == true) {
-            Simulator::Schedule(TimeStartOffset, &NOCApp::NetworkDiscovery, this);
+            Simulator::Schedule(TimeStartOffset, &XDenseApp::NetworkDiscovery, this);
 
             SinkReceivedData = CreateObject<NOCOutputData> ();
         }
@@ -96,7 +95,7 @@ namespace ns3 {
     }
 
     void
-    NOCApp::StopApplication(void) {
+    XDenseApp::StopApplication(void) {
         m_running = false;
 
         //        if (m_sendEvent.IsRunning()) {
@@ -105,37 +104,37 @@ namespace ns3 {
     }
 
     void
-    NOCApp::ScheduleValueAnnouncement(uint8_t n_times, Time period) {
+    XDenseApp::ScheduleValueAnnouncement(uint8_t n_times, Time period) {
 
         for (uint8_t i = 0; i < n_times; i++) {
             Time t = MilliSeconds(period.GetMilliSeconds() * i + TimeStartOffset.GetMilliSeconds() + period.GetMilliSeconds());
-            Simulator::Schedule(t, &NOCApp::ValueAnnouncement, this);
+            Simulator::Schedule(t, &XDenseApp::ValueAnnouncement, this);
         }
 
     }
 
     NodeRef
-    NOCApp::GetSinkAt(uint8_t i) {
+    XDenseApp::GetSinkAt(uint8_t i) {
         return m_sinksList.at(i);
     }
 
     uint8_t
-    NOCApp::GetSinkN(void) {
+    XDenseApp::GetSinkN(void) {
         return m_sinksList.size();
     }
 
     NodeRef
-    NOCApp::GetNeighborAt(uint8_t i) {
+    XDenseApp::GetNeighborAt(uint8_t i) {
         return m_neighborsList.at(i);
     }
 
     uint8_t
-    NOCApp::GetNeighborN(void) {
+    XDenseApp::GetNeighborN(void) {
         return m_neighborsList.size();
     }
 
     uint8_t
-    NOCApp::DetectEvents(void) { //gets the array with all the neighbors data
+    XDenseApp::DetectEvents(void) { //gets the array with all the neighbors data
         EventRef er;
         DataFit p;
         uint8_t count = 0;
@@ -271,7 +270,7 @@ namespace ns3 {
 
 
 
-    NodeRef NOCApp::NearestClusterHead(void) {
+    NodeRef XDenseApp::NearestClusterHead(void) {
         NodeRef nr;
         
         if (MaxHops == 0) //if I'm reading from all nodes, there is no cluster head
@@ -313,7 +312,7 @@ namespace ns3 {
     }
 
     void
-    NOCApp::NetworkDiscovery() {
+    XDenseApp::NetworkDiscovery() {
 
         if (IsSink == true) {
 
@@ -322,7 +321,7 @@ namespace ns3 {
             me.y = 0;
             m_sinksList.push_back(me);
 
-            NOCHeader hd;
+            XDenseHeader hd;
             hd.CurrentX = 0;
             hd.CurrentY = 0;
             hd.SetNOCProtocol(P_NETWORK_DISCOVERY);
@@ -340,7 +339,7 @@ namespace ns3 {
     }
 
     bool
-    NOCApp::NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    XDenseApp::NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port) {
 
 
         //if (protocol == 1){ 
@@ -350,7 +349,7 @@ namespace ns3 {
         //            if (id == 43)
         //                cout << id;
 
-        NOCHeader hd;
+        XDenseHeader hd;
         pck->PeekHeader(hd);
 
         bool IsPresent = false;
@@ -367,7 +366,7 @@ namespace ns3 {
         if (IsPresent == false) {
             //            if (m_sinksList.size() == 0)
             //                ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US)); //Schedule the values announcements once, 
-            //Simulator::Schedule(Seconds(1), &NOCApp::EventAnnouncement, this, 700);
+            //Simulator::Schedule(Seconds(1), &XDenseApp::EventAnnouncement, this, 700);
 
             //when the first sinks is discovered
 
@@ -392,7 +391,7 @@ namespace ns3 {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void
-    NOCApp::ValueAnnouncement(void) {
+    XDenseApp::ValueAnnouncement(void) {
 
 
         //        uint32_t id = this->GetNode()->GetId();
@@ -403,7 +402,7 @@ namespace ns3 {
         if (IsSink == false) {
             Ptr<SENSOR> sensor = this->GetNode()->GetApplication(INSTALLED_SENSOR)->GetObject<SENSOR>();
 
-            NOCHeader hd;
+            XDenseHeader hd;
             hd.CurrentX = 0;
             hd.CurrentY = 0;
             hd.SensorValue = sensor->ReadSensor();
@@ -468,7 +467,7 @@ namespace ns3 {
 
 
     bool
-    NOCApp::ValueAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    XDenseApp::ValueAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
 
         bool IsPresent = false;
         uint8_t i;
@@ -476,7 +475,7 @@ namespace ns3 {
         uint8_t id = this->GetNode()->GetId();
         id = id; //avoid the compiling error for unused variable
 
-        NOCHeader hd;
+        XDenseHeader hd;
         pck->PeekHeader(hd);
         
         uint8_t hops_count = abs(hd.CurrentX) + abs(hd.CurrentY);
@@ -580,7 +579,7 @@ namespace ns3 {
     }
 
     void
-    NOCApp::EventAnnouncement(EventRef er) {
+    XDenseApp::EventAnnouncement(EventRef er) {
 
         //        uint32_t id = this->GetNode()->GetId();
         //        if (id != 43 && id != 397) { //for debuging reasons
@@ -599,7 +598,7 @@ namespace ns3 {
             NodeRef sink = m_sinksList.at(0); //the sink can vary, depending on the errors count etc...
 //            uint8_t output_port = RouteTo(sink);
 
-            NOCHeader hd;
+            XDenseHeader hd;
 
             hd.CurrentX = 0; //now, this x y will be used to count in the oposite direction, in order to track the origin of the packet
             hd.CurrentY = 0;
@@ -624,14 +623,14 @@ namespace ns3 {
             // after that, it pipeline the packet towards the sink
             //m_router->SendSignal(0b00000001, DIR_DOWN); //Set bit 1 high
             //        Time t = Simulator::Now + MaxHops * MaxTransmissionTime * 1.1; //10% margin
-            //        Simulator::Schedule(t, &NOCApp::EventAnnouncementTimeOut, this);            
+            //        Simulator::Schedule(t, &XDenseApp::EventAnnouncementTimeOut, this);            
         }
 
 
     }
 
     bool
-    NOCApp::EventAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    XDenseApp::EventAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
         //The pck is transported in order to forward a packet with the same unique ID for tracing
         //prorposes
 
@@ -656,7 +655,7 @@ namespace ns3 {
 
             
 
-            NOCHeader hd;
+            XDenseHeader hd;
             pck->PeekHeader(hd);
             
             if (hd.EventType == EV_PLANE || hd.EventType == EV_CURVE) {

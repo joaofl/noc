@@ -50,7 +50,7 @@
 
 namespace ns3 {
 
-    class NOCApp : public Application {
+    class XDenseApp : public Application {
     public:
 
 
@@ -70,8 +70,8 @@ namespace ns3 {
 
         Ptr <NOCOutputData> SinkReceivedData;
         
-        NOCApp();
-        virtual ~NOCApp();
+        XDenseApp();
+        virtual ~XDenseApp();
 
         void Setup(bool IsSink);
         //void Setup ();

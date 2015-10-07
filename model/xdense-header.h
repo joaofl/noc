@@ -31,18 +31,18 @@ namespace ns3 {
      * \brief NoC generalized packet header
      *
      */
-    class NOCHeader : public Header {
+    class XDenseHeader : public Header {
     public:
 
         /**
          * \brief Construct a PPP header.
          */
-        NOCHeader();
+        XDenseHeader();
 
         /**
          * \brief Destroy a PPP header.
          */
-        virtual ~NOCHeader();
+        virtual ~XDenseHeader();
         
 //        uint8_t HopsCount;
         uint16_t SensorValue;

@@ -100,7 +100,7 @@ uint32_t start_offset;
 void
 packet_exchanged_router_sink(string context, Ptr<const Packet> pck, uint8_t direction) {
     
-    NOCHeader hd;
+    XDenseHeader hd;
     pck->PeekHeader(hd);
     if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
         file_packets_trace_sink
@@ -132,7 +132,7 @@ packet_sent_router_sink(string context, Ptr<const Packet> pck) {
 
 void
 packet_exchanged_router(string context, Ptr<const Packet> pck, uint8_t direction) {
-    NOCHeader hd;
+    XDenseHeader hd;
     pck->PeekHeader(hd);
     if (Simulator::Now().GetNanoSeconds() >= (log_start_at_period * sampling_period * 1000 + start_offset * 1000)){
         
@@ -186,7 +186,7 @@ packet_sent_router(string context, Ptr<const Packet> pck) {
 
 void
 log_packet(string context, Ptr<const Packet> pck, uint8_t direction) {
-    NOCHeader hd;
+    XDenseHeader hd;
     pck->PeekHeader(hd);
     if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
     //    if (pck->GetUid() == 104 || pck->GetUid() == 110 ) {
@@ -275,7 +275,7 @@ main(int argc, char *argv[]) {
 
     //LogComponentEnable("NOCNetDevice",LOG_LEVEL_ALL);
     //LogComponentEnable("NOCChannel",LOG_LEVEL_ALL);
-    //LogComponentEnable("NOCHeader",LOG_LEVEL_ALL);
+    //LogComponentEnable("XDenseHeader",LOG_LEVEL_ALL);
 
     
     
@@ -343,12 +343,12 @@ main(int argc, char *argv[]) {
     GridHelper my_grid_network_helper;
     my_grid_network_helper.SetNetworkAttribute("SizeX", size_x);
     my_grid_network_helper.SetNetworkAttribute("SizeY", size_y);
-    my_grid_network_helper.SetNetworkAttribute("ChannelCount", 3); //three net devices per direction
-                                                          //total 3 x 4 = 12
+    my_grid_network_helper.SetNetworkAttribute("ChannelCount", 1); //net devices per direction
+                                                          //total = n x 4
     
     my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
     my_grid_network_helper.SetDeviceAttribute("InterframeGap", TimeValue(MilliSeconds(0)));
-    my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(false));
+    my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(true));
     //If the connection is not serial, then the packet size defines the link width,
     //and one packet is transmitted in one tick of a given baudrate
 //    my_grid_network.SetDeviceAttribute("PacketSize", IntegerValue(4)); //in bytes
@@ -384,7 +384,7 @@ main(int argc, char *argv[]) {
         uint32_t x = i % size_x;
         uint32_t y = floor(i / size_y);
 
-        Ptr<NOCApp> my_noc_app = CreateObject<NOCApp> ();
+        Ptr<XDenseApp> my_noc_app = CreateObject<XDenseApp> ();
         Ptr<SENSOR> my_sensor = CreateObject<SENSOR> ();
 
         //Setup app
@@ -450,8 +450,8 @@ main(int argc, char *argv[]) {
         uint32_t x = floor((i + 1) * 2 * delta_x - delta_x);
         uint32_t y = floor((double) size_y / 2);
         uint32_t n = x + y * size_x;
-        my_noc_app_container.Get(n)->GetObject<NOCApp>()->IsSink = true;
-        my_noc_app_container.Get(n)->GetObject<NOCApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
+        my_noc_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
+        my_noc_app_container.Get(n)->GetObject<XDenseApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
         my_noc_sink_app_container.Add(my_noc_app_container.Get(n)); //container with the sinks only
         ostringstream ss;
         ss << n << "," << x << "," << y;
@@ -528,10 +528,10 @@ main(int argc, char *argv[]) {
 //        ss << "output-data-s-" << (int)s << ".csv";
 //        filename = dir_output + ss.str();
 ////        if (operational_mode == 0)
-////            (*i)->GetObject<NOCApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood); // some Application method
+////            (*i)->GetObject<XDenseApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood); // some Application method
 ////        else if (operational_mode == 1)
-////            (*i)->GetObject<NOCApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood);
-////       //     (*i)->GetObject<NOCApp>()->SinkReceivedData->WritePointsToFile(filename, size_x, size_y);
+////            (*i)->GetObject<XDenseApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood);
+////       //     (*i)->GetObject<XDenseApp>()->SinkReceivedData->WritePointsToFile(filename, size_x, size_y);
 //        cout << "Log file created at: '" << filename << "'" << endl;
 //    }
     

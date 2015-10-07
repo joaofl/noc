@@ -82,7 +82,7 @@ main(int argc, char *argv[]) {
 
     //LogComponentEnable("NOCNetDevice",LOG_LEVEL_ALL);
     //LogComponentEnable("NOCChannel",LOG_LEVEL_ALL);
-    //LogComponentEnable("NOCHeader",LOG_LEVEL_ALL);
+    //LogComponentEnable("XDenseHeader",LOG_LEVEL_ALL);
     
     // Default values
     uint32_t size_x = 4;
@@ -131,7 +131,6 @@ main(int argc, char *argv[]) {
     GridHelper my_grid_network_helper;
     my_grid_network_helper.SetNetworkAttribute("SizeX", size_x);
     my_grid_network_helper.SetNetworkAttribute("SizeY", size_y);
-    
     //three net devices per direction (c-mesh, r-mesh and )
     //total 3 x 4 = 12
     my_grid_network_helper.SetNetworkAttribute("ChannelCount", 3);

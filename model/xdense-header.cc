@@ -24,39 +24,41 @@
 #include "ns3/assert.h"
 #include "ns3/log.h"
 #include "ns3/header.h"
-#include "xdense-header.h"
-#include "ns3/noc-types.h"
 #include "src/network/model/buffer.h"
 
-NS_LOG_COMPONENT_DEFINE("NOCHeader");
+#include "xdense-header.h"
+#include "noc-types.h"
+
+
+NS_LOG_COMPONENT_DEFINE("XDenseHeader");
 
 namespace ns3 {
 
-    NS_OBJECT_ENSURE_REGISTERED(NOCHeader)
+    NS_OBJECT_ENSURE_REGISTERED(XDenseHeader)
     ;
 
-    NOCHeader::NOCHeader() {
+    XDenseHeader::XDenseHeader() {
     }
 
-    NOCHeader::~NOCHeader() {
+    XDenseHeader::~XDenseHeader() {
     }
 
     TypeId
-    NOCHeader::GetTypeId(void) {
-        static TypeId tid = TypeId("ns3::NOCHeader")
+    XDenseHeader::GetTypeId(void) {
+        static TypeId tid = TypeId("ns3::XDenseHeader")
                 .SetParent<Header> ()
-                .AddConstructor<NOCHeader> ()
+                .AddConstructor<XDenseHeader> ()
                 ;
         return tid;
     }
 
     TypeId
-    NOCHeader::GetInstanceTypeId(void) const {
+    XDenseHeader::GetInstanceTypeId(void) const {
         return GetTypeId();
     }
 
     void
-    NOCHeader::Print(std::ostream &os) const {
+    XDenseHeader::Print(std::ostream &os) const {
         //        std::string proto;
         //
         //        router (m_protocol) {
@@ -77,7 +79,7 @@ namespace ns3 {
     }
 
     uint32_t
-    NOCHeader::GetSerializedSize(void) const {
+    XDenseHeader::GetSerializedSize(void) const {
         uint8_t s = 0;
         switch (m_noc_protocol) {
             case P_NETWORK_DISCOVERY:
@@ -129,7 +131,7 @@ namespace ns3 {
     }
     
     void
-    NOCHeader::Serialize(Buffer::Iterator start) const {
+    XDenseHeader::Serialize(Buffer::Iterator start) const {
 
         switch (m_noc_protocol) {
             case P_NETWORK_DISCOVERY:
@@ -176,7 +178,7 @@ namespace ns3 {
     }
 
     uint32_t
-    NOCHeader::Deserialize(Buffer::Iterator start) {
+    XDenseHeader::Deserialize(Buffer::Iterator start) {
         
         (m_noc_protocol) = start.ReadU8();
         
@@ -219,51 +221,51 @@ namespace ns3 {
     }
 
     void
-    NOCHeader::SetNOCProtocol(uint16_t protocol) {
+    XDenseHeader::SetNOCProtocol(uint16_t protocol) {
         m_noc_protocol = protocol;
     }
 
     uint16_t
-    NOCHeader::GetNOCProtocol(void) {
+    XDenseHeader::GetNOCProtocol(void) {
         return m_noc_protocol;
     }
 
-    //    void NOCHeader::SetCurrentX(int32_t x) {
+    //    void XDenseHeader::SetCurrentX(int32_t x) {
     //        m_currentX = x;
     //    }
     //
-    //    int32_t NOCHeader::GetCurrentX(void) {
+    //    int32_t XDenseHeader::GetCurrentX(void) {
     //        return m_currentX;
     //    }
     //    
-    //    int32_t NOCHeader::AddCurrentX(int32_t n) {
+    //    int32_t XDenseHeader::AddCurrentX(int32_t n) {
     //        m_currentX += n;
     //        return m_currentX;
     //    }
     //
-    //    void NOCHeader::SetCurrentY(int32_t y) {
+    //    void XDenseHeader::SetCurrentY(int32_t y) {
     //        m_currentY = y;
     //    }
     //
-    //    int32_t NOCHeader::GetCurrentY(void) {
+    //    int32_t XDenseHeader::GetCurrentY(void) {
     //        return m_currentY;
     //    }
     //    
-    //    int32_t NOCHeader::AddCurrentY(int32_t n) {
+    //    int32_t XDenseHeader::AddCurrentY(int32_t n) {
     //        m_currentY += n;
     //        return m_currentY;
     //    }
 
-    //    void NOCHeader::SetHopsCount(uint32_t n){
+    //    void XDenseHeader::SetHopsCount(uint32_t n){
     //        m_hops_count = n;
     //    }
-    //    void NOCHeader::SetSensorValue(uint32_t n){
+    //    void XDenseHeader::SetSensorValue(uint32_t n){
     //        m_sensor_value = n;
     //    }
-    //    uint32_t NOCHeader::GetHopsCount(void){
+    //    uint32_t XDenseHeader::GetHopsCount(void){
     //        return m_hops_count;
     //    }
-    //    uint32_t NOCHeader::GetSensorValue(void){
+    //    uint32_t XDenseHeader::GetSensorValue(void){
     //        return m_sensor_value;
     //    }
 

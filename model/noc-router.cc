@@ -248,7 +248,10 @@ namespace ns3 {
         if (i >= 0)
         if (m_netDeviceInfoArray[i].pck_buffered == true){
             Ptr<Packet> pck = m_netDeviceInfoArray[i].pck_buffer;
+            
+            //TODO: how to make it flexible to other headers?
             EpiphanyHeader h;
+            
             pck->PeekHeader(h);
             
             int32_t x = h.GetDestinationAddressX();
@@ -293,10 +296,12 @@ namespace ns3 {
     }
     
     void 
-    NOCRouter::ServePacket(uint8_t in, uint8_t out) {
+    NOCRouter::ServePacket(uint8_t in, uint8_t out) 
+    {
         this->PacketSendSingle(m_netDeviceInfoArray[in].pck_buffer->Copy(),
                 m_netDeviceInfoArray[out].nd_pointer, P0);
 
+        //This are the flags, or IOs that can be used on handshaking
         m_netDeviceInfoArray[in].nd_pointer->SetLocalWait(false);
         m_netDeviceInfoArray[in].pck_buffered = false;
     }
@@ -313,10 +318,13 @@ namespace ns3 {
 //        Ptr<NOCNetDevice> nd = device->GetObject<NOCNetDevice>();
         
         uint8_t i = this->GetNetDeviceInfoIndex(network_id, output_port);
-        if (m_netDeviceInfoArray[i].pck_buffered == false){
+        if (m_netDeviceInfoArray[i].pck_buffered == false)
+        {
             m_netDeviceInfoArray[i].pck_buffer = pck->Copy();
             m_netDeviceInfoArray[i].pck_buffered = true;
             Simulator::Schedule(PicoSeconds(1000), &NOCRouter::ServePackets, this);
+            
+            return true;
         }
         else
             cout << "Packet dropped at "
