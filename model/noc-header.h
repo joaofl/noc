@@ -18,23 +18,65 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#ifndef NOCHEADER_H
-#define	NOCHEADER_H
+#ifndef EPIPHANY_HEADER_H
+#define EPIPHANY_HEADER_H
 
 #include "ns3/header.h"
+#include "noc-types.h"
+
+
+
+
+
 
 namespace ns3 {
-    class NOCHeader : public Header  {
+
+    /**
+     * \ingroup NOC
+     * \brief NoC generalized packet header
+     *
+     */
+    class NOCHeader : public Header {
     public:
+
+        /*
+         * [0:1]    0       relative addressing
+         *          1       absolute addressing
+         * 
+         * [4:7]    0000     broadcast
+         *          0001     multicast to a predefined given radius (n_hops)
+         *          0010     unicast from a single node to another
+        */
+        
+        enum NOCControlBits{
+            // [0:1]
+            ADDRESS_RELATIVE    =   0b00000000,
+            ADDRESS_ABSOLUTE    =   0b10000000,
+            
+            ADDRESS_BITMASK     =   0b11000000,
+            ADDRESS_BITSHIFT    =   6
+        };
+
+        enum NOCProtocols{
+            // [4:7]
+            PROTOCOL_BROADCAST  =   0b00000000,
+            PROTOCOL_MULTICAST  =   0b00000001,
+            PROTOCOL_UNICAST    =   0b00000010,
+            
+            PROTOCOL_BITMASK    =   0b00001111,
+            PROTOCOL_BITSHIFT    =   0
+        };        
+        
+        
         /**
          * \brief Construct a NoC header.
          */
-        EpiphanyHeader();
+        NOCHeader();
 
         /**
          * \brief Destroy the NoC header.
          */
-        virtual ~EpiphanyHeader();
+        virtual ~NOCHeader();
         
         static TypeId GetTypeId(void);
         virtual TypeId GetInstanceTypeId(void) const;
@@ -42,13 +84,60 @@ namespace ns3 {
         virtual void Serialize(Buffer::Iterator start) const;
         virtual uint32_t Deserialize(Buffer::Iterator start);
         virtual uint32_t GetSerializedSize(void) const;
+
+
+//        void SetDestinationAddress(uint8_t x, uint8_t y);
+        void SetDestinationAddress(uint32_t add);
+        
+        void SetDestinationAddressXY(int32_t x, int32_t y);
+//        void SetDestinationAddressY(int32_t x);
+//        void SetDestinationAddressX(int32_t y);
+        
+        
+//        void GetDestinationAddress(uint8_t x, uint8_t y);
+        uint32_t GetDestinationAddress(void);
+        
+        int32_t GetDestinationAddressX(void);
+        int32_t GetDestinationAddressY(void);
+        
+//        void SetSourceAddress(uint8_t x, uint8_t y);
+        void SetSourceAddress(uint32_t add);
+        
+//        void GetDestinationAddress(uint8_t x, uint8_t y);
+        uint32_t GetSourceAddress(void);
+        
+//        uint32_t ConvertXYtoAddress(uint8_t x, uint8_t y);
+//        
+//        Coordinate ConvertAddresstoXY(uint32_t address);
+        
+        uint8_t GetProtocol(void);
+        void SetProtocol(uint8_t p);
         
         
     private:
 
-    };    
-}
+        
+
+        
+        static const uint8_t m_headerSize = 13;
+        
+        uint32_t m_destAddress;
+        
+        int32_t m_destAddressX;
+        int32_t m_destAddressY;        
+        
+        uint32_t m_srcAddress;
+        
+       
+        uint8_t m_controlBits; 
+        
+        uint8_t m_protocol; 
+        
+    };
+    
+
+    
+} // namespace ns3
 
 
-#endif	/* NOCHEADER_H */
-
+#endif /* EPIPHANY_HEADER_H */

@@ -104,7 +104,7 @@ namespace ns3 {
         
         // Basic comm functions//////////////////////
 
-        bool PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol, const Address& sourceAddress);
+        bool PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> packet);
         
 //        void PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask);
         
@@ -114,7 +114,7 @@ namespace ns3 {
         
         bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y);
 
-        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops);
+        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id);
 
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
         
@@ -137,11 +137,11 @@ namespace ns3 {
         
         uint8_t GetNDevices(void);
       
-        void ServePackets(void);
-        void ServePacket(uint8_t in, uint8_t out);
+//        void ServePackets(void);
+//        void ServePacket(uint8_t in, uint8_t out);
         
-        void RemoteWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
-        void LocalWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
+//        void RemoteWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
+//        void LocalWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
  
         
         /**
@@ -154,7 +154,7 @@ namespace ns3 {
          * \returns true if the callback could handle the packet successfully, false
          *          otherwise.
          */
-        typedef Callback< void, Ptr<const Packet>, uint16_t > ReceiveCallback;
+        typedef Callback< void, Ptr<const Packet> > ReceiveCallback;
 
         /**
          * \param cb callback to invoke whenever a packet has been received and must

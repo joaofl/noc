@@ -188,8 +188,8 @@ namespace ns3 {
 //        void SetNOCAddress(NOCAddress);
 //        NOCAddress GetNOCAddress(void);
         
-//        typedef Callback< void, Ptr<const Packet>, uint16_t > ReceiveCallback;
-        virtual void SetReceiveCallback(ReceiveCallback cb);
+        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<const Packet> > ReceiveCallback;
+        void SetReceiveCallback(ReceiveCallback cb);
         
         
         
@@ -505,7 +505,7 @@ namespace ns3 {
 
         Ptr<Node> m_node;
         NOCAddress m_address;
-        NetDevice::ReceiveCallback m_rxCallback;
+        NOCNetDevice::ReceiveCallback m_rxCallback;
         NetDevice::PromiscReceiveCallback m_promiscCallback;
         bool m_serialComm;
         

@@ -449,13 +449,13 @@ namespace ns3 {
             if (MaxHops > 0) {
                 if (OperationalMode == 1) { //event detection
 //                    m_router->PacketSend(pck, DIRECTION_ALL);
-                    m_router->PacketMulticast(pck, 0, MaxHops);
+                    m_router->PacketMulticast(pck, 0);
                     
                 } 
                 else if (OperationalMode == OP_READ_ALL && IsClusterHead == 0) { //read all, send to cluster head only
 //                    uint8_t port = RouteTo(NearestClusterHead()); port=port;
 //                    m_router->PacketSend(pck, DIRECTION_ALL);
-                    m_router->PacketMulticast(pck, 0, MaxHops);
+                    m_router->PacketMulticast(pck, 0);
                 }
             }
 

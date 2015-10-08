@@ -23,7 +23,7 @@
 #include "src/core/model/object.h"
 #include "src/network/model/node.h"
 
-#include "epiphany-header.h"
+#include "noc-header.h"
 #include "noc-net-device.h"
 #include "noc-router.h"
 
@@ -82,20 +82,6 @@ namespace ns3 {
     NOCRouter::~NOCRouter() {
     }
 
-    //    void
-    //    NOCRouter::Setup(bool IsSink) {
-    //        IsSink = IsSink;
-    //
-    //    }
-
-//    void 
-//    NOCRouter::SetAttribute (std::string name, const uint8_t value){
-//        if (name.compare("ChannelCount") == 0) //Is the same
-//        {
-//            m_channelCount = value;
-//        }
-//    }
-    
     void
     NOCRouter::StartApplication(void) {
         m_running = true;
@@ -103,8 +89,8 @@ namespace ns3 {
         NetDeviceContainer::Iterator nd;
         for (nd = m_netDevices.Begin() ; nd != m_netDevices.End() ; nd++){    
             (*nd)->GetObject<NOCNetDevice>()->SetReceiveCallback(MakeCallback(&NOCRouter::PacketReceived, this));
-            (*nd)->GetObject<NOCNetDevice>()->SetRemoteSignalChangedCallback(MakeCallback(&NOCRouter::RemoteWaitChanged, this));
-            (*nd)->GetObject<NOCNetDevice>()->SetLocalSignalChangedCallback(MakeCallback(&NOCRouter::LocalWaitChanged, this));
+//            (*nd)->GetObject<NOCNetDevice>()->SetRemoteSignalChangedCallback(MakeCallback(&NOCRouter::RemoteWaitChanged, this));
+//            (*nd)->GetObject<NOCNetDevice>()->SetLocalSignalChangedCallback(MakeCallback(&NOCRouter::LocalWaitChanged, this));
         }
         
 //        Simulator::Schedule(PicoSeconds(1500), &NOCRouter::ServePackets, this);
@@ -212,103 +198,6 @@ namespace ns3 {
     ///////////////////////////////////////////////////////////////////////////
     
     
-    
-//    void 
-//    NOCRouter::ServePackets(void) {
-//
-//        //TODO: It should check which port it requires to continue its trajectory. 
-//        //if not available, it stops, and block any port which might require the same port.
-//        //this blocking should propagate till the sender.
-//        
-//        //TODO: dont know how to not specify a packet type.. It better be compatible
-//        // with any packet with attribute "DestinationAddressX"
-//        //          int32_t x = h->GetAttribute("DestinationAddressX");
-//        //          int32_t y = h->GetAttribute("DestinationAddressY");
-//        
-//        
-////        static 
-//        
-////        bool packet_served = false;
-//        uint8_t input_network = 0;
-//        
-//        int8_t i = GetNetDeviceInfoIndex(input_network, m_port_to_serve);
-//        
-//        uint8_t n_times = 0;
-//        
-//        while (m_netDeviceInfoArray[i].pck_buffered == false && n_times < 4 ){
-//            m_port_to_serve++;
-//            if (m_port_to_serve > DIRECTION_N){
-//                m_port_to_serve = DIRECTION_E;
-//            }
-//            i = GetNetDeviceInfoIndex(input_network, m_port_to_serve);
-//            n_times++;
-//        }
-//        if (n_times == 4) 
-//            return;
-//        
-//        if (i >= 0)
-//            if (m_netDeviceInfoArray[i].pck_buffered == true){
-//                Ptr<Packet> pck = m_netDeviceInfoArray[i].pck_buffer;
-//
-//                //TODO: how to make it flexible to other headers?
-//                EpiphanyHeader h;
-//
-//                pck->PeekHeader(h);
-//
-//                int32_t x = h.GetDestinationAddressX();
-//                int32_t y = h.GetDestinationAddressY();
-//
-//                uint8_t output_port = this->RouteTo(COLUMN_FIRST, x, y);
-//                int8_t o = this->GetNetDeviceInfoIndex(input_network, output_port);
-//
-//                if (output_port == DIRECTION_L){ 
-//                    //Reached its destination, send it to upper layers
-//                    m_receiveCallBack(pck->Copy(), m_port_to_serve);
-//                    //Packet was consumed, no need to wait anymore
-//                    m_netDeviceInfoArray[i].nd_pointer->SetLocalWait(false);
-//                    m_netDeviceInfoArray[i].pck_buffered = false;
-//    //                packet_served = true;
-//                }
-//                else if (o >= 0){
-//                    if (m_netDeviceInfoArray[o].wait_remote == false){
-//                        this->ServePacket(i,o);
-//    //                    packet_served = true;
-//                    }
-//                }            
-//            }
-//
-//        
-//        m_port_to_serve++;
-//        if (m_port_to_serve > DIRECTION_N){
-//            m_port_to_serve = DIRECTION_E;
-//        }
-//            
-////        }
-//        //delay one cycle here, and re-execute it if there is still packets to be sent
-//        //if no packet was sent, serve another port without delay (best effort)
-////        ServePorts();
-////        if (packet_served)
-////            packet_served = packet_served;
-////        cout << Simulator::Now() << "Packets served" << endl;
-//            Simulator::Schedule(PicoSeconds(1000), &NOCRouter::ServePackets, this);
-////        else
-////            Simulator::ScheduleNow(&NOCRouter::ServePackets, this);
-//        
-//    }
-//    
-//    void 
-//    NOCRouter::ServePacket(uint8_t in, uint8_t out) 
-//    {
-//        this->PacketSendSingle(m_netDeviceInfoArray[in].pck_buffer->Copy(),
-//                m_netDeviceInfoArray[out].nd_pointer, P0);
-//
-//        //This are the flags, or IOs that can be used on handshaking
-//        m_netDeviceInfoArray[in].nd_pointer->SetLocalWait(false);
-//        m_netDeviceInfoArray[in].pck_buffered = false;
-//    }
-//
-//    
-    
     bool NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, 
             int32_t destination_x, int32_t destination_y){
         
@@ -347,6 +236,13 @@ namespace ns3 {
     }
 
     bool NOCRouter::PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id){
+        
+        NOCHeader h;
+        
+        h.SetProtocol(NOCHeader::PROTOCOL_BROADCAST);
+        h.SetSourceAddress(0);
+        
+        pck->AddHeader(h);
         PacketSendMultiple(pck->Copy(), network_id, DIRECTION_MASK_ALL_EXCEPT_LOCAL, P0);
         return false;
     }
@@ -402,22 +298,56 @@ namespace ns3 {
     
     
     bool
-    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck, 
-                        uint16_t direction, const Address& sourceAddress) {
+    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck) {
 
         m_routerRxTrace(pck->Copy());
         
-        Ptr<NOCNetDevice> nd = device->GetObject<NOCNetDevice>();
+        NOCHeader h;
+        pck->PeekHeader(h);
         
-        uint8_t i = this->GetNetDeviceInfoIndex(nd);
-        if (m_netDeviceInfoArray[i].pck_buffered == false){
-            m_netDeviceInfoArray[i].pck_buffer = pck->Copy();
-            m_netDeviceInfoArray[i].pck_buffered = true;
-            Simulator::Schedule(PicoSeconds(1000), &NOCRouter::ServePackets, this);
+        int32_t a = h.GetDestinationAddress();
+        
+        uint8_t p = h.GetProtocol();
+        
+        cout << a << std::endl;
+        
+        switch (p){
+            case NOCHeader::PROTOCOL_BROADCAST:
+               
+               break;
+               
+            case NOCHeader::PROTOCOL_MULTICAST:
+               
+               break;
+               
+            case NOCHeader::PROTOCOL_UNICAST:
+               
+               break;
+               
+            default:
+                cout << "Protocol not identified" << std::endl;
+                break;
         }
-        else
-            cout << "Packet dropped at "
-                 << m_addressX << "," << m_addressY <<" Buffer was full" << endl;
+
+                    
+//
+//                int32_t x = h.GetDestinationAddressX();
+//                int32_t y = h.GetDestinationAddressY();
+        
+        
+        
+//        Ptr<NOCNetDevice> nd = device->GetObject<NOCNetDevice>();
+        
+//        uint8_t i = this->GetNetDeviceInfoIndex(nd);
+//        if (m_netDeviceInfoArray[i].pck_buffered == false)
+//        {
+//            m_netDeviceInfoArray[i].pck_buffer = pck->Copy();
+//            m_netDeviceInfoArray[i].pck_buffered = true;
+//            Simulator::Schedule(PicoSeconds(1000), &NOCRouter::ServePackets, this);
+//        }
+//        else
+//            cout << "Packet dropped at "
+//                 << m_addressX << "," << m_addressY <<" Buffer was full" << endl;
 
 
 

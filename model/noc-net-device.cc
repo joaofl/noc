@@ -434,7 +434,7 @@ namespace ns3 {
             }
 
             m_macRxTrace(packet);
-            m_rxCallback(this, packet, protocol, GetRemote());
+            m_rxCallback(this, packet);
         }
     }
 
