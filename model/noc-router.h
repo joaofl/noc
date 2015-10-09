@@ -104,7 +104,7 @@ namespace ns3 {
         
         // Basic comm functions//////////////////////
 
-        bool PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> packet);
+        void PacketReceived(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
         
 //        void PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask);
         
@@ -163,7 +163,7 @@ namespace ns3 {
          * Set the callback to be used to notify higher layers when a packet has been
          * received.
          */
-        void SetReceiveCallback(ReceiveCallback);
+        void SetReceiveCallback(ReceiveCallback cb);
         
     private:
 

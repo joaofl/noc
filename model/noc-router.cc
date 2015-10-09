@@ -231,7 +231,7 @@ namespace ns3 {
 //        return false;
     }
 
-    bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops){
+    bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id){
         return false;
     }
 
@@ -242,7 +242,7 @@ namespace ns3 {
         h.SetProtocol(NOCHeader::PROTOCOL_BROADCAST);
         h.SetSourceAddress(0);
         
-        pck->AddHeader(h);
+        pck->Copy()->AddHeader(h);
         PacketSendMultiple(pck->Copy(), network_id, DIRECTION_MASK_ALL_EXCEPT_LOCAL, P0);
         return false;
     }
@@ -275,7 +275,7 @@ namespace ns3 {
                 sent++;
         }
         if ( (ports_mask >> DIRECTION_L) & 1){
-            m_receiveCallBack(pck->Copy(), DIRECTION_L); //Loopback
+//            m_receiveCallBack(pck->Copy(), DIRECTION_L); //Loopback
         }
         
         if (sent>0) return true;
@@ -295,10 +295,8 @@ namespace ns3 {
         return false;
     }
        
-    
-    
-    bool
-    NOCRouter::PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> pck) {
+    void
+    NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> device) {
 
         m_routerRxTrace(pck->Copy());
         
@@ -352,30 +350,30 @@ namespace ns3 {
 
 
         
-        return true;
+//        return true;
     }
     
-    void
-    NOCRouter::RemoteWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state){
-        
-        m_netDeviceInfoArray.at(nd_this->GetIfIndex()).wait_remote = wait_state;
-        cout << Simulator::Now() << " RWC " 
-                << m_addressX << "," << m_addressY
-                << " ND: " << m_netDeviceInfoArray.at(nd_this->GetIfIndex()).direction
-                << " s: " << wait_state << endl;
-    }
-    void
-    NOCRouter::LocalWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state){
-        /* Here, check if wait was set low. In this case, check if there are buffered
-         * packets that want to use that port. Serve all the sources using round
-         * robin police.
-         */
-        m_netDeviceInfoArray.at(nd_this->GetIfIndex()).wait = wait_state;
-        
-//        ServePorts();
-        
-        cout << Simulator::Now() << " LWC " << m_addressX << "," << m_addressY << " s: " << wait_state << endl;
-    }
+//    void
+//    NOCRouter::RemoteWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state){
+//        
+//        m_netDeviceInfoArray.at(nd_this->GetIfIndex()).wait_remote = wait_state;
+//        cout << Simulator::Now() << " RWC " 
+//                << m_addressX << "," << m_addressY
+//                << " ND: " << m_netDeviceInfoArray.at(nd_this->GetIfIndex()).direction
+//                << " s: " << wait_state << endl;
+//    }
+//    void
+//    NOCRouter::LocalWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state){
+//        /* Here, check if wait was set low. In this case, check if there are buffered
+//         * packets that want to use that port. Serve all the sources using round
+//         * robin police.
+//         */
+//        m_netDeviceInfoArray.at(nd_this->GetIfIndex()).wait = wait_state;
+//        
+////        ServePorts();
+//        
+//        cout << Simulator::Now() << " LWC " << m_addressX << "," << m_addressY << " s: " << wait_state << endl;
+//    }
 
     
     //Using XY routing

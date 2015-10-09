@@ -69,10 +69,6 @@ namespace ns3 {
         uint32_t queue_size_prioritized;
         uint32_t queue_size;
         
-        typedef Callback< void, Ptr<const Packet>, uint16_t > SignalChanged;
-        
-        void SetSignalReadCallback (SignalChanged);
-
         /**
          * Construct a NOCNetDevice
          *
@@ -188,10 +184,13 @@ namespace ns3 {
 //        void SetNOCAddress(NOCAddress);
 //        NOCAddress GetNOCAddress(void);
         
-        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<const Packet> > ReceiveCallback;
-        void SetReceiveCallback(ReceiveCallback cb);
+        typedef Callback< void, Ptr<const Packet>, Ptr<NOCNetDevice> > ReceiveCallback;
+        void SetReceiveCallback(ReceiveCallback);
         
         
+        typedef Callback< void, Ptr<const Packet>, uint16_t > SignalChanged;
+        
+        void SetSignalReadCallback (SignalChanged);
         
 //        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<NOCNetDevice>, uint8_t > RemoteTransmissionStartedCallback;
         
