@@ -37,6 +37,7 @@
 
 #include "noc-net-device.h"
 #include "noc-router.h"
+#include "noc-header.h"
 #include "noc-types.h"
 
 using namespace std;
@@ -154,7 +155,7 @@ namespace ns3 {
          * \returns true if the callback could handle the packet successfully, false
          *          otherwise.
          */
-        typedef Callback< void, Ptr<const Packet> > ReceiveCallback;
+        typedef Callback< void, Ptr<const Packet>, uint16_t > ReceiveCallback;
 
         /**
          * \param cb callback to invoke whenever a packet has been received and must
@@ -170,10 +171,12 @@ namespace ns3 {
         enum RoutingAlgos{
             COLUMN_FIRST,
             ROW_FIRST,
+            BROADCAST,
             CLOCKWISE
         };
         
-        uint8_t RouteTo(uint8_t routing_alg, int32_t destination_x, int32_t destination_y);
+        uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source,
+                        int32_t x_dest, int32_t y_dest);
 
         TracedCallback<Ptr<const Packet> > m_routerRxTrace;
         TracedCallback<Ptr<const Packet> > m_routerTxTrace;
@@ -196,6 +199,8 @@ namespace ns3 {
         NetDeviceContainer m_netDevices;
         
         int32_t m_addressX, m_addressY;
+        
+        uint8_t m_useRelativeAddress;
         
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
         

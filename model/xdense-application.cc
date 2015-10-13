@@ -81,6 +81,7 @@ namespace ns3 {
         //        PacketTrace.assign(P_COUNT, temp);
 
 
+        m_router->SetReceiveCallback(MakeCallback(&XDenseApp::DataReceived, this));
 
         m_router = this->GetNode()->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
 
@@ -93,7 +94,7 @@ namespace ns3 {
 
         ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
     }
-
+    
     void
     XDenseApp::StopApplication(void) {
         m_running = false;
@@ -311,6 +312,13 @@ namespace ns3 {
         return nr;
     }
 
+    
+    void 
+    XDenseApp::DataReceived(Ptr<const Packet> pck, uint16_t direction) {
+        cout << "Received" << endl;
+    }
+    
+    
     void
     XDenseApp::NetworkDiscovery() {
 

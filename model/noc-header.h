@@ -18,8 +18,8 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#ifndef EPIPHANY_HEADER_H
-#define EPIPHANY_HEADER_H
+#ifndef NOC_HEADER_H
+#define NOC_HEADER_H
 
 #include "ns3/header.h"
 #include "noc-types.h"
@@ -102,10 +102,12 @@ namespace ns3 {
         
 //        void SetSourceAddress(uint8_t x, uint8_t y);
         void SetSourceAddress(uint32_t add);
+        void SetSourceAddressXY(int32_t x, int32_t y);
         
-//        void GetDestinationAddress(uint8_t x, uint8_t y);
+//        void GetSourceAddress(uint8_t x, uint8_t y);
         uint32_t GetSourceAddress(void);
-        
+        int32_t GetSourceAddressX(void);
+        int32_t GetSourceAddressY(void);        
 //        uint32_t ConvertXYtoAddress(uint8_t x, uint8_t y);
 //        
 //        Coordinate ConvertAddresstoXY(uint32_t address);
@@ -119,7 +121,7 @@ namespace ns3 {
         
 
         
-        static const uint8_t m_headerSize = 13;
+        static const uint8_t m_headerSize = 9;
         
         uint32_t m_destAddress;
         
@@ -128,6 +130,8 @@ namespace ns3 {
         
         uint32_t m_srcAddress;
         
+        int32_t m_srcAddressX;
+        int32_t m_srcAddressY; 
        
         uint8_t m_controlBits; 
         

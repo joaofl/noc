@@ -70,18 +70,10 @@ namespace ns3 {
 //        }
 //        std::cout << std::endl;
         
-//        os << "M " << (int) this->m_mode;
-//        os << " DA " << this->m_destAddress;
-//        os << " DA " << (int) this->m_destAddressX;
-//        os << "," << (int) this->m_destAddressY;
-//        
-////        if (m_write == RW_MODE_WRITE){
-//            os << " D " << (int) this->m_data[0];
-////        }
-////        else if (m_write == RW_MODE_READ){
-//            os << " D " << (int) this->m_data[0];
-//            os << " SA " << this->m_srcAddress;
-//        }
+        os << "CB " << (int) this->m_controlBits << " ";
+        os << "PR " << (int) this->m_protocol << " ";
+        os << "DA " << this->m_destAddress << " ";
+        os << "SA " << this->m_srcAddress;
         os << std::endl;
     }
 
@@ -104,8 +96,11 @@ namespace ns3 {
          *          0010     unicast from a single node to another
          */
        
-        start.WriteU8((ADDRESS_BITSHIFT << m_controlBits) | 
-                (PROTOCOL_BITSHIFT << m_protocol));
+//        start.WriteU8((ADDRESS_BITSHIFT << m_controlBits) | 
+//                (PROTOCOL_BITSHIFT << m_protocol));
+        
+        start.WriteU8(m_protocol);
+        
         start.WriteU32(m_destAddress);
         start.WriteU32(m_srcAddress);        
     }
@@ -126,10 +121,10 @@ namespace ns3 {
 //            start.Read(m_data, 4);
 //            m_srcAddress = start.ReadU32();
 //        }        
-        uint8_t d = start.ReadU8();
+        m_protocol = start.ReadU8();
         
-        m_controlBits = (d & ADDRESS_BITMASK) >> ADDRESS_BITSHIFT;
-        m_protocol = (d & PROTOCOL_BITMASK) >> PROTOCOL_BITSHIFT;
+//        m_controlBits = (d & ADDRESS_BITMASK) >> ADDRESS_BITSHIFT;
+//        m_protocol = (d & PROTOCOL_BITMASK) >> PROTOCOL_BITSHIFT;
         
         m_destAddress = start.ReadU32();
         m_srcAddress = start.ReadU32();
@@ -143,18 +138,15 @@ namespace ns3 {
     NOCHeader::SetDestinationAddress(uint32_t add){
         //TODO check if it is valid
         m_destAddress = add;
-        m_destAddressX = ((m_destAddress & (0xFF000000)) / 4 ) >> 6 * 4;
-        m_destAddressY = ((m_destAddress &  0x00F00000) >> 5 * 4);
+        m_destAddressX = (add >> 16) & (0xFFFF);
+        m_destAddressY = (add >> 0 ) & (0xFFFF);
     }
-
     void 
     NOCHeader::SetDestinationAddressXY(int32_t x, int32_t y){
-        m_destAddress = ((x * 4) << 6 * 4) | (y << 5 * 4);
+        m_destAddress = (x << 16) | (y << 0);
         m_destAddressX = x;
         m_destAddressY = y;
     }
-    
-    
     uint32_t 
     NOCHeader::GetDestinationAddress(void){
         return m_destAddress;
@@ -166,7 +158,37 @@ namespace ns3 {
     int32_t 
     NOCHeader::GetDestinationAddressY(void){
         return m_destAddressY;
+    }  
+    
+   
+    void 
+    NOCHeader::SetSourceAddress(uint32_t add){
+        //TODO: implement some checking here
+        m_srcAddress = add;
+        m_srcAddressX = (add >> 16) & (0xFFFF);
+        m_srcAddressY = (add >> 0 ) & (0xFFFF);
+        
     }    
+    void 
+    NOCHeader::SetSourceAddressXY(int32_t x, int32_t y){
+        m_srcAddress = (x << 16) | (y << 0);
+        m_srcAddressX = x;
+        m_srcAddressY = y;
+    } 
+    uint32_t 
+    NOCHeader::GetSourceAddress(void){
+    
+        return m_srcAddress;
+    }
+    int32_t 
+    NOCHeader::GetSourceAddressX(void){
+        return m_srcAddressX;
+    }
+    int32_t 
+    NOCHeader::GetSourceAddressY(void){
+        return m_srcAddressY;
+    }    
+
     
     uint8_t
     NOCHeader::GetProtocol() {
@@ -177,20 +199,6 @@ namespace ns3 {
     NOCHeader::SetProtocol(uint8_t p) {
         m_protocol = p;
     }
-
-
-    void 
-    NOCHeader::SetSourceAddress(uint32_t add){
-        //TODO: implement some checking here
-        m_srcAddress = add;
-    }
-
-    uint32_t 
-    NOCHeader::GetSourceAddress(void){
-    
-        return m_srcAddress;
-    }
-
    
 
 } // namespace ns3

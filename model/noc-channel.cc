@@ -106,7 +106,7 @@ NOCChannel::TransmitStart (
 
   //TODO: implement here the delay required to read the rising edge from the
   //opposite netdevice
-  PropagateSignal(REMOTE_TRANSMISSION_STARTED, true, m_link[wire].m_src, NanoSeconds(0));
+//  PropagateSignal(REMOTE_TRANSMISSION_STARTED, true, m_link[wire].m_src, NanoSeconds(0));
  
   
   Simulator::ScheduleWithContext (m_link[wire].m_dst->GetNode ()->GetId (),

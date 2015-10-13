@@ -640,6 +640,10 @@ namespace ns3 {
     NOCNetDevice::SetReceiveCallback(NOCNetDevice::ReceiveCallback cb) {
         m_rxCallback = cb;
     }
+    void
+    NOCNetDevice::SetReceiveCallback(NetDevice::ReceiveCallback cb) {
+        
+    }
 
     void
     NOCNetDevice::SetPromiscReceiveCallback(NetDevice::PromiscReceiveCallback cb) {

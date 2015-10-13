@@ -32,10 +32,12 @@
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
-#include "ns3/noc-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/netanim-module.h"
+
+#include "ns3/noc-module.h"
+
 #include "src/core/model/object-base.h"
 #include "src/noc/model/epiphany-header.h"
 

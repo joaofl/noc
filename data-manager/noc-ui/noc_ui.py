@@ -75,6 +75,8 @@ class MyWindowClass(QtGui.QWidget, form_class):
         self.setWindowTitle('uSN Time Analysis Tool')
         self.setupUi(self)
 
+
+
         self.pbStart.clicked.connect(self.pbStart_clicked)
         self.pbStop.clicked.connect(self.pbStop_clicked)
         self.pbBoxPlot.clicked.connect(self.pbBoxPlot_clicked)
@@ -98,13 +100,10 @@ class MyWindowClass(QtGui.QWidget, form_class):
         self.pbQueueSizeOverTimeMultiple.clicked.connect(self.pbQueueSizeOverTimeMultiple_clicked)
         self.pbQueueSizeOverTime.clicked.connect(self.pbQueueSizeOverTime_clicked)
         self.pbNumberTransmissionsDS.clicked.connect(self.pbpbNumberTransmissionsDS_clicked)
-
-
-
-
-
         self.pbAddSensortsToE2dFile.clicked.connect(self.pbAddSensortsToE2dFile_clicked)
         self.pbAddDataToSimulation.clicked.connect(self.pbAddDataToSimulation_clicked)
+
+
 
         self.timer_gd = QTimer(self)
         QObject.connect(self.timer_gd, SIGNAL("timeout()"), self.animate_gd)

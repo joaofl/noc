@@ -184,12 +184,14 @@ namespace ns3 {
 //        void SetNOCAddress(NOCAddress);
 //        NOCAddress GetNOCAddress(void);
         
+        virtual void SetReceiveCallback(ReceiveCallback);
+        
+        
         typedef Callback< void, Ptr<const Packet>, Ptr<NOCNetDevice> > ReceiveCallback;
         void SetReceiveCallback(ReceiveCallback);
         
         
         typedef Callback< void, Ptr<const Packet>, uint16_t > SignalChanged;
-        
         void SetSignalReadCallback (SignalChanged);
         
 //        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<NOCNetDevice>, uint8_t > RemoteTransmissionStartedCallback;

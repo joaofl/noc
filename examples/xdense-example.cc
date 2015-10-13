@@ -35,15 +35,16 @@
 #include "ns3/core-module.h"
 #include "ns3/config-store-module.h"
 #include "ns3/network-module.h"
-//#include "ns3/internet-module.h"
-#include "ns3/noc-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/netanim-module.h"
 #include "src/core/model/object-base.h"
 
+#include "ns3/noc-module.h"
+
 #include "src/noc/model/xdense-application.h"
 #include "src/noc/model/sensor-data-io.h"
+#include "src/noc/model/noc-header.h"
 //#include "src/noc/model/noc-net-device.h"
 //#include "src/noc/model/noc-application.h"
 //#include "ns3/simple-net-device.h"
@@ -94,182 +95,17 @@ uint32_t sampling_period; //at every 100.000.000 ns = 100ms default
 uint8_t log_start_at_period;
 uint32_t start_offset;
 
-
-
-
-
 void
-packet_exchanged_router_sink(string context, Ptr<const Packet> pck, uint8_t direction) {
-    
-    XDenseHeader hd;
+log_packet(string context, Ptr<const Packet> pck) 
+{
+    NOCHeader hd;
     pck->PeekHeader(hd);
-    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
-        file_packets_trace_sink
-                << "c,"
-                << Simulator::Now().GetNanoSeconds() << ","
-                << pck->GetUid() << ","
-                << context << "," //here «, inside context there is: node_number,x,y
-                << "p,"
-                << hd.GetNOCProtocol() << ","
-                << (int) hd.SerialNumber << ","
-                << (int) direction << ","
-                << (int) hd.EventType << ","
-                << hd.EventData[0] << ","
-                << (int) hd.CurrentX << ","
-                << (int) hd.CurrentY
-                << endl;
-    }
-}
-
-void
-packet_received_router_sink(string context, Ptr<const Packet> pck) {
-    packet_exchanged_router_sink(context, pck, 1); //1 = input
-}
-
-void
-packet_sent_router_sink(string context, Ptr<const Packet> pck) {
-    packet_exchanged_router_sink(context, pck, 0); //0 = output
-}
-
-void
-packet_exchanged_router(string context, Ptr<const Packet> pck, uint8_t direction) {
-    XDenseHeader hd;
-    pck->PeekHeader(hd);
-    if (Simulator::Now().GetNanoSeconds() >= (log_start_at_period * sampling_period * 1000 + start_offset * 1000)){
-        
-
-        if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT ) {//|| hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
-
-            //    if (pck->GetUid() == 104) {
-            file_packets_trace
-                    << "c,"
-                    << Simulator::Now().GetNanoSeconds() << ","
-                    << pck->GetUid() << ","
-                    << (int) direction << ","
-                    << context << "," //here «, inside context there is: node_number,x,y
-                    << "p,"
-                    << hd.GetNOCProtocol() << ","
-                    << (int) hd.SerialNumber << ","
-                    << (int) hd.EventType << ","
-                    << hd.EventData[0] << ","
-                    << (int) hd.CurrentX << ","
-                    << (int) hd.CurrentY << endl;
-
-            //    }
-        }
-    }
-//    else if (hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
-//        uint32_t now = Simulator::Now().GetNanoSeconds();
-//        
-//        if (value_annoucement_start_time == 0 || now - value_annoucement_start_time == 50000000){
-//            value_annoucement_count = 0;
-//            value_annoucement_start_time = now;
-//        }
-//        if (value_annoucement_end_time < now){
-//            value_annoucement_end_time = now;
-//        }
-//        if (direction == 1){
-//            value_annoucement_count++; //count only the input packets to not count it twice
-//        }
-//    }
-}
-
-void
-packet_received_router(string context, Ptr<const Packet> pck) {
-    packet_exchanged_router(context, pck, 1); //1 = input - receives
-}
-
-void
-packet_sent_router(string context, Ptr<const Packet> pck) {
-    packet_exchanged_router(context, pck, 0); //0 = output - sent
-    //suppressed for now since it is somehow redundant information
-}
-
-void
-log_packet(string context, Ptr<const Packet> pck, uint8_t direction) {
-    XDenseHeader hd;
-    pck->PeekHeader(hd);
-    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
-    //    if (pck->GetUid() == 104 || pck->GetUid() == 110 ) {
-            file_packets_trace_net_device
-            << "c,"
-            << Simulator::Now().GetNanoSeconds() << ","
-            << pck->GetUid() << ","
-            << (int) direction << ","
-            << context << "," //here «, inside context there is: node_number, x, y, port_number
-            << "p,"
-            << hd.GetNOCProtocol() << ","
-            << (int) hd.SerialNumber << ","
-            << (int) hd.EventType << ","
-            << hd.EventData[0] << ","
-            << (int) hd.CurrentX << ","
-            << (int) hd.CurrentY << endl;
-    }        
     
+    std::cout << Simulator::Now() << " " << context;
+    std::cout << " p "; 
+    hd.Print(std::cout);    
 }
 
-void
-log_queue_size(string context, Ptr<const Packet> pck){
-    //Extract data from the context string
-    uint32_t nd_n = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-    context.erase(context.find_last_of(','));
-    uint32_t y = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-    context.erase(context.find_last_of(','));
-    uint32_t x = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-    context.erase(context.find_last_of(','));
-    uint32_t node_n = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-      
-    x=x;
-    y=y;
-    
-    uint64_t time = Simulator::Now().GetNanoSeconds();
-    uint32_t qs,qsp;
-    
-    Ptr<NOCNetDevice> nd = my_node_container.Get(node_n)->GetDevice(nd_n)->GetObject<NOCNetDevice>();
-
-    qs = nd->queue_size;
-    qsp = nd->queue_size_prioritized;
-
-   
-    if (time > time_a){
-        
-        file_queue_size << time_a << ',' << qs_a << ',' << qsp_a << endl;  
-        
-        qs_a = 0;
-        qsp_a = 0;
-        time_a = time;
-    } 
-    else {
-        if (qs > qs_a) {
-            qs_a = qs;
-        }
-        if (qsp > qsp_a) {
-            qsp_a = qsp;
-        }
-    }
-//    }     
-}
-
-//CallBack
-void
-packet_received_netdevice_mac(string context, Ptr<const Packet> pck) {
-    log_packet(context, pck, 1);
-}
-
-//CallBack
-void
-packet_sent_netdevice_mac(string context, Ptr<const Packet> pck) {
-    log_queue_size(context, pck);
-}
-
-//CallBack
-void
-packet_exchanged_phy(string context, Ptr<const Packet> pck) {
-    log_queue_size(context, pck);
-}
-
-//run command Netbeans
-//"${OUTPUT_PATH}" $(cat ~/noc-data/config/input-config.c.csv)
 
 int
 main(int argc, char *argv[]) {
@@ -307,7 +143,7 @@ main(int argc, char *argv[]) {
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
         
-    string io_data_dir = homedir + "/noc-data";
+    string io_data_dir = homedir + "/usn-data";
     
     stringstream context_dir;
     context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
@@ -398,31 +234,33 @@ main(int argc, char *argv[]) {
 
 
         //Setup Net Device's Callback
-        uint8_t n_devices = my_node_container.Get(i)->GetNDevices();
+//        uint8_t n_devices = my_node_container.Get(i)->GetNDevices();
         
-        Ptr<NOCNetDevice> my_net_device;
+//        Ptr<NOCNetDevice> my_net_device;
 
-        for (uint32_t j = 0; j < n_devices; j++) 
-        {
-            my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<NOCNetDevice>();
-//            uint8_t n = my_net_device->GetNOCAddress();
-            ostringstream ss; //Used as the context. From which node (x,y) the callback was generated.
-            ss << i << "," << x << "," << y << "," << (int) j;
-            my_net_device->TraceConnect("MacRx", ss.str(), MakeCallback(&packet_received_netdevice_mac));
-            my_net_device->TraceConnect("MacTx", ss.str(), MakeCallback(&packet_sent_netdevice_mac));
-            
-            my_net_device->TraceConnect("PhyTxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-            my_net_device->TraceConnect("PhyRxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-        }
+//        for (uint32_t j = 0; j < n_devices; j++) 
+//        {
+//            my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<NOCNetDevice>();
+////            uint8_t n = my_net_device->GetNOCAddress();
+//            ostringstream ss; //Used as the context. From which node (x,y) the callback was generated.
+//            ss << i << "," << x << "," << y << "," << (int) j;
+//            my_net_device->TraceConnect("MacRx", ss.str(), MakeCallback(&packet_received_netdevice_mac));
+//            my_net_device->TraceConnect("MacTx", ss.str(), MakeCallback(&packet_sent_netdevice_mac));
+//            
+//            my_net_device->TraceConnect("PhyTxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
+//            my_net_device->TraceConnect("PhyRxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
+//        }
 
         //Setup router
-        ostringstream ss;
-        ss << i << "," << x << "," << y;
-        
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
 
-        my_noc_router->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_router));
-        my_noc_router->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_router));
+        ostringstream s1;
+        s1 << i << " " << x << " " << y << " i";
+        my_noc_router->TraceConnect("RouterRxTrace", s1.str(), MakeCallback(&log_packet));
+        
+        ostringstream s2;
+        s2 << i << " " << x << " " << y << " o";
+        my_noc_router->TraceConnect("RouterTxTrace", s2.str(), MakeCallback(&log_packet));
 
         //Setup sensor
         my_sensor->SensorPosition.x = x;
@@ -462,8 +300,8 @@ main(int argc, char *argv[]) {
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(n)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
 
         
-        my_noc_router->GetObject<NOCRouter>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_router_sink));
-        my_noc_router->GetObject<NOCRouter>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_router_sink));
+//        my_noc_router->GetObject<NOCRouter>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&log_packet));
+//        my_noc_router->GetObject<NOCRouter>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&log_packet));
     }
 
     
@@ -490,25 +328,25 @@ main(int argc, char *argv[]) {
     cout << "Log file created at: '" << filename << "'" << endl;
     file_packets_trace.open(filename.c_str(), ios::out);
 
-    filename = dir_output + "packets-trace-net-device.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_packets_trace_net_device.open(filename.c_str(), ios::out);
-
-    filename = dir_output + "packets-sink-trace.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_packets_trace_sink.open(filename.c_str(), ios::out);
-
-    filename = dir_output + "queue-size-over-time.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_queue_size.open(filename.c_str(), ios::out);
-    
-    filename = dir_output + "queue-size-prioritized-over-time.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_queue_size_prioritized.open(filename.c_str(), ios::out);    
-    
-    filename = dir_output + "value-announcement-delay.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_value_annoucement_total_time.open(filename.c_str(), ios::out);
+//    filename = dir_output + "packets-trace-net-device.csv";
+//    cout << "Log file created at: '" << filename << "'" << endl;
+//    file_packets_trace_net_device.open(filename.c_str(), ios::out);
+//
+//    filename = dir_output + "packets-sink-trace.csv";
+//    cout << "Log file created at: '" << filename << "'" << endl;
+//    file_packets_trace_sink.open(filename.c_str(), ios::out);
+//
+//    filename = dir_output + "queue-size-over-time.csv";
+//    cout << "Log file created at: '" << filename << "'" << endl;
+//    file_queue_size.open(filename.c_str(), ios::out);
+//    
+//    filename = dir_output + "queue-size-prioritized-over-time.csv";
+//    cout << "Log file created at: '" << filename << "'" << endl;
+//    file_queue_size_prioritized.open(filename.c_str(), ios::out);    
+//    
+//    filename = dir_output + "value-announcement-delay.csv";
+//    cout << "Log file created at: '" << filename << "'" << endl;
+//    file_value_annoucement_total_time.open(filename.c_str(), ios::out);
 
     Simulator::Stop(Seconds(20));
     Simulator::Run();

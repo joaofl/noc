@@ -53,7 +53,7 @@ namespace ns3 {
         
         //ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
         
-//        m_router->SetReceiveCallback(MakeCallback(&EpiphanyApp::DataReceived, this));
+        m_router->SetReceiveCallback(MakeCallback(&EpiphanyApp::DataReceived, this));
         
 //                this->WriteData(3, 3);
     }

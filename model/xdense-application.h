@@ -78,6 +78,8 @@ namespace ns3 {
 
 //        vector <EventRef> EventsReceived;
         
+        void DataReceived(Ptr<const Packet> pck, uint16_t direction);
+        
         void NetworkDiscovery();
         bool NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port);
 
