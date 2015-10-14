@@ -72,8 +72,8 @@ namespace ns3 {
         
         os << "CB " << (int) this->m_controlBits << " ";
         os << "PR " << (int) this->m_protocol << " ";
-        os << "DA " << this->m_destAddress << " ";
-        os << "SA " << this->m_srcAddress;
+        os << "DA " << this->m_destAddressX << "," << this->m_destAddressY << " ";
+        os << "SA " << this->m_srcAddressX << "," << this->m_srcAddressY << " ";
         os << std::endl;
     }
 

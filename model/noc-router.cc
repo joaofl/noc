@@ -203,7 +203,7 @@ namespace ns3 {
             int32_t destination_x, int32_t destination_y)
     {
         
-        uint8_t out = RouteTo(COLUMN_FIRST,0,0, destination_x, destination_y);
+        uint8_t out = RouteTo(ROUTING_COLUMN_FIRST,0,0, destination_x, destination_y);
         
 //        TODO: here the information with the origin and destination should be added
 //        to a second header, which is added to the packet, in a multilayer style.
@@ -309,7 +309,7 @@ namespace ns3 {
         uint8_t out;
         switch (p){
             case NOCHeader::PROTOCOL_BROADCAST:
-               out = RouteTo(NOCHeader::PROTOCOL_BROADCAST,asx,asy,adx,ady);
+               out = RouteTo(ROUTING_BROADCAST,asx,asy,adx,ady);
                PacketSendMultiple(pck->Copy(), 0, out, P0);
                break;
                
@@ -331,61 +331,61 @@ namespace ns3 {
     //Using XY routing
     uint8_t NOCRouter::RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest) { //X-Y routing, with X first
         
-        uint8_t dir;
+        uint8_t dir = 0;
 
         switch (routing_alg){       
-            case COLUMN_FIRST:
-                if      (m_addressY < y_dest)    dir = NOCRouter::DIRECTION_S;
-                else if (m_addressY > y_dest)    dir = NOCRouter::DIRECTION_N;
+            case ROUTING_COLUMN_FIRST:
+                if      (m_addressY < y_dest)    dir = DIRECTION_MASK_S;
+                else if (m_addressY > y_dest)    dir = DIRECTION_MASK_N;
 
-                else if (m_addressX < x_dest)    dir = NOCRouter::DIRECTION_E;
-                else if (m_addressX > x_dest)    dir = NOCRouter::DIRECTION_W;
+                else if (m_addressX < x_dest)    dir = DIRECTION_MASK_E;
+                else if (m_addressX > x_dest)    dir = DIRECTION_MASK_W;
 
                 else if (m_addressX == x_dest && m_addressY == y_dest) 
-                                            dir = NOCRouter::DIRECTION_L;
+                                            dir = DIRECTION_MASK_L;
                 break;
             
-            case ROW_FIRST:
-                if      (m_addressX < x_dest)    dir = NOCRouter::DIRECTION_E;
-                else if (m_addressX > x_dest)    dir = NOCRouter::DIRECTION_W;
+            case ROUTING_ROW_FIRST:
+                if      (m_addressX < x_dest)    dir = DIRECTION_MASK_E;
+                else if (m_addressX > x_dest)    dir = DIRECTION_MASK_W;
                 
-                else if (m_addressY < y_dest)    dir = NOCRouter::DIRECTION_S;
-                else if (m_addressY > y_dest)    dir = NOCRouter::DIRECTION_N;
+                else if (m_addressY < y_dest)    dir = DIRECTION_MASK_S;
+                else if (m_addressY > y_dest)    dir = DIRECTION_MASK_N;
 
                 else if (m_addressX == x_dest && m_addressY == y_dest) 
-                                            dir = NOCRouter::DIRECTION_L;
+                                                dir = DIRECTION_MASK_L;
                 break;                
-            case CLOCKWISE:
+            case ROUTING_CLOCKWISE:
                 break;
                 
-            case BROADCAST:
+            case ROUTING_BROADCAST:
                 if ((x_source == m_addressX) && (y_source == m_addressY)) //myself generating the packet
                     dir = DIRECTION_MASK_ALL_EXCEPT_LOCAL;
                 
                 else if((x_source == 0) && (y_source < 0)) //Going up, aligned with the sink
-                    dir = DIRECTION_N & DIRECTION_W & DIRECTION_L; //send it inside, north and west
+                    dir = DIRECTION_MASK_N | DIRECTION_MASK_W; //send it inside, north and west
                 else if((x_source > 0) && (y_source < 0)) //Turned left, keep straight
-                    dir = DIRECTION_W & DIRECTION_L; //send it inside and west
+                    dir = DIRECTION_MASK_W; //send it inside and west
                 
-                else if((x_source == 0) && (y_source > 0)) //Going up, aligned with the sink
-                    dir = DIRECTION_S & DIRECTION_E & DIRECTION_L; //send it inside, north and west
-                else if((x_source > 0) && (y_source > 0)) //Turned left, keep straight
-                    dir = DIRECTION_E & DIRECTION_L; //send it inside and west
-                
-                else if((x_source > 0) && (y_source == 0)) //Going up, aligned with the sink
-                    dir = DIRECTION_W & DIRECTION_S & DIRECTION_L; //send it inside, north and west
-                else if((x_source > 0) && (y_source < 0)) //Turned left, keep straight
-                    dir = DIRECTION_S & DIRECTION_L; //send it inside and west
-                
-                else if((x_source < 0) && (y_source == 0)) //Going up, aligned with the sink
-                    dir = DIRECTION_E & DIRECTION_N & DIRECTION_L; //send it inside, north and west
-                else if((x_source < 0) && (y_source > 0)) //Turned left, keep straight
-                    dir = DIRECTION_N & DIRECTION_L; //send it inside and west
+//                else if((x_source == 0) && (y_source > 0)) //Going up, aligned with the sink
+//                    dir = DIRECTION_MASK_S | DIRECTION_MASK_E | DIRECTION_MASK_L; //send it inside, north and west
+//                else if((x_source > 0) && (y_source > 0)) //Turned left, keep straight
+//                    dir = DIRECTION_MASK_E | DIRECTION_MASK_L; //send it inside and west
+//                
+//                else if((x_source > 0) && (y_source == 0)) //Going up, aligned with the sink
+//                    dir = DIRECTION_MASK_W | DIRECTION_MASK_S | DIRECTION_MASK_L; //send it inside, north and west
+//                else if((x_source > 0) && (y_source < 0)) //Turned left, keep straight
+//                    dir = DIRECTION_MASK_S | DIRECTION_MASK_L; //send it inside and west
+//                
+//                else if((x_source < 0) && (y_source == 0)) //Going up, aligned with the sink
+//                    dir = DIRECTION_MASK_E | DIRECTION_MASK_N | DIRECTION_MASK_L; //send it inside, north and west
+//                else if((x_source < 0) && (y_source > 0)) //Turned left, keep straight
+//                    dir = DIRECTION_MASK_N | DIRECTION_MASK_L; //send it inside and west
                 
                 
                 
 
-                
+                dir |= DIRECTION_MASK_L;
                      
                 break;
         }

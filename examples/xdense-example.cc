@@ -33,11 +33,11 @@
 #include <pwd.h>
 
 #include "ns3/core-module.h"
-#include "ns3/config-store-module.h"
+//#include "ns3/config-store-module.h"
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/netanim-module.h"
+//#include "ns3/netanim-module.h"
 #include "src/core/model/object-base.h"
 
 #include "ns3/noc-module.h"
@@ -62,6 +62,8 @@ NS_LOG_COMPONENT_DEFINE("NOCExample");
 
 using namespace std;
 using namespace ns3;
+
+
 
 ofstream file, 
         file_packets_trace,
@@ -199,10 +201,10 @@ main(int argc, char *argv[]) {
     //Install applications;
     
    
-    ApplicationContainer my_noc_sink_app_container;
-    ApplicationContainer my_noc_app_container;
-    ApplicationContainer my_noc_router_container;
-    ApplicationContainer my_noc_sensor_container;
+    ApplicationContainer my_xdense_sink_app_container;
+    ApplicationContainer my_xdense_app_container;
+    ApplicationContainer my_xdense_router_container;
+    ApplicationContainer my_xdense_sensor_container;
     
     uint32_t n_nodes = my_node_container.GetN();
     
@@ -221,16 +223,16 @@ main(int argc, char *argv[]) {
         uint32_t x = i % size_x;
         uint32_t y = floor(i / size_y);
 
-        Ptr<XDenseApp> my_noc_app = CreateObject<XDenseApp> ();
+        Ptr<XDenseApp> my_xdense_app = CreateObject<XDenseApp> ();
         Ptr<SENSOR> my_sensor = CreateObject<SENSOR> ();
 
         //Setup app
-        my_noc_app->IsSink = false;
-        my_noc_app->MaxHops = size_neighborhood;
-        my_noc_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
-        my_noc_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
-        my_noc_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
-        my_noc_app->SetStartTime(Seconds(0));
+        my_xdense_app->IsSink = false;
+        my_xdense_app->MaxHops = size_neighborhood;
+        my_xdense_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
+        my_xdense_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
+        my_xdense_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
+        my_xdense_app->SetStartTime(Seconds(0));
 
 
         //Setup Net Device's Callback
@@ -252,7 +254,7 @@ main(int argc, char *argv[]) {
 //        }
 
         //Setup router
-        Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
+        Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
 
         ostringstream s1;
         s1 << i << " " << x << " " << y << " i";
@@ -269,11 +271,12 @@ main(int argc, char *argv[]) {
 
 
         //Should be installed in this order!!!
-        my_node_container.Get(i)->AddApplication(my_noc_app);
+        my_node_container.Get(i)->AddApplication(my_xdense_app);
         my_node_container.Get(i)->AddApplication(my_sensor);
 
-        my_noc_app_container.Add(my_noc_app);
-        my_noc_sensor_container.Add(my_sensor);
+        my_xdense_app_container.Add(my_xdense_app);
+        my_xdense_sensor_container.Add(my_sensor);
+        my_xdense_app->AddRouter(my_noc_router);
     }
 
     
@@ -289,15 +292,15 @@ main(int argc, char *argv[]) {
         uint32_t x = floor((i + 1) * 2 * delta_x - delta_x);
         uint32_t y = floor((double) size_y / 2);
         uint32_t n = x + y * size_x;
-        my_noc_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
-        my_noc_app_container.Get(n)->GetObject<XDenseApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
-        my_noc_sink_app_container.Add(my_noc_app_container.Get(n)); //container with the sinks only
+        my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
+        my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
+        my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
         ostringstream ss;
         ss << n << "," << x << "," << y;
         //        my_noc_router_container.Get(n)->GetObject<NOCRouter>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
         //        my_noc_router_container.Get(n)->GetObject<NOCRouter>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
         
-        Ptr<NOCRouter> my_noc_router = my_node_container.Get(n)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
+        Ptr<NOCRouter> my_noc_router = my_node_container.Get(n)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
 
         
 //        my_noc_router->GetObject<NOCRouter>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&log_packet));

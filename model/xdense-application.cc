@@ -83,7 +83,7 @@ namespace ns3 {
 
         m_router->SetReceiveCallback(MakeCallback(&XDenseApp::DataReceived, this));
 
-        m_router = this->GetNode()->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
+//        m_router = this->GetNode()->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
 
         if (IsSink == true) {
             Simulator::Schedule(TimeStartOffset, &XDenseApp::NetworkDiscovery, this);
@@ -134,6 +134,11 @@ namespace ns3 {
         return m_neighborsList.size();
     }
 
+    void
+    XDenseApp::AddRouter(Ptr<NOCRouter> r) {
+        m_router = r;
+    }
+    
     uint8_t
     XDenseApp::DetectEvents(void) { //gets the array with all the neighbors data
         EventRef er;
@@ -315,7 +320,7 @@ namespace ns3 {
     
     void 
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint16_t direction) {
-        cout << "Received" << endl;
+//        cout << "Received" << endl;
     }
     
     

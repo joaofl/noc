@@ -82,7 +82,7 @@ namespace ns3 {
             DIRECTION_MASK_S   = 0b00000010, //south
             DIRECTION_MASK_W   = 0b00000100, //west
             DIRECTION_MASK_N   = 0b00001000, //north
-            DIRECTION_MASK_L   = 0b00010000, //north
+            DIRECTION_MASK_L   = 0b00010000, //local
             DIRECTION_MASK_ALL = 0b00011111,
             DIRECTION_MASK_ALL_EXCEPT_LOCAL = 0b00001111
                     
@@ -169,10 +169,10 @@ namespace ns3 {
     private:
 
         enum RoutingAlgos{
-            COLUMN_FIRST,
-            ROW_FIRST,
-            BROADCAST,
-            CLOCKWISE
+            ROUTING_COLUMN_FIRST,
+            ROUTING_ROW_FIRST,
+            ROUTING_BROADCAST,
+            ROUTING_CLOCKWISE
         };
         
         uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source,

@@ -27,7 +27,7 @@
 
 #include "ns3/core-module.h"
 
-#define INSTALLED_NOC_SWITCH 0
+#define INSTALLED_NOC_ROUTER 0
 #define INSTALLED_NOC_APP 1
 #define INSTALLED_SENSOR 2
 

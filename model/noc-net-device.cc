@@ -56,7 +56,7 @@ namespace ns3 {
          
                 .AddAttribute("SerialComm",
                 "If the NetDevice uses serial or parallel communication",
-                BooleanValue(true),
+                BooleanValue(false),
                 MakeBooleanAccessor(&NOCNetDevice::m_serialComm),
                 MakeBooleanChecker())
         
@@ -243,12 +243,12 @@ namespace ns3 {
         m_phyTxBeginTrace(m_currentPkt);
 
         //the time required to send a single bit
-        Time oneBitTransmissionTime = PicoSeconds(m_bps.CalculateBitsTxTime(1));
+        Time oneBitTransmissionTime = Seconds(m_bps.CalculateBitsTxTime(1));
         Time txTime;
         
         if (m_serialComm == true){
-            txTime =  PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() * p->GetSize() * 8);
-            txTime += oneBitTransmissionTime * m_clockSkew;
+            txTime =  m_bps.CalculateBytesTxTime(p->GetSize());
+//            txTime += oneBitTransmissionTime * m_clockSkew;
         }
         else{
 //            in parallel, one packet takes one cycle to be transmitted, considering

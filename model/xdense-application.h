@@ -94,7 +94,7 @@ namespace ns3 {
         bool ValueAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port);
         
 //        
-        
+        void AddRouter(Ptr<NOCRouter> r);
 //        void ScheduleTransmission(Ptr<const Packet> pck, uint8_t destination_port);
 
 

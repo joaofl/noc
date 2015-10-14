@@ -190,7 +190,7 @@ main(int argc, char *argv[]) {
         }
 
         //Setup router
-        Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
+        Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
         
         ostringstream ss_rx, ss_tx;
         ss_rx << "i " << i << "," << x << "," << y << ",";
