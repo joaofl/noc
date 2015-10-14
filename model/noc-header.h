@@ -87,7 +87,7 @@ namespace ns3 {
 
 
 //        void SetDestinationAddress(uint8_t x, uint8_t y);
-        void SetDestinationAddress(uint32_t add);
+//        void SetDestinationAddress(uint32_t add);
         
         void SetDestinationAddressXY(int32_t x, int32_t y);
 //        void SetDestinationAddressY(int32_t x);
@@ -95,22 +95,24 @@ namespace ns3 {
         
         
 //        void GetDestinationAddress(uint8_t x, uint8_t y);
-        uint32_t GetDestinationAddress(void);
+//        uint32_t GetDestinationAddress(void);
         
         int32_t GetDestinationAddressX(void);
         int32_t GetDestinationAddressY(void);
         
 //        void SetSourceAddress(uint8_t x, uint8_t y);
-        void SetSourceAddress(uint32_t add);
+//        void SetSourceAddress(uint32_t add);
         void SetSourceAddressXY(int32_t x, int32_t y);
         
 //        void GetSourceAddress(uint8_t x, uint8_t y);
-        uint32_t GetSourceAddress(void);
+//        uint32_t GetSourceAddress(void);
         int32_t GetSourceAddressX(void);
         int32_t GetSourceAddressY(void);        
 //        uint32_t ConvertXYtoAddress(uint8_t x, uint8_t y);
 //        
 //        Coordinate ConvertAddresstoXY(uint32_t address);
+        
+        void AddtoSourceAddress(int8_t x, int8_t y);
         
         uint8_t GetProtocol(void);
         void SetProtocol(uint8_t p);
@@ -123,12 +125,10 @@ namespace ns3 {
         
         static const uint8_t m_headerSize = 9;
         
-        uint32_t m_destAddress;
         
         int32_t m_destAddressX;
         int32_t m_destAddressY;        
         
-        uint32_t m_srcAddress;
         
         int32_t m_srcAddressX;
         int32_t m_srcAddressY; 

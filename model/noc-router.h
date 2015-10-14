@@ -188,8 +188,8 @@ namespace ns3 {
 //        bool PacketForward(Ptr<const Packet> pck, 
 //            uint8_t network_id, uint8_t originPort, uint8_t destinationPort, uint8_t priority);
         
-        bool PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
-        bool PacketSendSingle(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd, uint8_t priority);
+        uint8_t PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
+        bool PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
         
         ReceiveCallback m_receiveCallBack;
 

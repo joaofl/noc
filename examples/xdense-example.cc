@@ -37,17 +37,12 @@
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
-//#include "ns3/netanim-module.h"
 #include "src/core/model/object-base.h"
 
 #include "ns3/noc-module.h"
-
 #include "src/noc/model/xdense-application.h"
 #include "src/noc/model/sensor-data-io.h"
 #include "src/noc/model/noc-header.h"
-//#include "src/noc/model/noc-net-device.h"
-//#include "src/noc/model/noc-application.h"
-//#include "ns3/simple-net-device.h"
 
 
 NS_LOG_COMPONENT_DEFINE("NOCExample");
@@ -103,11 +98,16 @@ log_packet(string context, Ptr<const Packet> pck)
     NOCHeader hd;
     pck->PeekHeader(hd);
     
-    std::cout << Simulator::Now() << " " << context;
-    std::cout << " p "; 
-    hd.Print(std::cout);    
+    std::cout
+//    file_packets_trace
+    << "c,"
+    << Simulator::Now().GetNanoSeconds() << ","
+    << pck->GetUid() << ","
+    << context << "," 
+    << "p,";
+//    hd.Print(file_packets_trace);
+    hd.Print(std::cout);
 }
-
 
 int
 main(int argc, char *argv[]) {
@@ -257,11 +257,11 @@ main(int argc, char *argv[]) {
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
 
         ostringstream s1;
-        s1 << i << " " << x << " " << y << " i";
+        s1 << i << "," << x << "," << y << ",i";
         my_noc_router->TraceConnect("RouterRxTrace", s1.str(), MakeCallback(&log_packet));
         
         ostringstream s2;
-        s2 << i << " " << x << " " << y << " o";
+        s2 << i << "," << x << "," << y << ",o";
         my_noc_router->TraceConnect("RouterTxTrace", s2.str(), MakeCallback(&log_packet));
 
         //Setup sensor

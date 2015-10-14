@@ -320,7 +320,7 @@ namespace ns3 {
     
     void 
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint16_t direction) {
-//        cout << "Received" << endl;
+        cout << "Received" << endl;
     }
     
     
@@ -343,7 +343,7 @@ namespace ns3 {
             m_SerialNumber.at(P_NETWORK_DISCOVERY)++;
 
             Ptr<Packet> pck = Create<Packet>();
-            pck->AddHeader(hd);
+//            pck->AddHeader(hd);
             
             
             m_router->PacketBroadcast(pck, 0);

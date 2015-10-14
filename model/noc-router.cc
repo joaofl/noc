@@ -208,7 +208,7 @@ namespace ns3 {
 //        TODO: here the information with the origin and destination should be added
 //        to a second header, which is added to the packet, in a multilayer style.
         
-        return this->PacketSendSingle(pck->Copy(), GetNetDevice(network_id, out), P0);
+        return this->PacketSendSingle(pck->Copy(), network_id, out, P0);
         
     }
 
@@ -221,21 +221,23 @@ namespace ns3 {
         NOCHeader h;
         
         h.SetProtocol(NOCHeader::PROTOCOL_BROADCAST);
+        h.SetSourceAddressXY(0,0);
+        h.SetDestinationAddressXY(0,0);
         
-        if (m_useRelativeAddress)
-        {
-            h.SetSourceAddressXY(0,0);
-        }
+//        if (m_useRelativeAddress)
+//        {
+//            h.SetSourceAddressXY(0,0);
+//        }
         
-        Ptr<Packet> pck_t = Create<Packet>();
-        pck_t->AddHeader(h);
+        Ptr<Packet> pck_c = pck->Copy();
+        pck_c->AddHeader(h);
         
 //        pck->Copy()->AddHeader(h);
-        PacketSendMultiple(pck_t->Copy(), network_id, DIRECTION_MASK_ALL_EXCEPT_LOCAL, P0);
+        PacketSendMultiple(pck_c, network_id, DIRECTION_MASK_ALL_EXCEPT_LOCAL, P0);
         return false;
     }
     
-    bool
+    uint8_t
     NOCRouter::PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){//, uint8_t optional network_id) {
         //TODO: This function should get the pck, the destination address, priority comes in the packet?, and network it should write to.
         // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
@@ -246,33 +248,75 @@ namespace ns3 {
         
         uint8_t sent = 0;
 
-        if ( (ports_mask >> DIRECTION_N) & 1){
-            if (PacketSendSingle(pck->Copy(), GetNetDevice(network_id, DIRECTION_N), priority));
+        if ( (ports_mask >> DIRECTION_N) & 1)
+        {
+            Ptr<Packet> pck_c = pck->Copy();
+            NOCHeader h;
+            pck_c->RemoveHeader(h);
+            h.AddtoSourceAddress(-1,0);
+            pck_c->AddHeader(h);
+            
+            if (PacketSendSingle(pck_c, network_id, DIRECTION_N, priority)){
                 sent++;
+            }
         }
         if ( (ports_mask >> DIRECTION_S) & 1){
-            if (PacketSendSingle(pck->Copy(), GetNetDevice(network_id, DIRECTION_S), priority));
+            Ptr<Packet> pck_c = pck->Copy();
+            NOCHeader h;
+            pck_c->RemoveHeader(h);
+            h.AddtoSourceAddress(1,0);
+            pck_c->AddHeader(h);
+            
+            if (PacketSendSingle(pck_c, network_id, DIRECTION_S, priority)){
                 sent++;
+            }
         }
         if ( (ports_mask >> DIRECTION_E & 1) & 1){
-            if (PacketSendSingle(pck->Copy(), GetNetDevice(network_id, DIRECTION_E), priority));
+            Ptr<Packet> pck_c = pck->Copy();
+            NOCHeader h;
+            pck_c->RemoveHeader(h);
+            h.AddtoSourceAddress(0,1);
+            pck_c->AddHeader(h);
+            
+            if (PacketSendSingle(pck_c, network_id, DIRECTION_E, priority)){
                 sent++;
+            }
         }
         if ( (ports_mask >> DIRECTION_W) & 1){
-            if (PacketSendSingle(pck->Copy(), GetNetDevice(network_id, DIRECTION_W), priority));
+            Ptr<Packet> pck_c = pck->Copy();
+            NOCHeader h;
+            pck_c->RemoveHeader(h);
+            h.AddtoSourceAddress(0,-1);
+            pck_c->AddHeader(h);
+            
+            if (PacketSendSingle(pck_c, network_id, DIRECTION_W, priority)){
                 sent++;
+            }
         }
         if ( (ports_mask >> DIRECTION_L) & 1){
-            m_receiveCallBack(pck->Copy(), DIRECTION_L); //Loopback
+            Ptr<Packet> pck_c = pck->Copy();
+            if (PacketSendSingle(pck_c, network_id, DIRECTION_L, priority)){
+                sent++;
+            }            
         }
         
-        if (sent>0) return true;
-        else return false;
+        return sent;
     }
     
     bool
-    NOCRouter::PacketSendSingle(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd, uint8_t priority){
-        if (nd == NULL)
+    NOCRouter::PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port_direction, uint8_t priority){
+        Ptr<NOCNetDevice> nd;
+        
+        if (port_direction != DIRECTION_L)
+        {
+            nd = GetNetDevice(network_id, port_direction);            
+        }
+        else
+        {  //Packet reached its destination, send it to the upper layers
+            m_receiveCallBack(pck->Copy(), DIRECTION_L);
+        }
+        
+        if (nd == NULL) //That node does not have a net device in that direction
             return false;
         if (nd->Send(pck->Copy())){
             m_routerTxTrace(pck);
@@ -287,13 +331,12 @@ namespace ns3 {
        
     void
     NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> device) {
-
-        m_routerRxTrace(pck->Copy());
+        m_routerRxTrace(pck);
         
+        Ptr<Packet> pck_c = pck->Copy();
+
         NOCHeader h;
-        pck->PeekHeader(h);
-        
-
+        pck_c->PeekHeader(h);
         
         int32_t adx = h.GetDestinationAddressX();
         int32_t ady = h.GetDestinationAddressY();
@@ -301,25 +344,20 @@ namespace ns3 {
         int32_t asy = h.GetSourceAddressY();
         uint8_t p = h.GetProtocol();
         
-        if (m_useRelativeAddress)
-        {
-            //ADD the addresses X or Y
-        }
-        
-        uint8_t out;
+        uint8_t out = 0;
         switch (p){
             case NOCHeader::PROTOCOL_BROADCAST:
-               out = RouteTo(ROUTING_BROADCAST,asx,asy,adx,ady);
-               PacketSendMultiple(pck->Copy(), 0, out, P0);
-               break;
+                out = RouteTo(ROUTING_BROADCAST,asx,asy,adx,ady);
+                PacketSendMultiple(pck_c->Copy(), 0, out, P0);
+                break;
                
             case NOCHeader::PROTOCOL_MULTICAST:
                
-               break;
+                break;
                
             case NOCHeader::PROTOCOL_UNICAST:
                
-               break;
+                break;
                
             default:
                 cout << "Protocol unknown" << std::endl;

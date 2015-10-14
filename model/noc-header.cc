@@ -70,10 +70,10 @@ namespace ns3 {
 //        }
 //        std::cout << std::endl;
         
-        os << "CB " << (int) this->m_controlBits << " ";
-        os << "PR " << (int) this->m_protocol << " ";
-        os << "DA " << this->m_destAddressX << "," << this->m_destAddressY << " ";
-        os << "SA " << this->m_srcAddressX << "," << this->m_srcAddressY << " ";
+        os << (int) this->m_controlBits << ",";
+        os << (int) this->m_protocol << ",";
+        os << this->m_srcAddressX << "," << this->m_srcAddressY << ",";
+        os << this->m_destAddressX << "," << this->m_destAddressY << ",";
         os << std::endl;
     }
 
@@ -101,55 +101,53 @@ namespace ns3 {
         
         start.WriteU8(m_protocol);
         
-        start.WriteU32(m_destAddress);
-        start.WriteU32(m_srcAddress);        
+        start.WriteU16(m_destAddressX);
+        start.WriteU16(m_destAddressY);
+                        
+        start.WriteU16(m_srcAddressX);        
+        start.WriteU16(m_srcAddressY);        
     }
 
     uint32_t
     NOCHeader::Deserialize(Buffer::Iterator start) {
-        
-//        m_mode = start.ReadU8();
-//        this->SetMode(m_mode);
-//        
-//        m_destAddress = start.ReadU32();
-//        this->SetDestinationAddress(m_destAddress);
-//        
-//        if (m_write == RW_MODE_WRITE){
-//            start.Read(m_data, 8);
-//        }
-//        else if (m_write == RW_MODE_READ){
-//            start.Read(m_data, 4);
-//            m_srcAddress = start.ReadU32();
-//        }        
+ 
         m_protocol = start.ReadU8();
         
 //        m_controlBits = (d & ADDRESS_BITMASK) >> ADDRESS_BITSHIFT;
 //        m_protocol = (d & PROTOCOL_BITMASK) >> PROTOCOL_BITSHIFT;
         
-        m_destAddress = start.ReadU32();
-        m_srcAddress = start.ReadU32();
-        
+        m_destAddressX  =  (int16_t) start.ReadU16();
+        m_destAddressY  =  (int16_t) start.ReadU16();
+        m_srcAddressX   =  (int16_t) start.ReadU16();
+        m_srcAddressY   =  (int16_t) start.ReadU16();
+   
         return m_headerSize;
     }
+
     
-    
-   
-    void 
-    NOCHeader::SetDestinationAddress(uint32_t add){
-        //TODO check if it is valid
-        m_destAddress = add;
-        m_destAddressX = (add >> 16) & (0xFFFF);
-        m_destAddressY = (add >> 0 ) & (0xFFFF);
+    void
+    NOCHeader::AddtoSourceAddress(int8_t x, int8_t y) 
+    {
+        m_srcAddressX += x;
+        m_srcAddressY += y;
     }
     void 
     NOCHeader::SetDestinationAddressXY(int32_t x, int32_t y){
-        m_destAddress = (x << 16) | (y << 0);
         m_destAddressX = x;
         m_destAddressY = y;
     }
-    uint32_t 
-    NOCHeader::GetDestinationAddress(void){
-        return m_destAddress;
+    void 
+    NOCHeader::SetSourceAddressXY(int32_t x, int32_t y){
+        m_srcAddressX = x;
+        m_srcAddressY = y;
+    } 
+    int32_t 
+    NOCHeader::GetSourceAddressX(void){
+        return m_srcAddressX;
+    }
+    int32_t 
+    NOCHeader::GetSourceAddressY(void){
+        return m_srcAddressY;
     }
     int32_t 
     NOCHeader::GetDestinationAddressX(void){
@@ -159,42 +157,10 @@ namespace ns3 {
     NOCHeader::GetDestinationAddressY(void){
         return m_destAddressY;
     }  
-    
-   
-    void 
-    NOCHeader::SetSourceAddress(uint32_t add){
-        //TODO: implement some checking here
-        m_srcAddress = add;
-        m_srcAddressX = (add >> 16) & (0xFFFF);
-        m_srcAddressY = (add >> 0 ) & (0xFFFF);
-        
-    }    
-    void 
-    NOCHeader::SetSourceAddressXY(int32_t x, int32_t y){
-        m_srcAddress = (x << 16) | (y << 0);
-        m_srcAddressX = x;
-        m_srcAddressY = y;
-    } 
-    uint32_t 
-    NOCHeader::GetSourceAddress(void){
-    
-        return m_srcAddress;
-    }
-    int32_t 
-    NOCHeader::GetSourceAddressX(void){
-        return m_srcAddressX;
-    }
-    int32_t 
-    NOCHeader::GetSourceAddressY(void){
-        return m_srcAddressY;
-    }    
-
-    
     uint8_t
     NOCHeader::GetProtocol() {
         return m_protocol;
     }
-    
     void
     NOCHeader::SetProtocol(uint8_t p) {
         m_protocol = p;
