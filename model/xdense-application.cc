@@ -320,7 +320,7 @@ namespace ns3 {
     
     void 
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint16_t direction) {
-        cout << "Received" << endl;
+//        cout << "Received" << endl;
     }
     
     
