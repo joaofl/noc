@@ -75,8 +75,9 @@ uint32_t t_slot(uint64_t now){
         t_transmission = now - t0;
         t_slot = 1;
     }
-    else if (now > t0)
+    else if (now > t0){
         t_slot = (now - t0) / t_transmission;
+    }
     
     return t_slot;
 }
@@ -235,34 +236,29 @@ main(int argc, char *argv[]) {
         my_xdense_app->SetStartTime(Seconds(0));
 
 
-        //Setup Net Device's Callback
-//        uint8_t n_devices = my_node_container.Get(i)->GetNDevices();
-        
-//        Ptr<NOCNetDevice> my_net_device;
-
-//        for (uint32_t j = 0; j < n_devices; j++) 
-//        {
-//            my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<NOCNetDevice>();
-////            uint8_t n = my_net_device->GetNOCAddress();
-//            ostringstream ss; //Used as the context. From which node (x,y) the callback was generated.
-//            ss << i << "," << x << "," << y << "," << (int) j;
-//            my_net_device->TraceConnect("MacRx", ss.str(), MakeCallback(&packet_received_netdevice_mac));
-//            my_net_device->TraceConnect("MacTx", ss.str(), MakeCallback(&packet_sent_netdevice_mac));
-//            
-//            my_net_device->TraceConnect("PhyTxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-//            my_net_device->TraceConnect("PhyRxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-//        }
-
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
 
-        ostringstream s1;
-        s1 << i << "," << x << "," << y << ",i";
+        ostringstream s1, s2;
+        s1 << "r," << i << "," << x << "," << y << "," << -1 << ",i";
 //        my_noc_router->TraceConnect("RouterRxTrace", s1.str(), MakeCallback(&log_router_packets));
+        s2 << "r," << i << "," << x << "," << y << "," << -1 << ",o";
+//        my_noc_router->TraceConnect("RouterTxTrace", s2.str(), MakeCallback(&log_router_packets));
         
-        ostringstream s2;
-        s2 << i << "," << x << "," << y << ",o";
-        my_noc_router->TraceConnect("RouterTxTrace", s2.str(), MakeCallback(&log_router_packets));
+        
+        //Setup Net Device's Callback
+        Ptr<NOCNetDevice> my_net_device;
+        for (uint8_t j = 0 ; j < my_noc_router->GetNDevices() ; j++)
+        {
+            my_net_device = my_noc_router->GetNetDevice(j);
+            uint8_t d = my_noc_router->GetNetDeviceInfo(my_net_device).direction; 
+            
+            ostringstream s0, s3;
+            s0 << "n," << i << "," << x << "," << y << "," << (int) d << ",i";
+            my_net_device->TraceConnect("MacRx", s0.str(), MakeCallback(&log_netdevice_packets));
+            s3 << "n," << i << "," << x << "," << y << "," << (int) d << ",o";
+            my_net_device->TraceConnect("MacTx", s3.str(), MakeCallback(&log_netdevice_packets));            
+        }
 
         //Setup sensor
         my_sensor->SensorPosition.x = x;

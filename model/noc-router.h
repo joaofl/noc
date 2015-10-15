@@ -48,22 +48,6 @@ namespace ns3 {
 
         static TypeId GetTypeId (void);
         
-//        const static uint8_t NumNetDevices = 4;
-        
-        
-//        bool IsSink;
-//        uint32_t MaxHops;
-//        Time TimeStartOffset;
-//        TracedValue< stringstream* > PacketTrace;
-        
-        
-        //names are architecture dependant
-//        enum Networks{
-//            MESH_W = 0,
-//            MESH_R = 1,
-//            MESH_X = 2
-//        };
-        
         enum Priority{
             P0,
             P1
@@ -128,6 +112,7 @@ namespace ns3 {
         void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t network, uint8_t direction);
         
         Ptr<NOCNetDevice> GetNetDevice(uint8_t network, uint8_t direction);
+        Ptr<NOCNetDevice> GetNetDevice(uint8_t i);
         
         NetDeviceInfo GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
     
@@ -137,12 +122,7 @@ namespace ns3 {
         int8_t GetNetDeviceInfoIndex(Ptr<NOCNetDevice> nd);
         
         uint8_t GetNDevices(void);
-      
-//        void ServePackets(void);
-//        void ServePacket(uint8_t in, uint8_t out);
-        
-//        void RemoteWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
-//        void LocalWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
+     
  
         
         /**

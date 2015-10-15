@@ -571,6 +571,7 @@ namespace ns3 {
                 if (m_queue_prioritized->Enqueue(packet) == true) {
                     queue_size_prioritized = m_queue_prioritized->GetNPackets();
                     packet = m_queue_prioritized->Dequeue();
+                    
                     m_snifferTrace(packet);
                     m_promiscSnifferTrace(packet);
                     m_macTxTrace(packet);
@@ -591,8 +592,11 @@ namespace ns3 {
             if (m_queue->Enqueue(packet) == true) {
                 queue_size = m_queue->GetNPackets();
                 packet = m_queue->Dequeue();
+                
                 m_snifferTrace(packet);
                 m_promiscSnifferTrace(packet);
+                m_macTxTrace(packet);
+                
                 return TransmitStart(packet);
             } else {
                 // Enqueue may fail (overflow)

@@ -161,6 +161,16 @@ namespace ns3 {
         return NULL; //if the specified node was not found
     }
     
+    Ptr<NOCNetDevice>
+    NOCRouter::GetNetDevice(uint8_t i){
+        if (i < m_netDeviceInfoArray.size()){
+            NetDeviceInfo nd_info = m_netDeviceInfoArray.at(i);
+            return nd_info.nd_pointer;
+        }
+        
+        return NULL; //if the specified node was not found
+    }
+    
     NOCRouter::NetDeviceInfo
     NOCRouter::GetNetDeviceInfo(uint8_t network, uint8_t direction){
         NetDeviceInfo nd_info;
