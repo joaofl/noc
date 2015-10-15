@@ -97,7 +97,11 @@ namespace ns3 {
         
         // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
         
-        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y);
+//        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
+//                            int32_t destination_y);
+        
+        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
+                            int32_t destination_y, bool absolute_address);
 
         bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id);
 

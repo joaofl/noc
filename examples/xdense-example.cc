@@ -63,10 +63,12 @@ using namespace ns3;
 ofstream file_packets_trace_router;
 ofstream file_packets_trace_netdevice;
 
-uint32_t t_slot(uint64_t now){
+uint32_t t_slot(){
     static uint64_t t0 = 1;
     static uint32_t t_transmission = 1;
     static uint64_t t_slot = 0; 
+    
+    uint64_t now = Simulator::Now().GetNanoSeconds();
     
     if (t0 == 1){ //first iteration
         t0 = now;
@@ -91,17 +93,15 @@ log_router_packets(string context, Ptr<const Packet> pck)
     NOCHeader hd;
     pck->PeekHeader(hd);
     
-    std::cout
-//    file_packets_trace
+    file_packets_trace_router
     << "c,"
     << i << ","
-    << t_slot(now) << ","
+    << t_slot() << ","
     << now << ","
     << pck->GetUid() << ","
     << context << "," 
     << "p,";
-//    hd.Print(file_packets_trace);
-    hd.Print(std::cout);
+    hd.Print(file_packets_trace_router);
     
     i++;
 }
@@ -115,17 +115,15 @@ log_netdevice_packets(string context, Ptr<const Packet> pck)
     NOCHeader hd;
     pck->PeekHeader(hd);
     
-    std::cout
-//    file_packets_trace
+    file_packets_trace_netdevice
     << "c,"
     << i << ","
-    << t_slot(now) << ","
+    << t_slot() << ","
     << now << ","
     << pck->GetUid() << ","
     << context << "," 
     << "p,";
-//    hd.Print(file_packets_trace);
-    hd.Print(std::cout);
+    hd.Print(file_packets_trace_netdevice);
     
     i++;
 }
@@ -239,24 +237,26 @@ main(int argc, char *argv[]) {
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
 
+        
+        int8_t direction = -1;
         ostringstream s1, s2;
-        s1 << "r," << i << "," << x << "," << y << "," << -1 << ",i";
-//        my_noc_router->TraceConnect("RouterRxTrace", s1.str(), MakeCallback(&log_router_packets));
-        s2 << "r," << i << "," << x << "," << y << "," << -1 << ",o";
-//        my_noc_router->TraceConnect("RouterTxTrace", s2.str(), MakeCallback(&log_router_packets));
+        s1 << "r," << i << "," << x << "," << y << "," << (int) direction << ",i";
+        my_noc_router->TraceConnect("RouterRxTrace", s1.str(), MakeCallback(&log_router_packets));
+        s2 << "r," << i << "," << x << "," << y << "," << (int) direction << ",o";
+        my_noc_router->TraceConnect("RouterTxTrace", s2.str(), MakeCallback(&log_router_packets));
         
         
-        //Setup Net Device's Callback
+        //Setup NetDevice's Callback
         Ptr<NOCNetDevice> my_net_device;
         for (uint8_t j = 0 ; j < my_noc_router->GetNDevices() ; j++)
         {
             my_net_device = my_noc_router->GetNetDevice(j);
-            uint8_t d = my_noc_router->GetNetDeviceInfo(my_net_device).direction; 
+            direction = my_noc_router->GetNetDeviceInfo(my_net_device).direction; 
             
             ostringstream s0, s3;
-            s0 << "n," << i << "," << x << "," << y << "," << (int) d << ",i";
+            s0 << "n," << i << "," << x << "," << y << "," << (int) direction << ",i";
             my_net_device->TraceConnect("MacRx", s0.str(), MakeCallback(&log_netdevice_packets));
-            s3 << "n," << i << "," << x << "," << y << "," << (int) d << ",o";
+            s3 << "n," << i << "," << x << "," << y << "," << (int) direction << ",o";
             my_net_device->TraceConnect("MacTx", s3.str(), MakeCallback(&log_netdevice_packets));            
         }
 

@@ -112,7 +112,7 @@ namespace ns3 {
         pck->AddHeader(h);
         
 //        for (uint8_t i = 0 ; i < 10 ; i++)
-        m_router->PacketUnicast(pck, 0, dest_x, dest_y);
+        m_router->PacketUnicast(pck, 0, dest_x, dest_y, true);
         
 //        std::cout << "Sent from: "<< Ntow() << ", " << this << endl;
     }

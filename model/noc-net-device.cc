@@ -603,7 +603,10 @@ namespace ns3 {
                 m_macTxDropTrace(packet);
                 return false;
             }
-        } else {
+        }
+        
+        else //m_txMachineState != READY
+        {
             if (priority > 0){
                 bool r = m_queue_prioritized->Enqueue(packet);
                 queue_size_prioritized = m_queue_prioritized->GetNPackets();

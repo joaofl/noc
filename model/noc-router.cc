@@ -228,9 +228,20 @@ namespace ns3 {
     ///////////////////////////////////////////////////////////////////////////
     
     
+//    bool NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, 
+//        int32_t destination_x, int32_t destination_y){
+//        return PacketUnicast (pck, network_id, destination_x, destination_y, false);
+//    }
+    
+    
     bool NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, 
-            int32_t destination_x, int32_t destination_y)
+            int32_t destination_x, int32_t destination_y, bool absolute_address)
     {
+        if (absolute_address){
+            destination_x = (m_addressX - destination_x) ;
+            destination_y = (m_addressY - destination_y) ;
+        }
+        
         NOCHeader h;
         h.SetProtocol(NOCHeader::PROTOCOL_UNICAST);
         h.SetSourceAddressXY(0,0);
