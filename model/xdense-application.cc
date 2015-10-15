@@ -346,7 +346,9 @@ namespace ns3 {
 //            pck->AddHeader(hd);
             
             
-            m_router->PacketBroadcast(pck, 0);
+          m_router->PacketBroadcast(pck, 0);
+//            m_router->PacketUnicast(pck, 0, 2, 2);
+            
         }
 
     }
@@ -413,7 +415,7 @@ namespace ns3 {
         //        }
 
         if (IsSink == false) {
-            Ptr<SENSOR> sensor = this->GetNode()->GetApplication(INSTALLED_SENSOR)->GetObject<SENSOR>();
+            Ptr<Sensor> sensor = this->GetNode()->GetApplication(INSTALLED_SENSOR)->GetObject<Sensor>();
 
             XDenseHeader hd;
             hd.CurrentX = 0;

@@ -131,6 +131,12 @@ namespace ns3 {
         m_srcAddressX += x;
         m_srcAddressY += y;
     }
+    void
+    NOCHeader::AddtoDestinationAddress(int8_t x, int8_t y) 
+    {
+        m_destAddressX += x;
+        m_destAddressY += y;
+    }
     void 
     NOCHeader::SetDestinationAddressXY(int32_t x, int32_t y){
         m_destAddressX = x;

@@ -113,6 +113,7 @@ namespace ns3 {
 //        Coordinate ConvertAddresstoXY(uint32_t address);
         
         void AddtoSourceAddress(int8_t x, int8_t y);
+        void AddtoDestinationAddress(int8_t x, int8_t y);
         
         uint8_t GetProtocol(void);
         void SetProtocol(uint8_t p);

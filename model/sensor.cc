@@ -23,23 +23,23 @@
 
 namespace ns3 {
 
-    SENSOR::SENSOR()
+    Sensor::Sensor()
     : m_running(false){
     }
 
-    SENSOR::~SENSOR() {
+    Sensor::~Sensor() {
     }
 
 
     void
-    SENSOR::StartApplication(void) {
+    Sensor::StartApplication(void) {
 
         Ptr<Node> nd = this->GetNode();
         m_time_instant = 0;
         
     }
     
-    uint32_t SENSOR::ReadSensor(void){
+    uint32_t Sensor::ReadSensor(void){
         
         uint32_t r = InputData->ReadNode(m_time_instant, SensorPosition.x, SensorPosition.y);
         m_time_instant++;
@@ -50,7 +50,7 @@ namespace ns3 {
     }
 
     void
-    SENSOR::StopApplication(void) {
+    Sensor::StopApplication(void) {
         m_running = false;
 
         if (m_sendEvent.IsRunning()) {

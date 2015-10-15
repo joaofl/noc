@@ -26,6 +26,7 @@
 #include "noc-header.h"
 #include "noc-net-device.h"
 #include "noc-router.h"
+#include "ns3/noc-router.h"
 
 
 using namespace std;
@@ -56,8 +57,26 @@ namespace ns3 {
         
                 .AddAttribute("ChannelCount",
                 "Defines the number of NOCNetDevices installed at each direction",
-                UintegerValue(true),
+                UintegerValue(1),
                 MakeUintegerAccessor(&NOCRouter::m_channelCount),
+                MakeUintegerChecker<uint8_t>())
+        
+                .AddAttribute("UnicastProtocol",
+                "Defines the routing protocol utilized for unicasting",
+                UintegerValue(ROUTING_COLUMN_FIRST),
+                MakeUintegerAccessor(&NOCRouter::m_routing_unicast),
+                MakeUintegerChecker<uint8_t>())
+        
+                .AddAttribute("MultiProtocol",
+                "Defines the routing protocol utilized for multicasting",
+                UintegerValue(ROUTING_MULTICAST),
+                MakeUintegerAccessor(&NOCRouter::m_routing_multicast),
+                MakeUintegerChecker<uint8_t>())
+        
+                .AddAttribute("BroadcastProtocol",
+                "Defines the routing protocol utilized for broadcasting",
+                UintegerValue(ROUTING_BROADCAST),
+                MakeUintegerAccessor(&NOCRouter::m_routing_broadcast),
                 MakeUintegerChecker<uint8_t>())
         
                 .AddAttribute("AddressX",
@@ -202,14 +221,17 @@ namespace ns3 {
     bool NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, 
             int32_t destination_x, int32_t destination_y)
     {
+        NOCHeader h;
+        h.SetProtocol(NOCHeader::PROTOCOL_UNICAST);
+        h.SetSourceAddressXY(0,0);
+        h.SetDestinationAddressXY(destination_x,destination_y);
         
-        uint8_t out = RouteTo(ROUTING_COLUMN_FIRST,0,0, destination_x, destination_y);
+        Ptr<Packet> pck_c = pck->Copy();
+        pck_c->AddHeader(h);
         
-//        TODO: here the information with the origin and destination should be added
-//        to a second header, which is added to the packet, in a multilayer style.
+        uint8_t out = RouteTo(m_routing_unicast,0,0, destination_x, destination_y);
         
-        return this->PacketSendSingle(pck->Copy(), network_id, out, P0);
-        
+        return PacketSendMultiple(pck_c, network_id, out, P0);
     }
 
     bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id){
@@ -217,24 +239,20 @@ namespace ns3 {
     }
 
     bool NOCRouter::PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id){
-        
         NOCHeader h;
-        
         h.SetProtocol(NOCHeader::PROTOCOL_BROADCAST);
         h.SetSourceAddressXY(0,0);
         h.SetDestinationAddressXY(0,0);
         
-//        if (m_useRelativeAddress)
-//        {
-//            h.SetSourceAddressXY(0,0);
-//        }
-        
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-//        pck->Copy()->AddHeader(h);
-        PacketSendMultiple(pck_c, network_id, DIRECTION_MASK_ALL_EXCEPT_LOCAL, P0);
-        return false;
+        uint8_t out = RouteTo(m_routing_broadcast,0,0,0,0);
+        
+        if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
+           return true;
+        
+        return false;    
     }
     
     uint8_t
@@ -251,44 +269,24 @@ namespace ns3 {
         if ( (ports_mask >> DIRECTION_N) & 1)
         {
             Ptr<Packet> pck_c = pck->Copy();
-            NOCHeader h;
-            pck_c->RemoveHeader(h);
-            h.AddtoSourceAddress(-1,0);
-            pck_c->AddHeader(h);
-            
             if (PacketSendSingle(pck_c, network_id, DIRECTION_N, priority)){
                 sent++;
             }
         }
         if ( (ports_mask >> DIRECTION_S) & 1){
             Ptr<Packet> pck_c = pck->Copy();
-            NOCHeader h;
-            pck_c->RemoveHeader(h);
-            h.AddtoSourceAddress(1,0);
-            pck_c->AddHeader(h);
-            
             if (PacketSendSingle(pck_c, network_id, DIRECTION_S, priority)){
                 sent++;
             }
         }
         if ( (ports_mask >> DIRECTION_E & 1) & 1){
             Ptr<Packet> pck_c = pck->Copy();
-            NOCHeader h;
-            pck_c->RemoveHeader(h);
-            h.AddtoSourceAddress(0,1);
-            pck_c->AddHeader(h);
-            
             if (PacketSendSingle(pck_c, network_id, DIRECTION_E, priority)){
                 sent++;
             }
         }
         if ( (ports_mask >> DIRECTION_W) & 1){
-            Ptr<Packet> pck_c = pck->Copy();
-            NOCHeader h;
-            pck_c->RemoveHeader(h);
-            h.AddtoSourceAddress(0,-1);
-            pck_c->AddHeader(h);
-            
+            Ptr<Packet> pck_c = pck->Copy();      
             if (PacketSendSingle(pck_c, network_id, DIRECTION_W, priority)){
                 sent++;
             }
@@ -307,36 +305,57 @@ namespace ns3 {
     NOCRouter::PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port_direction, uint8_t priority){
         Ptr<NOCNetDevice> nd;
         
-        if (port_direction != DIRECTION_L)
-        {
-            nd = GetNetDevice(network_id, port_direction);            
+        if (port_direction != DIRECTION_L){
+            nd = GetNetDevice(network_id, port_direction);
+            if (nd == NULL) //That node does not have a net device in that direction
+                return false;
         }
-        else
-        {  //Packet reached its destination, send it to the upper layers
+        else{  //Packet reached its destination, send it to the upper layers
             m_receiveCallBack(pck->Copy(), DIRECTION_L);
+            return true;
         }
         
-        if (nd == NULL) //That node does not have a net device in that direction
-            return false;
         if (nd->Send(pck->Copy())){
             m_routerTxTrace(pck);
             return true;
         }
         else{
             m_routerTxDropTrace(pck);
-            return false;
         }
         return false;
     }
        
     void
-    NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> device) {
+    NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
         m_routerRxTrace(pck);
-        
         Ptr<Packet> pck_c = pck->Copy();
-
+        NetDeviceInfo nd_i = GetNetDeviceInfo(nd);
+        
         NOCHeader h;
-        pck_c->PeekHeader(h);
+        pck_c->RemoveHeader(h);
+        
+        switch (nd_i.direction){
+            case DIRECTION_S: 
+                h.AddtoSourceAddress( 0, 1);
+                h.AddtoDestinationAddress( 0, -1);
+                break;
+            case DIRECTION_N:
+                h.AddtoSourceAddress( 0,-1); 
+                h.AddtoDestinationAddress( 0, 1);
+                break;
+            case DIRECTION_E: 
+                h.AddtoSourceAddress(-1, 0); 
+                h.AddtoDestinationAddress( 1, 0);
+                break;
+            case DIRECTION_W: 
+                h.AddtoSourceAddress( 1, 0); 
+                h.AddtoDestinationAddress( -1, 0);
+                break;
+        }
+        
+        pck_c->AddHeader(h);
+        
+        
         
         int32_t adx = h.GetDestinationAddressX();
         int32_t ady = h.GetDestinationAddressY();
@@ -347,8 +366,8 @@ namespace ns3 {
         uint8_t out = 0;
         switch (p){
             case NOCHeader::PROTOCOL_BROADCAST:
-                out = RouteTo(ROUTING_BROADCAST,asx,asy,adx,ady);
-                PacketSendMultiple(pck_c->Copy(), 0, out, P0);
+                out = RouteTo(m_routing_broadcast,asx,asy,adx,ady);
+                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST:
@@ -356,7 +375,8 @@ namespace ns3 {
                 break;
                
             case NOCHeader::PROTOCOL_UNICAST:
-               
+                out = RouteTo(m_routing_unicast,asx,asy,adx,ady);
+                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             default:
@@ -373,58 +393,71 @@ namespace ns3 {
 
         switch (routing_alg){       
             case ROUTING_COLUMN_FIRST:
-                if      (m_addressY < y_dest)    dir = DIRECTION_MASK_S;
-                else if (m_addressY > y_dest)    dir = DIRECTION_MASK_N;
+                if      (y_dest < 0)    dir = DIRECTION_MASK_S;
+                else if (y_dest > 0)    dir = DIRECTION_MASK_N;
 
-                else if (m_addressX < x_dest)    dir = DIRECTION_MASK_E;
-                else if (m_addressX > x_dest)    dir = DIRECTION_MASK_W;
+                else if (x_dest > 0)    dir = DIRECTION_MASK_E;
+                else if (x_dest < 0)    dir = DIRECTION_MASK_W;
 
-                else if (m_addressX == x_dest && m_addressY == y_dest) 
-                                            dir = DIRECTION_MASK_L;
+                else if (0 == x_dest && 0 == y_dest) dir = DIRECTION_MASK_L;
                 break;
             
             case ROUTING_ROW_FIRST:
-                if      (m_addressX < x_dest)    dir = DIRECTION_MASK_E;
-                else if (m_addressX > x_dest)    dir = DIRECTION_MASK_W;
+                if      (x_dest > 0)    dir = DIRECTION_MASK_E;
+                else if (x_dest < 0)    dir = DIRECTION_MASK_W;
                 
-                else if (m_addressY < y_dest)    dir = DIRECTION_MASK_S;
-                else if (m_addressY > y_dest)    dir = DIRECTION_MASK_N;
+                else if (y_dest > 0)    dir = DIRECTION_MASK_S;
+                else if (y_dest < 0)    dir = DIRECTION_MASK_N;
 
-                else if (m_addressX == x_dest && m_addressY == y_dest) 
-                                                dir = DIRECTION_MASK_L;
+                else if (0 == x_dest && 0 == y_dest) dir = DIRECTION_MASK_L;
                 break;                
             case ROUTING_CLOCKWISE:
                 break;
                 
             case ROUTING_BROADCAST:
-                if ((x_source == m_addressX) && (y_source == m_addressY)) //myself generating the packet
+                
+                //Check in which quadrant the packet is in:
+                
+                /*              |
+                 *       B      |     A
+                 *              |
+                 * -------------|-------------
+                 *              |
+                 *       C      |     D
+                 *              |
+                 */
+                
+                dir = DIRECTION_MASK_L; //It sends the packet inside anyway, since it
+                                         //was received, but not sent to the app yet
+                
+                //A: [+x +y[
+                if (x_source >= 0 && y_source > 0){
+                   dir |= DIRECTION_MASK_E; //send it up, dir +y
+                   if (x_source == 0) //if on the axis, send it right too
+                       dir |= DIRECTION_MASK_N;
+                }
+                //B: ]-x +y]
+                else if (x_source < 0 && y_source >= 0){
+                   dir |= DIRECTION_MASK_N;
+                   if (y_source == 0) 
+                       dir |= DIRECTION_MASK_W;
+                }
+                //C: [-x -y[
+                else if (x_source <= 0 && y_source < 0){
+                   dir |= DIRECTION_MASK_W;
+                   if (x_source == 0) 
+                       dir |= DIRECTION_MASK_S;
+                }
+                //D: ]+x -y]
+                else if (x_source > 0 && y_source <= 0){
+                   dir |= DIRECTION_MASK_S;
+                   if (y_source == 0) 
+                       dir |= DIRECTION_MASK_E;
+                }
+                else if (x_source == 0 && y_source == 0) //generated by myself.
+                                                         //send it to all neighbors
                     dir = DIRECTION_MASK_ALL_EXCEPT_LOCAL;
                 
-                else if((x_source == 0) && (y_source < 0)) //Going up, aligned with the sink
-                    dir = DIRECTION_MASK_N | DIRECTION_MASK_W; //send it inside, north and west
-                else if((x_source > 0) && (y_source < 0)) //Turned left, keep straight
-                    dir = DIRECTION_MASK_W; //send it inside and west
-                
-//                else if((x_source == 0) && (y_source > 0)) //Going up, aligned with the sink
-//                    dir = DIRECTION_MASK_S | DIRECTION_MASK_E | DIRECTION_MASK_L; //send it inside, north and west
-//                else if((x_source > 0) && (y_source > 0)) //Turned left, keep straight
-//                    dir = DIRECTION_MASK_E | DIRECTION_MASK_L; //send it inside and west
-//                
-//                else if((x_source > 0) && (y_source == 0)) //Going up, aligned with the sink
-//                    dir = DIRECTION_MASK_W | DIRECTION_MASK_S | DIRECTION_MASK_L; //send it inside, north and west
-//                else if((x_source > 0) && (y_source < 0)) //Turned left, keep straight
-//                    dir = DIRECTION_MASK_S | DIRECTION_MASK_L; //send it inside and west
-//                
-//                else if((x_source < 0) && (y_source == 0)) //Going up, aligned with the sink
-//                    dir = DIRECTION_MASK_E | DIRECTION_MASK_N | DIRECTION_MASK_L; //send it inside, north and west
-//                else if((x_source < 0) && (y_source > 0)) //Turned left, keep straight
-//                    dir = DIRECTION_MASK_N | DIRECTION_MASK_L; //send it inside and west
-                
-                
-                
-
-                dir |= DIRECTION_MASK_L;
-                     
                 break;
         }
         return dir;

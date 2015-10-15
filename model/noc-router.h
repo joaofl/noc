@@ -172,7 +172,8 @@ namespace ns3 {
             ROUTING_COLUMN_FIRST,
             ROUTING_ROW_FIRST,
             ROUTING_BROADCAST,
-            ROUTING_CLOCKWISE
+            ROUTING_CLOCKWISE,
+            ROUTING_MULTICAST
         };
         
         uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source,
@@ -207,6 +208,10 @@ namespace ns3 {
         uint8_t m_port_to_serve;
         
         uint8_t m_channelCount;
+        
+        uint8_t m_routing_unicast; 
+        uint8_t m_routing_multicast;
+        uint8_t m_routing_broadcast;
     };
 
 }
