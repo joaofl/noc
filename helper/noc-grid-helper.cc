@@ -135,7 +135,8 @@ GridHelper::InitializeNetwork()
     uint32_t i = 0;
     for (n = my_node_container.Begin() ; n != my_node_container.End() ; n++){ 
         int32_t x = i % m_sizeX;
-        int32_t y = floor(i / m_sizeY);
+        int32_t y = m_sizeY - 1 - floor(i / m_sizeY);
+//         int32_t y = floor(i / m_sizeY);
         i++;
         
         my_noc_router = CreateObject<NOCRouter> ();

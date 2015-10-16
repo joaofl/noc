@@ -87,7 +87,7 @@ namespace ns3 {
         }
         
         Time t = Time::FromInteger(1, Time::MS);
-        if (IsSink == true)
+//        if (IsSink == true)
         Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
         
 
@@ -599,16 +599,18 @@ namespace ns3 {
     void
     XDenseApp::DataAnnouncementTT(void) {
             Ptr<Packet> pck = Create<Packet>();
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 0, USE_ABSOLUTE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 0, USE_ABSOLUTE_ADDRESS);  
+            
 //            m_router->PacketUnicast(pck, NETWORK_ID_0, 2, 2, USE_RELATIVE_ADDRESS);        
 //            m_router->PacketUnicast(pck, NETWORK_ID_0, 2, -2, USE_RELATIVE_ADDRESS);        
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, -2, 2, USE_RELATIVE_ADDRESS);        
 //            m_router->PacketUnicast(pck, NETWORK_ID_0, -2, -2, USE_RELATIVE_ADDRESS);       
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, -2, 2, USE_RELATIVE_ADDRESS);        
             
-            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 4, USE_ABSOLUTE_ADDRESS);        
-            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, -4, USE_ABSOLUTE_ADDRESS);        
-            m_router->PacketUnicast(pck, NETWORK_ID_0, -4, 4, USE_ABSOLUTE_ADDRESS);        
-            m_router->PacketUnicast(pck, NETWORK_ID_0, -4, 0, USE_ABSOLUTE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 4, 4, USE_ABSOLUTE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 4, 0, USE_ABSOLUTE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 0, USE_ABSOLUTE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 4, USE_ABSOLUTE_ADDRESS);        
+            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 0, USE_ABSOLUTE_ADDRESS);        
                   
     }
     

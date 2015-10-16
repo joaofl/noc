@@ -238,8 +238,8 @@ namespace ns3 {
             int32_t destination_x, int32_t destination_y, bool absolute_address)
     {
         if (absolute_address){
-            destination_x = (m_addressX - destination_x) ;
-            destination_y = (m_addressY - destination_y) ;
+                destination_x = destination_x - m_addressX;
+                destination_y = destination_y - m_addressY;
         }
         
         NOCHeader h;

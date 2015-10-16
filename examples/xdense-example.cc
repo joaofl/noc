@@ -219,8 +219,8 @@ main(int argc, char *argv[]) {
     
     
     for (uint32_t i = 0; i < n_nodes; i++) {
-        uint32_t x = i % size_x;
-        uint32_t y = floor(i / size_y);
+//        uint32_t x = i % size_x;
+//        uint32_t y = floor(i / size_y);
 
         Ptr<XDenseApp> my_xdense_app = CreateObject<XDenseApp> ();
         Ptr<Sensor> my_sensor = CreateObject<Sensor> ();
@@ -236,13 +236,15 @@ main(int argc, char *argv[]) {
 
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
-
+        IntegerValue x, y;
+        my_noc_router->GetAttribute("AddressX", x);
+        my_noc_router->GetAttribute("AddressY", y);
         
         int8_t direction = -1;
         ostringstream s1, s2;
-        s1 << "r," << i << "," << x << "," << y << "," << (int) direction << ",i";
+        s1 << "r," << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",i";
         my_noc_router->TraceConnect("RouterRxTrace", s1.str(), MakeCallback(&log_router_packets));
-        s2 << "r," << i << "," << x << "," << y << "," << (int) direction << ",o";
+        s2 << "r," << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",o";
         my_noc_router->TraceConnect("RouterTxTrace", s2.str(), MakeCallback(&log_router_packets));
         
         
@@ -254,15 +256,15 @@ main(int argc, char *argv[]) {
             direction = my_noc_router->GetNetDeviceInfo(my_net_device).direction; 
             
             ostringstream s0, s3;
-            s0 << "n," << i << "," << x << "," << y << "," << (int) direction << ",i";
+            s0 << "n," << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",i";
             my_net_device->TraceConnect("MacRx", s0.str(), MakeCallback(&log_netdevice_packets));
-            s3 << "n," << i << "," << x << "," << y << "," << (int) direction << ",o";
+            s3 << "n," << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",o";
             my_net_device->TraceConnect("MacTx", s3.str(), MakeCallback(&log_netdevice_packets));            
         }
 
         //Setup sensor
-        my_sensor->SensorPosition.x = x;
-        my_sensor->SensorPosition.y = y;
+        my_sensor->SensorPosition.x = x.Get();
+        my_sensor->SensorPosition.y = y.Get();
         my_sensor->InputData = &my_input_data;
 
 
