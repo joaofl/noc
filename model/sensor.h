@@ -22,26 +22,24 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 
+#include <stdio.h>
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
-//#include <gsl/gsl_rng.h>
-#include <stdio.h>
-#include "noc-types.h"
 #include "sensor-data-io.h"
 
 namespace ns3 {
 
-    class SENSOR : public Application {
+    class Sensor : public Application {
     public:
         
         Coordinate SensorPosition;
         
-        UNSInputData * InputData;
+        NOCInputData * InputData;
         
         uint32_t ReadSensor(void);
         
-        SENSOR();
-        virtual ~SENSOR();
+        Sensor();
+        virtual ~Sensor();
     private:
        virtual void StartApplication(void);
         virtual void StopApplication(void);

@@ -217,11 +217,11 @@ def matrix(data, filename="0", show=False, title = "", lable_x = "", lable_y = "
     elif show==True:
         plt.show()
 
-def plotxy(data, filename="0", show=False, title = "", label_x = "", label_y = "", x_size = 6.5, y_size = 3.1, x_lim = [] , y_lim = [], logscale=True, marker=[], step=True):
+def plotxy(x, y, filename="0", show=False, title = "", label_x = "", label_y = "", x_size = 6.5, y_size = 3.1, x_lim = [] , y_lim = [], logscale=False, marker=[], step=True):
 
-    s = len(data)
-    x = [(row[0]) for row in data]
-    y = [(row[1]) for row in data]
+    # s = len(data)
+    # x = [(row[0]) for row in data]
+    # y = [(row[1]) for row in data]
 
     fig, ax1 = plt.subplots(figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
     # pylab.figure(fig)
@@ -235,8 +235,10 @@ def plotxy(data, filename="0", show=False, title = "", label_x = "", label_y = "
     else:
         ax1.plot(x,y, '-o')
     ax1.set_xlabel(label_x)
-    if x_lim != []: pylab.xlim(x_lim)
-    if y_lim != []: pylab.ylim(y_lim)
+    if x_lim != []:
+        pylab.xlim(x_lim)
+    if y_lim != []:
+        pylab.ylim(y_lim)
 
     if logscale == True:
         pylab.yscale('log')
@@ -320,7 +322,7 @@ def plotxy_multiple(data_list, filename="0", show=False, title = "", label_x = "
     return 0
 
 def plot2xy(data1, data2, filename="0", show=False, title = "", label_x = "", label_y1 = "", label_y2 = "",
-            x_size = 6.5, y_size = 3.1, x_lim = [] , y_lim = [], logscale=False, legend=[], two_axis=False):
+            x_size = 6.5, y_size = 3.1, x_lim = [] , y_lim = [], logscale=False, legend=['a','b'], two_axis=False):
 
     #consider that x is the same for both, and extract frmo the first only
 
@@ -346,7 +348,7 @@ def plot2xy(data1, data2, filename="0", show=False, title = "", label_x = "", la
     if logscale == True:
         pylab.yscale('log')
 
-    ax1.plot(x, y1, 'o', linestyle=next(linecycler), label=legend[0])
+    ax1.plot(x, y1, 'o', linestyle=next(linecycler), label=legend[0])#, where='post')
     ax1.set_xlabel(label_x)
     # Make the y-axis label and tick labels match the line color.
     ax1.set_ylabel(label_y1)
@@ -363,7 +365,7 @@ def plot2xy(data1, data2, filename="0", show=False, title = "", label_x = "", la
         ax2 = ax1
 
     # s2 = np.sin(2*np.pi*t)
-    ax2.plot(x, y2, 'Dr', linestyle=next(linecycler), label=legend[1])
+    ax2.plot(x, y2, 'Dr', linestyle=next(linecycler), label=legend[1])#, where='post')
     ax2.set_ylabel(label_y2)
     # ax2.set_ylabel(label_y2, color='g')
     # for tl in ax2.get_yticklabels():

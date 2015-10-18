@@ -56,7 +56,7 @@ namespace ns3 {
          
                 .AddAttribute("SerialComm",
                 "If the NetDevice uses serial or parallel communication",
-                BooleanValue(true),
+                BooleanValue(false),
                 MakeBooleanAccessor(&NOCNetDevice::m_serialComm),
                 MakeBooleanChecker())
         
@@ -243,12 +243,12 @@ namespace ns3 {
         m_phyTxBeginTrace(m_currentPkt);
 
         //the time required to send a single bit
-        Time oneBitTransmissionTime = PicoSeconds(m_bps.CalculateBitsTxTime(1));
+        Time oneBitTransmissionTime = Seconds(m_bps.CalculateBitsTxTime(1));
         Time txTime;
         
         if (m_serialComm == true){
-            txTime =  PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() * p->GetSize() * 8);
-            txTime += oneBitTransmissionTime * m_clockSkew;
+            txTime =  m_bps.CalculateBytesTxTime(p->GetSize());
+//            txTime += oneBitTransmissionTime * m_clockSkew;
         }
         else{
 //            in parallel, one packet takes one cycle to be transmitted, considering
@@ -337,26 +337,28 @@ namespace ns3 {
         m_currentPkt = 0;
 
 
-        Ptr<Packet> p = m_queue_prioritized->Dequeue();
+        Ptr<Packet> p1 = m_queue_prioritized->Dequeue();
         queue_size_prioritized = m_queue_prioritized->GetNPackets();
-        if (p != 0) {
+        if (p1 != 0) {
             //
             // There was packets on the high p queue, send them...
             //
-            m_snifferTrace(p);
-            m_promiscSnifferTrace(p);
-            TransmitStart(p);
+            m_snifferTrace(p1);
+            m_promiscSnifferTrace(p1);
+            m_macTxTrace(p1);
+            TransmitStart(p1);
             return;
         }
-        p = m_queue->Dequeue();
+        Ptr<Packet> p0 = m_queue->Dequeue();
         queue_size = m_queue->GetNPackets();
-        if (p != 0) {
+        if (p0 != 0) {
             //
             // There was no packets on the high p, but on the lp queue, send them...
             //
-            m_snifferTrace(p);
-            m_promiscSnifferTrace(p);
-            TransmitStart(p);
+            m_snifferTrace(p0);
+            m_promiscSnifferTrace(p0);
+            m_macTxTrace(p0);
+            TransmitStart(p0);
             return;
         }
     }
@@ -434,7 +436,7 @@ namespace ns3 {
             }
 
             m_macRxTrace(packet);
-            m_rxCallback(this, packet, protocol, GetRemote());
+            m_rxCallback(packet, this);
         }
     }
 
@@ -571,6 +573,7 @@ namespace ns3 {
                 if (m_queue_prioritized->Enqueue(packet) == true) {
                     queue_size_prioritized = m_queue_prioritized->GetNPackets();
                     packet = m_queue_prioritized->Dequeue();
+                    
                     m_snifferTrace(packet);
                     m_promiscSnifferTrace(packet);
                     m_macTxTrace(packet);
@@ -591,15 +594,21 @@ namespace ns3 {
             if (m_queue->Enqueue(packet) == true) {
                 queue_size = m_queue->GetNPackets();
                 packet = m_queue->Dequeue();
+                
                 m_snifferTrace(packet);
                 m_promiscSnifferTrace(packet);
+                m_macTxTrace(packet);
+                
                 return TransmitStart(packet);
             } else {
                 // Enqueue may fail (overflow)
                 m_macTxDropTrace(packet);
                 return false;
             }
-        } else {
+        }
+        
+        else //m_txMachineState != READY
+        {
             if (priority > 0){
                 bool r = m_queue_prioritized->Enqueue(packet);
                 queue_size_prioritized = m_queue_prioritized->GetNPackets();
@@ -639,6 +648,10 @@ namespace ns3 {
     void
     NOCNetDevice::SetReceiveCallback(NOCNetDevice::ReceiveCallback cb) {
         m_rxCallback = cb;
+    }
+    void
+    NOCNetDevice::SetReceiveCallback(NetDevice::ReceiveCallback cb) {
+        
     }
 
     void

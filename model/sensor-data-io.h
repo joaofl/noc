@@ -49,7 +49,7 @@ int mkpath(const char *path, mode_t mode);
 
 namespace ns3 {
     
-    class UNSInputData{
+    class NOCInputData{
     public:
         uint8_t LoadFromFile(string);
         uint32_t ReadNode(uint32_t t, uint32_t x, uint32_t y);

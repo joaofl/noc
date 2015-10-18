@@ -19,12 +19,15 @@
  * 
  */
 
+//TODO: eliminate this file, and spread the definitions each one on its own class
+//file
+
 #ifndef NOC_TYPES_H
 #define	NOC_TYPES_H
 
 #include "ns3/core-module.h"
 
-#define INSTALLED_NOC_SWITCH 0
+#define INSTALLED_NOC_ROUTER 0
 #define INSTALLED_NOC_APP 1
 #define INSTALLED_SENSOR 2
 

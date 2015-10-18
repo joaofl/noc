@@ -37,6 +37,7 @@
 
 #include "noc-net-device.h"
 #include "noc-router.h"
+#include "noc-header.h"
 #include "noc-types.h"
 
 using namespace std;
@@ -46,22 +47,6 @@ namespace ns3 {
     public:
 
         static TypeId GetTypeId (void);
-        
-//        const static uint8_t NumNetDevices = 4;
-        
-        
-//        bool IsSink;
-//        uint32_t MaxHops;
-//        Time TimeStartOffset;
-//        TracedValue< stringstream* > PacketTrace;
-        
-        
-        //names are architecture dependant
-//        enum Networks{
-//            MESH_W = 0,
-//            MESH_R = 1,
-//            MESH_X = 2
-//        };
         
         enum Priority{
             P0,
@@ -81,19 +66,22 @@ namespace ns3 {
             DIRECTION_MASK_S   = 0b00000010, //south
             DIRECTION_MASK_W   = 0b00000100, //west
             DIRECTION_MASK_N   = 0b00001000, //north
-            DIRECTION_MASK_L   = 0b00010000, //north
-            DIRECTION_MASK_ALL = 0b00011111
+            DIRECTION_MASK_L   = 0b00010000, //local
+            DIRECTION_MASK_ALL = 0b00011111,
+            DIRECTION_MASK_ALL_EXCEPT_LOCAL = 0b00001111
+                    
         };
 
         typedef struct {
+            uint32_t unique_id; //not used so far
             uint8_t cluster_id;
             uint8_t network_id;
             uint8_t direction;
             bool    wait;
             bool    wait_remote;
             Ptr<NOCNetDevice> nd_pointer;
-            Ptr<Packet> pck_buffer;
-            bool pck_buffered;
+//            Ptr<Packet> pck_buffer;
+//            bool pck_buffered;
         }NetDeviceInfo;
         
         NOCRouter();
@@ -101,7 +89,7 @@ namespace ns3 {
         
         // Basic comm functions//////////////////////
 
-        bool PacketReceived(Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol, const Address& sourceAddress);
+        void PacketReceived(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
         
 //        void PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask);
         
@@ -109,9 +97,13 @@ namespace ns3 {
         
         // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
         
-        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, int32_t destination_y);
+//        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
+//                            int32_t destination_y);
+        
+        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
+                            int32_t destination_y, bool absolute_address);
 
-        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t hops);
+        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id);
 
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
         
@@ -124,6 +116,7 @@ namespace ns3 {
         void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t network, uint8_t direction);
         
         Ptr<NOCNetDevice> GetNetDevice(uint8_t network, uint8_t direction);
+        Ptr<NOCNetDevice> GetNetDevice(uint8_t i);
         
         NetDeviceInfo GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
     
@@ -133,12 +126,7 @@ namespace ns3 {
         int8_t GetNetDeviceInfoIndex(Ptr<NOCNetDevice> nd);
         
         uint8_t GetNDevices(void);
-      
-        void ServePackets(void);
-        void ServePacket(uint8_t in, uint8_t out);
-        
-        void RemoteWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
-        void LocalWaitChanged(uint8_t signal, Ptr<NOCNetDevice> nd_this, bool wait_state);
+     
  
         
         /**
@@ -160,20 +148,25 @@ namespace ns3 {
          * Set the callback to be used to notify higher layers when a packet has been
          * received.
          */
-        void SetReceiveCallback(ReceiveCallback);
+        void SetReceiveCallback(ReceiveCallback cb);
         
     private:
 
         enum RoutingAlgos{
-            COLUMN_FIRST,
-            ROW_FIRST,
-            CLOCKWISE
+            ROUTING_COLUMN_FIRST,
+            ROUTING_ROW_FIRST,
+            ROUTING_BROADCAST,
+            ROUTING_CLOCKWISE,
+            ROUTING_MULTICAST
         };
         
-        uint8_t RouteTo(uint8_t routing_alg, int32_t destination_x, int32_t destination_y);
+        uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source,
+                        int32_t x_dest, int32_t y_dest);
 
         TracedCallback<Ptr<const Packet> > m_routerRxTrace;
         TracedCallback<Ptr<const Packet> > m_routerTxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerCxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerGxTrace;
         TracedCallback<Ptr<const Packet> > m_routerTxDropTrace;
         
         virtual void StartApplication(void);
@@ -182,8 +175,8 @@ namespace ns3 {
 //        bool PacketForward(Ptr<const Packet> pck, 
 //            uint8_t network_id, uint8_t originPort, uint8_t destinationPort, uint8_t priority);
         
-        bool PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
-        bool PacketSendSingle(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd, uint8_t priority);
+        uint8_t PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
+        bool PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
         
         ReceiveCallback m_receiveCallBack;
 
@@ -194,11 +187,17 @@ namespace ns3 {
         
         int32_t m_addressX, m_addressY;
         
+        uint8_t m_useRelativeAddress;
+        
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
         
         uint8_t m_port_to_serve;
         
         uint8_t m_channelCount;
+        
+        uint8_t m_routing_unicast; 
+        uint8_t m_routing_multicast;
+        uint8_t m_routing_broadcast;
     };
 
 }

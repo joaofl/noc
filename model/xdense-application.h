@@ -41,19 +41,23 @@
 #include "calc.h"
 #include "sensor-data-io.h"
 
-//#define DIR_ALL         0b00001111
-//#define DIR_RIGHT       0b00000001
-//#define DIR_DOWN        0b00000010
-//#define DIR_LEFT        0b00000100
-//#define DIR_UP          0b00001000
 
+#define USE_ABSOLUTE_ADDRESS true
+#define USE_RELATIVE_ADDRESS false
 
 namespace ns3 {
 
     class XDenseApp : public Application {
     public:
 
+        
+        enum NetworkId {
+            NETWORK_ID_0 = 0,
+            NETWORK_ID_1 = 1,
+            NETWORK_ID_2 = 2
+        };
 
+        
 
         bool IsSink,
              IsClusterHead;
@@ -78,21 +82,26 @@ namespace ns3 {
 
 //        vector <EventRef> EventsReceived;
         
+        void DataReceived(Ptr<const Packet> pck, uint16_t direction);
+        
         void NetworkDiscovery();
         bool NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port);
 
-        void EventAnnouncement(EventRef);
-        bool EventAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port);
+        //Event triggered
+        void DataAnnouncement(EventRef);
+        //Time triggered
+        void DataAnnouncementTT();
+        bool DataAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port);
 
         
         NodeRef NearestClusterHead(void);
 
-        void ScheduleValueAnnouncement(uint8_t n_times, Time period);
-        void ValueAnnouncement();
-        bool ValueAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port);
+        void DataSharingSchedule(uint8_t n_times, Time period);
+        void DataSharing();
+        bool DataSharingReceived(Ptr<const Packet> pck, uint8_t origin_port);
         
 //        
-        
+        void AddRouter(Ptr<NOCRouter> r);
 //        void ScheduleTransmission(Ptr<const Packet> pck, uint8_t destination_port);
 
 

@@ -32,10 +32,12 @@
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
-#include "ns3/noc-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/netanim-module.h"
+
+#include "ns3/noc-module.h"
+
 #include "src/core/model/object-base.h"
 #include "src/noc/model/epiphany-header.h"
 
@@ -188,7 +190,7 @@ main(int argc, char *argv[]) {
         }
 
         //Setup router
-        Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
+        Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
         
         ostringstream ss_rx, ss_tx;
         ss_rx << "i " << i << "," << x << "," << y << ",";

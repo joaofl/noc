@@ -33,19 +33,16 @@
 #include <pwd.h>
 
 #include "ns3/core-module.h"
+//#include "ns3/config-store-module.h"
 #include "ns3/network-module.h"
-//#include "ns3/internet-module.h"
-#include "ns3/noc-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/netanim-module.h"
 #include "src/core/model/object-base.h"
 
+#include "ns3/noc-module.h"
 #include "src/noc/model/xdense-application.h"
 #include "src/noc/model/sensor-data-io.h"
-//#include "src/noc/model/noc-net-device.h"
-//#include "src/noc/model/noc-application.h"
-//#include "ns3/simple-net-device.h"
+#include "src/noc/model/noc-header.h"
 
 
 NS_LOG_COMPONENT_DEFINE("NOCExample");
@@ -61,214 +58,76 @@ NS_LOG_COMPONENT_DEFINE("NOCExample");
 using namespace std;
 using namespace ns3;
 
-ofstream file, 
-        file_packets_trace,
-        file_packets_trace_sink,
-        file_packets_trace_net_device, 
-        file_queue_size, 
-        file_queue_size_prioritized, 
-        file_value_annoucement_total_time;
-
-string dir_output;
-string dir_input;
-
-uint32_t global_sampling_period;
-
-string filename;
-
-uint16_t *received_data;
-
-NodeContainer my_node_container;
-
-uint32_t qs_a, qsp_a; //queue sizes from the previous cycle, to create the log of queue sizes.
-uint64_t time_a;
-
-uint32_t value_annoucement_start_time,
-        value_annoucement_end_time, 
-        value_annoucement_count;
 
 
-uint32_t sampling_cycles;
-uint32_t sampling_period; //at every 100.000.000 ns = 100ms default
-uint8_t log_start_at_period;
-uint32_t start_offset;
+ofstream file_packets_trace_router;
+ofstream file_packets_trace_netdevice;
 
-
-
-
-
-void
-packet_exchanged_router_sink(string context, Ptr<const Packet> pck, uint8_t direction) {
+uint32_t t_slot(){
+    static uint64_t t0 = 1;
+    static uint32_t t_transmission = 1;
+    static uint64_t t_slot = 0; 
     
-    XDenseHeader hd;
-    pck->PeekHeader(hd);
-    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
-        file_packets_trace_sink
-                << "c,"
-                << Simulator::Now().GetNanoSeconds() << ","
-                << pck->GetUid() << ","
-                << context << "," //here «, inside context there is: node_number,x,y
-                << "p,"
-                << hd.GetNOCProtocol() << ","
-                << (int) hd.SerialNumber << ","
-                << (int) direction << ","
-                << (int) hd.EventType << ","
-                << hd.EventData[0] << ","
-                << (int) hd.CurrentX << ","
-                << (int) hd.CurrentY
-                << endl;
+    uint64_t now = Simulator::Now().GetNanoSeconds();
+    
+    if (t0 == 1){ //first iteration
+        t0 = now;
     }
-}
-
-void
-packet_received_router_sink(string context, Ptr<const Packet> pck) {
-    packet_exchanged_router_sink(context, pck, 1); //1 = input
-}
-
-void
-packet_sent_router_sink(string context, Ptr<const Packet> pck) {
-    packet_exchanged_router_sink(context, pck, 0); //0 = output
-}
-
-void
-packet_exchanged_router(string context, Ptr<const Packet> pck, uint8_t direction) {
-    XDenseHeader hd;
-    pck->PeekHeader(hd);
-    if (Simulator::Now().GetNanoSeconds() >= (log_start_at_period * sampling_period * 1000 + start_offset * 1000)){
-        
-
-        if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT ) {//|| hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
-
-            //    if (pck->GetUid() == 104) {
-            file_packets_trace
-                    << "c,"
-                    << Simulator::Now().GetNanoSeconds() << ","
-                    << pck->GetUid() << ","
-                    << (int) direction << ","
-                    << context << "," //here «, inside context there is: node_number,x,y
-                    << "p,"
-                    << hd.GetNOCProtocol() << ","
-                    << (int) hd.SerialNumber << ","
-                    << (int) hd.EventType << ","
-                    << hd.EventData[0] << ","
-                    << (int) hd.CurrentX << ","
-                    << (int) hd.CurrentY << endl;
-
-            //    }
-        }
+    else if (t_transmission == 1 && now > t0){
+        t_transmission = now - t0;
+        t_slot = 1;
     }
-//    else if (hd.GetNOCProtocol() == P_VALUE_ANNOUNCEMENT) {
-//        uint32_t now = Simulator::Now().GetNanoSeconds();
-//        
-//        if (value_annoucement_start_time == 0 || now - value_annoucement_start_time == 50000000){
-//            value_annoucement_count = 0;
-//            value_annoucement_start_time = now;
-//        }
-//        if (value_annoucement_end_time < now){
-//            value_annoucement_end_time = now;
-//        }
-//        if (direction == 1){
-//            value_annoucement_count++; //count only the input packets to not count it twice
-//        }
-//    }
-}
-
-void
-packet_received_router(string context, Ptr<const Packet> pck) {
-    packet_exchanged_router(context, pck, 1); //1 = input - receives
-}
-
-void
-packet_sent_router(string context, Ptr<const Packet> pck) {
-    packet_exchanged_router(context, pck, 0); //0 = output - sent
-    //suppressed for now since it is somehow redundant information
-}
-
-void
-log_packet(string context, Ptr<const Packet> pck, uint8_t direction) {
-    XDenseHeader hd;
-    pck->PeekHeader(hd);
-    if (hd.GetNOCProtocol() == P_EVENT_ANNOUNCEMENT) {
-    //    if (pck->GetUid() == 104 || pck->GetUid() == 110 ) {
-            file_packets_trace_net_device
-            << "c,"
-            << Simulator::Now().GetNanoSeconds() << ","
-            << pck->GetUid() << ","
-            << (int) direction << ","
-            << context << "," //here «, inside context there is: node_number, x, y, port_number
-            << "p,"
-            << hd.GetNOCProtocol() << ","
-            << (int) hd.SerialNumber << ","
-            << (int) hd.EventType << ","
-            << hd.EventData[0] << ","
-            << (int) hd.CurrentX << ","
-            << (int) hd.CurrentY << endl;
-    }        
-    
-}
-
-void
-log_queue_size(string context, Ptr<const Packet> pck){
-    //Extract data from the context string
-    uint32_t nd_n = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-    context.erase(context.find_last_of(','));
-    uint32_t y = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-    context.erase(context.find_last_of(','));
-    uint32_t x = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-    context.erase(context.find_last_of(','));
-    uint32_t node_n = std::atoi(context.substr(context.find_last_of(',') + 1).c_str());
-      
-    x=x;
-    y=y;
-    
-    uint64_t time = Simulator::Now().GetNanoSeconds();
-    uint32_t qs,qsp;
-    
-    Ptr<NOCNetDevice> nd = my_node_container.Get(node_n)->GetDevice(nd_n)->GetObject<NOCNetDevice>();
-
-    qs = nd->queue_size;
-    qsp = nd->queue_size_prioritized;
-
-   
-    if (time > time_a){
-        
-        file_queue_size << time_a << ',' << qs_a << ',' << qsp_a << endl;  
-        
-        qs_a = 0;
-        qsp_a = 0;
-        time_a = time;
-    } 
-    else {
-        if (qs > qs_a) {
-            qs_a = qs;
-        }
-        if (qsp > qsp_a) {
-            qsp_a = qsp;
-        }
+    else if (now > t0){
+        t_slot = (now - t0) / t_transmission;
     }
-//    }     
+    
+    return t_slot;
 }
 
-//CallBack
+//context << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
 void
-packet_received_netdevice_mac(string context, Ptr<const Packet> pck) {
-    log_packet(context, pck, 1);
+log_router_packets(string context, Ptr<const Packet> pck) 
+{
+    static uint64_t i = 1;
+    uint64_t now = Simulator::Now().GetNanoSeconds();
+
+    NOCHeader hd;
+    pck->PeekHeader(hd);
+    
+    file_packets_trace_router
+    << "c,"
+    << i << ","
+    << t_slot() << ","
+    << now << ","
+    << pck->GetUid() << ","
+    << context << "," 
+    << "p,";
+    hd.Print(file_packets_trace_router);
+    
+    i++;
 }
 
-//CallBack
 void
-packet_sent_netdevice_mac(string context, Ptr<const Packet> pck) {
-    log_queue_size(context, pck);
+log_netdevice_packets(string context, Ptr<const Packet> pck) 
+{
+    static uint64_t i = 1;
+    uint64_t now = Simulator::Now().GetNanoSeconds();
+    
+    NOCHeader hd;
+    pck->PeekHeader(hd);
+    
+    file_packets_trace_netdevice
+    << "c,"
+    << i << ","
+    << t_slot() << ","
+    << now << ","
+    << pck->GetUid() << ","
+    << context << "," 
+    << "p,";
+    hd.Print(file_packets_trace_netdevice);
+    
+    i++;
 }
-
-//CallBack
-void
-packet_exchanged_phy(string context, Ptr<const Packet> pck) {
-    log_queue_size(context, pck);
-}
-
-//run command Netbeans
-//"${OUTPUT_PATH}" $(cat ~/noc-data/config/input-config.c.csv)
 
 int
 main(int argc, char *argv[]) {
@@ -276,10 +135,12 @@ main(int argc, char *argv[]) {
     //LogComponentEnable("NOCNetDevice",LOG_LEVEL_ALL);
     //LogComponentEnable("NOCChannel",LOG_LEVEL_ALL);
     //LogComponentEnable("XDenseHeader",LOG_LEVEL_ALL);
-
     
     
     // Default values
+    
+    uint32_t sampling_cycles = 10;
+    uint32_t sampling_period = 100000; //at every 100.000.000 ns = 100ms default
     uint32_t size_x = 101;
     uint32_t size_y = 101;
     uint32_t size_neighborhood = 4;
@@ -287,32 +148,16 @@ main(int argc, char *argv[]) {
     uint32_t baudrate = 1000; //1000 kbps =  1 Mbps
     uint32_t operational_mode = 0; //sample the entire network
     
-    start_offset = 1000000; //1e9ns = 1s
-    log_start_at_period = 2;
-    sampling_cycles = 10;
-    sampling_period = 100000; //at every 100.000.000 ns = 100ms default
-    
-    global_sampling_period = sampling_period;
-    
-    // For logging the queue size over time
-    qs_a = 0;
-    qsp_a = 0;
-
-    
-    value_annoucement_start_time = 0;
-    value_annoucement_end_time = 0;
-    value_annoucement_count = 0;
-    
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
         
-    string io_data_dir = homedir + "/noc-data";
+    string io_data_dir = homedir + "/usn-data";
     
     stringstream context_dir;
     context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
     
-    dir_output = io_data_dir + context_dir.str() + "out/";
-    dir_input = io_data_dir + context_dir.str() + "in/";    
+    string dir_output = io_data_dir + context_dir.str() + "out/";
+    string dir_input = io_data_dir + context_dir.str() + "in/";    
 
     CommandLine cmd;
     cmd.AddValue("size_x", "Network size in the X axe", size_x);
@@ -322,7 +167,7 @@ main(int argc, char *argv[]) {
     cmd.AddValue("sinks_n", "Network size in the X axe", sinks_n);
     cmd.AddValue("sampling_cycles", "The number of times each node should sample its sensor, and perform data exchange", sampling_cycles);
     cmd.AddValue("sampling_period", "The period between each sensor sampling [us]", sampling_period);
-    cmd.AddValue("log_start_at_period", "The period from witch logging starts", log_start_at_period);
+//    cmd.AddValue("log_start_at_period", "The period from witch logging starts", log_start_at_period);
     cmd.AddValue("baudrate", "The baudrate of the node's communication ports [kbps]", baudrate);
     cmd.AddValue("io_data_dir", "Directory with the I/O simulation data", io_data_dir);
 
@@ -351,96 +196,95 @@ main(int argc, char *argv[]) {
     my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(true));
     //If the connection is not serial, then the packet size defines the link width,
     //and one packet is transmitted in one tick of a given baudrate
-//    my_grid_network.SetDeviceAttribute("PacketSize", IntegerValue(4)); //in bytes
+    //my_grid_network.SetDeviceAttribute("PacketSize", IntegerValue(4)); //in bytes
     
     my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
     
+    NodeContainer my_node_container;
     my_node_container = my_grid_network_helper.InitializeNetwork();
     
-           
-        
     //Install applications;
-    
-   
-    ApplicationContainer my_noc_sink_app_container;
-    ApplicationContainer my_noc_app_container;
-    ApplicationContainer my_noc_router_container;
-    ApplicationContainer my_noc_sensor_container;
+    ApplicationContainer my_xdense_sink_app_container;
+    ApplicationContainer my_xdense_app_container;
+    ApplicationContainer my_xdense_router_container;
+    ApplicationContainer my_xdense_sensor_container;
     
     uint32_t n_nodes = my_node_container.GetN();
     
         //TODO: this should be done inside the sensor module
-    UNSInputData my_input_data;
+    NOCInputData my_input_data;
     if ( my_input_data.LoadFromFile(dir_input + "input-data.s.csv")  == 0){
         cout << "Error loading the input data file at " << dir_input << "input-data.s.csv";
         return -1;
     }
     
     
-   
     for (uint32_t i = 0; i < n_nodes; i++) {
+//        uint32_t x = i % size_x;
+//        uint32_t y = floor(i / size_y);
 
-
-        uint32_t x = i % size_x;
-        uint32_t y = floor(i / size_y);
-
-        Ptr<XDenseApp> my_noc_app = CreateObject<XDenseApp> ();
-        Ptr<SENSOR> my_sensor = CreateObject<SENSOR> ();
+        Ptr<XDenseApp> my_xdense_app = CreateObject<XDenseApp> ();
+        Ptr<Sensor> my_sensor = CreateObject<Sensor> ();
 
         //Setup app
-        my_noc_app->IsSink = false;
-        my_noc_app->MaxHops = size_neighborhood;
-        my_noc_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
-        my_noc_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
-        my_noc_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
-        my_noc_app->SetStartTime(Seconds(0));
+        my_xdense_app->IsSink = false;
+        my_xdense_app->MaxHops = size_neighborhood;
+        my_xdense_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
+        my_xdense_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
+        my_xdense_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
+        my_xdense_app->SetStartTime(Seconds(0));
 
-
-        //Setup Net Device's Callback
-        uint8_t n_devices = my_node_container.Get(i)->GetNDevices();
-        
-        Ptr<NOCNetDevice> my_net_device;
-
-        for (uint32_t j = 0; j < n_devices; j++) 
-        {
-            my_net_device = my_node_container.Get(i)->GetDevice(j)->GetObject<NOCNetDevice>();
-//            uint8_t n = my_net_device->GetNOCAddress();
-            ostringstream ss; //Used as the context. From which node (x,y) the callback was generated.
-            ss << i << "," << x << "," << y << "," << (int) j;
-            my_net_device->TraceConnect("MacRx", ss.str(), MakeCallback(&packet_received_netdevice_mac));
-            my_net_device->TraceConnect("MacTx", ss.str(), MakeCallback(&packet_sent_netdevice_mac));
-            
-            my_net_device->TraceConnect("PhyTxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-            my_net_device->TraceConnect("PhyRxEnd", ss.str(), MakeCallback(&packet_exchanged_phy));
-        }
 
         //Setup router
-        ostringstream ss;
-        ss << i << "," << x << "," << y;
+        Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
+        IntegerValue x, y;
+        my_noc_router->GetAttribute("AddressX", x);
+        my_noc_router->GetAttribute("AddressY", y);
+//        my_noc_router->GetAttribute("UniqueID", i);
         
-        Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-
-        my_noc_router->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_router));
-        my_noc_router->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_sent_router));
+        int8_t direction = -1;
+        ostringstream context_router_rx, context_router_tx, context_router_cx, context_router_gx;
+        context_router_rx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
+        my_noc_router->TraceConnect("RouterRxTrace", context_router_rx.str(), MakeCallback(&log_router_packets));
+        context_router_tx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
+        my_noc_router->TraceConnect("RouterTxTrace", context_router_tx.str(), MakeCallback(&log_router_packets));
+        
+        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",c";
+        my_noc_router->TraceConnect("RouterCxTrace", context_router_cx.str(), MakeCallback(&log_router_packets));
+        
+        
+        //Setup NetDevice's Callback
+        Ptr<NOCNetDevice> my_net_device;
+        for (uint8_t j = 0 ; j < my_noc_router->GetNDevices() ; j++)
+        {
+            my_net_device = my_noc_router->GetNetDevice(j);
+            direction = my_noc_router->GetNetDeviceInfo(my_net_device).direction; 
+            
+            ostringstream context_nd_rx, context_nd_tx;
+            context_nd_rx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
+            my_net_device->TraceConnect("MacRx", context_nd_rx.str(), MakeCallback(&log_netdevice_packets));
+            context_nd_tx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
+            my_net_device->TraceConnect("MacTx", context_nd_tx.str(), MakeCallback(&log_netdevice_packets));            
+        }
+        
+        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",g";
+        my_noc_router->TraceConnect("RouterGxTrace", context_router_gx.str(), MakeCallback(&log_netdevice_packets));
 
         //Setup sensor
-        my_sensor->SensorPosition.x = x;
-        my_sensor->SensorPosition.y = y;
+        my_sensor->SensorPosition.x = x.Get();
+        my_sensor->SensorPosition.y = y.Get();
         my_sensor->InputData = &my_input_data;
 
 
         //Should be installed in this order!!!
-        my_node_container.Get(i)->AddApplication(my_noc_app);
+        my_node_container.Get(i)->AddApplication(my_xdense_app);
         my_node_container.Get(i)->AddApplication(my_sensor);
 
-        my_noc_app_container.Add(my_noc_app);
-        my_noc_sensor_container.Add(my_sensor);
+        my_xdense_app_container.Add(my_xdense_app);
+        my_xdense_sensor_container.Add(my_sensor);
+        my_xdense_app->AddRouter(my_noc_router);
     }
 
-    
-    
-    // Setting the sinks
-    //uint32_t nodes_n = m_sizeX * m_sizeY;
 
     double delta_x = (double) size_x / (2 * (double) sinks_n); 
     // takes the individuals in the center of the network
@@ -450,33 +294,10 @@ main(int argc, char *argv[]) {
         uint32_t x = floor((i + 1) * 2 * delta_x - delta_x);
         uint32_t y = floor((double) size_y / 2);
         uint32_t n = x + y * size_x;
-        my_noc_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
-        my_noc_app_container.Get(n)->GetObject<XDenseApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
-        my_noc_sink_app_container.Add(my_noc_app_container.Get(n)); //container with the sinks only
-        ostringstream ss;
-        ss << n << "," << x << "," << y;
-        //        my_noc_router_container.Get(n)->GetObject<NOCRouter>()->TraceConnect("SwitchRxTrace", "18,32", MakeCallback(&packets_received_sink));
-        //        my_noc_router_container.Get(n)->GetObject<NOCRouter>()->TraceConnect("SwitchTxTrace", "58,33", MakeCallback(&packets_received_sink));
-        
-        Ptr<NOCRouter> my_noc_router = my_node_container.Get(n)->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
-
-        
-        my_noc_router->GetObject<NOCRouter>()->TraceConnect("SwitchRxTrace", ss.str(), MakeCallback(&packet_received_router_sink));
-        my_noc_router->GetObject<NOCRouter>()->TraceConnect("SwitchTxTrace", ss.str(), MakeCallback(&packet_received_router_sink));
+        my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
+        my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
+        my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
     }
-
-    
-
-//     
-//   NOCHelper my_noc;
-//    //    my_noc.SetDeviceAttribute("DataRate", StringValue("1Mbps"));
-//    my_noc.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
-//    //    my_noc.SetChannelAttribute("Delay", StringValue("0us"));
-//    my_noc.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
-
-    
-
-
 
 
 
@@ -484,32 +305,17 @@ main(int argc, char *argv[]) {
 
     //PacketMetadata::Enable ();
     //AnimationInterface anim("animation.xml");
+    string filename;
+    filename = dir_output + "packets-trace-router.csv";
+    cout << "Log file created at: '" << filename << "'" << endl;
+    file_packets_trace_router.open(filename.c_str(), ios::out);
 
-    filename = dir_output + "packets-trace.csv";
+    filename = dir_output + "packets-trace-netdevice.csv";
     cout << "Log file created at: '" << filename << "'" << endl;
-    file_packets_trace.open(filename.c_str(), ios::out);
+    file_packets_trace_netdevice.open(filename.c_str(), ios::out);
 
-    filename = dir_output + "packets-trace-net-device.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_packets_trace_net_device.open(filename.c_str(), ios::out);
 
-    filename = dir_output + "packets-sink-trace.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_packets_trace_sink.open(filename.c_str(), ios::out);
-
-    filename = dir_output + "queue-size-over-time.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_queue_size.open(filename.c_str(), ios::out);
-    
-    filename = dir_output + "queue-size-prioritized-over-time.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_queue_size_prioritized.open(filename.c_str(), ios::out);    
-    
-    filename = dir_output + "value-announcement-delay.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
-    file_value_annoucement_total_time.open(filename.c_str(), ios::out);
-
-    Simulator::Stop(Seconds(20));
+    Simulator::Stop(Seconds(50));
     Simulator::Run();
 
     //************************************************************
@@ -520,36 +326,10 @@ main(int argc, char *argv[]) {
     cout << "Done!" << endl << endl;
     
     
-    //Write to file the information the sinks have received
-//    ApplicationContainer::Iterator i;
-//    uint8_t s = 0;
-//    for (i = my_noc_sink_app_container.Begin(); i != my_noc_sink_app_container.End(); ++i) {
-//        stringstream ss;
-//        ss << "output-data-s-" << (int)s << ".csv";
-//        filename = dir_output + ss.str();
-////        if (operational_mode == 0)
-////            (*i)->GetObject<XDenseApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood); // some Application method
-////        else if (operational_mode == 1)
-////            (*i)->GetObject<XDenseApp>()->SinkReceivedData->WriteToFile(filename, size_neighborhood);
-////       //     (*i)->GetObject<XDenseApp>()->SinkReceivedData->WritePointsToFile(filename, size_x, size_y);
-//        cout << "Log file created at: '" << filename << "'" << endl;
-//    }
-    
-    file_value_annoucement_total_time << value_annoucement_start_time << "," << value_annoucement_end_time << "," << value_annoucement_count;
-
-//    print_data(my_node_container, size_x, size_y);
-    
-    file_value_annoucement_total_time.close();
-    file_packets_trace.close();
-    file_packets_trace_net_device.close();
-    file_packets_trace_sink.close();
+    file_packets_trace_router.close();
+    file_packets_trace_netdevice.close();
 
     cout << Simulator::Now().GetSeconds();
-
-    //    NOCPlotData my_plots;
-    //    
-    //    my_plots.PlotExample(dir);
-
 
     Simulator::Destroy();
     return 0;

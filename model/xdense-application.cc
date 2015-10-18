@@ -25,6 +25,7 @@
 #include "calc.h"
 #include "sensor-data-io.h"
 #include "noc-types.h"
+#include "src/core/model/object-base.h"
 
 //using namespace ns3NOCCalc;
 using namespace std;
@@ -58,18 +59,15 @@ namespace ns3 {
     void
     XDenseApp::StartApplication(void) {
 
-        TimeStartOffset = Seconds(1);
-        // this is all the possible neighbors. it excludes the nodes in the edges,
+//        TimeStartOffset = Seconds(1);
+        
+        //This is a threshold, to decide the min neghborhood a node have to be 
+        //to be able to do event annoucements.
+        //These are all the possible neighbors times a factor, to include nodes in the edges,
         //which have less neighbors.
         MinNeighborhood = MaxHops * 2 * (MaxHops + 1) * 0.7; //add some tolerance.Ex 20%
-        //        MinNeighborhood = MinNeighborhood * 0.8; 
 
-//        EventsDetectedCount = 0;
-//        EventsAnnouncedCount = 0;
         SensorValueLast = 0;
-        //        CiclesToRun = 1;
-        //        m_enable_detection = false;
-        //        m_data_array_filled = false;
 
         EventRef er;
         er.detected = false;
@@ -81,19 +79,26 @@ namespace ns3 {
         //        PacketTrace.assign(P_COUNT, temp);
 
 
-
-        m_router = this->GetNode()->GetApplication(INSTALLED_NOC_SWITCH)->GetObject<NOCRouter>();
+        m_router->SetReceiveCallback(MakeCallback(&XDenseApp::DataReceived, this));
 
         if (IsSink == true) {
-            Simulator::Schedule(TimeStartOffset, &XDenseApp::NetworkDiscovery, this);
-
+//            Simulator::Schedule(TimeStartOffset, &XDenseApp::NetworkDiscovery, this);
             SinkReceivedData = CreateObject<NOCOutputData> ();
+        }
+        
+        Time t = Time::FromInteger(1, Time::MS);
+//        if (IsSink == true)
+        
+        for (uint8_t i = 0 ; i < 20 ; i++){
+            Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
+            t += Time::FromInteger(7200, Time::NS); //add the packet duration, to make
+            //data generation periodic.
         }
 
 
-        ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
+//        ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
     }
-
+    
     void
     XDenseApp::StopApplication(void) {
         m_running = false;
@@ -104,11 +109,11 @@ namespace ns3 {
     }
 
     void
-    XDenseApp::ScheduleValueAnnouncement(uint8_t n_times, Time period) {
+    XDenseApp::DataSharingSchedule(uint8_t n_times, Time period) {
 
         for (uint8_t i = 0; i < n_times; i++) {
             Time t = MilliSeconds(period.GetMilliSeconds() * i + TimeStartOffset.GetMilliSeconds() + period.GetMilliSeconds());
-            Simulator::Schedule(t, &XDenseApp::ValueAnnouncement, this);
+            Simulator::Schedule(t, &XDenseApp::DataSharing, this);
         }
 
     }
@@ -133,6 +138,11 @@ namespace ns3 {
         return m_neighborsList.size();
     }
 
+    void
+    XDenseApp::AddRouter(Ptr<NOCRouter> r) {
+        m_router = r;
+    }
+    
     uint8_t
     XDenseApp::DetectEvents(void) { //gets the array with all the neighbors data
         EventRef er;
@@ -181,7 +191,7 @@ namespace ns3 {
                     int32_t v = m_lastEvents.at(p.type).data[2];
                     if (er.data[2] > v + v * 0.2 || er.data[2] < v - v * 0.2) {
 
-                        EventAnnouncement(er);
+                        DataAnnouncement(er);
                         m_lastEvents.at(p.type) = er;
                         count++;
                     }
@@ -250,7 +260,7 @@ namespace ns3 {
                         int32_t v = m_lastEvents.at(p.type).data[2];
                         if (er.data[2] > v + v * 0.2 || er.data[2] < v - v * 0.2) {
 
-                        EventAnnouncement(er);
+                        DataAnnouncement(er);
                         m_lastEvents.at(p.type) = er;
                         count++;
                         }
@@ -311,6 +321,17 @@ namespace ns3 {
         return nr;
     }
 
+    uint32_t packets_received_count;
+    void 
+    XDenseApp::DataReceived(Ptr<const Packet> pck, uint16_t direction) {
+        IntegerValue x, y;
+        m_router->GetAttribute("AddressX", x);
+        m_router->GetAttribute("AddressY", y);
+        packets_received_count++;
+        cout << "Received at:" << (int) x.Get() << "," << (int) y.Get() << "Total: " << packets_received_count <<endl;
+    }
+    
+    
     void
     XDenseApp::NetworkDiscovery() {
 
@@ -330,10 +351,12 @@ namespace ns3 {
             m_SerialNumber.at(P_NETWORK_DISCOVERY)++;
 
             Ptr<Packet> pck = Create<Packet>();
-            pck->AddHeader(hd);
+//            pck->AddHeader(hd);
             
             
-            m_router->PacketBroadcast(pck, 0);
+          m_router->PacketBroadcast(pck, 0);
+//            m_router->PacketUnicast(pck, 0, 2, 2);
+            
         }
 
     }
@@ -391,7 +414,7 @@ namespace ns3 {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void
-    XDenseApp::ValueAnnouncement(void) {
+    XDenseApp::DataSharing(void) {
 
 
         //        uint32_t id = this->GetNode()->GetId();
@@ -400,7 +423,7 @@ namespace ns3 {
         //        }
 
         if (IsSink == false) {
-            Ptr<SENSOR> sensor = this->GetNode()->GetApplication(INSTALLED_SENSOR)->GetObject<SENSOR>();
+            Ptr<Sensor> sensor = this->GetNode()->GetApplication(INSTALLED_SENSOR)->GetObject<Sensor>();
 
             XDenseHeader hd;
             hd.CurrentX = 0;
@@ -449,13 +472,13 @@ namespace ns3 {
             if (MaxHops > 0) {
                 if (OperationalMode == 1) { //event detection
 //                    m_router->PacketSend(pck, DIRECTION_ALL);
-                    m_router->PacketMulticast(pck, 0, MaxHops);
+                    m_router->PacketMulticast(pck, 0);
                     
                 } 
                 else if (OperationalMode == OP_READ_ALL && IsClusterHead == 0) { //read all, send to cluster head only
 //                    uint8_t port = RouteTo(NearestClusterHead()); port=port;
 //                    m_router->PacketSend(pck, DIRECTION_ALL);
-                    m_router->PacketMulticast(pck, 0, MaxHops);
+                    m_router->PacketMulticast(pck, 0);
                 }
             }
 
@@ -467,7 +490,7 @@ namespace ns3 {
 
 
     bool
-    XDenseApp::ValueAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    XDenseApp::DataSharingReceived(Ptr<const Packet> pck, uint8_t origin_port) {
 
         bool IsPresent = false;
         uint8_t i;
@@ -579,7 +602,25 @@ namespace ns3 {
     }
 
     void
-    XDenseApp::EventAnnouncement(EventRef er) {
+    XDenseApp::DataAnnouncementTT(void) {
+            Ptr<Packet> pck = Create<Packet>();
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 0, USE_ABSOLUTE_ADDRESS);  
+            
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 2, 2, USE_RELATIVE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 2, -2, USE_RELATIVE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, -2, -2, USE_RELATIVE_ADDRESS);       
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, -2, 2, USE_RELATIVE_ADDRESS);        
+            
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 4, 4, USE_ABSOLUTE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 4, 0, USE_ABSOLUTE_ADDRESS);        
+            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 0, USE_ABSOLUTE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 4, USE_ABSOLUTE_ADDRESS);        
+     
+                  
+    }
+    
+    void
+    XDenseApp::DataAnnouncement(EventRef er) {
 
         //        uint32_t id = this->GetNode()->GetId();
         //        if (id != 43 && id != 397) { //for debuging reasons
@@ -598,39 +639,35 @@ namespace ns3 {
             NodeRef sink = m_sinksList.at(0); //the sink can vary, depending on the errors count etc...
 //            uint8_t output_port = RouteTo(sink);
 
+            
             XDenseHeader hd;
-
-            hd.CurrentX = 0; //now, this x y will be used to count in the oposite direction, in order to track the origin of the packet
+            //now, this x y will be used to count in the oposite direction, in order to track the origin of the packet
+            hd.CurrentX = 0; 
             hd.CurrentY = 0;
             hd.SerialNumber = m_SerialNumber.at(P_EVENT_ANNOUNCEMENT);
             m_SerialNumber.at(P_EVENT_ANNOUNCEMENT)++;
 
-            hd.EventData[0] = er.data[0]; //this is the data computed after analysing all the neighbor data... Ex: dx/dt, ou dz/dxdy
-            hd.EventData[1] = er.data[1]; //this is the data computed after analysing all the neighbor data... Ex: dx/dt, ou dz/dxdy
-            hd.EventData[2] = er.data[2]; //this is the data computed after analysing all the neighbor data... Ex: dx/dt, ou dz/dxdy
+            //this is the data computed after analysing all the neighbor data... Ex: dx/dt, ou dz/dxdy
+            hd.EventData[0] = er.data[0]; 
+            hd.EventData[1] = er.data[1];
+            hd.EventData[2] = er.data[2]; 
 
             hd.EventType = er.type;
 
             hd.SetNOCProtocol(P_EVENT_ANNOUNCEMENT);
-//            EventsAnnouncedCount++;
 
             Ptr<Packet> pck = Create<Packet>();
             pck->AddHeader(hd);
-            m_router->PacketUnicast(pck, 0, sink.x, sink.y);
-
-            // it first defines which port it should go through, in order to reach the sink
-            // it then, requests a connection using the signaling bits.
-            // after that, it pipeline the packet towards the sink
-            //m_router->SendSignal(0b00000001, DIR_DOWN); //Set bit 1 high
-            //        Time t = Simulator::Now + MaxHops * MaxTransmissionTime * 1.1; //10% margin
-            //        Simulator::Schedule(t, &XDenseApp::EventAnnouncementTimeOut, this);            
+            m_router->PacketUnicast(pck, 0, sink.x, sink.y, false);           
         }
 
 
     }
+    
+
 
     bool
-    XDenseApp::EventAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    XDenseApp::DataAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
         //The pck is transported in order to forward a packet with the same unique ID for tracing
         //prorposes
 
@@ -649,7 +686,7 @@ namespace ns3 {
         if (sink.x != 0 || sink.y != 0) {
 //            uint8_t output_port = RouteTo(sink);
 //            m_router->PacketSend(pck, output_port);
-            m_router->PacketUnicast(pck, 0, sink.x, sink.y);
+            m_router->PacketUnicast(pck, 0, sink.x, sink.y, false);
         }
         else if (IsSink) { //just to make sure it is the sink (test)
 
