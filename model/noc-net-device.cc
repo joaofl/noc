@@ -337,26 +337,28 @@ namespace ns3 {
         m_currentPkt = 0;
 
 
-        Ptr<Packet> p = m_queue_prioritized->Dequeue();
+        Ptr<Packet> p1 = m_queue_prioritized->Dequeue();
         queue_size_prioritized = m_queue_prioritized->GetNPackets();
-        if (p != 0) {
+        if (p1 != 0) {
             //
             // There was packets on the high p queue, send them...
             //
-            m_snifferTrace(p);
-            m_promiscSnifferTrace(p);
-            TransmitStart(p);
+            m_snifferTrace(p1);
+            m_promiscSnifferTrace(p1);
+            m_macTxTrace(p1);
+            TransmitStart(p1);
             return;
         }
-        p = m_queue->Dequeue();
+        Ptr<Packet> p0 = m_queue->Dequeue();
         queue_size = m_queue->GetNPackets();
-        if (p != 0) {
+        if (p0 != 0) {
             //
             // There was no packets on the high p, but on the lp queue, send them...
             //
-            m_snifferTrace(p);
-            m_promiscSnifferTrace(p);
-            TransmitStart(p);
+            m_snifferTrace(p0);
+            m_promiscSnifferTrace(p0);
+            m_macTxTrace(p0);
+            TransmitStart(p0);
             return;
         }
     }

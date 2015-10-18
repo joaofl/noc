@@ -211,7 +211,7 @@ private:
   ObjectFactory m_deviceFactory;
  
   
-  uint32_t m_sizeX, m_sizeY, m_baudrate, m_channelCount, m_queueSize, m_nodesCreated;
+  uint32_t m_sizeX, m_sizeY, m_baudrate, m_channelCount, m_nodesCreated;
   std::string m_topology; //"Grid" only for now
   
 };

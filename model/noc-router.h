@@ -165,6 +165,8 @@ namespace ns3 {
 
         TracedCallback<Ptr<const Packet> > m_routerRxTrace;
         TracedCallback<Ptr<const Packet> > m_routerTxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerCxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerGxTrace;
         TracedCallback<Ptr<const Packet> > m_routerTxDropTrace;
         
         virtual void StartApplication(void);

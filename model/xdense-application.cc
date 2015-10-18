@@ -88,8 +88,12 @@ namespace ns3 {
         
         Time t = Time::FromInteger(1, Time::MS);
 //        if (IsSink == true)
-        Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
         
+        for (uint8_t i = 0 ; i < 20 ; i++){
+            Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
+            t += Time::FromInteger(7200, Time::NS); //add the packet duration, to make
+            //data generation periodic.
+        }
 
 
 //        ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
@@ -317,13 +321,14 @@ namespace ns3 {
         return nr;
     }
 
-    
+    uint32_t packets_received_count;
     void 
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint16_t direction) {
         IntegerValue x, y;
         m_router->GetAttribute("AddressX", x);
         m_router->GetAttribute("AddressY", y);
-        cout << "Received at:" << (int) x.Get() << "," << (int) y.Get() << endl;
+        packets_received_count++;
+        cout << "Received at:" << (int) x.Get() << "," << (int) y.Get() << "Total: " << packets_received_count <<endl;
     }
     
     
@@ -608,9 +613,9 @@ namespace ns3 {
             
 //            m_router->PacketUnicast(pck, NETWORK_ID_0, 4, 4, USE_ABSOLUTE_ADDRESS);        
 //            m_router->PacketUnicast(pck, NETWORK_ID_0, 4, 0, USE_ABSOLUTE_ADDRESS);        
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 0, USE_ABSOLUTE_ADDRESS);        
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 4, USE_ABSOLUTE_ADDRESS);        
             m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 0, USE_ABSOLUTE_ADDRESS);        
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 4, USE_ABSOLUTE_ADDRESS);        
+     
                   
     }
     
