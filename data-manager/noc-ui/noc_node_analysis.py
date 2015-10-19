@@ -54,8 +54,41 @@ import numpy
 import pylab
 import matplotlib.pyplot as plt
 from itertools import cycle
+import prettyplotlib as ppl
+# import matplotlib
+# matplotlib.style.use('ggplot')
 
 #from pexpect import run, spawn
+
+def matrix(data):
+
+    filename="0"
+    show=True
+    title = ""
+    lable_x = ""
+    lable_y = ""
+    x_size = 3.5
+    y_size = 3.5
+
+    pylab.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
+    plt.imshow(data, cmap=pylab.get_cmap('hot_r'), interpolation='nearest')
+
+    plt.xlabel(lable_x)
+    plt.ylabel(lable_y)
+
+    pylab.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+
+    if filename!='0':
+        dir = filename[:filename.rfind("/")]
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        pylab.savefig(filename)
+
+    # plt.ion()
+    # plt.show()
+
+    elif show==True:
+        plt.show()
 
 def plotCumulativeInOut(data1, data2):
 
@@ -141,17 +174,15 @@ def main ():
     # list[:,trace.x_absolute] = int(list[:,trace.x_absolute])
     # list[:,trace.y_absolute] = int(list[:,trace.y_absolute])
 
-    max_x = int(max(list[:,trace.x_absolute]))
-    max_y = int(max(list[:,trace.y_absolute]))
+    max_x = max( list[:,trace.x_absolute].astype(int) )
+    max_y = max( list[:,trace.y_absolute].astype(int) )
 
-    max_x = 5
-    max_y = 5
 
     node_x, node_y = 1,0
-    axis_x=[]
-    axis_y=[]
-    axis_y_received = []
-    axis_x_received = []
+    # axis_x=[]
+    # axis_y=[]
+    # axis_y_received = []
+    # axis_x_received = []
     received_over_time = []
     transmitted_over_time = []
     # print 'max: ' + str(max_x) + ',' + str(max_y)
@@ -190,17 +221,7 @@ def main ():
     plotCumulativeInOut(received_over_time, transmitted_over_time)
 
 
-
-
-
-
-
-
-
-
-
-
-
+    matrix(received)
 
 
 if __name__ == '__main__':
