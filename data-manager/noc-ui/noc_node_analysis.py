@@ -75,7 +75,7 @@ def plotCumulativeInOut(data1, data2):
 
     #consider that x is the same for both, and extract frmo the first only
 
-    lines = ["-","--","-.",":"]
+    lines = ["-","-","--","-.",":"]
     linecycler = cycle(lines)
 
     s = len(data1)

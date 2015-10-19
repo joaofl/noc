@@ -91,11 +91,17 @@ namespace ns3 {
         
         for (uint8_t i = 0 ; i < 20 ; i++){
             Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
-            t += Time::FromInteger(7200, Time::NS); //add the packet duration, to make
+            t += Time::FromInteger(7200 * 10, Time::NS); //add the packet duration, to make
             //data generation periodic.
         }
+        
+        t= Time::FromInteger((500 * 7200),Time::NS) + Time::FromInteger(1, Time::MS);
 
-
+        for (uint8_t i = 0 ; i < 20 ; i++){
+            Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
+            t += Time::FromInteger(7200 * 10, Time::NS); //add the packet duration, to make
+            //data generation periodic.
+        }
 //        ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
     }
     
