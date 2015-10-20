@@ -54,13 +54,13 @@ import numpy
 import pylab
 import matplotlib.pyplot as plt
 from itertools import cycle
-import prettyplotlib as ppl
+# import prettyplotlib as ppl
 # import matplotlib
 # matplotlib.style.use('ggplot')
 
 #from pexpect import run, spawn
 
-def matrix(data):
+def plotMatrix(data):
 
     filename="0"
     show=True
@@ -71,7 +71,7 @@ def matrix(data):
     y_size = 3.5
 
     pylab.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
-    plt.imshow(data, cmap=pylab.get_cmap('hot_r'), interpolation='nearest')
+    plt.imshow(data, cmap=pylab.get_cmap('hot_r'), interpolation='nearest', origin='lower')
 
     plt.xlabel(lable_x)
     plt.ylabel(lable_y)
@@ -87,8 +87,8 @@ def matrix(data):
     # plt.ion()
     # plt.show()
 
-    elif show==True:
-        plt.show()
+    # elif show==True:
+        # plt.show()
 
 def plotCumulativeInOut(data1, data2):
 
@@ -209,6 +209,13 @@ def main ():
             # axis_y_received.append(received[node_y, node_x])
             received_over_time.append([int(line[trace.time_slot]),received[node_y, node_x]])
 
+
+    # plot.plotxy(axis_x,axis_y, show=True)
+    # plot.plotxy(axis_x_received,axis_y_received, show=True)
+    plotCumulativeInOut(received_over_time, transmitted_over_time)
+
+    plotMatrix(received)
+
     received = numpy.flipud(received)
     transmitted = numpy.flipud(transmitted)
     # axis_x = numpy.
@@ -216,12 +223,8 @@ def main ():
     print('\n')
     print transmitted
 
-    # plot.plotxy(axis_x,axis_y, show=True)
-    # plot.plotxy(axis_x_received,axis_y_received, show=True)
-    plotCumulativeInOut(received_over_time, transmitted_over_time)
 
 
-    matrix(received)
 
 
 if __name__ == '__main__':

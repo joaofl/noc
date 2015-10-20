@@ -86,7 +86,7 @@ namespace ns3 {
             SinkReceivedData = CreateObject<NOCOutputData> ();
         }
         
-        Time t = Time::FromInteger(1, Time::MS);
+        Time t = Time::FromInteger(0, Time::MS);
 //        if (IsSink == true)
         
         uint16_t pck_duration = 7200;
@@ -95,21 +95,25 @@ namespace ns3 {
         m_router->GetAttribute("AddressX", x);
         m_router->GetAttribute("AddressY", y);
         
-//        if (x.Get() == 4 && y.Get() == 4){
+//        if (x.Get() % 2 == 0 && y.Get() % 2 == 0){
         
-            for (uint8_t i = 0 ; i < 20 ; i++){
+        for (uint8_t j = 0 ; j < 1 ; j++)
+        {
+            for (uint8_t i = 0 ; i < 5 ; i++){
                 Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
                 t += Time::FromInteger(pck_duration * 1, Time::NS); //add the packet duration, to make
                 //data generation periodic.
             }
+//            t += Time::FromInteger((20 * pck_duration),Time::NS);// + Time::FromInteger(1, Time::MS);
+        }
 
-            t = Time::FromInteger((500 * pck_duration),Time::NS) + Time::FromInteger(1, Time::MS);
+            
 
-            for (uint8_t i = 0 ; i < 20 ; i++){
-                Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
-                t += Time::FromInteger(pck_duration * 1, Time::NS); //add the packet duration, to make
-                //data generation periodic.
-            }
+//            for (uint8_t i = 0 ; i < 1 ; i++){
+//                Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
+//                t += Time::FromInteger(pck_duration * 1, Time::NS); //add the packet duration, to make
+//                //data generation periodic.
+//            }
     //        ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
         
 //        }
