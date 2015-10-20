@@ -345,10 +345,10 @@ namespace ns3 {
     void 
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint16_t direction) {
         IntegerValue x, y;
-        m_router->GetAttribute("AddressX", x);
-        m_router->GetAttribute("AddressY", y);
-        packets_received_count++;
-        cout << "Received at:" << (int) x.Get() << "," << (int) y.Get() << "Total: " << packets_received_count <<endl;
+//        m_router->GetAttribute("AddressX", x);
+//        m_router->GetAttribute("AddressY", y);
+//        packets_received_count++;
+//        cout << "Received at:" << (int) x.Get() << "," << (int) y.Get() << "Total: " << packets_received_count <<endl;
     }
     
     

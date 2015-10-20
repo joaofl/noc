@@ -46,53 +46,44 @@ VERSION
 
 import sys, os, traceback, optparse
 import time
-import re
-import noc_plots as plot
-import noc_io
-import noc_trace_structure as trace
 import numpy
-import pylab
 import matplotlib.pyplot as plt
 from itertools import cycle
-# import prettyplotlib as ppl
-# import matplotlib
-# matplotlib.style.use('ggplot')
+import seaborn as sns
 
-#from pexpect import run, spawn
+import noc_trace_structure as trace
+import noc_io
+
 
 def plotMatrix(data):
 
-    filename="0"
-    show=True
-    title = ""
-    lable_x = ""
-    lable_y = ""
-    x_size = 3.5
-    y_size = 3.5
+    filename=None; show=True; title = ""; lable_x = ""; lable_y = ""; x_size = 3.5; y_size = 3.5;
 
-    pylab.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
-    plt.imshow(data, cmap=pylab.get_cmap('hot_r'), interpolation='nearest', origin='lower')
+    plt.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
+    plt.imshow(data, cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')
+
+    plt.colorbar()
 
     plt.xlabel(lable_x)
     plt.ylabel(lable_y)
 
-    pylab.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
 
-    if filename!='0':
+    if filename!=None:
         dir = filename[:filename.rfind("/")]
         if not os.path.exists(dir):
             os.makedirs(dir)
-        pylab.savefig(filename)
+        plt.savefig(filename)
 
     # plt.ion()
     # plt.show()
 
-    # elif show==True:
-        # plt.show()
+    elif show==True:
+        plt.show()
 
 def plotCumulativeInOut(data1, data2):
 
-    filename="0"
+    filename=None
     show=True
     title = ""
     label_x = ""
@@ -105,6 +96,8 @@ def plotCumulativeInOut(data1, data2):
     logscale=False
     legend=['a','b']
     two_axis=False
+
+    label_x = "Transmission time slot (TTS)"; label_y1 = "Number of packets"
 
     #consider that x is the same for both, and extract frmo the first only
 
@@ -121,7 +114,7 @@ def plotCumulativeInOut(data1, data2):
     fig, ax1 = plt.subplots(figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
 
     if logscale == True:
-        pylab.yscale('log')
+        plt.yscale('log')
 
     ax1.step(x, y1, '-', linestyle=next(linecycler), label='r', where='post')
     ax1.set_xlabel(label_x)
@@ -130,8 +123,8 @@ def plotCumulativeInOut(data1, data2):
     # for tl in ax1.get_yticklabels():
     #     tl.set_color('b')
 
-    if x_lim != []: pylab.xlim(x_lim)
-    if y_lim != []: pylab.ylim(y_lim)
+    if x_lim != []: plt.xlim(x_lim)
+    if y_lim != []: plt.ylim(y_lim)
 
     if two_axis == True:
         ax2 = ax1.twinx()
@@ -142,23 +135,23 @@ def plotCumulativeInOut(data1, data2):
     ax2.step(x, y2, '-', linestyle=next(linecycler), label='t', where='post')
     ax2.set_ylabel(label_y2)
 
-    if x_lim != []: pylab.xlim(x_lim)
-    if y_lim != []: pylab.ylim(y_lim)
+    if x_lim != []: plt.xlim(x_lim)
+    if y_lim != []: plt.ylim(y_lim)
 
-    pylab.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-    pylab.legend(loc=2, fontsize=11)
-    pylab.grid(True)
+    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+    plt.legend(loc=2, fontsize=11)
+    plt.grid(True)
 
-    # ax = pylab.gca()
+    # ax = plt.gca()
     # ax.set_xticklabels(x)
 
-    # pylab.locator_params(axis='x', nbins=len(x))
+    # plt.locator_params(axis='x', nbins=len(x))
 
-    if filename != '0':
+    if filename != None:
         dir = filename[:filename.rfind("/")]
         if not os.path.exists(dir):
             os.makedirs(dir)
-        pylab.savefig(filename)
+        plt.savefig(filename)
         print("Plot saved in " + filename)
 
     if show == True:
@@ -169,13 +162,10 @@ def main ():
     global options, args
     options.inputfile = '/home/joao/usn-data/nw5x5s1n4/out/packets-trace-netdevice.csv'
 
-    list = noc_io.load_list(options.inputfile)
+    data = noc_io.load_list(options.inputfile)
 
-    # list[:,trace.x_absolute] = int(list[:,trace.x_absolute])
-    # list[:,trace.y_absolute] = int(list[:,trace.y_absolute])
-
-    max_x = max( list[:,trace.x_absolute].astype(int) )
-    max_y = max( list[:,trace.y_absolute].astype(int) )
+    max_x = max( data[:,trace.x_absolute].astype(int) )
+    max_y = max( data[:,trace.y_absolute].astype(int) )
 
 
     node_x, node_y = 1,0
@@ -190,9 +180,10 @@ def main ():
     # print list[:,trace.x_absolute]
     received = numpy.zeros([max_x + 1, max_y + 1])
     transmitted = numpy.zeros([max_x + 1, max_y + 1])
-    for line in list:
-        abs_x = int(line[trace.x_absolute])
-        abs_y = int(line[trace.y_absolute])
+    for line in data:
+        abs_x = int( line[trace.x_absolute] )
+        abs_y = int( line[trace.y_absolute] )
+
         #Get the full picture
         if line[trace.operation] == 'r' or line[trace.operation] == 'g':
             received[ abs_y,abs_x ] += 1
@@ -218,10 +209,10 @@ def main ():
 
     received = numpy.flipud(received)
     transmitted = numpy.flipud(transmitted)
-    # axis_x = numpy.
-    print received
+
+    print(received)
     print('\n')
-    print transmitted
+    print(transmitted)
 
 
 
@@ -236,18 +227,20 @@ if __name__ == '__main__':
         (options, args) = parser.parse_args()
         #if len(args) < 1:
         #    parser.error ('missing argument')
-        if options.verbose: print time.asctime()
+        if options.verbose: print (time.asctime())
         main()
-        if options.verbose: print time.asctime()
-        if options.verbose: print 'Total execution time (s):',
+        if options.verbose: print (time.asctime())
+        if options.verbose: print ('Total execution time (s):')
         if options.verbose: print (time.time() - start_time)
         sys.exit(0)
-    except KeyboardInterrupt, e: # Ctrl-C
-        raise e
-    except SystemExit, e: # sys.exit()
-        raise e
-    except Exception, e:
-        print 'ERROR, UNEXPECTED EXCEPTION'
-        print str(e)
+
+    # except (KeyboardInterrupt, e): # Ctrl-C
+    #     raise e
+    # except SystemExit, e: # sys.exit()
+    #     raise e
+
+    except (Exception):
+        print ('ERROR, UNEXPECTED EXCEPTION')
+        print (str(Exception))
         traceback.print_exc()
         os._exit(1)
