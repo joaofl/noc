@@ -47,12 +47,19 @@ VERSION
 import sys, os, traceback, optparse
 import time
 import numpy
+import matplotlib
 import matplotlib.pyplot as plt
 from itertools import cycle
-import seaborn as sns
+# import seaborn as sns
 
 import noc_trace_structure as trace
 import noc_io
+
+# matplotlib.style.use('classic')
+matplotlib.style.use('bmh')
+# ['ggplot', 'bmh', 'grayscale', 'fivethirtyeight', 'dark_background']
+# matplotlib.rcParams.update(matplotlib.rcParamsDefault)
+
 
 
 def plotMatrix(data):
@@ -147,7 +154,7 @@ def plotCumulativeInOut(data1, data2):
 
     # plt.locator_params(axis='x', nbins=len(x))
 
-    if filename != None:
+    if filename is not None:
         dir = filename[:filename.rfind("/")]
         if not os.path.exists(dir):
             os.makedirs(dir)
