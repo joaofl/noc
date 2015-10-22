@@ -1,16 +1,13 @@
-"""
-Annotated heatmaps
-==================
+import time
+import numpy as np
+import matplotlib.pyplot as plt
 
-"""
-import seaborn as sns
-sns.set()
+plt.axis([0, 1000, 0, 1])
+plt.ion()
+plt.show()
 
-# Load the example flights dataset and conver to long-form
-flights_long = sns.load_dataset("flights")
-flights = flights_long.pivot("month", "year", "passengers")
-
-# Draw a heatmap with the numeric values in each cell
-sns.heatmap(flights, annot=True, fmt="d", linewidths=.5)
-
-sns.plt.show()
+for i in range(1000):
+    y = np.random.random()
+    plt.scatter(i, y)
+    plt.draw()
+    time.sleep(0.05)

@@ -97,14 +97,14 @@ namespace ns3 {
         
 //        if (x.Get() % 2 == 0 && y.Get() % 2 == 0){
         
-        for (uint8_t j = 0 ; j < 1 ; j++)
+        for (uint8_t j = 0 ; j < 5 ; j++)
         {
-            for (uint8_t i = 0 ; i < 5 ; i++){
-                Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
+            for (uint8_t i = 0 ; i < 1 ; i++){
                 t += Time::FromInteger(pck_duration * 1, Time::NS); //add the packet duration, to make
-                //data generation periodic.
+                //data generation periodic.                
+                Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
             }
-//            t += Time::FromInteger((20 * pck_duration),Time::NS);// + Time::FromInteger(1, Time::MS);
+            t += Time::FromInteger((100 * pck_duration),Time::NS);// + Time::FromInteger(1, Time::MS);
         }
 
             

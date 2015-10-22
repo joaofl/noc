@@ -25,14 +25,14 @@ import cv2
 import thread
 from threading import Thread
 from numpy.lib.npyio import savetxt
-import pylab
+#import pylab
 
 from copy import copy, deepcopy
 
 import Image
 from PIL import Image
 
-import matplotlib
+import matplotlib.pylab as pylab
 import matplotlib.pyplot as plt
 
 import matplotlib.mlab as mlab
