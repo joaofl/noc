@@ -96,7 +96,8 @@ namespace ns3 {
         m_router->GetAttribute("AddressY", y);
         
 //        if (x.Get() % 2 == 0 && y.Get() % 2 == 0){
-        
+//        if (x.Get() != 0 ){
+            
         for (uint8_t j = 0 ; j < 5 ; j++)
         {
             for (uint8_t i = 0 ; i < 1 ; i++){
@@ -104,10 +105,10 @@ namespace ns3 {
                 //data generation periodic.                
                 Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
             }
-            t += Time::FromInteger((100 * pck_duration),Time::NS);// + Time::FromInteger(1, Time::MS);
+            t += Time::FromInteger((90 * pck_duration),Time::NS);// + Time::FromInteger(1, Time::MS);
         }
 
-            
+//        }
 
 //            for (uint8_t i = 0 ; i < 1 ; i++){
 //                Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
