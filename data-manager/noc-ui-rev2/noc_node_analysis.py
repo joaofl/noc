@@ -71,19 +71,19 @@ def main ():
     max_x = max( data[:,trace.x_absolute].astype(int) )
     max_y = max( data[:,trace.y_absolute].astype(int) )
 
+    # max_x = 11
+    # max_y = 11
+
     node_x, node_y = 1,0
 
     axis_x_transmitted=[]
     axis_y_transmitted=[]
     axis_y_received = []
     axis_x_received = []
-    received_over_time = []
-    transmitted_over_time = []
-    # print 'max: ' + str(max_x) + ',' + str(max_y)
 
     # print list[:,trace.x_absolute]
-    received = numpy.zeros([max_x + 1, max_y + 1])
-    transmitted = numpy.zeros([max_x + 1, max_y + 1])
+    received = numpy.zeros([max_y + 1, max_x + 1])
+    transmitted = numpy.zeros([max_y + 1, max_x + 1])
     for line in data:
         abs_x = int( line[trace.x_absolute] )
         abs_y = int( line[trace.y_absolute] )
@@ -104,7 +104,7 @@ def main ():
 
 
     cycles = 1
-    bs = 5 #burst size
+    bs = 1 #burst size
     nad = 9 #nodes adjacent to me which are transmitting
     nal = 9
     rho = 1
@@ -195,7 +195,7 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None):
 
     if x3 is not None and y3 is not None:
         ax3 = ax1
-        ax3.step(x3, y3, '-', linestyle=next(linecycler), label='Transmitted', where='post')
+        ax3.step(x3, y3, '-', linestyle=next(linecycler), label='Upper bound', where='post')
 
     ax1.set_xlabel("Transmission time slot (TTS)")
     ax1.set_ylabel("Cumulative packet count")

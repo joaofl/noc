@@ -64,7 +64,9 @@ ofstream file_packets_trace_router;
 ofstream file_packets_trace_netdevice;
 
 uint32_t t_slot(){
-    static uint64_t t0 = 1;
+    //set this to 1 if one wants the start to 
+    //be offset to the first transmission, instead of t=0
+    static uint64_t t0 = 0; 
     static uint32_t t_transmission = 1;
     static uint64_t t_slot = 0; 
     
