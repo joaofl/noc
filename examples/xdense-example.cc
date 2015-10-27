@@ -309,11 +309,11 @@ main(int argc, char *argv[]) {
     //AnimationInterface anim("animation.xml");
     string filename;
     filename = dir_output + "packets-trace-router.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
+    
     file_packets_trace_router.open(filename.c_str(), ios::out);
 
     filename = dir_output + "packets-trace-netdevice.csv";
-    cout << "Log file created at: '" << filename << "'" << endl;
+    
     file_packets_trace_netdevice.open(filename.c_str(), ios::out);
 
 
@@ -330,6 +330,9 @@ main(int argc, char *argv[]) {
     
     file_packets_trace_router.close();
     file_packets_trace_netdevice.close();
+    
+    cout << "Log file created at: '" << filename << "'" << endl;
+    cout << "Log file created at: '" << filename << "'" << endl;
 
     cout << Simulator::Now().GetSeconds();
 

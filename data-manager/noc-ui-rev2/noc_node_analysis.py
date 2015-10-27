@@ -47,10 +47,14 @@ VERSION
 import sys, os, traceback, optparse
 import time
 import numpy
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from itertools import cycle
 
+# matplotlib.style.use('bmh')
+# ['ggplot', 'bmh', 'grayscale', 'fivethirtyeight', 'dark_background']
+matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 
 
 import noc_trace_structure as trace
@@ -106,7 +110,7 @@ def main ():
     cycles = 1
     bs = 1 #burst size
     nad = 9 #nodes adjacent to me which are transmitting
-    nal = 9
+    nal = 8
     rho = 1
     sigma = bs * (1 + nad)
 
