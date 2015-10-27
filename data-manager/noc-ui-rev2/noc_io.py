@@ -26,7 +26,6 @@ import os
 
 def load_list(file_name):
     try:
-
         return numpy.array(list(csv.reader(open(file_name, "rt"), delimiter=',')))
     except:
         return -1

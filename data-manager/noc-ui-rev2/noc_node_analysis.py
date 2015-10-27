@@ -1,28 +1,4 @@
 #!/usr/bin/env python
-"""
-SYNOPSIS
-
-    TODO helloworld [-h,--help] [-v,--verbose] [--version]
-
-DESCRIPTION
-
-    TODO This describes how to use this script. This docstring
-    will be printed by the script if there is an error or
-    if the user requests help (-h or --help).
-
-EXAMPLES
-
-    TODO: Show some examples of how to use this script.
-
-EXIT STATUS
-
-    TODO: List exit codes
-
-AUTHOR
-
-    __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
-
-LICENSE
 
 # Copyright (c) 2015 Joao Loureiro
 #
@@ -38,27 +14,25 @@ LICENSE
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# Author: Joao Loureiro <joflo@isep.ipp.pt>
 
-VERSION
+__author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
-    $Id$
-"""
 
 import sys, os, traceback, optparse
 import time
 import numpy
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from itertools import cycle
+import noc_trace_structure as trace
+import noc_io
 
 # matplotlib.style.use('bmh')
 # ['ggplot', 'bmh', 'grayscale', 'fivethirtyeight', 'dark_background']
-matplotlib.rcParams.update(matplotlib.rcParamsDefault)
+#mpl.rcParams.update(mpl.rcParamsDefault)
 
-
-import noc_trace_structure as trace
-import noc_io
 
 def main ():
 
@@ -127,7 +101,7 @@ def main ():
     print("Total received/transmitted = ", total_received, "/", total_transmitted)
     # plt.ion()
 
-    plotCumulativeInOut(axis_x_transmitted, axis_y_transmitted, axis_x_received, axis_y_received, x_bound, y_bound)
+    plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_bound, y_bound)
     plotMatrix(received)
 
     # plt.show()
