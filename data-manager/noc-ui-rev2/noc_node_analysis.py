@@ -26,7 +26,7 @@ import numpy
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from itertools import cycle
-import noc_trace_structure as trace
+import noc_packet_structure as trace
 import noc_io
 
 # matplotlib.style.use('bmh')
