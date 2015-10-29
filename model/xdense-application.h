@@ -34,6 +34,7 @@
 
 //#include "noc-application.h"
 #include "xdense-header.h"
+//#include "noc-header.h"
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "noc-types.h"
@@ -82,7 +83,8 @@ namespace ns3 {
 
 //        vector <EventRef> EventsReceived;
         
-        void DataReceived(Ptr<const Packet> pck, uint16_t direction);
+        void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,
+                            int32_t origin_y);
         
         void NetworkDiscovery();
         bool NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port);
@@ -91,6 +93,7 @@ namespace ns3 {
         void DataAnnouncement(EventRef);
         //Time triggered
         void DataAnnouncementTT();
+        void DataAnnouncementRequest();
         bool DataAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port);
 
         

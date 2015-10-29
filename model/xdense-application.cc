@@ -18,14 +18,18 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
+#include "src/core/model/object-base.h"
+
 #include "xdense-application.h"
 #include "xdense-header.h"
+//#include "noc-header.h"
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "calc.h"
 #include "sensor-data-io.h"
 #include "noc-types.h"
-#include "src/core/model/object-base.h"
+
+
 
 //using namespace ns3NOCCalc;
 using namespace std;
@@ -87,9 +91,11 @@ namespace ns3 {
         }
         
         Time t = Time::FromInteger(0, Time::MS);
+        Time t_window = Time::FromInteger(0, Time::MS);
 //        if (IsSink == true)
         
         uint16_t pck_duration = 7200;
+        pck_duration = pck_duration;
         
         IntegerValue x, y;
         m_router->GetAttribute("AddressX", x);
@@ -97,27 +103,27 @@ namespace ns3 {
         
 //        if (x.Get() % 2 == 0 && y.Get() % 2 == 0){
 //        if (x.Get() != 0 ){
-            
-        for (uint8_t j = 0 ; j < 5 ; j++)
-        {
-            for (uint8_t i = 0 ; i < 1 ; i++){
-                t += Time::FromInteger(pck_duration * 1, Time::NS); //add the packet duration, to make
-                //data generation periodic.                
-                Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
-            }
-            t += Time::FromInteger((90 * pck_duration),Time::NS);// + Time::FromInteger(1, Time::MS);
-        }
-
-//        }
-
-//            for (uint8_t i = 0 ; i < 1 ; i++){
-//                Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
-//                t += Time::FromInteger(pck_duration * 1, Time::NS); //add the packet duration, to make
-//                //data generation periodic.
-//            }
-    //        ScheduleValueAnnouncement(SamplingCycles, Time::FromInteger(SamplingPeriod, Time::US));
         
-//        }
+        MaxHops = 10;
+//        uint8_t x_size = 9;
+//        uint8_t y_size = 10;
+        
+//        if ( (x.Get() + y.Get() <= MaxHops) && (x.Get() != 0) ){
+//        && (x.Get() + y.Get() <= MaxHops)
+//        if ( (x.Get() != 0)  ){
+        if (x.Get() == 0 && y.Get() == 0){
+//            Simulator::Schedule(t, &XDenseApp::NetworkDiscovery, this);
+//            t += Time::FromInteger(pck_duration * 50, Time::NS);
+            Simulator::Schedule(t, &XDenseApp::DataAnnouncementRequest, this);
+
+//            for (uint8_t j = 0 ; j < 10 ; j++)
+//            {
+//                    t = Time::FromInteger(pck_duration * (x.Get() - 1) * (y_size - 1), Time::NS);
+//                    t_window = Time::FromInteger(j * 120 * pck_duration, Time::NS);
+//                        
+//                    Simulator::Schedule(t + t_window, &XDenseApp::DataAnnouncementTT, this);
+//            }
+        }
     }
     
     void
@@ -342,21 +348,35 @@ namespace ns3 {
         return nr;
     }
 
-    uint32_t packets_received_count;
+ 
     void 
-    XDenseApp::DataReceived(Ptr<const Packet> pck, uint16_t direction) {
-        IntegerValue x, y;
-//        m_router->GetAttribute("AddressX", x);
-//        m_router->GetAttribute("AddressY", y);
-//        packets_received_count++;
-//        cout << "Received at:" << (int) x.Get() << "," << (int) y.Get() << "Total: " << packets_received_count <<endl;
+    XDenseApp::DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x, int32_t origin_y) {
+        //TODO: here, at this layer, we remove the XDense header and see what to do with the packet.
+        //the NOC Header here is no longer in the packet
+        uint16_t pck_duration = 7200;
+        uint8_t y_size = 10;
+        
+        Time t = Time::FromInteger(0, Time::MS);
+        Time t_offset = Time::FromInteger(0, Time::NS);;// = 
+        Time t_window = Time::FromInteger(0, Time::MS);
+        
+        if ( (origin_x != 0) && protocol == 0 ){ //from broadcast
+            for (uint8_t j = 0 ; j < 1 ; j++)
+            {
+                t = Time::FromInteger(pck_duration * (origin_x - 1) * (y_size - 1), Time::NS);
+//                t_window = Time::FromInteger(j * 120 * pck_duration, Time::NS);
+//                t_offset = Time::FromInteger(((y_size - 1) - origin_y) * pck_duration, Time::NS);
+
+                Simulator::Schedule(t + t_window + t_offset, &XDenseApp::DataAnnouncementTT, this);
+            }
+        }
     }
     
     
     void
     XDenseApp::NetworkDiscovery() {
 
-        if (IsSink == true) {
+//        if (IsSink == true) {
 
             NodeRef me;
             me.x = 0;
@@ -378,7 +398,7 @@ namespace ns3 {
           m_router->PacketBroadcast(pck, 0);
 //            m_router->PacketUnicast(pck, 0, 2, 2);
             
-        }
+//        }
 
     }
 
@@ -493,13 +513,13 @@ namespace ns3 {
             if (MaxHops > 0) {
                 if (OperationalMode == 1) { //event detection
 //                    m_router->PacketSend(pck, DIRECTION_ALL);
-                    m_router->PacketMulticast(pck, 0);
+//                    m_router->PacketMulticast(pck, 0);
                     
                 } 
                 else if (OperationalMode == OP_READ_ALL && IsClusterHead == 0) { //read all, send to cluster head only
 //                    uint8_t port = RouteTo(NearestClusterHead()); port=port;
 //                    m_router->PacketSend(pck, DIRECTION_ALL);
-                    m_router->PacketMulticast(pck, 0);
+//                    m_router->PacketMulticast(pck, 0);
                 }
             }
 
@@ -639,6 +659,19 @@ namespace ns3 {
      
                   
     }
+    void
+    XDenseApp::DataAnnouncementRequest() {
+        Ptr<Packet> pck = Create<Packet>();
+        
+        XDenseHeader hd;
+//        hd.Protocol = P_DATA_ANNOUCEMENT_REQUEST;
+//        hd.SetNOCProtocol(XDenseHeader::P_DATA_ANNOUCEMENT_REQUEST);
+//        pck->AddHeader(hd);
+        
+//        m_router->PacketMulticast(pck,NETWORK_ID_0, MaxHops);
+        m_router->PacketBroadcast(pck, 0);
+    }
+
     
     void
     XDenseApp::DataAnnouncement(EventRef er) {

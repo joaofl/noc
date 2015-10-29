@@ -102,10 +102,14 @@ namespace ns3 {
         
         bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
                             int32_t destination_y, bool absolute_address);
+//        bool PacketUnicastReceived (Ptr<const Packet> pck, uint8_t network_id);
 
-        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id);
+        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops);
+//        bool PacketMulticastReceived (Ptr<const Packet> pck, uint8_t network_id);
 
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
+//        bool PacketBroadcastReceived (Ptr<const Packet> pck, uint8_t network_id);
+        
         
 //        
         
@@ -139,7 +143,7 @@ namespace ns3 {
          * \returns true if the callback could handle the packet successfully, false
          *          otherwise.
          */
-        typedef Callback< void, Ptr<const Packet>, uint16_t > ReceiveCallback;
+        typedef Callback< void, Ptr<const Packet>, uint8_t, int32_t, int32_t> ReceiveCallback;
 
         /**
          * \param cb callback to invoke whenever a packet has been received and must
@@ -151,17 +155,6 @@ namespace ns3 {
         void SetReceiveCallback(ReceiveCallback cb);
         
     private:
-
-        enum RoutingAlgos{
-            ROUTING_COLUMN_FIRST,
-            ROUTING_ROW_FIRST,
-            ROUTING_BROADCAST,
-            ROUTING_CLOCKWISE,
-            ROUTING_MULTICAST
-        };
-        
-        uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source,
-                        int32_t x_dest, int32_t y_dest);
 
         TracedCallback<Ptr<const Packet> > m_routerRxTrace;
         TracedCallback<Ptr<const Packet> > m_routerTxTrace;

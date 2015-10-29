@@ -44,12 +44,12 @@ namespace ns3 {
          */
         virtual ~XDenseHeader();
         
-//        uint8_t HopsCount;
+        uint8_t HopsCount;
         uint16_t SensorValue;
         uint8_t SerialNumber;        
-        int8_t CurrentX, CurrentY; 
         int8_t OperationalMode;
-//        OriginX, OriginY;
+        int8_t CurrentX, CurrentY; 
+        int8_t OriginX, OriginY;
         
         // Event
         uint16_t EventData[3];

@@ -39,9 +39,9 @@ def main ():
     global options, args
 
     if options.inputfile == None:
-        options.inputfile = '/home/joao/usn-data/nw5x5s1n4/out/packets-trace-netdevice.csv'
+        options.inputfile = '/home/joao/noc-data/tests/out/packets-trace-netdevice.csv'
     if options.inputconfigfile == None:
-        options.inputconfigfile = '/home/joao/usn-data/config/input-config.c.csv'
+        options.inputconfigfile = '/home/joao/noc-data/config/input-config.c.csv'
 
     data = noc_io.load_list(options.inputfile)
 
@@ -51,7 +51,8 @@ def main ():
     # print(flows)
     print('Total of ', len(flows), ' flows')
 
-    box_plot([row[7] for row in flows])
+    box_plot( [row[7] for row in flows] ) #[row[6] for row in flows]
+    box_plot( [row[6] for row in flows] ) #[row[6] for row in flows]
 
 def extract_flows(pck_trace):
 

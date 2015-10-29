@@ -143,32 +143,28 @@ main(int argc, char *argv[]) {
     
     uint32_t sampling_cycles = 10;
     uint32_t sampling_period = 100000; //at every 100.000.000 ns = 100ms default
-    uint32_t size_x = 101;
-    uint32_t size_y = 101;
-    uint32_t size_neighborhood = 4;
+    uint32_t size_x = 11;
+    uint32_t size_y = 10;
+    uint32_t size_neighborhood = 10;
     uint32_t sinks_n = 1;
-    uint32_t baudrate = 1000; //1000 kbps =  1 Mbps
+    uint32_t baudrate = 10000; //10000 kbps =  10 Mbps
     uint32_t operational_mode = 0; //sample the entire network
     
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
         
-    string io_data_dir = homedir + "/usn-data";
+    string io_data_dir = homedir + "/noc-data";
     
-    stringstream context_dir;
-    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
-    
-    string dir_output = io_data_dir + context_dir.str() + "out/";
-    string dir_input = io_data_dir + context_dir.str() + "in/";    
+  
 
     CommandLine cmd;
     cmd.AddValue("size_x", "Network size in the X axe", size_x);
     cmd.AddValue("size_y", "Network size in the Y axe", size_y);
-    cmd.AddValue("operational_mode", "Operate by detecting events (=1) or for sampling all the network (=0)", operational_mode);
+//    cmd.AddValue("operational_mode", "Operate by detecting events (=1) or for sampling all the network (=0)", operational_mode);
     cmd.AddValue("size_neighborhood", "Neighborhood size", size_neighborhood);
     cmd.AddValue("sinks_n", "Network size in the X axe", sinks_n);
-    cmd.AddValue("sampling_cycles", "The number of times each node should sample its sensor, and perform data exchange", sampling_cycles);
-    cmd.AddValue("sampling_period", "The period between each sensor sampling [us]", sampling_period);
+//    cmd.AddValue("sampling_cycles", "The number of times each node should sample its sensor, and perform data exchange", sampling_cycles);
+//    cmd.AddValue("sampling_period", "The period between each sensor sampling [us]", sampling_period);
 //    cmd.AddValue("log_start_at_period", "The period from witch logging starts", log_start_at_period);
     cmd.AddValue("baudrate", "The baudrate of the node's communication ports [kbps]", baudrate);
     cmd.AddValue("io_data_dir", "Directory with the I/O simulation data", io_data_dir);
@@ -176,8 +172,12 @@ main(int argc, char *argv[]) {
     cmd.Parse(argc, argv);
     ///////////////////////////////////////////////////////////////
 
-    dir_output = io_data_dir + "/out/";
-    dir_input = io_data_dir + "/in/";
+    stringstream context_dir;
+//    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
+    context_dir << "/tests/";
+    
+    string dir_output = io_data_dir + context_dir.str() + "out/";
+    string dir_input = io_data_dir + context_dir.str() + "in/";     
     
     int status;
     status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -217,7 +217,7 @@ main(int argc, char *argv[]) {
     NOCInputData my_input_data;
     if ( my_input_data.LoadFromFile(dir_input + "input-data.s.csv")  == 0){
         cout << "Error loading the input data file at " << dir_input << "input-data.s.csv";
-        return -1;
+//        return -1;
     }
     
     

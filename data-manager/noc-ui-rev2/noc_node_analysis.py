@@ -39,11 +39,14 @@ def main ():
     global options, args
 
     if options.inputfile == None:
-        options.inputfile = '/home/joao/usn-data/nw5x5s1n4/out/packets-trace-netdevice.csv'
+        options.inputfile = '/home/joao/noc-data/tests/out/packets-trace-netdevice.csv'
     if options.inputconfigfile == None:
-        options.inputconfigfile = '/home/joao/usn-data/config/input-config.c.csv'
+        options.inputconfigfile = '/home/joao/noc-data/config/input-config.c.csv'
 
     data = noc_io.load_list(options.inputfile)
+    if (len(data)) == 0:
+        print('Log file is empty')
+        exit(1)
 
     #Could get it from the config file
     max_x = max( data[:,trace.x_absolute].astype(int) )
@@ -62,16 +65,17 @@ def main ():
     # print list[:,trace.x_absolute]
     received = numpy.zeros([max_y + 1, max_x + 1])
     transmitted = numpy.zeros([max_y + 1, max_x + 1])
+
     for line in data:
         abs_x = int( line[trace.x_absolute] )
         abs_y = int( line[trace.y_absolute] )
 
         #Get the full picture
         if line[trace.operation] == 'r' or line[trace.operation] == 'g':
-            received[ abs_y,abs_x ] += 1
+            received[ abs_y, abs_x ] += 1
 
         if line[trace.operation] == 't':
-            transmitted[ abs_y,abs_x ] += 1
+            transmitted[ abs_y, abs_x ] += 1
 
         if abs_x == node_x and abs_y == node_y:
             axis_x_transmitted.append(int(line[trace.time_slot]))
@@ -91,11 +95,18 @@ def main ():
     total_received = bs * (1 + nad + nad * nal)
     total_transmitted = total_received + bs
 
-    x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
+    x_bound = []
     y_bound = []
 
-    for x in x_bound:
-        y_bound.append(rho * x + sigma)
+    if len(axis_x_received) != 0:
+        x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
+
+        for x in x_bound:
+            y_bound.append(rho * x + sigma)
+    else:
+        print('The node in analysis received no packets.')
+
+
 
     print("Backlog = ", sigma)
     print("Total received/transmitted = ", total_received, "/", total_transmitted)

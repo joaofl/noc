@@ -19,40 +19,31 @@
  */
 
 
-#ifndef NOC_CALC_H
-#define NOC_CALC_H
+#ifndef NOC_ROUTING_PROTOCOLS_H
+#define NOC_ROUTING_PROTOCOLS_H
 
-#include "noc-types.h"
-#include <math.h>
+//#include <math.h>
 #include <stdio.h>
-#include <armadillo>
+#include"noc-router.h"
 
 namespace ns3 {
 
-    class NOCCalc {
+    class NOCRoutingProtocols {
     public:
         
+        enum RoutingAlgos{
+            ROUTING_COLUMN_FIRST,
+            ROUTING_ROW_FIRST,
+            ROUTING_CLOCKWISE,
+        };
         
-        static NodeRef FindMax(std::vector<NodeRef> * sn);
+        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source,
+                int32_t x_dest, int32_t y_dest);
         
-        static NodeRef FindMin(std::vector<NodeRef> * sn);
-        
-//        static NodeRefPair FindGrad(std::vector<NodeRef> * sn);
-        
-        static float FindGrad(std::vector<NodeRef> * sn);
-
-        static uint32_t FindArc(std::vector<NodeRef> * sn);
-        
-        static float FindDistance(NodeRef a, NodeRef b);
-        
-        static DataFit FindPlane(std::vector<NodeRef> * sn);
-        
-        static DataFit FindCurve(std::vector<NodeRef> * sn);
-        
-        static DataFit CannyEdge(std::vector<NodeRef> * sn);
+        static uint8_t MulticastClockwise(int32_t x_source, int32_t y_source, uint16_t n_hops);
         
     private:
-        static NodeRef NodeAt(std::vector<NodeRef> * sn, int8_t, int8_t);
+//        static NodeRef NodeAt(std::vector<NodeRef> * sn, int8_t, int8_t);
 
 //        
 
