@@ -357,7 +357,7 @@ namespace ns3 {
         uint8_t y_size = 10;
         
         Time t = Time::FromInteger(0, Time::MS);
-        Time t_offset = Time::FromInteger(0, Time::NS);;// = 
+        Time t_offset = Time::FromInteger(0, Time::NS);// = 
         Time t_window = Time::FromInteger(0, Time::MS);
         
         if ( (origin_x != 0) && protocol == 0 ){ //from broadcast
@@ -365,9 +365,9 @@ namespace ns3 {
             {
                 t = Time::FromInteger(pck_duration * (origin_x - 1) * (y_size - 1), Time::NS);
 //                t_window = Time::FromInteger(j * 120 * pck_duration, Time::NS);
-//                t_offset = Time::FromInteger(((y_size - 1) - origin_y) * pck_duration, Time::NS);
+                t_offset = Time::FromInteger(pck_duration * (origin_x - 1), Time::NS);
 
-                Simulator::Schedule(t + t_window + t_offset, &XDenseApp::DataAnnouncementTT, this);
+                Simulator::Schedule(t + t_window - t_offset, &XDenseApp::DataAnnouncementTT, this);
             }
         }
     }
