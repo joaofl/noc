@@ -28,6 +28,10 @@ import matplotlib as mpl
 from itertools import cycle
 import noc_packet_structure as trace
 import noc_io
+import matplotlib.animation as animation
+from os.path import expanduser
+
+home = expanduser("~")
 
 # matplotlib.style.use('bmh')
 # ['ggplot', 'bmh', 'grayscale', 'fivethirtyeight', 'dark_background']
@@ -39,9 +43,16 @@ def main ():
     global options, args
 
     if options.inputfile == None:
-        options.inputfile = '/home/joao/noc-data/tests/out/packets-trace-netdevice.csv'
+        options.inputfile = home + '/noc-data/tests/out/packets-trace-netdevice.csv'
     if options.inputconfigfile == None:
-        options.inputconfigfile = '/home/joao/noc-data/config/input-config.c.csv'
+        options.inputconfigfile = home + '/noc-data/config/input-config.c.csv'
+    if options.outputdir == None:
+        options.outputdir = home + '/noc-data/tests/plots/'
+
+    if not os.path.exists(options.outputdir):
+        os.makedirs(options.outputdir)
+
+    options.showanimation = True
 
     data = noc_io.load_list(options.inputfile)
     if (len(data)) == 0:
@@ -64,18 +75,45 @@ def main ():
 
     # print list[:,trace.x_absolute]
     received = numpy.zeros([max_y + 1, max_x + 1])
+
     transmitted = numpy.zeros([max_y + 1, max_x + 1])
+    transmitted_s = numpy.zeros([max_y + 1, max_x + 1])
+
+    log_received = []
+    log_transmitted = []
+
+    imgs = []
+    imgs_transmitted = []
+
+    t, t_a = 0, 0
 
     for line in data:
         abs_x = int( line[trace.x_absolute] )
         abs_y = int( line[trace.y_absolute] )
 
+        t = int ( line[trace.time_slot] )
+
         #Get the full picture
         if line[trace.operation] == 'r' or line[trace.operation] == 'g':
             received[ abs_y, abs_x ] += 1
+            log_received.append([abs_y, abs_x])
+
+            if options.showanimation == True:
+                im = plt.imshow(received, cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')
+                imgs.append([im])
 
         if line[trace.operation] == 't':
             transmitted[ abs_y, abs_x ] += 1
+            log_transmitted.append([abs_y, abs_x])
+
+            transmitted_s [ abs_y, abs_x ] += 1
+
+            if t != t_a:
+                if options.showanimation == True:
+                    im = plt.imshow(transmitted_s, cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')
+                    imgs_transmitted.append([im])
+                t_a = t
+                transmitted_s = numpy.zeros([max_y + 1, max_x + 1])
 
         if abs_x == node_x and abs_y == node_y:
             axis_x_transmitted.append(int(line[trace.time_slot]))
@@ -112,9 +150,14 @@ def main ():
     print("Total received/transmitted = ", total_received, "/", total_transmitted)
     # plt.ion()
 
-    plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_bound, y_bound)
-    plotMatrix(received)
 
+
+
+    if options.showanimation == True:
+        plotAnimation(imgs_transmitted)
+    else:
+        plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_bound, y_bound)
+        plotMatrix(received)
     # plt.show()
 
 
@@ -125,6 +168,16 @@ def main ():
     # print(received)
     # print('\n')
     # print(transmitted)
+
+def plotAnimation(imgs):
+    # fig = plt.figure()
+
+    fig = plt.figure("", figsize=(6, 6), dpi=120, facecolor='w', edgecolor='w')
+    ani = animation.ArtistAnimation(fig, imgs, interval=200, blit=True, repeat_delay=1000)
+
+    plt.show()
+
+    ani.save( str(options.outputdir) + 'transmissions.mp4')
 
 def plotMatrix(data):
 
@@ -224,6 +277,9 @@ if __name__ == '__main__':
         parser.add_option ('-v', '--verbose', action='store_true', default=False, help='verbose output')
         parser.add_option ('-i', '--inputfile', help='input file containing the packet trace')
         parser.add_option ('-c', '--inputconfigfile', help='config file containing the simulation parameters')
+        parser.add_option ('-s', '--showanimation', help='', default=False)
+        parser.add_option ('-o', '--outputdir', help='', default=None)
+
 
         (options, args) = parser.parse_args()
         #if len(args) < 1:
