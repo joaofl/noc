@@ -195,7 +195,7 @@ namespace ns3 {
 
                     if (m_neighborsList.size() > 1)
                     {
-                        p = NOCCalc::FindPlane(&m_neighborsList);
+//                        p = NOCCalc::FindPlane(&m_neighborsList);
 //                        p = NOCCalc::FindCurve(&m_neighborsList);
                     }
                         
@@ -268,7 +268,7 @@ namespace ns3 {
 
                         if (m_neighborsList.size() > 1)
                         {
-                            p = NOCCalc::FindPlane(&m_neighborsList);
+//                            p = NOCCalc::FindPlane(&m_neighborsList);
 //                            c = NOCCalc::FindCurve(&m_neighborsList);
                         }
                         else if(m_neighborsList.size() == 1)

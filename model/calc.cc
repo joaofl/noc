@@ -24,7 +24,7 @@
 
 //#include "src/lte/helper/radio-bearer-stats-calculator.h"
 
-using namespace arma;
+//using namespace arma;
 
 namespace ns3 {
 
@@ -169,133 +169,134 @@ namespace ns3 {
         return nr;
     }
 
-    DataFit
-    NOCCalc::FindPlane(std::vector<NodeRef> * sn)
-    {
-        double sumxx, sumxy, sumyy, sumxz, sumyz, sumx, sumy, sumz;
-        sumxx = 0;
-        sumxy = 0;
-        sumyy = 0;
-        sumxz = 0;
-        sumyz = 0;
-        sumx = 0;
-        sumy = 0;
-        sumz = 0;
-        uint8_t n = sn->size();
+//    DataFit
+//    NOCCalc::FindPlane(std::vector<NodeRef> * sn)
+//    {
+//        double sumxx, sumxy, sumyy, sumxz, sumyz, sumx, sumy, sumz;
+//        sumxx = 0;
+//        sumxy = 0;
+//        sumyy = 0;
+//        sumxz = 0;
+//        sumyz = 0;
+//        sumx = 0;
+//        sumy = 0;
+//        sumz = 0;
+//        uint8_t n = sn->size();
+//        
+//        for (uint8_t i = 0; i < n; i++)
+//        {
+//            NodeRef n = sn->at(i);
+//            sumxx += n.x * n.x;
+//            sumyy += n.y * n.y;
+//            sumxy += n.x * n.y;
+//            sumxz += (double)n.x * (double)n.value;
+//            sumyz += (double)n.y * (double)n.value;
+//            sumx += n.x;
+//            sumy += n.y;
+//            sumz += n.value;
+//        }
+//        
+//        mat A, B;
+//
+//        A
+//                << sumxx << sumxy << sumx << endr
+//                << sumxy << sumyy << sumy << endr
+//                << sumx  << sumy  << n    << endr;
+//        B
+//                << sumxz << endr
+//                << sumyz << endr
+//                << sumz  << endr;
+//        
+//        // A * [a;b;c] = B
+//        
+//        vec vplane = solve(A, B);
+//        
+//        DataFit p;
+//        
+//        p.type = EV_PLANE;
+//        p.a = (int32_t)vplane.at(0);
+//        p.b = (int32_t)vplane.at(1);
+//        p.c = (int32_t)vplane.at(2);
+//        
+//        return p;
         
-        for (uint8_t i = 0; i < n; i++)
-        {
-            NodeRef n = sn->at(i);
-            sumxx += n.x * n.x;
-            sumyy += n.y * n.y;
-            sumxy += n.x * n.y;
-            sumxz += (double)n.x * (double)n.value;
-            sumyz += (double)n.y * (double)n.value;
-            sumx += n.x;
-            sumy += n.y;
-            sumz += n.value;
-        }
-        
-        mat A, B;
-
-        A
-                << sumxx << sumxy << sumx << endr
-                << sumxy << sumyy << sumy << endr
-                << sumx  << sumy  << n    << endr;
-        B
-                << sumxz << endr
-                << sumyz << endr
-                << sumz  << endr;
-        
-        // A * [a;b;c] = B
-        
-        vec vplane = solve(A, B);
-        
-        DataFit p;
-        
-        p.type = EV_PLANE;
-        p.a = (int32_t)vplane.at(0);
-        p.b = (int32_t)vplane.at(1);
-        p.c = (int32_t)vplane.at(2);
-        
-        return p;
 //        NOCCalc::CalculatePlane(sumxx, sumxy, sumyy, sumxz, sumyz, sumzz, sumx, sumy, sumz, sn->size(), a, b, c);
         
         //http://www.had2know.com/academics/least-squares-plane-regression.html
-    }
+//    }
 
-    DataFit
-    NOCCalc::FindCurve(std::vector<NodeRef> * sn)
-    {
+//    DataFit
+//    NOCCalc::FindCurve(std::vector<NodeRef> * sn)
+//    {
 //        Exponential Function z = abxcy
         //        z = abxcy
         //ln(z) = ln(abxcy)
         //ln(z) = ln(a) + x*ln(b) + y*ln(c)
         
-        double sumxx, sumxy, sumyy, sumxz, sumyz, sumx, sumy, sumz, sumlnz, sumxlnz, sumylnz, t1, t2, t3;
-        sumxx = 0;
-        sumxy = 0;
-        sumyy = 0;
-        sumxz = 0;
-        sumyz = 0;
-        sumx = 0;
-        sumy = 0;
-        sumz = 0;
-        sumlnz = 0;
-        sumylnz = 0;
-        sumxlnz = 0;
-        
-        uint8_t n = sn->size();
-        
-        for (uint8_t i = 0; i < n; i++)
-        {
-            NodeRef n = sn->at(i);
-            sumxx += n.x * n.x;
-            sumyy += n.y * n.y;
-            sumxy += n.x * n.y;
-            sumxz += (double)n.x * (double)n.value;
-            sumyz += (double)n.y * (double)n.value;
-            
-            sumlnz += log((double)n.value);
-            sumylnz += (double)n.y * log((double)n.value);
-            sumxlnz += (double)n.x * log((double)n.value);
-            
-            sumx += n.x;
-            sumy += n.y;
-            sumz += n.value;
-        }
-        
-        mat A, B;
-
-        A
-                << n     << sumx  << sumy  << endr
-                << sumx << sumxx  << sumxy << endr
-                << sumy << sumxy  << sumyy << endr;
-        B
-                << sumlnz << endr
-                << sumxlnz << endr
-                << sumylnz  << endr;
-        
-        // A * [ln a; ln b; ln c] = B
-        
-        vec vcurve = solve(A, B);   
-        
-        t1 = vcurve.at(0) * 100;
-        t2 = vcurve.at(1) * 1000000000000000;
-        t3 = vcurve.at(2) * 1000000000000000;
-        
-        DataFit p;
-        
-        p.type = EV_CURVE;
-        p.a = (int32_t)(t1);
-        p.b = (int32_t)(t2);
-        p.c = (int32_t)(t3);
-        
-        return p;
+//        double sumxx, sumxy, sumyy, sumxz, sumyz, sumx, sumy, sumz, sumlnz, sumxlnz, sumylnz, t1, t2, t3;
+//        sumxx = 0;
+//        sumxy = 0;
+//        sumyy = 0;
+//        sumxz = 0;
+//        sumyz = 0;
+//        sumx = 0;
+//        sumy = 0;
+//        sumz = 0;
+//        sumlnz = 0;
+//        sumylnz = 0;
+//        sumxlnz = 0;
+//        
+//        uint8_t n = sn->size();
+//        
+//        for (uint8_t i = 0; i < n; i++)
+//        {
+//            NodeRef n = sn->at(i);
+//            sumxx += n.x * n.x;
+//            sumyy += n.y * n.y;
+//            sumxy += n.x * n.y;
+//            sumxz += (double)n.x * (double)n.value;
+//            sumyz += (double)n.y * (double)n.value;
+//            
+//            sumlnz += log((double)n.value);
+//            sumylnz += (double)n.y * log((double)n.value);
+//            sumxlnz += (double)n.x * log((double)n.value);
+//            
+//            sumx += n.x;
+//            sumy += n.y;
+//            sumz += n.value;
+//        }
+//        
+//        mat A, B;
+//
+//        A
+//                << n     << sumx  << sumy  << endr
+//                << sumx << sumxx  << sumxy << endr
+//                << sumy << sumxy  << sumyy << endr;
+//        B
+//                << sumlnz << endr
+//                << sumxlnz << endr
+//                << sumylnz  << endr;
+//        
+//        // A * [ln a; ln b; ln c] = B
+//        
+//        vec vcurve = solve(A, B);   
+//        
+//        t1 = vcurve.at(0) * 100;
+//        t2 = vcurve.at(1) * 1000000000000000;
+//        t3 = vcurve.at(2) * 1000000000000000;
+//        
+//        DataFit p;
+//        
+//        p.type = EV_CURVE;
+//        p.a = (int32_t)(t1);
+//        p.b = (int32_t)(t2);
+//        p.c = (int32_t)(t3);
+//        
+//        return p;
 //        NOCCalc::CalculatePlane(sumxx, sumxy, sumyy, sumxz, sumyz, sumzz, sumx, sumy, sumz, sn->size(), a, b, c);
         
         //http://www.had2know.com/academics/least-squares-plane-regression.html
-    }
+//    }
     
     DataFit
     NOCCalc::CannyEdge(std::vector<NodeRef> * sn)

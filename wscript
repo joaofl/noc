@@ -4,7 +4,7 @@
 #     pass
 
 def configure(conf):
-    conf.env['armadillo'] = conf.check(mandatory=True, lib='armadillo', uselib_store='ARMADILLO')
+    conf.env['armadillo'] = conf.check(mandatory=False, lib='armadillo', uselib_store='ARMADILLO')
     conf.env['opencv'] = conf.check(mandatory=False, lib='opencv', libpath="/usr/local/lib", uselib_store='OPENCV')
 
 #    conf.env.append_value("CXXFLAGS", ["-O3", "-larmadillo"])

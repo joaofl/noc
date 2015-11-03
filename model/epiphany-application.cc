@@ -21,7 +21,7 @@
 
 #include "ns3/noc-net-device.h"
 #include "ns3/noc-router.h"
-#include "ns3/calc.h"
+//#include "ns3/calc.h"
 
 #include "noc-types.h"
 #include "epiphany-application.h"
