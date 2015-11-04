@@ -13,7 +13,7 @@ last edited: September 2011
 """
 
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 
 class Example(QtGui.QWidget):
     

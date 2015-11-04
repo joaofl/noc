@@ -1,15 +1,24 @@
+#To run scripts
 sudo apt-get install python3.5-dev
-
 sudo apt-get install python3-pip3
-
 sudo -H pip3 install numpy
-
 sudo apt-get install libfreetype6-dev
-
 sudo -H pip3 install matplotlib
-
 sudo apt-get install libffi-dev
-
 sudo -H pip3 install cairocffi
-
 sudo apt-get install ffmpeg
+
+#To run the netanim
+#Download sip
+wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.17/sip-4.17.tar.gz
+tar xzf sip-4.17.tar.gz
+python3 configure.py
+make
+sudo make install
+
+#Download PyQt5
+wget http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.5.1/PyQt-gpl-5.5.1.tar.gz
+tar xzf PyQt-gpl-5.5.1.tar.gz
+python3 configure.py
+make
+sudo make install
