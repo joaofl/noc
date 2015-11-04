@@ -34,6 +34,7 @@
 
 #include "ns3/core-module.h"
 //#include "ns3/config-store-module.h"
+//#include "ns3/netanim-module.h"
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
@@ -155,6 +156,7 @@ main(int argc, char *argv[]) {
         
     string io_data_dir = homedir + "/noc-data";
     
+    
   
 
     CommandLine cmd;
@@ -178,6 +180,8 @@ main(int argc, char *argv[]) {
     
     string dir_output = io_data_dir + context_dir.str() + "out/";
     string dir_input = io_data_dir + context_dir.str() + "in/";     
+    
+    string animation_file = dir_output + "animation.xml";
     
     int status;
     status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -316,6 +320,7 @@ main(int argc, char *argv[]) {
     
     file_packets_trace_netdevice.open(filename.c_str(), ios::out);
 
+//    AnimationInterface anim (animation_file);
 
     Simulator::Stop(Seconds(50));
     Simulator::Run();
