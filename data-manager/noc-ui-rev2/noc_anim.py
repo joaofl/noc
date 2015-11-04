@@ -1,62 +1,63 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
-ZetCode PyQt4 tutorial 
+ZetCode PyQt5 tutorial
 
 This example draws three rectangles in three
-different colours. 
+#different colours.
 
 author: Jan Bodnar
-website: zetcode.com 
-last edited: September 2011
+website: zetcode.com
+last edited: January 2015
 """
 
 import sys
-from PyQt5 import QtGui, QtCore
+from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtGui import QPainter, QColor, QBrush
 
-class Example(QtGui.QWidget):
-    
+
+class Example(QWidget):
+
     def __init__(self):
-        super(Example, self).__init__()
-        
+        super().__init__()
+
         self.initUI()
-        
-    def initUI(self):      
+
+
+    def initUI(self):
 
         self.setGeometry(300, 300, 350, 100)
         self.setWindowTitle('Colours')
         self.show()
 
+
     def paintEvent(self, e):
 
-        qp = QtGui.QPainter()
+        qp = QPainter()
         qp.begin(self)
         self.drawRectangles(qp)
         qp.end()
-        
-    def drawRectangles(self, qp):
-      
-        color = QtGui.QColor(0, 0, 0)
-        color.setNamedColor('#d4d4d4')
-        qp.setPen(color)
 
-        qp.setBrush(QtGui.QColor(200, 0, 0))
+
+    def drawRectangles(self, qp):
+
+        col = QColor(0, 0, 0)
+        col.setNamedColor('#d4d4d4')
+        qp.setPen(col)
+
+        qp.setBrush(QColor(200, 0, 0))
         qp.drawRect(10, 15, 90, 60)
 
-        qp.setBrush(QtGui.QColor(255, 80, 0, 160))
+        qp.setBrush(QColor(255, 80, 0, 160))
         qp.drawRect(130, 15, 90, 60)
 
-        qp.setBrush(QtGui.QColor(25, 0, 90, 200))
+        qp.setBrush(QColor(25, 0, 90, 200))
         qp.drawRect(250, 15, 90, 60)
-              
-        
-def main():
-    
-    app = QtGui.QApplication(sys.argv)
-    ex = Example()
-    sys.exit(app.exec_())
 
 
 if __name__ == '__main__':
-    main()
+
+    app = QApplication(sys.argv)
+    ex = Example()
+    sys.exit(app.exec_())
