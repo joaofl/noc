@@ -363,7 +363,7 @@ namespace ns3 {
         if ( (origin_x != 0) && protocol == 0 ){ //from broadcast
             for (uint8_t j = 0 ; j < 1 ; j++)
             {
-                uint16_t t_wait = (origin_x - 1) * (y_size);
+                uint16_t t_wait = (origin_x - 1) * (y_size-2);
                 uint16_t t_offset = 0;
 //                uint16_t t_offset = (origin_x - 1);
                 

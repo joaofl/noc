@@ -27,7 +27,14 @@ class NOCAnim(QWidget):
 
     # nodesData = []
     # networkSize = [0,0]
-    nodeStructure = namedtuple("NodeStructure", "n_rx, n_tx, s_rx, s_tx, e_rx, e_tx, w_rx, w_tx")
+    nodeStructure = namedtuple("NodeStructure", "core_rx, core_tx, n_rx, n_tx, s_rx, s_tx, e_rx, e_tx, w_rx, w_tx")
+    nodeStructure.__new__.__defaults__ = (0,0,0,0,0,0,0,0,0,0)
+
+    index_core_rx, index_core_tx, index_n_rx, index_n_tx, \
+    index_s_rx, index_s_tx, index_e_rx, index_e_tx, \
+    index_w_rx, index_w_tx, index_len\
+        = 0,1,2,3,4,5,6,7,8,9,10
+
     # packetTrace = None
 
     def __init__(self):
@@ -49,14 +56,17 @@ class NOCAnim(QWidget):
         max_x = max( self.packetTrace[:,trace.x_absolute].astype(int) )
         max_y = max( self.packetTrace[:,trace.y_absolute].astype(int) )
 
-        self.networkSize = [max_y, max_x]
+        self.networkSize = [max_x + 1, max_y + 1]
 
         #initialize data
-        self.nodesData = [[self.nodeStructure] * self.networkSize[0] ] * self.networkSize[1]
+        self.nodesData = [[None] * self.networkSize[0] for i in range(self.networkSize[1])]
 
+        self.resetNodes()
+
+    def resetNodes(self):
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
-                self.nodesData[y][x] = self.nodeStructure(0,0,0,0,0,0,0,0)
+                self.nodesData[y][x] = self.nodeStructure()
 
     def initUI(self):
 
@@ -64,13 +74,19 @@ class NOCAnim(QWidget):
         self.timer.timeout.connect(self.timerEvent)
 
         self.step = 0
+        self.t_slot = 0
+        self.last_index = 0
 
         self.pbar = QProgressBar(self)
-        self.pbar.setGeometry(100, 10, 300, 24)
+        self.pbar.setGeometry(190, 10, 300, 24)
 
         self.btn = QPushButton('Start', self)
         self.btn.move(10, 10)
         self.btn.clicked.connect(self.doAction)
+
+        self.btn2 = QPushButton('Restart', self)
+        self.btn2.move(100, 10)
+        self.btn2.clicked.connect(self.doActionRestart)
 
         self.setGeometry(800, 100, 500, 600)
         self.setWindowTitle('NoC Anim')
@@ -82,21 +98,79 @@ class NOCAnim(QWidget):
             self.timer.stop()
             self.btn.setText('Start')
         else:
-            self.timer.start(100)
+            self.timer.start(200)
             self.btn.setText('Stop')
 
-    def timerEvent(self):
+    def doActionRestart(self):
+        self.timer.stop()
+        self.btn.setText('Start')
+        self.step = 0
+        self.t_slot = 0
+        self.last_index = 0
+        self.pbar.setValue(0)
+        self.resetNodes()
+        self.update()
 
-        if self.step >= 100:
-            self.timer.stop()
-            self.btn.setText('Finished')
+    def timerEvent(self):
+        lastT = int (self.packetTrace[-1][trace.time_slot])
+
+        if self.step > lastT:
+            self.doActionRestart()
             return
 
-        self.nodesData[0][self.step] = self.nodeStructure(1,0,0,0,0,0,0,0)
-        # app.processEvents()
+        self.resetNodes()
+
+        k = 0
+
+        lower = self.last_index
+        for i in range(lower, len(self.packetTrace)):
+            self.last_index = i
+            line = self.packetTrace[i]
+
+            if int(line[trace.time_slot]) == self.t_slot:
+                x = int(line[trace.x_absolute])
+                y = int(line[trace.y_absolute])
+
+                node = list(self.nodesData[y][x])
+
+                if line[trace.operation] == 'c':
+                    node[self.index_core_rx] = 1
+                elif line[trace.operation] == 'g':
+                    node[self.index_core_tx] = 1
+
+                elif line[trace.operation] == 'r':
+                    if int(line[trace.direction]) == trace.DIRECTION_N:
+                        node[self.index_n_rx] = 1
+                    elif int(line[trace.direction]) == trace.DIRECTION_S:
+                        node[self.index_s_rx] = 1
+                    elif int(line[trace.direction]) == trace.DIRECTION_E:
+                        node[self.index_e_rx] = 1
+                    elif int(line[trace.direction]) == trace.DIRECTION_W:
+                        node[self.index_w_rx] = 1
+
+                elif line[trace.operation] == 't':
+                    if int(line[trace.direction]) == trace.DIRECTION_N:
+                        node[self.index_n_tx] = 1
+                    elif int(line[trace.direction]) == trace.DIRECTION_S:
+                        node[self.index_s_tx] = 1
+                    elif int(line[trace.direction]) == trace.DIRECTION_E:
+                        node[self.index_e_tx] = 1
+                    elif int(line[trace.direction]) == trace.DIRECTION_W:
+                        node[self.index_w_tx] = 1
+
+                self.nodesData[y][x] = self.nodeStructure(*node) #* is the unpacking operator
+
+                # temp = [0] * self.index_len
+                #
+                # temp[self.index_w_tx] = 1
+                # self.nodesData[4][4] = self.nodeStructure(*temp) #* is the unpacking operator
+
+            else:
+                self.t_slot = int(line[trace.time_slot])
+                break
 
         self.step = self.step + 1
-        self.pbar.setValue(self.step)
+        self.pbar.setValue(self.step / lastT * 100)
 
         self.update()
 
@@ -118,32 +192,35 @@ class NOCAnim(QWidget):
                 self.drawNode(qp, x, y, s, self.nodesData[y][x])
 
     def drawNode(self, qp, x_i, y_i, s, node):
-        col_node = QColor("white")
-        # col_node = QColor("white")
+        qp.setBrush(QColor("white"))
 
         x,y = self.translateXY(x_i, y_i, s)
 
-        qp.setBrush(col_node)
+        if (node.core_rx == 1):
+            qp.setBrush( self.valueToColor(node.core_rx, 1))
+        if (node.core_tx == 1):
+            qp.setBrush( self.valueToColor(node.core_tx, 0))
+
         qp.drawRect(x, y, 90*s, 90*s) #draw the node
 
-        qp.setBrush( self.valueToColor(node.n_rx) )
+        qp.setBrush( self.valueToColor(node.n_tx, 0) )
         qp.drawRect(x + 15*s, y - 30*s, 30*s, 30*s) #draw netdev north rx e tx
-        qp.setBrush( self.valueToColor(node.n_tx) )
+        qp.setBrush( self.valueToColor(node.n_rx, 1) )
         qp.drawRect(x + 45*s, y - 30*s, 30*s, 30*s) #draw netdev north rx e tx
 
-        qp.setBrush( self.valueToColor(node.s_rx) )
+        qp.setBrush( self.valueToColor(node.s_rx, 1) )
         qp.drawRect(x + 15*s, y + 90*s, 30*s, 30*s) #draw netdev south rx e tx
-        qp.setBrush( self.valueToColor(node.s_tx) )
+        qp.setBrush( self.valueToColor(node.s_tx, 0) )
         qp.drawRect(x + 45*s, y + 90*s, 30*s, 30*s)
 
-        qp.setBrush( self.valueToColor(node.e_rx) )
+        qp.setBrush( self.valueToColor(node.w_tx, 0) )
         qp.drawRect(x - 30*s, y + 15*s, 30*s, 30*s) #draw netdev east rx e tx
-        qp.setBrush( self.valueToColor(node.e_tx) )
+        qp.setBrush( self.valueToColor(node.w_rx, 1) )
         qp.drawRect(x - 30*s, y + 45*s, 30*s, 30*s)
 
-        qp.setBrush( self.valueToColor(node.w_rx) )
+        qp.setBrush( self.valueToColor(node.e_rx, 1) )
         qp.drawRect(x + 90*s, y + 15*s, 30*s, 30*s) #draw netdev west rx e tx
-        qp.setBrush( self.valueToColor(node.w_tx) )
+        qp.setBrush( self.valueToColor(node.e_tx, 0) )
         qp.drawRect(x + 90*s, y + 45*s, 30*s, 30*s)
 
 
@@ -159,9 +236,12 @@ class NOCAnim(QWidget):
 
         return x_t, y_t
 
-    def valueToColor(self, v):
+    def valueToColor(self, v, direction = 1):
         if v == 1:
-            return QColor("red")
+            if direction == 1:
+                return QColor("red")
+            else:
+                return QColor("blue")
         elif v == 0:
             return QColor("white")
 

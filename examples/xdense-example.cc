@@ -255,9 +255,13 @@ main(int argc, char *argv[]) {
         context_router_tx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
         my_noc_router->TraceConnect("RouterTxTrace", context_router_tx.str(), MakeCallback(&log_router_packets));
         
-        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",c";
-        my_noc_router->TraceConnect("RouterCxTrace", context_router_cx.str(), MakeCallback(&log_router_packets));
         
+        
+        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",c";
+        my_noc_router->TraceConnect("RouterCxTrace", context_router_cx.str(), MakeCallback(&log_netdevice_packets));
+        
+        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",g";
+        my_noc_router->TraceConnect("RouterGxTrace", context_router_gx.str(), MakeCallback(&log_netdevice_packets));
         
         //Setup NetDevice's Callback
         Ptr<NOCNetDevice> my_net_device;
@@ -272,9 +276,6 @@ main(int argc, char *argv[]) {
             context_nd_tx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
             my_net_device->TraceConnect("MacTx", context_nd_tx.str(), MakeCallback(&log_netdevice_packets));            
         }
-        
-        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",g";
-        my_noc_router->TraceConnect("RouterGxTrace", context_router_gx.str(), MakeCallback(&log_netdevice_packets));
 
         //Setup sensor
         my_sensor->SensorPosition.x = x.Get();
