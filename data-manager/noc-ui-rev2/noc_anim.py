@@ -24,8 +24,8 @@ import noc_io
 import noc_packet_structure as trace
 from os.path import expanduser
 
-from PyQt5.QtWidgets import QWidget, QProgressBar,QPushButton, QApplication
-from PyQt5.QtGui import QPainter, QColor, QBrush
+from PyQt5.QtWidgets import QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
+from PyQt5.QtGui import QPainter, QColor, QBrush, QFont
 from PyQt5.QtCore import QTimer
 from collections import namedtuple
 
@@ -67,7 +67,9 @@ class NOCAnim(QWidget):
 
         self.resetNodes()
 
-        self.s = 0.20
+        self.s = 0.22
+
+        self.step_enable = False
 
     def resetNodes(self):
         for x in range(self.networkSize[0]):
@@ -83,16 +85,29 @@ class NOCAnim(QWidget):
         self.t_slot = 0
         self.last_index = 0
 
-        self.pbar = QProgressBar(self)
-        self.pbar.setGeometry(190, 10, 300, 24)
-
         self.btn = QPushButton('Start', self)
         self.btn.move(10, 10)
         self.btn.clicked.connect(self.doAction)
 
+        # self.btn3 = QPushButton('Step', self)
+        # self.btn3.move(100, 10)
+        # self.btn3.clicked.connect(self.doActionStep)
+
+        self.cb = QCheckBox('Step', self)
+        self.cb.move(100, 12)
+        # cb.toggle()
+        # cb.stateChanged.connect(self.changeTitle)
+
         self.btn2 = QPushButton('Reload', self)
-        self.btn2.move(100, 10)
+        self.btn2.move(170, 10)
         self.btn2.clicked.connect(self.doActionRestart)
+
+        self.pbar = QProgressBar(self)
+        self.pbar.setGeometry(260, 10, 300, 24)
+
+        self.text = QLabel('0 tts    ', self)
+        self.text.move(590, 10)
+        self.text.setFont( QFont( "Monospace", 15, QFont.Bold) )
 
         self.setGeometry(800, 100, self.networkSize[0] * 150 * self.s + 5, self.networkSize[1] * 150 * self.s + 50)
         self.setWindowTitle('NoC Anim')
@@ -106,6 +121,7 @@ class NOCAnim(QWidget):
         else:
             self.timer.start(200)
             self.btn.setText('Stop')
+
 
     def doActionRestart(self):
         self.timer.stop()
@@ -180,12 +196,34 @@ class NOCAnim(QWidget):
 
         self.step = self.step + 1
         self.pbar.setValue( (self.step / lastT) * 100)
+        self.text.setText(str(self.step) + ' tts')
+
+        if self.cb.isChecked():
+            self.doAction()
+
         self.update()
+
+    def resizeS(self):
+        s1 = (self.geometry().width() - 5) / (self.networkSize[0] * 150)
+        s2 = (self.geometry().height() - 50) / (self.networkSize[1] * 150)
+
+        self.s = min(s1,s2)
 
     def paintEvent(self, e):
 
+        # QPainter.Antialiasing 	0x01 	Indicates that the engine should antialias edges of primitives if possible.
+        # QPainter.TextAntialiasing 	0x02 	Indicates that the engine should antialias text if possible. To forcibly disable antialiasing for text, do not use this hint. Instead, set QFont.NoAntialias on your font's style strategy.
+        # QPainter.SmoothPixmapTransform 	0x04 	Indicates that the engine should use a smooth pixmap transformation algorithm (such as bilinear) rather than nearest neighbor.
+        # QPainter.HighQualityAntialiasing 	0x08 	An OpenGL-specific rendering hint indicating that the engine should use fragment programs and offscreen rendering for antialiasing.
+        # QPainter.NonCosmeticDefaultPen 	0x10 	The engine should interpret pens with a width of 0 (which otherwise enables QPen.isCosmetic()) as being a non-cosmetic pen with a width of 1.
+
         qp = QPainter()
         qp.begin(self)
+        qp.setRenderHint(QPainter.Antialiasing)
+        # qp.setRenderHint(QPainter.SmoothPixmapTransform)
+
+
+        self.resizeS()
 
         self.drawNetwork(qp, self.networkSize, self.s)
 
