@@ -105,6 +105,7 @@ namespace ns3 {
 //        bool PacketUnicastReceived (Ptr<const Packet> pck, uint8_t network_id);
 
         bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops);
+        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, int32_t x_size, int32_t y_size);
 //        bool PacketMulticastReceived (Ptr<const Packet> pck, uint8_t network_id);
 
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
@@ -143,7 +144,7 @@ namespace ns3 {
          * \returns true if the callback could handle the packet successfully, false
          *          otherwise.
          */
-        typedef Callback< void, Ptr<const Packet>, uint8_t, int32_t, int32_t> ReceiveCallback;
+        typedef Callback< void, Ptr<const Packet>, uint8_t, int32_t, int32_t, int32_t, int32_t> ReceiveCallback;
 
         /**
          * \param cb callback to invoke whenever a packet has been received and must

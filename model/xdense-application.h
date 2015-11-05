@@ -83,14 +83,13 @@ namespace ns3 {
 
 //        vector <EventRef> EventsReceived;
         
-        void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,
-                            int32_t origin_y);
+        void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         
         void NetworkDiscovery();
         bool NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port);
 
         //Event triggered
-        void DataAnnouncement(EventRef);
+        void DataAnnouncement(void);
         //Time triggered
         void DataAnnouncementTT();
         void DataAnnouncementRequest();

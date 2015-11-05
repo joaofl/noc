@@ -27,6 +27,7 @@
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "noc-routing-protocols.h"
+#include "ns3/noc-routing-protocols.h"
 
 
 using namespace std;
@@ -73,7 +74,7 @@ namespace ns3 {
         
                 .AddAttribute("UnicastProtocol",
                 "Defines the routing protocol utilized for unicasting",
-                UintegerValue(NOCRoutingProtocols::ROUTING_COLUMN_FIRST),
+                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
                 MakeUintegerAccessor(&NOCRouter::m_routing_unicast),
                 MakeUintegerChecker<uint8_t>())
         
@@ -264,21 +265,39 @@ namespace ns3 {
         
         m_routerGxTrace(pck_c); //the router receives a pck from the application
         
-        uint8_t out = NOCRoutingProtocols::RouteTo(m_routing_unicast,0,0, destination_x, destination_y);
+        uint8_t out = NOCRoutingProtocols::UnicastClockwise(destination_x, destination_y);
+//        uint8_t out = NOCRoutingProtocols::RouteTo(NOCRoutingProtocols::ROUTING_COLUMN_FIRST,0,0, destination_x, destination_y);
         
         return PacketSendMultiple(pck_c, network_id, out, P0);
     }
 
     bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops){
         NOCHeader h;
-        h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST);
+        h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST_RADIUS);
         h.SetSourceAddressXY(0,0);
-        h.SetDestinationAddressXY(0,0);
+        h.SetDestinationAddressXY(n_hops,0);
         
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
         uint8_t out = NOCRoutingProtocols::MulticastClockwise(0,0,n_hops);
+        
+        if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
+           return true;
+        
+        return false;    
+    }
+
+    bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, int32_t x_destination, int32_t y_destination){
+        NOCHeader h;
+        h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST);
+        h.SetSourceAddressXY(0,0);
+        h.SetDestinationAddressXY(x_destination,y_destination);
+        
+        Ptr<Packet> pck_c = pck->Copy();
+        pck_c->AddHeader(h);
+        
+        uint8_t out = NOCRoutingProtocols::MulticastClockwise(0,0,x_destination, y_destination);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
@@ -295,7 +314,7 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::RouteTo(m_routing_broadcast,0,0,0,0);
+        uint8_t out = NOCRoutingProtocols::BroadcastClockwise(0,0);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
@@ -346,7 +365,7 @@ namespace ns3 {
             Ptr<Packet> pck_c = pck->Copy();
             NOCHeader h;
             pck_c->RemoveHeader(h);
-            m_receiveCallBack(pck_c, h.GetProtocol(), h.GetSourceAddressX(), h.GetSourceAddressY());           
+            m_receiveCallBack(pck_c, h.GetProtocol(), h.GetSourceAddressX(), h.GetSourceAddressY(), h.GetDestinationAddressX(), h.GetDestinationAddressY());           
         }
         
         if (sent > 0) m_routerTxTrace(pck);
@@ -383,26 +402,29 @@ namespace ns3 {
         switch (nd_i.direction){
             case DIRECTION_S: 
                 h.AddtoSourceAddress( 0, 1);
-                h.AddtoDestinationAddress( 0, -1);
+                if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST)
+                    h.AddtoDestinationAddress( 0, -1);
                 break;
             case DIRECTION_N:
                 h.AddtoSourceAddress( 0,-1); 
-                h.AddtoDestinationAddress( 0, 1);
+                if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST)
+                    h.AddtoDestinationAddress( 0, 1);
                 break;
             case DIRECTION_E: 
-                h.AddtoSourceAddress(-1, 0); 
-                h.AddtoDestinationAddress( 1, 0);
+                h.AddtoSourceAddress(-1, 0);
+                if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST)
+                    h.AddtoDestinationAddress( 1, 0);
                 break;
             case DIRECTION_W: 
                 h.AddtoSourceAddress( 1, 0); 
-                h.AddtoDestinationAddress( -1, 0);
+                if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST)
+                    h.AddtoDestinationAddress( -1, 0);
                 break;
         }
         
         pck_c->AddHeader(h);
         
-        
-        
+             
         int32_t adx = h.GetDestinationAddressX();
         int32_t ady = h.GetDestinationAddressY();
         int32_t asx = h.GetSourceAddressX();
@@ -412,17 +434,24 @@ namespace ns3 {
         uint8_t out = 0;
         switch (p){
             case NOCHeader::PROTOCOL_BROADCAST:
-                out = NOCRoutingProtocols::RouteTo(m_routing_broadcast,asx,asy,adx,ady);
+//                out = NOCRoutingProtocols::RouteTo(m_routing_broadcast,asx,asy,adx,ady);
+                out = NOCRoutingProtocols::BroadcastClockwise(asx,asy);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
-            case NOCHeader::PROTOCOL_MULTICAST:
+            case NOCHeader::PROTOCOL_MULTICAST_RADIUS:
                 out = NOCRoutingProtocols::MulticastClockwise(asx,asy,10);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
+            case NOCHeader::PROTOCOL_MULTICAST:
+                out = NOCRoutingProtocols::MulticastClockwise(asx,asy,adx,ady);
+                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
+                break;
+               
             case NOCHeader::PROTOCOL_UNICAST:
-                out = NOCRoutingProtocols::RouteTo(m_routing_unicast,asx,asy,adx,ady);
+//                out = NOCRoutingProtocols::RouteTo(m_routing_unicast,asx,asy,adx,ady);
+                out = NOCRoutingProtocols::UnicastClockwise(adx,ady);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                

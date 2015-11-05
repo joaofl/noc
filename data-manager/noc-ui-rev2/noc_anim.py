@@ -1,16 +1,23 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
-"""
-ZetCode PyQt5 tutorial
+# Copyright (c) 2015 Joao Loureiro
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation;
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# Author: Joao Loureiro <joflo@isep.ipp.pt>
 
-This example draws three rectangles in three
-#different colours.
-
-author: Jan Bodnar
-website: zetcode.com
-last edited: January 2015
-"""
+__author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
 import sys
 import noc_io
@@ -46,12 +53,9 @@ class NOCAnim(QWidget):
     def initData(self):
         # load the log
         home = expanduser("~")
-        inputfile = home + '/noc-data/tests/out/packets-trace-netdevice.csv'
-        self.packetTrace = noc_io.load_list(inputfile)
+        self.inputfile = home + '/noc-data/tests/out/packets-trace-netdevice.csv'
 
-        if (len(self.packetTrace)) == 0:
-            print('Log file is empty')
-            exit(1)
+        self.packetTrace = noc_io.load_list(self.inputfile)
 
         max_x = max( self.packetTrace[:,trace.x_absolute].astype(int) )
         max_y = max( self.packetTrace[:,trace.y_absolute].astype(int) )
@@ -62,6 +66,8 @@ class NOCAnim(QWidget):
         self.nodesData = [[None] * self.networkSize[0] for i in range(self.networkSize[1])]
 
         self.resetNodes()
+
+        self.s = 0.20
 
     def resetNodes(self):
         for x in range(self.networkSize[0]):
@@ -84,11 +90,11 @@ class NOCAnim(QWidget):
         self.btn.move(10, 10)
         self.btn.clicked.connect(self.doAction)
 
-        self.btn2 = QPushButton('Restart', self)
+        self.btn2 = QPushButton('Reload', self)
         self.btn2.move(100, 10)
         self.btn2.clicked.connect(self.doActionRestart)
 
-        self.setGeometry(800, 100, 500, 600)
+        self.setGeometry(800, 100, self.networkSize[0] * 150 * self.s + 5, self.networkSize[1] * 150 * self.s + 50)
         self.setWindowTitle('NoC Anim')
         self.show()
 
@@ -108,7 +114,9 @@ class NOCAnim(QWidget):
         self.t_slot = 0
         self.last_index = 0
         self.pbar.setValue(0)
-        self.resetNodes()
+        # self.resetNodes()
+        # self.packetTrace = noc_io.load_list(self.inputfile)
+        self.initData()
         self.update()
 
     def timerEvent(self):
@@ -169,9 +177,9 @@ class NOCAnim(QWidget):
                 self.t_slot = int(line[trace.time_slot])
                 break
 
-        self.step = self.step + 1
-        self.pbar.setValue(self.step / lastT * 100)
 
+        self.step = self.step + 1
+        self.pbar.setValue( (self.step / lastT) * 100)
         self.update()
 
     def paintEvent(self, e):
@@ -179,17 +187,15 @@ class NOCAnim(QWidget):
         qp = QPainter()
         qp.begin(self)
 
-        self.drawNetwork(qp, self.networkSize, 0.30)
+        self.drawNetwork(qp, self.networkSize, self.s)
 
         qp.end()
 
     def drawNetwork(self,qp, shape, s):
-
-        #
-
         for x in range(shape[0]):
             for y in range(shape[1]):
                 self.drawNode(qp, x, y, s, self.nodesData[y][x])
+
 
     def drawNode(self, qp, x_i, y_i, s, node):
         qp.setBrush(QColor("white"))

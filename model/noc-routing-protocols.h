@@ -37,10 +37,16 @@ namespace ns3 {
             ROUTING_CLOCKWISE,
         };
         
-        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source,
-                int32_t x_dest, int32_t y_dest);
+        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_dest, int32_t y_dest);
         
         static uint8_t MulticastClockwise(int32_t x_source, int32_t y_source, uint16_t n_hops);
+        static uint8_t MulticastClockwise(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
+        static uint8_t BroadcastClockwise(int32_t x_source, int32_t y_source);
+        
+        static uint8_t UnicastClockwise(int32_t x_dest, int32_t y_dest);
+        
+        static int32_t ScheduleTransmission(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size);
+        
         
     private:
 //        static NodeRef NodeAt(std::vector<NodeRef> * sn, int8_t, int8_t);

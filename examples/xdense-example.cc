@@ -144,8 +144,8 @@ main(int argc, char *argv[]) {
     
     uint32_t sampling_cycles = 10;
     uint32_t sampling_period = 100000; //at every 100.000.000 ns = 100ms default
-    uint32_t size_x = 11;
-    uint32_t size_y = 10;
+    uint32_t size_x = 21;
+    uint32_t size_y = 21;
     uint32_t size_neighborhood = 10;
     uint32_t sinks_n = 1;
     uint32_t baudrate = 10000; //10000 kbps =  10 Mbps
