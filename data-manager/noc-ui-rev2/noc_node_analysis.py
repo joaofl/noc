@@ -52,7 +52,7 @@ def main ():
     if not os.path.exists(options.outputdir):
         os.makedirs(options.outputdir)
 
-    options.showanimation = True
+    options.showanimation = False
 
     data = noc_io.load_list(options.inputfile)
     if (len(data)) == 0:
@@ -177,7 +177,7 @@ def plotAnimation(imgs):
 
     plt.show()
 
-    ani.save( str(options.outputdir) + 'transmissions.mp4')
+    # ani.save( str(options.outputdir) + 'transmissions.mp4')
 
 def plotMatrix(data):
 

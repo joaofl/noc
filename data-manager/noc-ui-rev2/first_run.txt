@@ -12,13 +12,18 @@ sudo apt-get install ffmpeg
 #Download sip
 wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.17/sip-4.17.tar.gz
 tar xzf sip-4.17.tar.gz
+cd sip-4.17
 python3 configure.py
 make
 sudo make install
+cd ..
 
 #Download PyQt5
+sudo apt-get install qt5-default
 wget http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.5.1/PyQt-gpl-5.5.1.tar.gz
 tar xzf PyQt-gpl-5.5.1.tar.gz
+cd PyQt-gpl-5.5.1
 python3 configure.py
 make
 sudo make install
+cd ..

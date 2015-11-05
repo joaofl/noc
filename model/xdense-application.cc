@@ -357,19 +357,22 @@ namespace ns3 {
         uint8_t y_size = 10;
         
         Time t = Time::FromInteger(0, Time::NS);
-        Time t_offset = Time::FromInteger(0, Time::NS);// = 
-        Time t_window = Time::FromInteger(0, Time::NS);
+//        Time t_offset = Time::FromInteger(0, Time::NS);// = 
+//        Time t_window = Time::FromInteger(0, Time::NS);
         
         if ( (origin_x != 0) && protocol == 0 ){ //from broadcast
             for (uint8_t j = 0 ; j < 1 ; j++)
             {
-                t = Time::FromInteger(pck_duration * (origin_x - 1) * (y_size - 1), Time::NS);
+                uint16_t t_wait = (origin_x - 1) * (y_size);
+                uint16_t t_offset = 0;
+//                uint16_t t_offset = (origin_x - 1);
+                
+                t = Time::FromInteger( pck_duration * (t_wait + t_offset), Time::NS );
+                
+//                t = Time::FromInteger(pck_duration * (origin_x - 1) * (y_size - 1), Time::NS);
 //                t_window = Time::FromInteger(j * 120 * pck_duration, Time::NS);
-                t_offset = Time::FromInteger(pck_duration * (origin_x - 1), Time::NS);
-
-                Simulator::Schedule(t + t_window - t_offset, &XDenseApp::DataAnnouncementTT, this);
-                
-                
+//                Simulator::Schedule(t + t_window - t_offset, &XDenseApp::DataAnnouncementTT, this);
+                Simulator::Schedule(t, &XDenseApp::DataAnnouncementTT, this);
             }
         }
     }
