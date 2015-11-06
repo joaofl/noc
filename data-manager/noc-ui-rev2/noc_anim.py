@@ -25,8 +25,8 @@ import noc_packet_structure as trace
 from os.path import expanduser
 
 from PyQt5.QtWidgets import QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
-from PyQt5.QtGui import QPainter, QColor, QBrush, QFont
-from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPen
+from PyQt5.QtCore import QTimer, Qt
 from collections import namedtuple
 
 
@@ -204,8 +204,8 @@ class NOCAnim(QWidget):
         self.update()
 
     def resizeS(self):
-        s1 = (self.geometry().width() - 5) / (self.networkSize[0] * 150)
-        s2 = (self.geometry().height() - 50) / (self.networkSize[1] * 150)
+        s1 = (self.geometry().width() - 20) / (self.networkSize[0] * 150)
+        s2 = (self.geometry().height() - 60) / (self.networkSize[1] * 150)
 
         self.s = min(s1,s2)
 
@@ -240,12 +240,25 @@ class NOCAnim(QWidget):
 
         x,y = self.translateXY(x_i, y_i, s)
 
+
+        qp.setPen(QColor("black"))
+
+
         if (node.core_rx == 1):
             qp.setBrush( self.valueToColor(node.core_rx, 1))
         if (node.core_tx == 1):
             qp.setBrush( self.valueToColor(node.core_tx, 0))
 
         qp.drawRect(x, y, 90*s, 90*s) #draw the node
+
+        # qpen = QPen()
+        # qpen.setColor(QColor("white"))
+        qp.setPen(QColor("lightgrey"))
+
+        # qb = QBrush()
+        # qb.setStyle(Qt.SolidPattern)
+
+        # qb.setColor()
 
         qp.setBrush( self.valueToColor(node.n_tx, 0) )
         qp.drawRect(x + 15*s, y - 30*s, 30*s, 30*s) #draw netdev north rx e tx
@@ -269,8 +282,8 @@ class NOCAnim(QWidget):
 
 
     def translateXY(self, x,y,s):
-        offset_x = 30 + 10
-        offset_y = 150 - 30 + 10
+        offset_x = 30 + 60
+        offset_y = 150 - 30 + 60
 
         window_y_size = self.geometry().height()
         # window_y_size = 600
