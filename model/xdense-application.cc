@@ -29,6 +29,7 @@
 #include "sensor-data-io.h"
 #include "noc-types.h"
 #include "ns3/noc-routing-protocols.h"
+#include "ns3/xdense-application.h"
 
 
 
@@ -112,7 +113,8 @@ namespace ns3 {
 //        if ( (x.Get() + y.Get() <= MaxHops) && (x.Get() != 0) ){
 //        && (x.Get() + y.Get() <= MaxHops)
 //        if ( (x.Get() != 0)  ){
-        if (x.Get() == 10 && y.Get() == 10){
+//        if (x.Get() == 10 && y.Get() == 10){
+            if (IsSink == true){
 //            Simulator::Schedule(t, &XDenseApp::NetworkDiscovery, this);
 //            t += Time::FromInteger(pck_duration * 50, Time::NS);
             Simulator::Schedule(t, &XDenseApp::DataAnnouncementRequest, this);
@@ -191,7 +193,7 @@ namespace ns3 {
                 
                 if (t >= 0){
                     Time t_ns = Time::FromInteger(t * pck_duration, Time::NS);
-                    Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this);
+                    Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x*-1, origin_y*-1);
                 }
             }
         }
@@ -265,13 +267,13 @@ namespace ns3 {
 //        hd.SetNOCProtocol(XDenseHeader::P_DATA_ANNOUCEMENT_REQUEST);
 //        pck->AddHeader(hd);
         
-        m_router->PacketMulticast(pck,NETWORK_ID_0, 11, 11);
+        m_router->PacketMulticast(pck,NETWORK_ID_0, 10, 10);
 //        m_router->PacketBroadcast(pck, 0);
     }
 
     
     void
-    XDenseApp::DataAnnouncement(void) {
+    XDenseApp::DataAnnouncement(int32_t x_dest, int32_t y_dest) {
 
 
 
@@ -279,7 +281,8 @@ namespace ns3 {
 //            pck->AddHeader(hd);
 //            m_router->PacketUnicast(pck, 0, sink.x, sink.y, false);     
             
-            m_router->PacketUnicast(pck, NETWORK_ID_0, 10, 10, USE_ABSOLUTE_ADDRESS); 
+//            m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, USE_ABSOLUTE_ADDRESS); 
+            m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, USE_RELATIVE_ADDRESS); 
         
 
 

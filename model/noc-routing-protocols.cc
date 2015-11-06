@@ -177,7 +177,7 @@ namespace ns3 {
 
         //First of all, check if have not exceeded the radius defined by n_hops
 
-        if ((abs(x_source) < x_dest && abs(y_source) < y_dest) 
+        if ((abs(x_source) <= x_dest && abs(y_source) <= y_dest) 
 //                || (abs(x_source) == x_dest && abs(y_source) < y_dest)
 //                || (abs(x_source) < x_dest && abs(y_source) == y_dest)
                 ) {
@@ -238,11 +238,19 @@ namespace ns3 {
             t_wait = (x_source - 1) * (y_size - 2);
         }
         
+        Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+        
+//        t_wait = x->GetInteger (0, x_size * y_size);
+////        
+//        t_wait = 0;
+//        
 //        uint16_t t_wait = (origin_x - 1) * (y_size-2);
         
 //        uint32_t t_wait = (x_source - 1) * (y_source - 2);
 //        uint32_t t_wait = 20;
 
+//        t_wait = t_wait;
+//        t_wait = int32_t(100 * myRandomNo);
         return t_wait;
     }
 

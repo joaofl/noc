@@ -89,7 +89,7 @@ namespace ns3 {
         bool NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port);
 
         //Event triggered
-        void DataAnnouncement(void);
+        void DataAnnouncement(int32_t x_dest, int32_t y_dest);
         //Time triggered
         void DataAnnouncementTT();
         void DataAnnouncementRequest();
