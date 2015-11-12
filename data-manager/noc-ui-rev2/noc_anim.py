@@ -42,6 +42,12 @@ class NOCAnim(QWidget):
     index_w_rx, index_w_tx, index_len\
         = 0,1,2,3,4,5,6,7,8,9,10
 
+    inputfile = ''
+
+    networkSize = [0,0]
+
+    s = 0.22
+
     # packetTrace = None
 
     def __init__(self):
@@ -52,10 +58,12 @@ class NOCAnim(QWidget):
 
     def initData(self):
         # load the log
-        home = expanduser("~")
-        self.inputfile = home + '/noc-data/tests/out/packets-trace-netdevice.csv'
-
+        # home = expanduser("~")
+        # self.inputfile = home + '/noc-data/tests/out/packets-trace-netdevice.csv'
         self.packetTrace = noc_io.load_list(self.inputfile)
+        if (len(self.packetTrace) == 0):
+            print ('No input file defined')
+            return -1
 
         max_x = max( self.packetTrace[:,trace.x_absolute].astype(int) )
         max_y = max( self.packetTrace[:,trace.y_absolute].astype(int) )
@@ -66,8 +74,6 @@ class NOCAnim(QWidget):
         self.nodesData = [[None] * self.networkSize[0] for i in range(self.networkSize[1])]
 
         self.resetNodes()
-
-        self.s = 0.22
 
         self.step_enable = False
 
@@ -109,7 +115,8 @@ class NOCAnim(QWidget):
         self.text.move(590, 10)
         self.text.setFont( QFont( "Monospace", 15, QFont.Bold) )
 
-        self.setGeometry(800, 100, self.networkSize[0] * 150 * self.s + 5, self.networkSize[1] * 150 * self.s + 50)
+        self.setGeometry(800, 100, 20 * 150 * self.s + 5, 20 * 150 * self.s + 50)
+                # self.setGeometry(800, 100, self.networkSize[0] * 150 * self.s + 5, self.networkSize[1] * 150 * self.s + 50)
         self.setWindowTitle('NoC Anim')
         self.show()
 
@@ -223,9 +230,11 @@ class NOCAnim(QWidget):
         # qp.setRenderHint(QPainter.SmoothPixmapTransform)
 
 
-        self.resizeS()
 
-        self.drawNetwork(qp, self.networkSize, self.s)
+
+        if self.networkSize != [0,0]:
+            self.resizeS()
+            self.drawNetwork(qp, self.networkSize, self.s)
 
         qp.end()
 
