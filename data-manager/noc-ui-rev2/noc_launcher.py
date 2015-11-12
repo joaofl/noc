@@ -19,34 +19,30 @@
 
 __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+# from PyQt5.QtCore import *
+# from PyQt5.QtGui import *
 from PyQt5.QtWidgets import * #QWidget, QApplication
 from os.path import expanduser
+import noc_io
+import noc_anim
 import os
 import glob
 
-class MyFileList(QWidget):
+class NOCLauncher(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         # setGeometry(x_pos, y_pos, width, height)
         self.setGeometry(300, 200, 300, 500)
 
         self.label_dir = QLabel("Base directory:")
-        # pick a directory you have as default
-        #self.edit_dir = QLineEdit("C:/Temp")  # Windows
-        #self.edit_dir = QLineEdit(os.path.abspath("Extra"))  # OS X
         dir = expanduser("~") + '/noc-data'
-        # self.edit_dir = QLineEdit(os.getcwd())
+        # self.edit_dir = QLineEdit(os.getcwd()) #current dir
         self.edit_dir = QLineEdit(dir)
 
         self.button_load = QPushButton("Load")
-        # bind the button click to a function reference
-        # newer connect style used with PyQT 4.5 and higher
         self.button_load.clicked.connect(self.on_click)
 
         self.listbox = QListWidget()
-        # new connect style, needs PyQt 4.5+
         self.listbox.clicked.connect(self.on_select)
 
         self.label_result = QLabel()
@@ -60,12 +56,16 @@ class MyFileList(QWidget):
         vbox.addWidget(self.label_result)
         self.setLayout(vbox)
 
+        # noc_anim.QApplication.exec()
+
     def on_select(self):
         """
         an item in the listbox has been clicked/selected
         """
         selected = self.listbox.currentItem().text()
         self.label_result.setText(selected)
+
+        anim.inputfile = selected
 
     def on_click(self):
         directory = self.edit_dir.text()
@@ -78,19 +78,24 @@ class MyFileList(QWidget):
             return
         # create a list of all files in a given directory
         self.list_fnames = []
-        #mask = "*.jpg"  # .jpg files only
-        mask = "*.*"    # all files
-        for path in glob.glob(mask):
-            dirname, filename = os.path.split(path)
-            #print(filename)  # test
-            self.list_fnames.append(filename)
+
+        self.list_fnames = noc_io.find_multiple_files(directory, "packets-trace")
+
         self.listbox.addItems(self.list_fnames)
         sf = "{} items loaded".format(len(self.list_fnames))
         self.setWindowTitle(sf)
         pass
 
+        # print ()
+
+
+
 
 app =  QApplication([])
-mfl = MyFileList()
+mfl = NOCLauncher()
 mfl.show()
+
+anim = noc_anim.NOCAnim()
+anim.show()
+
 app.exec_()
