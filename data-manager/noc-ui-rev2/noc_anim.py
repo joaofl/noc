@@ -53,7 +53,7 @@ class NOCAnim(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.initData()
+        # self.initData()
         self.initUI()
 
     def initData(self):

@@ -176,7 +176,8 @@ main(int argc, char *argv[]) {
 
     stringstream context_dir;
 //    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
-    context_dir << "/tests/";
+    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n;
+    context_dir << "r02/";
     
     string dir_output = io_data_dir + context_dir.str() + "out/";
     string dir_input = io_data_dir + context_dir.str() + "in/";     
@@ -313,9 +314,9 @@ main(int argc, char *argv[]) {
     //PacketMetadata::Enable ();
     //AnimationInterface anim("animation.xml");
     string filename;
-    filename = dir_output + "packets-trace-router.csv";
-    
-    file_packets_trace_router.open(filename.c_str(), ios::out);
+//    filename = dir_output + "packets-trace-router.csv";
+//    
+//    file_packets_trace_router.open(filename.c_str(), ios::out);
 
     filename = dir_output + "packets-trace-netdevice.csv";
     
@@ -331,16 +332,16 @@ main(int argc, char *argv[]) {
 
     //**************** Output Printing ***************************
 
-    cout << "Done!" << endl << endl;
+    cout << endl << "Simulation complete!" << endl ;
     
     
     file_packets_trace_router.close();
     file_packets_trace_netdevice.close();
     
-    cout << "Log file created at: '" << filename << "'" << endl;
+//    cout << "Log file created at: '" << filename << "'" << endl;
     cout << "Log file created at: '" << filename << "'" << endl;
 
-    cout << Simulator::Now().GetSeconds();
+//    cout << Simulator::Now().GetSeconds();
 
     Simulator::Destroy();
     return 0;

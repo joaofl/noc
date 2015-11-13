@@ -29,23 +29,42 @@ import os
 import glob
 
 class NOCLauncher(QWidget):
+
+    selected_log = ''
+    selected_script = ''
+
     def __init__(self):
         QWidget.__init__(self)
         # setGeometry(x_pos, y_pos, width, height)
-        self.setGeometry(300, 200, 300, 500)
+        self.setGeometry(300, 200, 230, 630)
+
+        self.setWindowTitle('NoC4ns3 Laucher')
 
         self.label_dir = QLabel("Base directory:")
         dir = expanduser("~") + '/noc-data'
         # self.edit_dir = QLineEdit(os.getcwd()) #current dir
         self.edit_dir = QLineEdit(dir)
 
-        self.button_load = QPushButton("Load")
+        self.button_load = QPushButton("Load log files")
         self.button_load.clicked.connect(self.on_click)
 
         self.listbox = QListWidget()
         self.listbox.clicked.connect(self.on_select)
 
+        self.listbox_scripts = QListWidget()
+        self.listbox_scripts.clicked.connect(self.on_select_scripts)
+
         self.label_result = QLabel()
+        self.label_scripts = QLabel()
+
+        self.button_load_anim = QPushButton("Load animation")
+        self.button_load_anim.clicked.connect(self.on_click_load_anim)
+
+        self.button_run = QPushButton("Run selected script")
+        self.button_run.clicked.connect(self.on_click_run)
+
+        # self.button_plot_service = QPushButton("Plot service curves")
+        # self.button_plot_service.clicked.connect(self.on_click_plot_service)
 
         # layout the widgets (vertical)
         vbox = QVBoxLayout()
@@ -54,6 +73,11 @@ class NOCLauncher(QWidget):
         vbox.addWidget(self.button_load)
         vbox.addWidget(self.listbox)
         vbox.addWidget(self.label_result)
+        vbox.addWidget(self.button_load_anim)
+        vbox.addWidget(self.listbox_scripts)
+        vbox.addWidget(self.label_scripts)
+        vbox.addWidget(self.button_run)
+        # vbox.addWidget(self.button_plot_service)
         self.setLayout(vbox)
 
         # noc_anim.QApplication.exec()
@@ -62,40 +86,87 @@ class NOCLauncher(QWidget):
         """
         an item in the listbox has been clicked/selected
         """
-        selected = self.listbox.currentItem().text()
-        self.label_result.setText(selected)
+        # self.selected = self.listbox.currentItem().text()
+        i = self.listbox.currentRow()
+        self.selected_log = self.list_fnames[i]
 
-        anim.inputfile = selected
+        self.label_result.setText(self.selected_log.split('/')[4] + ' loaded')
+
+    def on_select_scripts(self):
+
+        i = self.listbox_scripts.currentRow()
+        self.selected_script = self.list_scripts_fnames[i]
+
+        self.label_scripts.setText(self.selected_script.split('/')[-1] + ' loaded')
 
     def on_click(self):
+
+        ############ Load the logs
+
         directory = self.edit_dir.text()
-        try:
-            # make it the working directory
-            os.chdir(directory)
-        except FileNotFoundError:
-            self.label_result.setText("No such directory")
+
+        if (os.path.isdir(directory)):
             self.listbox.clear()
+        else:
+            self.listbox.clear()
+            self.label_result.setText("No such directory")
             return
+
         # create a list of all files in a given directory
         self.list_fnames = []
+        self.list_vnames = []
+
 
         self.list_fnames = noc_io.find_multiple_files(directory, "packets-trace")
 
-        self.listbox.addItems(self.list_fnames)
-        sf = "{} items loaded".format(len(self.list_fnames))
-        self.setWindowTitle(sf)
+        for item in self.list_fnames:
+            n = item.split('/')[4]
+            self.list_vnames.append(n)
+
+        self.listbox.addItems(self.list_vnames)
+        sf = "{} log files found".format(len(self.list_fnames))
+        self.label_result.setText(sf)
+
+
+        ############## Load the scripts
+
+        directory = os.getcwd()
+
+        self.list_scripts_fnames = noc_io.find_multiple_files(directory, "noc_plot")
+        self.list_scripts_vnames = []
+
+        for item in self.list_scripts_fnames:
+            self.list_scripts_vnames.append(item.split('/')[-1].split('.')[0].replace('noc_plot_', ''))
+
+        self.listbox_scripts.addItems(self.list_scripts_vnames)
+
+
         pass
 
-        # print ()
 
+
+
+    def on_click_run(self):
+        # scriptname = 'noc_flow_analysis'
+
+        args = ' --inputfile=' + self.selected_log
+        cmd = 'python3.4 ' + self.selected_script + args
+        print('Command executed: ' + cmd)
+        os.system(cmd)
+
+
+    def on_click_load_anim(self):
+        self.anim = noc_anim.NOCAnim()
+        self.anim.show()
+
+        self.anim.inputfile = self.selected_log
+
+        self.anim.initData()
 
 
 
 app =  QApplication([])
 mfl = NOCLauncher()
 mfl.show()
-
-anim = noc_anim.NOCAnim()
-anim.show()
 
 app.exec_()

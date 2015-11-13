@@ -247,7 +247,7 @@ namespace ns3 {
 //        uint16_t t_wait = (origin_x - 1) * (y_size-2);
         
 //        uint32_t t_wait = (x_source - 1) * (y_source - 2);
-         t_wait = 20;
+//         t_wait = 20;
 
 //        t_wait = t_wait;
 //        t_wait = int32_t(100 * myRandomNo);
