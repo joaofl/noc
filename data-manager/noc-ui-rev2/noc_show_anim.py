@@ -19,7 +19,7 @@
 
 __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
-import sys
+import sys, os, traceback, optparse, time
 import noc_io
 import noc_packet_structure as trace
 from os.path import expanduser
@@ -42,7 +42,7 @@ class NOCAnim(QWidget):
     index_w_rx, index_w_tx, index_len\
         = 0,1,2,3,4,5,6,7,8,9,10
 
-    inputfile = ''
+    # inputfile = ''
 
     networkSize = [0,0]
 
@@ -53,14 +53,18 @@ class NOCAnim(QWidget):
     def __init__(self):
         super().__init__()
 
-        # self.initData()
+        self.initData()
         self.initUI()
 
     def initData(self):
+
+        global options, args
         # load the log
         # home = expanduser("~")
         # self.inputfile = home + '/noc-data/tests/out/packets-trace-netdevice.csv'
-        self.packetTrace = noc_io.load_list(self.inputfile)
+
+
+        self.packetTrace = noc_io.load_list(options.inputfile)
         if (len(self.packetTrace) == 0):
             print ('No input file defined')
             return -1
@@ -331,6 +335,39 @@ class NOCAnim(QWidget):
 
 if __name__ == '__main__':
 
-    app = QApplication(sys.argv)
-    ex = NOCAnim()
-    sys.exit(app.exec_())
+    try:
+        start_time = time.time()
+        parser = optparse.OptionParser(formatter=optparse.TitledHelpFormatter(), usage=globals()['__doc__'], version='$Id$')
+
+        parser.add_option ('-v', '--verbose', action='store_true', default=False, help='verbose output')
+        parser.add_option ('-i', '--inputfile', help='input file containing the packet trace')
+        parser.add_option ('-c', '--inputconfigfile', help='config file containing the simulation parameters')
+        parser.add_option ('-o', '--outputdir', help='', default=None)
+
+
+        (options, args) = parser.parse_args()
+        #if len(args) < 1:
+        #    parser.error ('missing argument')
+        if options.verbose: print (time.asctime())
+
+        app = QApplication(sys.argv)
+        ex = NOCAnim()
+
+
+        if options.verbose: print (time.asctime())
+        if options.verbose: print ('Total execution time (s):')
+        if options.verbose: print (time.time() - start_time)
+        # sys.exit(0)
+
+        sys.exit(app.exec_())
+    # except (KeyboardInterrupt, e): # Ctrl-C
+    #     raise e
+    # except SystemExit, e: # sys.exit()
+    #     raise e
+
+    except (Exception):
+        print ('ERROR, UNEXPECTED EXCEPTION')
+        print (str(Exception))
+        traceback.print_exc()
+        os._exit(1)
+

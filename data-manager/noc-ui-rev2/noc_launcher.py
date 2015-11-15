@@ -24,9 +24,10 @@ __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 from PyQt5.QtWidgets import * #QWidget, QApplication
 from os.path import expanduser
 import noc_io
-import noc_anim
+# import noc_
 import os
 import glob
+import _thread
 
 class NOCLauncher(QWidget):
 
@@ -57,8 +58,8 @@ class NOCLauncher(QWidget):
         self.label_result = QLabel()
         self.label_scripts = QLabel()
 
-        self.button_load_anim = QPushButton("Load animation")
-        self.button_load_anim.clicked.connect(self.on_click_load_anim)
+        # self.button_load_anim = QPushButton("Load animation")
+        # self.button_load_anim.clicked.connect(self.on_click_load_anim)
 
         self.button_run = QPushButton("Run selected script")
         self.button_run.clicked.connect(self.on_click_run)
@@ -73,7 +74,7 @@ class NOCLauncher(QWidget):
         vbox.addWidget(self.button_load)
         vbox.addWidget(self.listbox)
         vbox.addWidget(self.label_result)
-        vbox.addWidget(self.button_load_anim)
+        # vbox.addWidget(self.button_load_anim)
         vbox.addWidget(self.listbox_scripts)
         vbox.addWidget(self.label_scripts)
         vbox.addWidget(self.button_run)
@@ -132,11 +133,11 @@ class NOCLauncher(QWidget):
 
         directory = os.getcwd()
 
-        self.list_scripts_fnames = noc_io.find_multiple_files(directory, "noc_plot")
+        self.list_scripts_fnames = noc_io.find_multiple_files(directory, "noc_show")
         self.list_scripts_vnames = []
 
         for item in self.list_scripts_fnames:
-            self.list_scripts_vnames.append(item.split('/')[-1].split('.')[0].replace('noc_plot_', ''))
+            self.list_scripts_vnames.append(item.split('/')[-1].split('.')[0].replace('noc_show_', ''))
 
         self.listbox_scripts.addItems(self.list_scripts_vnames)
 
@@ -152,7 +153,11 @@ class NOCLauncher(QWidget):
         args = ' --inputfile=' + self.selected_log
         cmd = 'python3.4 ' + self.selected_script + args
         print('Command executed: ' + cmd)
-        os.system(cmd)
+
+
+        _thread.start_new_thread(os.system,(cmd,))
+
+        # os.system(cmd)
 
 
     def on_click_load_anim(self):
