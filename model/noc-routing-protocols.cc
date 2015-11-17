@@ -240,14 +240,14 @@ namespace ns3 {
         
         Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
         
-//        t_wait = x->GetInteger (0, x_size * y_size);
+        t_wait = x->GetInteger (0, x_size * y_size);
 ////        
 //        t_wait = 0;
 //        
 //        uint16_t t_wait = (origin_x - 1) * (y_size-2);
         
 //        uint32_t t_wait = (x_source - 1) * (y_source - 2);
-//         t_wait = 20;
+//         t_wait = 1;
 
 //        t_wait = t_wait;
 //        t_wait = int32_t(100 * myRandomNo);

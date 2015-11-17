@@ -96,7 +96,7 @@ namespace ns3 {
         Time t_window = Time::FromInteger(0, Time::MS);
 //        if (IsSink == true)
         
-        uint16_t pck_duration = 7200;
+        uint16_t pck_duration = 11200;
         pck_duration = pck_duration;
         
         //This data should not be used in the protocols itself, but for logging
@@ -268,7 +268,7 @@ namespace ns3 {
     void
     XDenseApp::DataAnnouncementRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
       
-        uint16_t pck_duration = 7200;
+        uint16_t pck_duration = 11200;
         int8_t size_x = 10;
         int8_t size_y = 10;
 //        

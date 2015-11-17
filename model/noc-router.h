@@ -192,6 +192,8 @@ namespace ns3 {
         uint8_t m_routing_unicast; 
         uint8_t m_routing_multicast;
         uint8_t m_routing_broadcast;
+        
+        Ptr<UniformRandomVariable> m_random;// = CreateObject<UniformRandomVariable> ();
     };
 
 }

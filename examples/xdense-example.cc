@@ -42,6 +42,7 @@
 #include "src/noc/model/xdense-application.h"
 #include "src/noc/model/sensor-data-io.h"
 #include "src/noc/model/noc-header.h"
+#include "src/noc/model/xdense-header.h"
 
 
 NS_LOG_COMPONENT_DEFINE("NOCExample");
@@ -65,9 +66,17 @@ ofstream file_packets_trace_netdevice;
 uint32_t t_slot(){
     //set this to 1 if one wants the start to 
     //be offset to the first transmission, instead of t=0
+        static uint32_t pck_t = 11200;
     static uint64_t t0 = 0; 
-    static uint32_t t_transmission = 1;
-    static uint64_t t_slot = 0; 
+//    static uint32_t t_transmission = 1;
+    static uint32_t t_transmission = pck_t;
+    static uint64_t t_slot = 0;
+//    static XDenseHeader hd_xdense;
+//    static NOCHeader hd_noc;
+//    uint32_t s = hd_noc.GetSerializedSize() + hd_xdense->GetSerializedSize();
+//    Time t = Time::FromInteger(s/(baudrate * 1e-9), Time::NS);
+    
+
     
     uint64_t now = Simulator::Now().GetNanoSeconds();
     
@@ -130,6 +139,8 @@ log_netdevice_packets(string context, Ptr<const Packet> pck)
     i++;
 }
 
+
+
 int
 main(int argc, char *argv[]) {
 
@@ -175,7 +186,7 @@ main(int argc, char *argv[]) {
     stringstream context_dir;
 //    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
     context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n;
-    context_dir << "r03/";
+    context_dir << "r02/";
     
     string dir_output = io_data_dir + context_dir.str() + "out/";
     string dir_input = io_data_dir + context_dir.str() + "in/";     

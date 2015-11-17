@@ -125,6 +125,7 @@ namespace ns3 {
         
 //        Simulator::Schedule(PicoSeconds(1500), &NOCRouter::ServePackets, this);
 //        m_port_to_serve = DIRECTION_E;
+        m_random = CreateObject<UniformRandomVariable> ();
         m_useRelativeAddress = 1;
     }
 
@@ -380,8 +381,8 @@ namespace ns3 {
         if (nd == NULL) //That node does not have a net device in that direction
             return false;
         
-        Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
-        Time t_ns = Time::FromInteger(x->GetInteger (90, 110), Time::NS);
+        
+        Time t_ns = Time::FromInteger(m_random->GetInteger (0, 90)*10, Time::NS);
         
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
         
