@@ -24,6 +24,8 @@
 #include "ns3/header.h"
 #include "noc-types.h"
 
+#define PAYLOAD_SIZE 4
+
 namespace ns3 {
 
     /**
@@ -33,6 +35,12 @@ namespace ns3 {
      */
     class XDenseHeader : public Header {
     public:
+        
+        enum{
+            DATA_ANNOUCEMENT_REQUEST,   
+            DATA_ANNOUCEMENT,
+            NETWORK_SETUP
+        };
 
         /**
          * \brief Construct a PPP header.
@@ -44,16 +52,9 @@ namespace ns3 {
          */
         virtual ~XDenseHeader();
         
-        uint8_t HopsCount;
-        uint16_t SensorValue;
-        uint8_t SerialNumber;        
-        int8_t OperationalMode;
-        int8_t CurrentX, CurrentY; 
-        int8_t OriginX, OriginY;
-        
-        // Event
-        uint16_t EventData[3];
-        uint8_t EventType;         
+//        uint8_t Data[PAYLOAD_SIZE];   
+//        int8_t Protocol;
+     
         
 
         static TypeId GetTypeId(void);
@@ -72,7 +73,9 @@ namespace ns3 {
          */
 //        void SetProtocol(uint16_t protocol);
 
+        void SetData(uint8_t *);
         
+        void GetData(uint8_t *);
         
         /**
          * \brief Set the protocol type carried by this PPP packet
@@ -81,7 +84,7 @@ namespace ns3 {
          *
          * \param protocol the protocol type being carried
          */
-        void SetNOCProtocol(uint16_t protocol);
+        void SetXdenseProtocol(uint8_t protocol);
 
         /**
          * \brief Get the protocol type carried by this PPP packet
@@ -90,41 +93,8 @@ namespace ns3 {
          *
          * \return the protocol type being carried
          */
-        uint16_t GetNOCProtocol(void);
+        uint16_t GetXdenseProtocol(void);
 
-//        /**
-//         * \brief Set the current X position of the packet, according to a given
-//         * reference
-//         * \param new X value (usually of the following node);
-//         */
-//        void SetCurrentX(int32_t x);
-//
-//        /**
-//         * \brief Get the current X position of the packet, according to a given
-//         * reference
-//         */
-//        int32_t GetCurrentX(void);
-//
-//        /**
-//         * \brief Set the current X position of the packet, according to a given
-//         * reference
-//         * \param new X value (usually of the following node);
-//         */
-//        void SetCurrentY(int32_t y);
-//
-//        /**
-//         * \brief Get the current X position of the packet, according to a given
-//         * reference
-//         */
-//        int32_t GetCurrentY(void);
-//
-//        int32_t AddCurrentX(int32_t n);
-//        int32_t AddCurrentY(int32_t n);
-        
-//        void SetHopsCount(uint32_t);
-//        void SetSensorValue(uint32_t);
-//        uint32_t GetHopsCount(void);
-//        uint32_t GetSensorValue(void);
 
     private:
 
@@ -132,8 +102,9 @@ namespace ns3 {
          * \brief The PPP protocol type of the payload packet
          */
 //        uint16_t m_protocol; 
-        uint8_t m_noc_protocol;
-        static const uint8_t m_max_header_size = 1 + 4 + 4 + 4 + 4 + 4;
+        uint8_t m_protocol;
+        uint8_t m_data[PAYLOAD_SIZE];
+//        static const uint8_t m_max_header_size = 1 + 4 + 4 + 4 + 4 + 4;
         //int32_t m_currentX, m_currentY;
         //uint32_t m_hops_count, m_sensor_value;
 

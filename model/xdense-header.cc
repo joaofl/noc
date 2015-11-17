@@ -33,6 +33,8 @@
 NS_LOG_COMPONENT_DEFINE("XDenseHeader");
 
 namespace ns3 {
+    
+
 
     NS_OBJECT_ENSURE_REGISTERED(XDenseHeader)
     ;
@@ -80,190 +82,50 @@ namespace ns3 {
 
     uint32_t
     XDenseHeader::GetSerializedSize(void) const {
-        uint8_t s = 0;
-        switch (m_noc_protocol) {
-            case P_NETWORK_DISCOVERY:
-                s += sizeof (m_noc_protocol);
-                
-                s += sizeof (CurrentX);
-                s += sizeof (CurrentY);
-                
-                s += sizeof (OperationalMode);
-                
-                s += sizeof (SerialNumber);
-                return s;
-                break;
-
-            case P_VALUE_ANNOUNCEMENT:
-                s += sizeof (m_noc_protocol);
-                
-                s += sizeof (CurrentX);
-                s += sizeof (CurrentY);
-                
-                s += sizeof (SensorValue);
-                
-                s += sizeof (SerialNumber);
-                
-                s += 5; //junk... just to make the packets with the same transmission time
-                
-                return s;
-                break;
-
-            case P_EVENT_ANNOUNCEMENT:
-                s += sizeof (m_noc_protocol);
-                
-                s += sizeof (CurrentX);
-                s += sizeof (CurrentY);
-                  
-                s += sizeof (EventData);
-                s += sizeof (EventType);
-                
-                s += sizeof (SerialNumber);
-                return s;
-                break;
-
-            default:
-                return m_max_header_size;
-                break;
-        }
 
 
+        return PAYLOAD_SIZE + 1;
     }
     
     void
     XDenseHeader::Serialize(Buffer::Iterator start) const {
 
-        switch (m_noc_protocol) {
-            case P_NETWORK_DISCOVERY:
-                start.WriteU8(m_noc_protocol);
-                
-                start.WriteU8(CurrentX);
-                start.WriteU8(CurrentY);
-                
-                start.WriteU8(OperationalMode);
-                
-                start.WriteU8(SerialNumber);
-                break;
-
-            case P_VALUE_ANNOUNCEMENT:
-                start.WriteU8(m_noc_protocol);
-                
-                start.WriteU8(CurrentX);
-                start.WriteU8(CurrentY);
-                
-//                start.WriteU8(HopsCount);
-                start.WriteHtonU16(SensorValue);
-                start.WriteU8(SerialNumber);
-                break;
-
-            case P_EVENT_ANNOUNCEMENT:
-                start.WriteU8(m_noc_protocol);
-                
-                start.WriteU8(CurrentX);
-                start.WriteU8(CurrentY);
-                
-                start.WriteHtonU16(EventData[0]);
-                start.WriteHtonU16(EventData[1]);
-                start.WriteHtonU16(EventData[2]);
-                
-                start.WriteU8(EventType);
-                
-                start.WriteU8(SerialNumber);
-                break;
-
-            default:
-                std::cout << "Error while serializing data into the buffer. No known protocol defined in the header.\n";
-                exit(1);
-        }
+        start.WriteU8(m_protocol);
+        start.WriteU8(m_data[0], PAYLOAD_SIZE);
+        
     }
 
     uint32_t
     XDenseHeader::Deserialize(Buffer::Iterator start) {
         
-        (m_noc_protocol) = start.ReadU8();
-        
-        switch (m_noc_protocol) {
-            case P_NETWORK_DISCOVERY:
-                (CurrentX) = start.ReadU8();
-                (CurrentY) = start.ReadU8();
-                
-                (OperationalMode) = start.ReadU8();
-                
-                (SerialNumber) = start.ReadU8();
-                break;
+        (m_protocol) = start.ReadU8();
+//        
+//        for (uint8_t i = 0 ; i < PAYLOAD_SIZE ; i++)
+//        {
+//            m_data[i] = start.ReadU8();
+        start.Read(m_data, PAYLOAD_SIZE);
+//        }
+  
 
-            case P_VALUE_ANNOUNCEMENT:
-                (CurrentX) = start.ReadU8();
-                (CurrentY) = start.ReadU8();
-                
-                (SensorValue) = start.ReadNtohU16();
-                
-                (SerialNumber) = start.ReadU8();
-                break;
-
-            case P_EVENT_ANNOUNCEMENT:
-                (CurrentX) = start.ReadU8();
-                (CurrentY) = start.ReadU8();
-                
-                (EventData[0]) = start.ReadNtohU16();
-                (EventData[1]) = start.ReadNtohU16();
-                (EventData[2]) = start.ReadNtohU16();
-                
-                (EventType) = start.ReadU8();
-                (SerialNumber) = start.ReadU8();
-                break;
-
-            default:
-                std::cout << "Error while deserializing data into the buffer. No known protocol defined in the header.\n";
-                exit(1);
-        }
+//            default:
+//                std::cout << "Error while deserializing data into the buffer. No known protocol defined in the header.\n";
+//                exit(1);
+//        }
         return GetSerializedSize();
     }
 
     void
-    XDenseHeader::SetNOCProtocol(uint16_t protocol) {
-        m_noc_protocol = protocol;
+    XDenseHeader::SetXdenseProtocol(uint8_t protocol) {
+        m_protocol = protocol;
     }
 
     uint16_t
-    XDenseHeader::GetNOCProtocol(void) {
-        return m_noc_protocol;
+    XDenseHeader::GetXdenseProtocol(void) {
+        return m_protocol;
     }
 
-    //    void XDenseHeader::SetCurrentX(int32_t x) {
-    //        m_currentX = x;
-    //    }
-    //
-    //    int32_t XDenseHeader::GetCurrentX(void) {
-    //        return m_currentX;
-    //    }
-    //    
-    //    int32_t XDenseHeader::AddCurrentX(int32_t n) {
-    //        m_currentX += n;
-    //        return m_currentX;
-    //    }
-    //
-    //    void XDenseHeader::SetCurrentY(int32_t y) {
-    //        m_currentY = y;
-    //    }
-    //
-    //    int32_t XDenseHeader::GetCurrentY(void) {
-    //        return m_currentY;
-    //    }
-    //    
-    //    int32_t XDenseHeader::AddCurrentY(int32_t n) {
-    //        m_currentY += n;
-    //        return m_currentY;
-    //    }
-
-    //    void XDenseHeader::SetHopsCount(uint32_t n){
-    //        m_hops_count = n;
-    //    }
     //    void XDenseHeader::SetSensorValue(uint32_t n){
     //        m_sensor_value = n;
-    //    }
-    //    uint32_t XDenseHeader::GetHopsCount(void){
-    //        return m_hops_count;
     //    }
     //    uint32_t XDenseHeader::GetSensorValue(void){
     //        return m_sensor_value;
