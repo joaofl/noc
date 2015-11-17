@@ -26,8 +26,8 @@ import numpy
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from itertools import cycle
-import noc_packet_structure as trace
-import noc_io
+import packet_structure as trace
+import files_io
 from os.path import expanduser
 
 home = expanduser("~")
@@ -52,7 +52,7 @@ def main ():
         os.makedirs(options.outputdir)
 
 
-    data = noc_io.load_list(options.inputfile)
+    data = files_io.load_list(options.inputfile)
     if (len(data)) == 0:
         print('Log file is empty')
         exit(1)

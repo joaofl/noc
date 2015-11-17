@@ -23,7 +23,7 @@ __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 # from PyQt5.QtGui import *
 from PyQt5.QtWidgets import * #QWidget, QApplication
 from os.path import expanduser
-import noc_io
+import files_io
 # import noc_
 import os
 import glob
@@ -91,14 +91,14 @@ class NOCLauncher(QWidget):
         i = self.listbox.currentRow()
         self.selected_log = self.list_fnames[i]
 
-        self.label_result.setText(self.selected_log.split('/')[4] + ' loaded')
+        self.label_result.setText(self.selected_log.split('/')[4] + ' selected')
 
     def on_select_scripts(self):
 
         i = self.listbox_scripts.currentRow()
         self.selected_script = self.list_scripts_fnames[i]
 
-        self.label_scripts.setText(self.selected_script.split('/')[-1] + ' loaded')
+        self.label_scripts.setText(self.selected_script.split('/')[-1] + ' selected')
 
     def on_click(self):
 
@@ -118,7 +118,7 @@ class NOCLauncher(QWidget):
         self.list_vnames = []
 
 
-        self.list_fnames = noc_io.find_multiple_files(directory, "packets-trace")
+        self.list_fnames = files_io.find_multiple_files(directory, "packets-trace")
 
         for item in self.list_fnames:
             n = item.split('/')[4]
@@ -133,11 +133,11 @@ class NOCLauncher(QWidget):
 
         directory = os.getcwd()
 
-        self.list_scripts_fnames = noc_io.find_multiple_files(directory, "noc_show")
+        self.list_scripts_fnames = files_io.find_multiple_files(directory, "show")
         self.list_scripts_vnames = []
 
         for item in self.list_scripts_fnames:
-            self.list_scripts_vnames.append(item.split('/')[-1].split('.')[0].replace('noc_show_', ''))
+            self.list_scripts_vnames.append(item.split('/')[-1].split('.')[0].replace('show_', ''))
 
         self.listbox_scripts.addItems(self.list_scripts_vnames)
 

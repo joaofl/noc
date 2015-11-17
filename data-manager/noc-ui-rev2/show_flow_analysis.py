@@ -25,9 +25,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from itertools import cycle
-import noc_packet_structure as pck
-import noc_flow_structure as flw
-import noc_io
+import packet_structure as pck
+import flow_structure as flw
+import files_io
 
 # matplotlib.style.use('bmh')
 # ['ggplot', 'bmh', 'grayscale', 'fivethirtyeight', 'dark_background']
@@ -43,7 +43,7 @@ def main ():
     if options.inputconfigfile == None:
         options.inputconfigfile = '/home/joao/noc-data/config/input-config.c.csv'
 
-    data = noc_io.load_list(options.inputfile)
+    data = files_io.load_list(options.inputfile)
 
     #Split the file here for parallel processing
     flows = extract_flows(data)

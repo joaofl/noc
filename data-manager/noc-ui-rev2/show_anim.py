@@ -20,11 +20,11 @@
 __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
 import sys, os, traceback, optparse, time
-import noc_io
-import noc_packet_structure as trace
+import files_io
+import packet_structure as trace
 from os.path import expanduser
 
-from PyQt5.QtWidgets import QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
+from PyQt5.QtWidgets import * #QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
 from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPen
 from PyQt5.QtCore import QTimer, Qt
 from collections import namedtuple
@@ -61,10 +61,15 @@ class NOCAnim(QWidget):
         global options, args
         # load the log
         # home = expanduser("~")
-        # self.inputfile = home + '/noc-data/tests/out/packets-trace-netdevice.csv'
+        if (options.inputfile == None):
+            options.inputfile = '/home/joao/noc-data/nw21x21s1r03/out/packets-trace-netdevice.csv'
+
+        self.nextT = 0
+        # self.t_slot = 0
+        self.last_index = 0
 
 
-        self.packetTrace = noc_io.load_list(options.inputfile)
+        self.packetTrace = files_io.load_list(options.inputfile)
         if (len(self.packetTrace) == 0):
             print ('No input file defined')
             return -1
@@ -91,12 +96,8 @@ class NOCAnim(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.timerEvent)
 
-        self.step = 0
-        self.t_slot = 0
-        self.last_index = 0
-
         self.btn = QPushButton('Start', self)
-        self.btn.move(10, 10)
+        # self.btn.move(10, 10)
         self.btn.clicked.connect(self.doAction)
 
         # self.btn3 = QPushButton('Step', self)
@@ -104,20 +105,39 @@ class NOCAnim(QWidget):
         # self.btn3.clicked.connect(self.doActionStep)
 
         self.cb = QCheckBox('Step', self)
-        self.cb.move(100, 12)
+        # self.cb.move(100, 12)
         # cb.toggle()
         # cb.stateChanged.connect(self.changeTitle)
 
         self.btn2 = QPushButton('Reload', self)
-        self.btn2.move(170, 10)
+        # self.btn2.move(170, 10)
         self.btn2.clicked.connect(self.doActionRestart)
 
         self.pbar = QProgressBar(self)
-        self.pbar.setGeometry(260, 10, 300, 24)
+        # self.pbar.setGeometry(260, 10, 300, 24)
 
-        self.text = QLabel('0 tts    ', self)
-        self.text.move(590, 10)
-        self.text.setFont( QFont( "Monospace", 15, QFont.Bold) )
+        self.text = QLabel('0 tts   ', self)
+        # self.text.move(590, 10)
+        self.text.setFont( QFont( "Monospace", 13, QFont.Bold) )
+
+        self.text2 = QLabel('0 ns    ', self)
+        # self.text.move(590, 10)
+        self.text2.setFont( QFont( "Monospace", 13, QFont.Bold) )
+
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.btn)
+        hbox.addWidget(self.cb)
+        hbox.addWidget(self.btn2)
+        hbox.addWidget(self.pbar)
+        hbox.addWidget(self.text)
+        hbox.addWidget(self.text2)
+
+        vbox = QVBoxLayout()
+        vbox.addLayout(hbox)
+        vbox.addStretch(1)
+
+        self.setLayout(vbox)
+
 
         self.setGeometry(800, 100, 20 * 150 * self.s + 5, 20 * 150 * self.s + 50)
                 # self.setGeometry(800, 100, self.networkSize[0] * 150 * self.s + 5, self.networkSize[1] * 150 * self.s + 50)
@@ -130,15 +150,15 @@ class NOCAnim(QWidget):
             self.timer.stop()
             self.btn.setText('Start')
         else:
-            self.timer.start(200)
+            self.timer.start(50)
             self.btn.setText('Stop')
 
 
     def doActionRestart(self):
         self.timer.stop()
         self.btn.setText('Start')
-        self.step = 0
-        self.t_slot = 0
+        self.nextT = 0
+        # self.t_slot = 0
         self.last_index = 0
         self.pbar.setValue(0)
         # self.resetNodes()
@@ -147,72 +167,89 @@ class NOCAnim(QWidget):
         self.update()
 
     def timerEvent(self):
-        lastT = int (self.packetTrace[-1][trace.time_slot])
+        finalT = int (self.packetTrace[-1][trace.time])
 
-        if self.step > lastT:
+        if self.last_index > len(self.packetTrace):
             self.doActionRestart()
             return
 
         self.resetNodes()
 
-        k = 0
-
-        lower = self.last_index
-        for i in range(lower, len(self.packetTrace)):
-            self.last_index = i
-            line = self.packetTrace[i]
-
-            if int(line[trace.time_slot]) == self.t_slot:
-                x = int(line[trace.x_absolute])
-                y = int(line[trace.y_absolute])
-
-                node = list(self.nodesData[y][x])
-
-                if line[trace.operation] == 'c':
-                    node[self.index_core_rx] = 1
-                elif line[trace.operation] == 'g':
-                    node[self.index_core_tx] = 1
-
-                elif line[trace.operation] == 'r':
-                    if int(line[trace.direction]) == trace.DIRECTION_N:
-                        node[self.index_n_rx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_S:
-                        node[self.index_s_rx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_E:
-                        node[self.index_e_rx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_W:
-                        node[self.index_w_rx] = 1
-
-                elif line[trace.operation] == 't':
-                    if int(line[trace.direction]) == trace.DIRECTION_N:
-                        node[self.index_n_tx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_S:
-                        node[self.index_s_tx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_E:
-                        node[self.index_e_tx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_W:
-                        node[self.index_w_tx] = 1
-
-                self.nodesData[y][x] = self.nodeStructure(*node) #* is the unpacking operator
-
-                # temp = [0] * self.index_len
-                #
-                # temp[self.index_w_tx] = 1
-                # self.nodesData[4][4] = self.nodeStructure(*temp) #* is the unpacking operator
-
-            else:
-                self.t_slot = int(line[trace.time_slot])
-                break
+        # li = self.last_index
 
 
-        self.step = self.step + 1
-        self.pbar.setValue( (self.step / lastT) * 100)
-        self.text.setText(str(self.step) + ' tts')
+
+        # for i in range(li, len(self.packetTrace)):
+        # self.last_index = i
+
+        line = self.packetTrace[self.last_index]
+        currentT = int(line[trace.time])
+
+        # if currentT <= self.nextT:
+        x = int(line[trace.x_absolute])
+        y = int(line[trace.y_absolute])
+
+        node = list(self.nodesData[y][x])
+
+        if line[trace.operation] == 'c':
+            node[self.index_core_rx] = 1
+        elif line[trace.operation] == 'g':
+            node[self.index_core_tx] = 1
+
+        elif line[trace.operation] == 'r':
+            if int(line[trace.direction]) == trace.DIRECTION_N:
+                node[self.index_n_rx] = 1
+            elif int(line[trace.direction]) == trace.DIRECTION_S:
+                node[self.index_s_rx] = 1
+            elif int(line[trace.direction]) == trace.DIRECTION_E:
+                node[self.index_e_rx] = 1
+            elif int(line[trace.direction]) == trace.DIRECTION_W:
+                node[self.index_w_rx] = 1
+
+        elif line[trace.operation] == 't':
+            if int(line[trace.direction]) == trace.DIRECTION_N:
+                node[self.index_n_tx] = 1
+            elif int(line[trace.direction]) == trace.DIRECTION_S:
+                node[self.index_s_tx] = 1
+            elif int(line[trace.direction]) == trace.DIRECTION_E:
+                node[self.index_e_tx] = 1
+            elif int(line[trace.direction]) == trace.DIRECTION_W:
+                node[self.index_w_tx] = 1
+
+            self.nodesData[y][x] = self.nodeStructure(*node) #* is the unpacking operator
+
+            # temp = [0] * self.index_len
+            #
+            # temp[self.index_w_tx] = 1
+            # self.nodesData[4][4] = self.nodeStructure(*temp) #* is the unpacking operator
+
+        # else:
+            # self.t_slot = int(line[trace.time])
+            # self.text2.setText(str(currentT) + ' ns')
+            # break
+
+        #### Print to interface  #######
+        self.pbar.setValue((currentT / finalT) * 100)
+
+        t_slot = int (self.packetTrace[self.last_index][trace.time_slot])
+        self.text.setText(str(t_slot) + ' tts')
+        # t = int (self.packetTrace[self.last_index][trace.time])
+        self.text2.setText(str(currentT) + ' ns')
+
+        # self.nextT = self.nextT + 1000
+
+        self.last_index += 1
 
         if self.cb.isChecked():
             self.doAction()
 
         self.update()
+
+
+
+
+    ######################################################
+    ########### DRAWING FUNCTIONS ########################
 
     def resizeS(self):
         s1 = (self.geometry().width() - 20) / (self.networkSize[0] * 150)
@@ -339,9 +376,8 @@ if __name__ == '__main__':
         start_time = time.time()
         parser = optparse.OptionParser(formatter=optparse.TitledHelpFormatter(), usage=globals()['__doc__'], version='$Id$')
 
-        parser.add_option ('-v', '--verbose', action='store_true', default=False, help='verbose output')
+        parser.add_option ('-v', '--verbose', action='store_false', default=False, help='verbose output')
         parser.add_option ('-i', '--inputfile', help='input file containing the packet trace')
-        parser.add_option ('-c', '--inputconfigfile', help='config file containing the simulation parameters')
         parser.add_option ('-o', '--outputdir', help='', default=None)
 
 
