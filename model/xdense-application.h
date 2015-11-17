@@ -133,18 +133,18 @@ namespace ns3 {
 
         //void SendPacket(uint8_t ports, Ptr<Packet> pck);
 
-
-
-        std::vector<NodeRef> m_sinksList;
-        std::vector<NodeRef> m_neighborsList;
-
-        uint32_t m_nPackets;
-        vector <uint32_t> m_SerialNumber; //Serial NUmber
-        DataRate m_dataRate;
         bool m_running;
-        vector<EventRef> m_lastEvents;
-
+        uint32_t m_baudrate;
+        uint32_t m_packetSize;
         Ptr<NOCRouter> m_router;
+        std::vector<NodeRef> m_sinksList;
+        
+        
+//        std::vector<NodeRef> m_neighborsList;
+//        uint32_t m_nPackets;
+//        vector <uint32_t> m_SerialNumber; //Serial NUmber
+//        DataRate m_dataRate;
+//        vector<EventRef> m_lastEvents;
     };
 
 }

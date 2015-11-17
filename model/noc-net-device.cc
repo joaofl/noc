@@ -268,6 +268,51 @@ namespace ns3 {
         }
         return result;
     }
+    
+void
+    NOCNetDevice::TransmitComplete(void) {
+        NS_LOG_FUNCTION_NOARGS();
+
+        //
+        // This function is called to when we're all done transmitting a packet.
+        // We try and pull another packet off of the transmit queue.  If the queue
+        // is empty, we are done, otherwise we need to start transmitting the
+        // next packet.
+        //
+        NS_ASSERT_MSG(m_txMachineState == BUSY, "Must be BUSY if transmitting");
+        m_txMachineState = READY;
+
+        NS_ASSERT_MSG(m_currentPkt != 0, "NOCNetDevice::TransmitComplete(): m_currentPkt zero");
+
+        m_phyTxEndTrace(m_currentPkt);
+        m_currentPkt = 0;
+
+
+        Ptr<Packet> p1 = m_queue_prioritized->Dequeue();
+        queue_size_prioritized = m_queue_prioritized->GetNPackets();
+        if (p1 != 0) {
+            //
+            // There was packets on the high p queue, send them...
+            //
+            m_snifferTrace(p1);
+            m_promiscSnifferTrace(p1);
+            m_macTxTrace(p1);
+            TransmitStart(p1);
+            return;
+        }
+        Ptr<Packet> p0 = m_queue->Dequeue();
+        queue_size = m_queue->GetNPackets();
+        if (p0 != 0) {
+            //
+            // There was no packets on the high p, but on the lp queue, send them...
+            //
+            m_snifferTrace(p0);
+            m_promiscSnifferTrace(p0);
+            m_macTxTrace(p0);
+            TransmitStart(p0);
+            return;
+        }
+    }
 
     void 
     NOCNetDevice::SetRemoteSignalChangedCallback(SignalChangedCallback cb){
@@ -318,50 +363,7 @@ namespace ns3 {
         }
     }
     
-    void
-    NOCNetDevice::TransmitComplete(void) {
-        NS_LOG_FUNCTION_NOARGS();
-
-        //
-        // This function is called to when we're all done transmitting a packet.
-        // We try and pull another packet off of the transmit queue.  If the queue
-        // is empty, we are done, otherwise we need to start transmitting the
-        // next packet.
-        //
-        NS_ASSERT_MSG(m_txMachineState == BUSY, "Must be BUSY if transmitting");
-        m_txMachineState = READY;
-
-        NS_ASSERT_MSG(m_currentPkt != 0, "NOCNetDevice::TransmitComplete(): m_currentPkt zero");
-
-        m_phyTxEndTrace(m_currentPkt);
-        m_currentPkt = 0;
-
-
-        Ptr<Packet> p1 = m_queue_prioritized->Dequeue();
-        queue_size_prioritized = m_queue_prioritized->GetNPackets();
-        if (p1 != 0) {
-            //
-            // There was packets on the high p queue, send them...
-            //
-            m_snifferTrace(p1);
-            m_promiscSnifferTrace(p1);
-            m_macTxTrace(p1);
-            TransmitStart(p1);
-            return;
-        }
-        Ptr<Packet> p0 = m_queue->Dequeue();
-        queue_size = m_queue->GetNPackets();
-        if (p0 != 0) {
-            //
-            // There was no packets on the high p, but on the lp queue, send them...
-            //
-            m_snifferTrace(p0);
-            m_promiscSnifferTrace(p0);
-            m_macTxTrace(p0);
-            TransmitStart(p0);
-            return;
-        }
-    }
+    
 
     bool
     NOCNetDevice::Attach(Ptr<NOCChannel> ch) {

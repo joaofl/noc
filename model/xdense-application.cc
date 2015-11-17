@@ -41,14 +41,7 @@ namespace ns3 {
 
     XDenseApp::XDenseApp()
     :
-    //    m_packetSize(0),
-    m_nPackets(0),
-    m_dataRate(0),
-    //    m_sendEvent(),
     m_running(false)
-    //IsSink(false),
-    //m_packetsSent(0),
-    //m_packetsReceived(0)
     {
     }
 
@@ -56,49 +49,9 @@ namespace ns3 {
         //  m_socket = 0;
     }
 
-    //    void
-    //    XDenseApp::Setup(bool IsSink) {
-    //        IsSink = IsSink;
-    //
-    //    }
-
     void
     XDenseApp::StartApplication(void) {
 
-//        TimeStartOffset = Seconds(1);
-        
-        //This is a threshold, to decide the min neghborhood a node have to be 
-        //to be able to do event annoucements.
-        //These are all the possible neighbors times a factor, to include nodes in the edges,
-        //which have less neighbors.
-        MinNeighborhood = MaxHops * 2 * (MaxHops + 1) * 0.7; //add some tolerance.Ex 20%
-
-        SensorValueLast = 0;
-
-//        EventRef er;
-//        er.detected = false;
-//        er.data[0] = 0;
-//        er.data[1] = 0;
-//        er.data[2] = 0;
-//        m_lastEvents.assign(EV_COUNT, er);
-//        m_SerialNumber.assign(P_COUNT, 0);
-        //        PacketTrace.assign(P_COUNT, temp);
-
-
-        m_router->SetReceiveCallback(MakeCallback(&XDenseApp::DataReceived, this));
-
-        if (IsSink == true) {
-//            Simulator::Schedule(TimeStartOffset, &XDenseApp::NetworkDiscovery, this);
-            SinkReceivedData = CreateObject<NOCOutputData> ();
-        }
-        
-        Time t = Time::FromInteger(0, Time::MS);
-        Time t_window = Time::FromInteger(0, Time::MS);
-//        if (IsSink == true)
-        
-        uint16_t pck_duration = 11200;
-        pck_duration = pck_duration;
-        
         //This data should not be used in the protocols itself, but for logging
         //proposes only. This to keep protocol's scalable (without the need 
         //of fixed and absolute pre-defined x,y)
@@ -106,39 +59,29 @@ namespace ns3 {
         m_router->GetAttribute("AddressX", x);
         m_router->GetAttribute("AddressY", y);
         
-//        if (x.Get() % 2 == 0 && y.Get() % 2 == 0){
-//        if (x.Get() != 0 ){
         
-        MaxHops = 10;
-//        uint8_t x_size = 9;
-//        uint8_t y_size = 10;
         
-//        if ( (x.Get() + y.Get() <= MaxHops) && (x.Get() != 0) ){
-//        && (x.Get() + y.Get() <= MaxHops)
-//        if ( (x.Get() != 0)  ){
-//        if (x.Get() == 10 && y.Get() == 10){
-            if (IsSink == true){
-//            Simulator::Schedule(t, &XDenseApp::NetworkDiscovery, this);
-//            t += Time::FromInteger(pck_duration * 50, Time::NS);
-            Simulator::Schedule(t, &XDenseApp::DataAnnouncementRequest, this);
+        //This is a threshold, to decide the min neghborhood a node have to be 
+        //to be able to do event annoucements.
+        //These are all the possible neighbors times a factor, to include nodes in the edges,
+        //which have less neighbors.
+//        MinNeighborhood = MaxHops * 2 * (MaxHops + 1) * 0.7; //add some tolerance.Ex 20%
 
-//            for (uint8_t j = 0 ; j < 10 ; j++)
-//            {
-//                    t = Time::FromInteger(pck_duration * (x.Get() - 1) * (y_size - 1), Time::NS);
-//                    t_window = Time::FromInteger(j * 120 * pck_duration, Time::NS);
-//                        
-//                    Simulator::Schedule(t + t_window, &XDenseApp::DataAnnouncementTT, this);
-//            }
+        m_router->SetReceiveCallback(MakeCallback(&XDenseApp::DataReceived, this));
+
+        if (IsSink == true) {
+//            Simulator::Schedule(TimeStartOffset, &XDenseApp::NetworkDiscovery, this);
+            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
+            SinkReceivedData = CreateObject<NOCOutputData> ();
         }
+        
+
+        
     }
     
     void
     XDenseApp::StopApplication(void) {
         m_running = false;
-
-        //        if (m_sendEvent.IsRunning()) {
-        //            Simulator::Cancel(m_sendEvent);
-        //        }
     }
 
     void
@@ -151,34 +94,11 @@ namespace ns3 {
 
     }
 
-//    NodeRef
-//    XDenseApp::GetSinkAt(uint8_t i) {
-//        return m_sinksList.at(i);
-//    }
-//
-//    uint8_t
-//    XDenseApp::GetSinkN(void) {
-//        return m_sinksList.size();
-//    }
-//
-//    NodeRef
-//    XDenseApp::GetNeighborAt(uint8_t i) {
-//        return m_neighborsList.at(i);
-//    }
-//
-//    uint8_t
-//    XDenseApp::GetNeighborN(void) {
-//        return m_neighborsList.size();
-//    }
-
     void
     XDenseApp::AddRouter(Ptr<NOCRouter> r) {
         m_router = r;
     }
     
-   
-
- 
     void 
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x, int32_t origin_y, int32_t dest_x,int32_t dest_y) {
         //TODO: here, at this layer, we remove the XDense header and see what to do with the packet.
@@ -198,7 +118,6 @@ namespace ns3 {
             
         }
     }
-    
     
     void
     XDenseApp::NetworkSetup() {
@@ -233,12 +152,12 @@ namespace ns3 {
         
     }
 
-
     bool
     XDenseApp::DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
         return false;
     }
 
+//    For testing proposes
 //    void
 //    XDenseApp::DataAnnouncementTT(void) {
 //            Ptr<Packet> pck = Create<Packet>();
@@ -254,6 +173,7 @@ namespace ns3 {
 //            m_router->PacketUnicast(pck, NETWORK_ID_0, 10, 10, USE_ABSOLUTE_ADDRESS);        
 //            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 4, USE_ABSOLUTE_ADDRESS);                
 //    }
+    
     void
     XDenseApp::DataAnnouncementRequest() {
         Ptr<Packet> pck = Create<Packet>();
@@ -265,9 +185,15 @@ namespace ns3 {
         m_router->PacketMulticast(pck,NETWORK_ID_0, 10, 10);
 //        m_router->PacketBroadcast(pck, 0);
     }
+    
     void
     XDenseApp::DataAnnouncementRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
       
+        //This info can actually be obteined from the system.
+        //size is actually the radius or square defined by the multicast size
+        //pck duration is contained at the packet, but the total lenght is only at
+        //the bottom layer. 
+        //TODO: is the schedule needs pck size, it should get it from below layers
         uint16_t pck_duration = 11200;
         int8_t size_x = 10;
         int8_t size_y = 10;
@@ -284,8 +210,6 @@ namespace ns3 {
             }
         }
     }
-
-
     
     void
     XDenseApp::DataAnnouncement(int32_t x_dest, int32_t y_dest) {

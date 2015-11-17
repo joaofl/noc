@@ -66,11 +66,12 @@ ofstream file_packets_trace_netdevice;
 uint32_t t_slot(){
     //set this to 1 if one wants the start to 
     //be offset to the first transmission, instead of t=0
-        static uint32_t pck_t = 11200;
+    static uint32_t pck_t = 11200;
     static uint64_t t0 = 0; 
 //    static uint32_t t_transmission = 1;
     static uint32_t t_transmission = pck_t;
     static uint64_t t_slot = 0;
+    
 //    static XDenseHeader hd_xdense;
 //    static NOCHeader hd_noc;
 //    uint32_t s = hd_noc.GetSerializedSize() + hd_xdense->GetSerializedSize();
