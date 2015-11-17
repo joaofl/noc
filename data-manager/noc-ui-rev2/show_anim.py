@@ -165,7 +165,7 @@ class NOCAnim(QWidget):
         self.update()
 
     def timerEvent(self):
-        lastT = int (self.packetTrace[-1][trace.time_slot])
+        lastT = int (self.packetTrace[-1][trace.time])
 
         if self.step > lastT:
             self.doActionRestart()
@@ -180,7 +180,7 @@ class NOCAnim(QWidget):
             self.last_index = i
             line = self.packetTrace[i]
 
-            if int(line[trace.time_slot]) <= self.t_slot:
+            if int(line[trace.time]) <= self.t_slot:
                 x = int(line[trace.x_absolute])
                 y = int(line[trace.y_absolute])
 
@@ -219,7 +219,7 @@ class NOCAnim(QWidget):
                 # self.nodesData[4][4] = self.nodeStructure(*temp) #* is the unpacking operator
 
             else:
-                self.t_slot = int(line[trace.time_slot])
+                self.t_slot = int(line[trace.time])
                 break
 
 
@@ -367,8 +367,8 @@ if __name__ == '__main__':
 
         parser.add_option ('-v', '--verbose', action='store_false', default=False, help='verbose output')
         parser.add_option ('-i', '--inputfile', help='input file containing the packet trace')
-        parser.add_option ('-o', '--outputdir', help='', default=None)
-
+        parser.add_option ('-o', '--outputdir', help='dir to save the plots')
+        parser.add_option ('-t', '--timeslotsize', help='time between two refreshes of the animator')
 
         (options, args) = parser.parse_args()
         #if len(args) < 1:
