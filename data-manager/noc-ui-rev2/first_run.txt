@@ -1,11 +1,11 @@
 #To run scripts
-sudo apt-get install python3.5-dev
+sudo apt-get install python3.4-dev
 sudo apt-get install python3-pip3
-sudo -H pip3 install numpy
+sudo -H pip3.4 install numpy
 sudo apt-get install libfreetype6-dev
-sudo -H pip3 install matplotlib
+sudo -H pip3.4 install matplotlib
 sudo apt-get install libffi-dev
-sudo -H pip3 install cairocffi
+sudo -H pip3.4 install cairocffi
 sudo apt-get install ffmpeg
 
 #To run the netanim
