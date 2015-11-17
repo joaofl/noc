@@ -169,7 +169,7 @@ namespace ns3 {
          *
          * @param p Ptr to the packet to be transmitted.
          */
-        bool Send(Ptr<Packet> packet);
+        int8_t Send(Ptr<Packet> packet);
         
         /**
          * Sends a packet without the need of informing destination and protocol n.

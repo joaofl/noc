@@ -538,7 +538,7 @@ namespace ns3 {
         return false;
     }
 
-    bool
+    int8_t
     NOCNetDevice::Send(Ptr<Packet> packet) {
         //if no priority have been specified, send it with the lowest one;
         return Send(packet, 0);

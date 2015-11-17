@@ -16,8 +16,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: João Loureiro <joflo@isep.ipp.pt>
- *         Michele Albano <mialb@isep.ipp.pt>
- *         Tiago Cerqueira <1090678@isep.ipp.pt>
  * 
  */
 
@@ -177,7 +175,7 @@ main(int argc, char *argv[]) {
     stringstream context_dir;
 //    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
     context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n;
-    context_dir << "r02/";
+    context_dir << "r03/";
     
     string dir_output = io_data_dir + context_dir.str() + "out/";
     string dir_input = io_data_dir + context_dir.str() + "in/";     

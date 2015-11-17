@@ -85,33 +85,36 @@ namespace ns3 {
         
         void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         
-        void NetworkDiscovery();
-        bool NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port);
+        void NetworkSetup();
+        bool NetworkSetupReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
 
         //Event triggered
-        void DataAnnouncement(int32_t x_dest, int32_t y_dest);
+        
         //Time triggered
-        void DataAnnouncementTT();
+//        void DataAnnouncementTT();
         void DataAnnouncementRequest();
-        bool DataAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port);
+        void DataAnnouncementRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
+        
+        void DataAnnouncement(int32_t x_dest, int32_t y_dest);
+        bool DataAnnoucementReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
 
         
         NodeRef NearestClusterHead(void);
 
         void DataSharingSchedule(uint8_t n_times, Time period);
         void DataSharing();
-        bool DataSharingReceived(Ptr<const Packet> pck, uint8_t origin_port);
+        bool DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
 //        
         void AddRouter(Ptr<NOCRouter> r);
 //        void ScheduleTransmission(Ptr<const Packet> pck, uint8_t destination_port);
 
 
-        NodeRef GetSinkAt(uint8_t);
-        uint8_t GetSinkN(void);
-
-        NodeRef GetNeighborAt(uint8_t);
-        uint8_t GetNeighborN(void);
+//        NodeRef GetSinkAt(uint8_t);
+//        uint8_t GetSinkN(void);
+//
+//        NodeRef GetNeighborAt(uint8_t);
+//        uint8_t GetNeighborN(void);
 
 
         //        IsPresent(vector<m_sink_type> *, m_sink_type *);

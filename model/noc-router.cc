@@ -375,19 +375,25 @@ namespace ns3 {
     
     bool
     NOCRouter::PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port_direction, uint8_t priority){
-        Ptr<NOCNetDevice> nd;
-        
+        Ptr<NOCNetDevice> nd;     
         nd = GetNetDevice(network_id, port_direction);
         if (nd == NULL) //That node does not have a net device in that direction
             return false;
         
-        if (nd->Send(pck->Copy())){
+        Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+        Time t_ns = Time::FromInteger(x->GetInteger (90, 110), Time::NS);
+        
+        int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
+        
+        Simulator::Schedule(t_ns, fp, nd, pck->Copy());
+        
+//        if (nd->Send(pck->Copy())){
             return true;
-        }
-        else{
-            m_routerTxDropTrace(pck);
-        }
-        return false;
+//        }
+//        else{
+//            m_routerTxDropTrace(pck);
+//        }
+//        return false;
     }
        
     void
@@ -430,6 +436,8 @@ namespace ns3 {
         int32_t asx = h.GetSourceAddressX();
         int32_t asy = h.GetSourceAddressY();
         uint8_t p = h.GetProtocol();
+        
+        
         
         uint8_t out = 0;
         switch (p){

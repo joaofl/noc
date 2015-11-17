@@ -49,15 +49,6 @@ enum OperationalMode{
     OP_COUNT
 };
 
-enum ProtocolNumber {
-    P_NETWORK_DISCOVERY,
-    //P_NEIGHBORHOOD_DISCOVERY,
-    P_VALUE_ANNOUNCEMENT,
-    P_EVENT_ANNOUNCEMENT,
-    P_TOTAL,
-    P_COUNT //should always be the last item
-};
-
 enum SearchParam {
     SP_MAX,
     SP_MIN,

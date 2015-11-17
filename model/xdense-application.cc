@@ -22,7 +22,7 @@
 
 #include "xdense-application.h"
 #include "xdense-header.h"
-//#include "noc-header.h"
+#include "noc-header.h"
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "calc.h"
@@ -75,13 +75,13 @@ namespace ns3 {
 
         SensorValueLast = 0;
 
-        EventRef er;
-        er.detected = false;
-        er.data[0] = 0;
-        er.data[1] = 0;
-        er.data[2] = 0;
-        m_lastEvents.assign(EV_COUNT, er);
-        m_SerialNumber.assign(P_COUNT, 0);
+//        EventRef er;
+//        er.detected = false;
+//        er.data[0] = 0;
+//        er.data[1] = 0;
+//        er.data[2] = 0;
+//        m_lastEvents.assign(EV_COUNT, er);
+//        m_SerialNumber.assign(P_COUNT, 0);
         //        PacketTrace.assign(P_COUNT, temp);
 
 
@@ -99,6 +99,9 @@ namespace ns3 {
         uint16_t pck_duration = 7200;
         pck_duration = pck_duration;
         
+        //This data should not be used in the protocols itself, but for logging
+        //proposes only. This to keep protocol's scalable (without the need 
+        //of fixed and absolute pre-defined x,y)
         IntegerValue x, y;
         m_router->GetAttribute("AddressX", x);
         m_router->GetAttribute("AddressY", y);
@@ -148,25 +151,25 @@ namespace ns3 {
 
     }
 
-    NodeRef
-    XDenseApp::GetSinkAt(uint8_t i) {
-        return m_sinksList.at(i);
-    }
-
-    uint8_t
-    XDenseApp::GetSinkN(void) {
-        return m_sinksList.size();
-    }
-
-    NodeRef
-    XDenseApp::GetNeighborAt(uint8_t i) {
-        return m_neighborsList.at(i);
-    }
-
-    uint8_t
-    XDenseApp::GetNeighborN(void) {
-        return m_neighborsList.size();
-    }
+//    NodeRef
+//    XDenseApp::GetSinkAt(uint8_t i) {
+//        return m_sinksList.at(i);
+//    }
+//
+//    uint8_t
+//    XDenseApp::GetSinkN(void) {
+//        return m_sinksList.size();
+//    }
+//
+//    NodeRef
+//    XDenseApp::GetNeighborAt(uint8_t i) {
+//        return m_neighborsList.at(i);
+//    }
+//
+//    uint8_t
+//    XDenseApp::GetNeighborN(void) {
+//        return m_neighborsList.size();
+//    }
 
     void
     XDenseApp::AddRouter(Ptr<NOCRouter> r) {
@@ -180,28 +183,25 @@ namespace ns3 {
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x, int32_t origin_y, int32_t dest_x,int32_t dest_y) {
         //TODO: here, at this layer, we remove the XDense header and see what to do with the packet.
         //the NOC Header here is no longer in the packet
+        Ptr<Packet> pck_c = pck->Copy();
         
+        XDenseHeader h;
+        pck_c->RemoveHeader(h);
         
-        uint16_t pck_duration = 7200;
-        
-//        if ( (origin_x != 0) && protocol == 0 ){ //from broadcast
-        if ( protocol == 1 ){ //from multicast
-            for (uint8_t j = 0 ; j < 1 ; j++)
-            {
-                int32_t t = 0;
-                t = NOCRoutingProtocols::ScheduleTransmission(origin_x, origin_y, dest_x, dest_y);
-                
-                if (t >= 0){
-                    Time t_ns = Time::FromInteger(t * pck_duration, Time::NS);
-                    Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x*-1, origin_y*-1);
-                }
-            }
+        switch (h.GetXdenseProtocol()){
+            case XDenseHeader::DATA_ANNOUCEMENT:
+                DataAnnoucementReceived(pck, origin_x, origin_y);
+                break;
+            case XDenseHeader::DATA_ANNOUCEMENT_REQUEST:
+                DataAnnouncementRequestReceived(pck, origin_x, origin_y);                
+                break;
+            
         }
     }
     
     
     void
-    XDenseApp::NetworkDiscovery() {
+    XDenseApp::NetworkSetup() {
 
 //        if (IsSink == true) {
 
@@ -211,22 +211,18 @@ namespace ns3 {
         m_sinksList.push_back(me);
 
         XDenseHeader hd;
-        hd.CurrentX = 0;
-        hd.CurrentY = 0;
-        hd.SetNOCProtocol(P_NETWORK_DISCOVERY);
-        hd.OperationalMode = OperationalMode;
-        hd.SerialNumber = m_SerialNumber.at(P_NETWORK_DISCOVERY);
-        m_SerialNumber.at(P_NETWORK_DISCOVERY)++;
+        hd.SetXdenseProtocol(XDenseHeader::NETWORK_SETUP);
+
 
         Ptr<Packet> pck = Create<Packet>();
-//        pck->AddHeader(hd);
+        pck->AddHeader(hd);
             
             
         m_router->PacketBroadcast(pck, 0);
     }
 
     bool
-    XDenseApp::NetworkDiscoveryReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    XDenseApp::NetworkSetupReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
 
         return false;
     }
@@ -239,7 +235,7 @@ namespace ns3 {
 
 
     bool
-    XDenseApp::DataSharingReceived(Ptr<const Packet> pck, uint8_t origin_port) {
+    XDenseApp::DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
         return false;
     }
 
@@ -263,36 +259,51 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
         
         XDenseHeader hd;
-//        hd.Protocol = P_DATA_ANNOUCEMENT_REQUEST;
-//        hd.SetNOCProtocol(XDenseHeader::P_DATA_ANNOUCEMENT_REQUEST);
-//        pck->AddHeader(hd);
+        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT_REQUEST);
+        pck->AddHeader(hd);
         
         m_router->PacketMulticast(pck,NETWORK_ID_0, 10, 10);
 //        m_router->PacketBroadcast(pck, 0);
     }
+    void
+    XDenseApp::DataAnnouncementRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
+      
+        uint16_t pck_duration = 7200;
+        int8_t size_x = 10;
+        int8_t size_y = 10;
+//        
+        
+        for (uint8_t j = 0 ; j < 1 ; j++)
+        {
+            int32_t t = 0;
+            t = NOCRoutingProtocols::ScheduleTransmission(origin_x, origin_y, size_x, size_y);
+
+            if (t >= 0){
+                Time t_ns = Time::FromInteger(t * pck_duration, Time::NS);
+                Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x * -1, origin_y * -1);
+            }
+        }
+    }
+
 
     
     void
     XDenseApp::DataAnnouncement(int32_t x_dest, int32_t y_dest) {
 
+        Ptr<Packet> pck = Create<Packet>();
 
+        XDenseHeader hd;
+        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+        pck->AddHeader(hd);
 
-            Ptr<Packet> pck = Create<Packet>();
-//            pck->AddHeader(hd);
-//            m_router->PacketUnicast(pck, 0, sink.x, sink.y, false);     
-            
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, USE_ABSOLUTE_ADDRESS); 
-            m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, USE_RELATIVE_ADDRESS); 
-        
-
-
+        //            m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, USE_ABSOLUTE_ADDRESS); 
+        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, USE_RELATIVE_ADDRESS); 
     }
     
-
-
     bool
-    XDenseApp::DataAnnoucementReceived(Ptr<const Packet> pck, uint8_t origin_port) {
-        
+    XDenseApp::DataAnnoucementReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
+//        Here, the node should build an matrix with the received data
+//        cout << "Data annoucement received" << endl;
         return false;
     }
 
