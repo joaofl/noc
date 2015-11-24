@@ -61,8 +61,8 @@ class NOCAnim(QWidget):
             options.inputfile = '/home/joao/noc-data/nw21x21s1r03/out/packets-trace-netdevice.csv'
 
         self.nextT = 0
-        self.t_slot = 0
-        self.last_index = 0
+        self.t_next = 0
+        self.previous_index = 0
 
 
         self.packetTrace = files_io.load_list(options.inputfile)
@@ -148,7 +148,7 @@ class NOCAnim(QWidget):
             self.timer.stop()
             self.btn.setText('Start')
         else:
-            self.timer.start(10)
+            self.timer.start(100)
             self.btn.setText('Stop')
 
 
@@ -156,8 +156,8 @@ class NOCAnim(QWidget):
         self.timer.stop()
         self.btn.setText('Start')
         self.nextT = 0
-        self.t_slot = 0
-        self.last_index = 0
+        self.t_next = 0
+        self.previous_index = 0
         self.pbar.setValue(0)
         # self.resetNodes()
         # self.packetTrace = noc_io.load_list(self.inputfile)
@@ -167,48 +167,51 @@ class NOCAnim(QWidget):
     def timerEvent(self):
         lastT = int (self.packetTrace[-1][trace.time])
 
-        if self.step > lastT:
-            self.doActionRestart()
-            return
+        # if self.step > lastT:
+        #     self.doActionRestart()
+        #     return
 
         self.resetNodes()
 
         k = 0
 
-        lower = self.last_index
-        for i in range(lower, len(self.packetTrace)):
-            self.last_index = i
-            line = self.packetTrace[i]
+        previous_index = self.previous_index
 
-            if int(line[trace.time]) <= self.t_slot:
-                x = int(line[trace.x_absolute])
-                y = int(line[trace.y_absolute])
+        for i in range(previous_index, len(self.packetTrace)):
+            self.previous_index = i
+            current_trans = self.packetTrace[i]
+
+
+
+            if int(current_trans[trace.time]) <= self.t_next:
+                x = int(current_trans[trace.x_absolute])
+                y = int(current_trans[trace.y_absolute])
 
                 node = list(self.nodesData[y][x])
 
-                if line[trace.operation] == 'c':
+                if current_trans[trace.operation] == 'c':
                     node[self.index_core_rx] = 1
-                elif line[trace.operation] == 'g':
+                elif current_trans[trace.operation] == 'g':
                     node[self.index_core_tx] = 1
 
-                elif line[trace.operation] == 'r':
-                    if int(line[trace.direction]) == trace.DIRECTION_N:
+                elif current_trans[trace.operation] == 'r':
+                    if int(current_trans[trace.direction]) == trace.DIRECTION_N:
                         node[self.index_n_rx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_S:
+                    elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
                         node[self.index_s_rx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_E:
+                    elif int(current_trans[trace.direction]) == trace.DIRECTION_E:
                         node[self.index_e_rx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_W:
+                    elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
                         node[self.index_w_rx] = 1
 
-                elif line[trace.operation] == 't':
-                    if int(line[trace.direction]) == trace.DIRECTION_N:
+                elif current_trans[trace.operation] == 't':
+                    if int(current_trans[trace.direction]) == trace.DIRECTION_N:
                         node[self.index_n_tx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_S:
+                    elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
                         node[self.index_s_tx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_E:
+                    elif int(current_trans[trace.direction]) == trace.DIRECTION_E:
                         node[self.index_e_tx] = 1
-                    elif int(line[trace.direction]) == trace.DIRECTION_W:
+                    elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
                         node[self.index_w_tx] = 1
 
                 self.nodesData[y][x] = self.nodeStructure(*node) #* is the unpacking operator
@@ -219,15 +222,20 @@ class NOCAnim(QWidget):
                 # self.nodesData[4][4] = self.nodeStructure(*temp) #* is the unpacking operator
 
             else:
-                self.t_slot = int(line[trace.time])
+                self.t_next = int(current_trans[trace.time]) + 10000
                 break
 
 
-        self.step = self.step + 1
-        self.pbar.setValue( (self.step / lastT) * 100)
-        self.text.setText(str(self.step) + ' tts')
-        t = int (self.packetTrace[self.last_index][trace.time])
-        self.text2.setText(str(t) + ' ns')
+        t = int (self.packetTrace[self.previous_index][trace.time])
+        # self.step = self.step + 1
+        self.pbar.setValue( (t / lastT) * 100)
+        # self.text.setText(str(self.step) + ' tts')
+        self.text.setText(str(t / 10000) + ' tts')
+        self.text2.setText(str(t / 1000) + ' us')
+
+        if t >= lastT:
+            self.doAction()
+            return
 
         if self.cb.isChecked():
             self.doAction()
