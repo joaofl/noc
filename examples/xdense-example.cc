@@ -54,6 +54,19 @@ NS_LOG_COMPONENT_DEFINE("NOCExample");
 
 //run command Netbeans
 //"${OUTPUT_PATH}" $(cat ~/usn-data/config/input-config.c.csv)
+//Project Properties->Run->Run Directory: ./build
+
+
+/*
+ * Using Eclipse
+ * Run -> Run Configurations
+ *
+ * Under ns-3 project, Tab environment variables: Add
+ *
+ * name: LD_LIBRARY_PATH
+ * value: ${workspace_loc:ns-3-dev}/build
+ * Mark: "Append..."
+ */
 
 using namespace std;
 using namespace ns3;
@@ -156,9 +169,9 @@ main(int argc, char *argv[]) {
     uint32_t sampling_period = 100000; //at every 100.000.000 ns = 100ms default
     uint32_t size_x = 21;
     uint32_t size_y = 21;
-    uint32_t size_neighborhood = 10;
+    uint32_t size_neighborhood = 5;
     uint32_t sinks_n = 1;
-    uint32_t baudrate = 10000; //10000 kbps =  10 Mbps
+    uint32_t baudrate = 1500; //10000 kbps =  1,5 Mbps
     uint32_t operational_mode = 0; //sample the entire network
     
     struct passwd *pw = getpwuid(getuid());
@@ -186,8 +199,9 @@ main(int argc, char *argv[]) {
 
     stringstream context_dir;
 //    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
-    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n;
-    context_dir << "r02/";
+    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "c";
+    context_dir << "TESTS";
+    context_dir << "/";
     
     string dir_output = io_data_dir + context_dir.str() + "out/";
     string dir_input = io_data_dir + context_dir.str() + "in/";     

@@ -182,7 +182,7 @@ namespace ns3 {
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT_REQUEST);
         pck->AddHeader(hd);
         
-        m_router->PacketMulticast(pck,NETWORK_ID_0, 10, 10);
+        m_router->PacketMulticast(pck,NETWORK_ID_0, 5, 5);
 //        m_router->PacketBroadcast(pck, 0);
     }
     

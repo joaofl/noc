@@ -1,6 +1,7 @@
 #To run scripts
 sudo apt-get install python3.4-dev
-sudo apt-get install python3-pip3
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python3.4 get-pip.py
 sudo -H pip3.4 install numpy
 sudo apt-get install libfreetype6-dev
 sudo -H pip3.4 install matplotlib
@@ -13,7 +14,7 @@ sudo apt-get install ffmpeg
 wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.17/sip-4.17.tar.gz
 tar xzf sip-4.17.tar.gz
 cd sip-4.17
-python3 configure.py
+python3.4 configure.py
 make
 sudo make install
 cd ..
@@ -23,7 +24,7 @@ sudo apt-get install qt5-default
 wget http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.5.1/PyQt-gpl-5.5.1.tar.gz
 tar xzf PyQt-gpl-5.5.1.tar.gz
 cd PyQt-gpl-5.5.1
-python3 configure.py
+python3.4 configure.py
 make
 sudo make install
 cd ..

@@ -44,6 +44,10 @@ class NOCAnim(QWidget):
 
     networkSize = [0,0]
 
+	#this data should come from the packet trace
+    baudrate = 1500000 #bps
+    packet_size = 16 * 8 # 16 bytes
+
     s = 0.22
 
     def __init__(self):
@@ -222,7 +226,7 @@ class NOCAnim(QWidget):
                 # self.nodesData[4][4] = self.nodeStructure(*temp) #* is the unpacking operator
 
             else:
-                self.t_next = int(current_trans[trace.time]) + 10000
+                self.t_next = int(current_trans[trace.time]) + ((self.packet_size / self.baudrate) * 10e9)
                 break
 
 
