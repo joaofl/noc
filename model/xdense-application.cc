@@ -71,7 +71,8 @@ namespace ns3 {
 
         if (IsSink == true) {
 //            Simulator::Schedule(TimeStartOffset, &XDenseApp::NetworkDiscovery, this);
-            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
+//            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
+            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::NetworkSetup, this);
             SinkReceivedData = CreateObject<NOCOutputData> ();
         }
         
@@ -115,6 +116,9 @@ namespace ns3 {
             case XDenseHeader::DATA_ANNOUCEMENT_REQUEST:
                 DataAnnouncementRequestReceived(pck, origin_x, origin_y);                
                 break;
+            case XDenseHeader::NETWORK_SETUP:
+                NetworkSetupReceived(pck, origin_x, origin_y);                
+                break;
             
         }
     }
@@ -142,7 +146,10 @@ namespace ns3 {
 
     bool
     XDenseApp::NetworkSetupReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
-
+        if ((abs(origin_x) % 11 == 0) && (abs(origin_y) % 11 == 0)){
+            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
+        }
+            
         return false;
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
