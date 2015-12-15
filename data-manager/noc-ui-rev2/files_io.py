@@ -39,6 +39,12 @@ def load_list(file_name):
 
     return a
 
+def load_line(filename):
+    file = open(filename)
+    data = file.read()
+
+    return data
+
 
 def load_single_value(filename):
     file = open(filename)

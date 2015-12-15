@@ -39,7 +39,7 @@ class NOCLauncher(QWidget):
         # setGeometry(x_pos, y_pos, width, height)
         self.setGeometry(300, 200, 230, 630)
 
-        self.setWindowTitle('NoC4ns3 Laucher')
+        self.setWindowTitle('NoC4ns3 Launcher')
 
         self.label_dir = QLabel("Base directory:")
         dir = expanduser("~") + '/noc-data'
@@ -57,6 +57,8 @@ class NOCLauncher(QWidget):
 
         self.label_result = QLabel()
         self.label_scripts = QLabel()
+
+        self.textbox_args = QLineEdit()
 
         # self.button_load_anim = QPushButton("Load animation")
         # self.button_load_anim.clicked.connect(self.on_click_load_anim)
@@ -77,6 +79,7 @@ class NOCLauncher(QWidget):
         # vbox.addWidget(self.button_load_anim)
         vbox.addWidget(self.listbox_scripts)
         vbox.addWidget(self.label_scripts)
+        vbox.addWidget(self.textbox_args)
         vbox.addWidget(self.button_run)
         # vbox.addWidget(self.button_plot_service)
         self.setLayout(vbox)
@@ -91,7 +94,10 @@ class NOCLauncher(QWidget):
         i = self.listbox.currentRow()
         self.selected_log = self.list_fnames[i]
 
-        self.label_result.setText(self.selected_log.split('/')[4] + ' selected')
+        self.label_result.setText(self.list_vnames[i] + ' selected')
+
+        args = files_io.load_line(self.list_dir_names[i] + 'simulation-info.txt')
+        self.textbox_args.setText(args)
 
     def on_select_scripts(self):
 
@@ -116,6 +122,7 @@ class NOCLauncher(QWidget):
         # create a list of all files in a given directory
         self.list_fnames = []
         self.list_vnames = []
+        self.list_dir_names = []
 
 
         self.list_fnames = files_io.find_multiple_files(directory, "packets-trace")
@@ -123,6 +130,8 @@ class NOCLauncher(QWidget):
         for item in self.list_fnames:
             n = item.split('/')[4]
             self.list_vnames.append(n)
+            d = item.rsplit('/',1)[0]
+            self.list_dir_names.append(d + '/')
 
         self.listbox.addItems(self.list_vnames)
         sf = "{} log files found".format(len(self.list_fnames))
@@ -139,6 +148,7 @@ class NOCLauncher(QWidget):
         for item in self.list_scripts_fnames:
             self.list_scripts_vnames.append(item.split('/')[-1].split('.')[0].replace('show_', ''))
 
+        self.listbox_scripts.clear()
         self.listbox_scripts.addItems(self.list_scripts_vnames)
 
 
@@ -150,7 +160,8 @@ class NOCLauncher(QWidget):
     def on_click_run(self):
         # scriptname = 'noc_flow_analysis'
 
-        args = ' --inputfile=' + self.selected_log
+        args = ' --inputfile=' + self.selected_log + ' ' + self.textbox_args.text()
+
         cmd = 'python3.4 ' + self.selected_script + args
         print('Command executed: ' + cmd)
 

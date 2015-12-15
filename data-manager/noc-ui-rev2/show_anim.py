@@ -42,11 +42,10 @@ class NOCAnim(QWidget):
     index_w_rx, index_w_tx, index_len\
         = 0,1,2,3,4,5,6,7,8,9,10
 
-    networkSize = [0,0]
-
 	#this data should come from the packet trace
     baudrate = 1500000 #bps
     packet_size = 16 * 8 # 16 bytes
+    packet_duration = (packet_size / baudrate) * 1e9 #ns
 
     s = 0.22
 
@@ -62,7 +61,9 @@ class NOCAnim(QWidget):
         # load the log
         # home = expanduser("~")
         if (options.inputfile == None):
-            options.inputfile = '/home/joao/noc-data/nw21x21s1r03/out/packets-trace-netdevice.csv'
+            options.inputfile = '/home/joao/noc-data/nw21x21s1n5cTESTS/out/packets-trace-netdevice.csv'
+
+        self.networkSize = [int(options.size_x), int(options.size_y)]
 
         self.nextT = 0
         self.t_next = 0
@@ -74,10 +75,12 @@ class NOCAnim(QWidget):
             print ('No input file defined')
             return -1
 
-        max_x = max( self.packetTrace[:,trace.x_absolute].astype(int) )
-        max_y = max( self.packetTrace[:,trace.y_absolute].astype(int) )
+        if self.networkSize == [0,0]:
+            max_x = max( self.packetTrace[:,trace.x_absolute].astype(int) )
+            max_y = max( self.packetTrace[:,trace.y_absolute].astype(int) )
 
-        self.networkSize = [max_x + 1, max_y + 1]
+            self.networkSize = [max_x + 1, max_y + 1]
+
 
         #initialize data
         self.nodesData = [[None] * self.networkSize[0] for i in range(self.networkSize[1])]
@@ -120,11 +123,13 @@ class NOCAnim(QWidget):
 
         self.text = QLabel('0 tts   ', self)
         # self.text.move(590, 10)
-        self.text.setFont( QFont( "Monospace", 13, QFont.Bold) )
+        self.text.setFont( QFont( "Monospace", 12, QFont.Bold) )
 
         self.text2 = QLabel('0 ns    ', self)
         # self.text.move(590, 10)
-        self.text2.setFont( QFont( "Monospace", 13, QFont.Bold) )
+        self.text2.setFont( QFont( "Monospace", 12, QFont.Bold) )
+
+        self.graphics = QGraphicsView()
 
         hbox = QHBoxLayout()
         hbox.addWidget(self.btn)
@@ -137,6 +142,7 @@ class NOCAnim(QWidget):
         vbox = QVBoxLayout()
         vbox.addLayout(hbox)
         vbox.addStretch(1)
+        # vbox.addWidget(self.graphics)
 
         self.setLayout(vbox)
 
@@ -185,8 +191,6 @@ class NOCAnim(QWidget):
             self.previous_index = i
             current_trans = self.packetTrace[i]
 
-
-
             if int(current_trans[trace.time]) <= self.t_next:
                 x = int(current_trans[trace.x_absolute])
                 y = int(current_trans[trace.y_absolute])
@@ -226,7 +230,7 @@ class NOCAnim(QWidget):
                 # self.nodesData[4][4] = self.nodeStructure(*temp) #* is the unpacking operator
 
             else:
-                self.t_next = int(current_trans[trace.time]) + ((self.packet_size / self.baudrate) * 10e9)
+                self.t_next = int(current_trans[trace.time]) + self.packet_duration * 0.5
                 break
 
 
@@ -234,8 +238,8 @@ class NOCAnim(QWidget):
         # self.step = self.step + 1
         self.pbar.setValue( (t / lastT) * 100)
         # self.text.setText(str(self.step) + ' tts')
-        self.text.setText(str(t / 10000) + ' tts')
-        self.text2.setText(str(t / 1000) + ' us')
+        self.text.setText(str(round(t / 10000, 2)) + ' tts')
+        self.text2.setText(str(round(t / 1000, 2)) + ' us')
 
         if t >= lastT:
             self.doAction()
@@ -354,23 +358,6 @@ class NOCAnim(QWidget):
             return QColor("white")
 
 
-    # def drawRectangles(self, qp):
-    #
-    #     col = QColor(0, 0, 0)
-    #
-    #     col.setNamedColor('#d4d4d4')
-    #     qp.setPen(col)
-    #
-    #     qp.setBrush(QColor(200, 0, 0))
-    #     qp.drawRect(10, 15, 90, 60)
-    #
-    #     qp.setBrush(QColor(255, 80, 0, 160))
-    #     qp.drawRect(130, 15, 90, 60)
-    #
-    #     qp.setBrush(QColor(25, 0, 90, 200))
-    #     qp.drawRect(250, 15, 90, 60)
-
-
 if __name__ == '__main__':
 
     try:
@@ -381,6 +368,8 @@ if __name__ == '__main__':
         parser.add_option ('-i', '--inputfile', help='input file containing the packet trace')
         parser.add_option ('-o', '--outputdir', help='dir to save the plots')
         parser.add_option ('-t', '--timeslotsize', help='time between two refreshes of the animator')
+        parser.add_option ('-x', '--size_x', help='network size', default=0)
+        parser.add_option ('-y', '--size_y', help='network size', default=0)
 
         (options, args) = parser.parse_args()
         #if len(args) < 1:
@@ -389,7 +378,6 @@ if __name__ == '__main__':
 
         app = QApplication(sys.argv)
         ex = NOCAnim()
-
 
         if options.verbose: print (time.asctime())
         if options.verbose: print ('Total execution time (s):')
