@@ -125,7 +125,7 @@ namespace ns3 {
         
 
         
-        static const uint8_t m_headerSize = 9;
+        static const uint8_t m_headerSize = 5;
         
         
         int32_t m_destAddressX;

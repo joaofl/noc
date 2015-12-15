@@ -101,11 +101,11 @@ namespace ns3 {
         
         start.WriteU8(m_protocol);
         
-        start.WriteU16(m_destAddressX);
-        start.WriteU16(m_destAddressY);
+        start.WriteU8(m_destAddressX);
+        start.WriteU8(m_destAddressY);
                         
-        start.WriteU16(m_srcAddressX);        
-        start.WriteU16(m_srcAddressY);        
+        start.WriteU8(m_srcAddressX);        
+        start.WriteU8(m_srcAddressY);        
     }
 
     uint32_t
@@ -116,10 +116,10 @@ namespace ns3 {
 //        m_controlBits = (d & ADDRESS_BITMASK) >> ADDRESS_BITSHIFT;
 //        m_protocol = (d & PROTOCOL_BITMASK) >> PROTOCOL_BITSHIFT;
         
-        m_destAddressX  =  (int16_t) start.ReadU16();
-        m_destAddressY  =  (int16_t) start.ReadU16();
-        m_srcAddressX   =  (int16_t) start.ReadU16();
-        m_srcAddressY   =  (int16_t) start.ReadU16();
+        m_destAddressX  =  (int8_t) start.ReadU8();
+        m_destAddressY  =  (int8_t) start.ReadU8();
+        m_srcAddressX   =  (int8_t) start.ReadU8();
+        m_srcAddressY   =  (int8_t) start.ReadU8();
    
         return m_headerSize;
     }
