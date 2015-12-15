@@ -73,8 +73,9 @@ using namespace ns3;
 
 
 
-ofstream file_packets_trace_router;
+//ofstream file_packets_trace_router;
 ofstream file_packets_trace_netdevice;
+ofstream file_simulation_info;
 
 uint32_t t_slot(){
     //set this to 1 if one wants the start to 
@@ -109,27 +110,27 @@ uint32_t t_slot(){
 }
 
 //context << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
-void
-log_router_packets(string context, Ptr<const Packet> pck) 
-{
-    static uint64_t i = 1;
-    uint64_t now = Simulator::Now().GetNanoSeconds();
-
-    NOCHeader hd;
-    pck->PeekHeader(hd);
-    
-    file_packets_trace_router
-    << "c,"
-    << i << ","
-    << t_slot() << ","
-    << now << ","
-    << pck->GetUid() << ","
-    << context << "," 
-    << "p,";
-    hd.Print(file_packets_trace_router);
-    
-    i++;
-}
+//void
+//log_router_packets(string context, Ptr<const Packet> pck) 
+//{
+//    static uint64_t i = 1;
+//    uint64_t now = Simulator::Now().GetNanoSeconds();
+//
+//    NOCHeader hd;
+//    pck->PeekHeader(hd);
+//    
+//    file_packets_trace_router
+//    << "c,"
+//    << i << ","
+//    << t_slot() << ","
+//    << now << ","
+//    << pck->GetUid() << ","
+//    << context << "," 
+//    << "p,";
+//    hd.Print(file_packets_trace_router);
+//    
+//    i++;
+//}
 
 void
 log_netdevice_packets(string context, Ptr<const Packet> pck) 
@@ -165,14 +166,14 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t sampling_cycles = 10;
-    uint32_t sampling_period = 100000; //at every 100.000.000 ns = 100ms default
-    uint32_t size_x = 21;
-    uint32_t size_y = 21;
+//    uint32_t sampling_cycles = 10;
+//    uint32_t sampling_period = 100000; //at every 100.000.000 ns = 100ms default
+    uint32_t size_x = 51;
+    uint32_t size_y = 51;
     uint32_t size_neighborhood = 5;
     uint32_t sinks_n = 1;
-    uint32_t baudrate = 1500; //10000 kbps =  1,5 Mbps
-    uint32_t operational_mode = 0; //sample the entire network
+    uint32_t baudrate = 1500000; //10000 kbps =  1,5 Mbps
+//    uint32_t operational_mode = 0; //sample the entire network
     
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
@@ -191,7 +192,7 @@ main(int argc, char *argv[]) {
 //    cmd.AddValue("sampling_cycles", "The number of times each node should sample its sensor, and perform data exchange", sampling_cycles);
 //    cmd.AddValue("sampling_period", "The period between each sensor sampling [us]", sampling_period);
 //    cmd.AddValue("log_start_at_period", "The period from witch logging starts", log_start_at_period);
-    cmd.AddValue("baudrate", "The baudrate of the node's communication ports [kbps]", baudrate);
+    cmd.AddValue("baudrate", "The baudrate of the node's communication ports [bps]", baudrate);
     cmd.AddValue("io_data_dir", "Directory with the I/O simulation data", io_data_dir);
 
     cmd.Parse(argc, argv);
@@ -222,7 +223,7 @@ main(int argc, char *argv[]) {
     my_grid_network_helper.SetNetworkAttribute("ChannelCount", 1); //net devices per direction
                                                           //total = n x 4
     
-    my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate * 1000)));
+    my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate)));
     my_grid_network_helper.SetDeviceAttribute("InterframeGap", TimeValue(MilliSeconds(0)));
     my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(true));
     //If the connection is not serial, then the packet size defines the link width,
@@ -260,9 +261,9 @@ main(int argc, char *argv[]) {
         //Setup app
         my_xdense_app->IsSink = false;
         my_xdense_app->MaxHops = size_neighborhood;
-        my_xdense_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
-        my_xdense_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
-        my_xdense_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
+//        my_xdense_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
+//        my_xdense_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
+//        my_xdense_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
         my_xdense_app->SetStartTime(Seconds(0));
 
 
@@ -273,12 +274,12 @@ main(int argc, char *argv[]) {
         my_noc_router->GetAttribute("AddressY", y);
 //        my_noc_router->GetAttribute("UniqueID", i);
         
-        int8_t direction = -1;
+//        int8_t direction = -1;
         ostringstream context_router_rx, context_router_tx, context_router_cx, context_router_gx;
-        context_router_rx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
-        my_noc_router->TraceConnect("RouterRxTrace", context_router_rx.str(), MakeCallback(&log_router_packets));
-        context_router_tx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
-        my_noc_router->TraceConnect("RouterTxTrace", context_router_tx.str(), MakeCallback(&log_router_packets));
+//        context_router_rx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
+//        my_noc_router->TraceConnect("RouterRxTrace", context_router_rx.str(), MakeCallback(&log_router_packets));
+//        context_router_tx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
+//        my_noc_router->TraceConnect("RouterTxTrace", context_router_tx.str(), MakeCallback(&log_router_packets));
         
         
         
@@ -290,6 +291,7 @@ main(int argc, char *argv[]) {
         
         //Setup NetDevice's Callback
         Ptr<NOCNetDevice> my_net_device;
+        int8_t direction;
         for (uint8_t j = 0 ; j < my_noc_router->GetNDevices() ; j++)
         {
             my_net_device = my_noc_router->GetNetDevice(j);
@@ -327,26 +329,33 @@ main(int argc, char *argv[]) {
         uint32_t y = floor((double) size_y / 2);
         uint32_t n = x + y * size_x;
         my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
-        my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
+//        my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
         my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
     }
 
-
-
     //**************** Simulation Setup **************************
 
-    //PacketMetadata::Enable ();
-    //AnimationInterface anim("animation.xml");
     string filename;
-//    filename = dir_output + "packets-trace-router.csv";
-//    
-//    file_packets_trace_router.open(filename.c_str(), ios::out);
+
+    filename = dir_output + "simulation-info.txt";    
+    file_simulation_info.open(filename.c_str(), ios::out);    
+    file_simulation_info
+            << "--size_x=" << size_x
+            << " --size_y=" << size_y
+            << " --size_neighborhood=" << size_neighborhood
+            << " --sinks_n=" << sinks_n
+            << " --baudrate=" << baudrate;
+    file_simulation_info.close();
 
     filename = dir_output + "packets-trace-netdevice.csv";
-    
     file_packets_trace_netdevice.open(filename.c_str(), ios::out);
 
-//    AnimationInterface anim (animation_file);
+//    filename = dir_output + "packets-trace-router.csv";
+//    file_packets_trace_router.open(filename.c_str(), ios::out);
+
+    
+    cout << endl << "Simulation started. Please wait..." << endl ;
+    
 
     Simulator::Stop(Seconds(50));
     Simulator::Run();
@@ -356,14 +365,14 @@ main(int argc, char *argv[]) {
 
     //**************** Output Printing ***************************
 
-    cout << endl << "Simulation complete!" << endl ;
+    cout << "Simulation complete." << endl ;
     
     
-    file_packets_trace_router.close();
+//    file_packets_trace_router.close();
     file_packets_trace_netdevice.close();
     
-//    cout << "Log file created at: '" << filename << "'" << endl;
-    cout << "Log file created at: '" << filename << "'" << endl;
+    
+    cout << "Log files created at: '" << dir_output << "'" << endl;
 
 //    cout << Simulator::Now().GetSeconds();
 
