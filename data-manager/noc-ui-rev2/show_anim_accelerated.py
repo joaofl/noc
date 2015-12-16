@@ -25,6 +25,7 @@ import packet_structure as trace
 from os.path import expanduser
 
 from PyQt5.QtWidgets import * #QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
+from PyQt5 import QtOpenGL
 from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPen
 from PyQt5.QtCore import QTimer, Qt, QRectF
 from collections import namedtuple
@@ -208,10 +209,12 @@ class NOCAnim(QWidget):
         self.text2 = QLabel('0 ns    ', self)
         # self.text.move(590, 10)
         self.text2.setFont( QFont( "Monospace", 12, QFont.Bold) )
+        self.text2.setFont( QFont( "Monospace", 12, QFont.Bold) )
 
         self.scene = QGraphicsScene()
         self.graphics = QGraphicsView()
         self.graphics.setScene(self.scene)
+        self.graphics.setViewport(QtOpenGL.QGLWidget())
 
 
         hbox = QHBoxLayout()
@@ -241,7 +244,7 @@ class NOCAnim(QWidget):
             self.timer.stop()
             self.btn.setText('Start')
         else:
-            self.timer.start(200)
+            self.timer.start(50)
             self.btn.setText('Stop')
 
 

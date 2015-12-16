@@ -146,8 +146,9 @@ namespace ns3 {
 
     bool
     XDenseApp::NetworkSetupReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
+        
         if ((abs(origin_x) % 11 == 0) && (abs(origin_y) % 11 == 0)){
-            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
+            Simulator::Schedule(Time::FromInteger(1000000, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
         }
             
         return false;
