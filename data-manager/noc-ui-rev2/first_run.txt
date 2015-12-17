@@ -6,6 +6,9 @@ sudo -H pip3.4 install numpy
 sudo apt-get install libfreetype6-dev
 sudo -H pip3.4 install matplotlib
 sudo apt-get install libffi-dev
+sudo -H pip3.4 install pyopengl
+
+#Optional
 sudo -H pip3.4 install cairocffi
 sudo apt-get install ffmpeg
 
