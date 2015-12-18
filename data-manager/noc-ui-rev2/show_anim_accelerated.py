@@ -33,36 +33,63 @@ from collections import namedtuple
 
 class Node(QGraphicsItem):
 
-    core_rx, core_tx = 0,0
-    north_rx, north_tx = 0,0
-    south_rx, south_tx = 0,0
-    east_rx, east_tx = 0,0
-    west_rx, west_tx = 0,0
-    x, y = 0, 0
-    x_size, y_size = 0, 0
+    #This should be private
+    __upToDate = False
+
+    __core_rx, __core_tx = 0,0
+    __north_rx, __north_tx = 0,0
+    __south_rx, __south_tx = 0,0
+    __east_rx, __east_tx = 0,0
+    __west_rx, __west_tx = 0,0
+
+    __core_rx_brush, __core_tx_brush = QColor("white"),QColor("white")
+    __north_rx_brush, __north_tx_brush = QColor("white"),QColor("white")
+    __south_rx_brush, __south_tx_brush = QColor("white"),QColor("white")
+    __east_rx_brush, __east_tx_brush = QColor("white"),QColor("white")
+    __west_rx_brush, __west_tx_brush = QColor("white"),QColor("white")
 
     def __init__(self, position, nw_size, node_size, parent = None):
         QGraphicsItem.__init__(self,parent)
         # self.setFlag(QGraphicsItem.ItemIsMovable)
 
-        self.m = node_size / 10
+        self.__m = node_size / 10
 
-        self.x_size, self.y_size = nw_size
-        self.x, self.y = self.translateXY(position)
+        self.__x_size, self.__y_size = nw_size
+        self.__x, self.__y = self.translateXY(position)
 
 
 
     def boundingRect(self):
-        r = QRectF(5 * self.m, 5 * self.m, 5 * self.m, 5 * self.m)
+        r = QRectF(5 * self.__m, 5 * self.__m, 5 * self.__m, 5 * self.__m)
         # r.adjust(self, 1,1,1,1)
         return r
 
     def reset(self):
-        self.core_rx, self.core_tx = 0,0
-        self.north_rx, self.north_tx = 0,0
-        self.south_rx, self.south_tx = 0,0
-        self.east_rx, self.east_tx = 0,0
-        self.west_rx, self.west_tx = 0,0
+        self.setProperty(0,0,0,0,0,0,0,0,0,0)
+
+
+    def setProperty(self, core_rx=None, core_tx=None, north_rx=None, north_tx=None,
+                    south_tx=None, south_rx=None, east_tx=None, east_rx=None, west_rx=None, west_tx=None):
+        if core_rx is not None:
+            if core_rx != self.__core_rx:
+                self.__core_rx = core_rx
+                self.__core_rx_brush = self.valueToColor(core_rx, 'rx')
+                self.__upToDate = False
+        if core_tx is not None:
+            if core_tx != self.__core_tx:
+                self.__core_tx = core_tx
+                self.__core_tx_brush = self.valueToColor(core_tx, 'tx')
+                self.__upToDate = False
+
+
+    def valueToColor(self, v, direction):
+        if v == 1:
+            if direction == 'rx':
+                return QColor("red")
+            elif direction == 'tx':
+                return QColor("blue")
+        elif v == 0:
+            return QColor("white")
 
     def translateXY(self, c):
         # offset_x = (0 * self.m * ((self.x_size - 1) / 1) ) * -1
@@ -76,64 +103,58 @@ class Node(QGraphicsItem):
         # window_y_size = self.geometry().height()
         window_y_size = 0
 
-        x_t = x * self.m * 10 + offset_x
-        y_t = y * self.m * 10 + offset_y
+        x_t = x * self.__m * 10 + offset_x
+        y_t = y * self.__m * 10 + offset_y
 
         return x_t, y_t
 
     def paint(self, qp, QStyleOptionGraphicsItem, QWidget_widget=None):
     # def drawNode(self, qp, x_i, y_i, s, node):
 
-        qp.setBrush(QColor("white"))
+        if self.__upToDate == False:
+            self.__upToDate = True
 
-        # qpen = QPen()
-        # qpen.setColor(QColor("white"))
-        qp.setPen(QColor("lightgrey"))
+            qp.setBrush(QColor("white"))
 
-        # qb = QBrush()
-        # qb.setStyle(Qt.SolidPattern)
+            # qpen = QPen()
+            # qpen.setColor(QColor("white"))
+            qp.setPen(QColor("lightgrey"))
 
-        # qb.setColor()
+            # qb = QBrush()
+            # qb.setStyle(Qt.SolidPattern)
 
-        qp.setBrush(self.valueToColor(self.north_tx, 0))
-        qp.drawRect(self.x + self.m, self.y - 2 * self.m, 2 * self.m, 2 * self.m) #draw netdev north rx e tx
-        qp.setBrush(self.valueToColor(self.north_rx, 1))
-        qp.drawRect(self.x + 3 * self.m, self.y - 2 * self.m, 2 * self.m, 2 * self.m) #draw netdev north rx e tx
+            # qb.setColor()
 
-        qp.setBrush(self.valueToColor(self.south_rx, 1))
-        qp.drawRect(self.x + self.m, self.y + 6 * self.m, 2 * self.m, 2 * self.m) #draw netdev south rx e tx
-        qp.setBrush(self.valueToColor(self.south_tx, 0))
-        qp.drawRect(self.x + 3 * self.m, self.y + 6 * self.m, 2 * self.m, 2 * self.m)
+            qp.setBrush(self.__north_tx_brush)
+            qp.drawRect(self.__x + self.__m, self.__y - 2 * self.__m, 2 * self.__m, 2 * self.__m) #draw netdev north rx e tx
+            qp.setBrush(self.__north_rx_brush)
+            qp.drawRect(self.__x + 3 * self.__m, self.__y - 2 * self.__m, 2 * self.__m, 2 * self.__m) #draw netdev north rx e tx
 
-        qp.setBrush(self.valueToColor(self.west_tx, 0))
-        qp.drawRect(self.x - 2 * self.m, self.y + self.m, 2 * self.m, 2 * self.m) #draw netdev east rx e tx
-        qp.setBrush(self.valueToColor(self.west_rx, 1))
-        qp.drawRect(self.x - 2 * self.m, self.y + 3 * self.m, 2 * self.m, 2 * self.m)
+            qp.setBrush(self.__south_rx_brush)
+            qp.drawRect(self.__x + self.__m, self.__y + 6 * self.__m, 2 * self.__m, 2 * self.__m) #draw netdev south rx e tx
+            qp.setBrush(self.__south_tx_brush)
+            qp.drawRect(self.__x + 3 * self.__m, self.__y + 6 * self.__m, 2 * self.__m, 2 * self.__m)
 
-        qp.setBrush(self.valueToColor(self.east_rx, 1))
-        qp.drawRect(self.x + 6 * self.m, self.y + self.m, 2 * self.m, 2 * self.m) #draw netdev west rx e tx
-        qp.setBrush(self.valueToColor(self.east_tx, 0))
-        qp.drawRect(self.x + 6 * self.m, self.y + 3 * self.m, 2 * self.m, 2 * self.m)
+            qp.setBrush(self.__west_tx_brush)
+            qp.drawRect(self.__x - 2 * self.__m, self.__y + self.__m, 2 * self.__m, 2 * self.__m) #draw netdev east rx e tx
+            qp.setBrush(self.__west_rx_brush)
+            qp.drawRect(self.__x - 2 * self.__m, self.__y + 3 * self.__m, 2 * self.__m, 2 * self.__m)
 
-
-        qp.setPen(QColor("darkgrey"))
-
-        if (self.core_rx == 1):
-            qp.setBrush( self.valueToColor(self.core_rx, 1))
-        if (self.core_tx == 1):
-            qp.setBrush( self.valueToColor(self.core_tx, 0))
-
-        qp.drawRect(self.x, self.y, 6 * self.m, 6 * self.m) #draw the node
+            qp.setBrush(self.__east_rx_brush)
+            qp.drawRect(self.__x + 6 * self.__m, self.__y + self.__m, 2 * self.__m, 2 * self.__m) #draw netdev west rx e tx
+            qp.setBrush(self.__east_tx_brush)
+            qp.drawRect(self.__x + 6 * self.__m, self.__y + 3 * self.__m, 2 * self.__m, 2 * self.__m)
 
 
-    def valueToColor(self, v, direction = 1):
-        if v == 1:
-            if direction == 1:
-                return QColor("red")
-            else:
-                return QColor("blue")
-        elif v == 0:
-            return QColor("white")
+            qp.setPen(QColor("darkgrey"))
+
+            if (self.__core_rx == 1):
+                qp.setBrush( self.__core_rx_brush)
+            if (self.__core_tx == 1):
+                qp.setBrush( self.__core_tx_brush)
+
+            qp.drawRect(self.__x, self.__y, 6 * self.__m, 6 * self.__m) #draw the node
+
 
 
 # class Network(QOpenGLWidget):
@@ -319,7 +340,8 @@ class NOCAnim(QWidget):
 
                 elif current_trans[trace.operation] == 'r':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:
-                        node.north_rx = 1
+                        # node.north_rx = 1
+                        node.setProperty(north_rx=1)
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
                         node.south_rx = 1
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_E:
