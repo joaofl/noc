@@ -57,7 +57,8 @@ class Node(QGraphicsItem):
         self.__x_size, self.__y_size = nw_size
         self.__x, self.__y = self.translateXY(position)
 
-
+    def updateSize(self, size):
+        self.__m = size / 10
 
     def boundingRect(self):
         r = QRectF(5 * self.__m, 5 * self.__m, 5 * self.__m, 5 * self.__m)
@@ -79,6 +80,50 @@ class Node(QGraphicsItem):
             if core_tx != self.__core_tx:
                 self.__core_tx = core_tx
                 self.__core_tx_brush = self.valueToColor(core_tx, 'tx')
+                self.__upToDate = False
+
+        if north_rx is not None:
+            if north_rx != self.__north_rx:
+                self.__north_rx = north_rx
+                self.__north_rx_brush = self.valueToColor(north_rx, 'rx')
+                self.__upToDate = False
+        if north_tx is not None:
+            if north_tx != self.__north_tx:
+                self.__north_tx = north_tx
+                self.__north_tx_brush = self.valueToColor(north_tx, 'tx')
+                self.__upToDate = False
+
+        if south_rx is not None:
+            if south_rx != self.__south_rx:
+                self.__south_rx = south_rx
+                self.__south_rx_brush = self.valueToColor(south_rx, 'rx')
+                self.__upToDate = False
+        if south_tx is not None:
+            if south_tx != self.__south_tx:
+                self.__south_tx = south_tx
+                self.__south_tx_brush = self.valueToColor(south_tx, 'tx')
+                self.__upToDate = False
+
+        if east_rx is not None:
+            if east_rx != self.__east_rx:
+                self.__east_rx = east_rx
+                self.__east_rx_brush = self.valueToColor(east_rx, 'rx')
+                self.__upToDate = False
+        if east_tx is not None:
+            if east_tx != self.__east_tx:
+                self.__east_tx = east_tx
+                self.__east_tx_brush = self.valueToColor(east_tx, 'tx')
+                self.__upToDate = False
+
+        if west_rx is not None:
+            if west_rx != self.__west_rx:
+                self.__west_rx = west_rx
+                self.__west_rx_brush = self.valueToColor(west_rx, 'rx')
+                self.__upToDate = False
+        if west_tx is not None:
+            if west_tx != self.__west_tx:
+                self.__west_tx = west_tx
+                self.__west_tx_brush = self.valueToColor(west_tx, 'tx')
                 self.__upToDate = False
 
 
@@ -111,49 +156,49 @@ class Node(QGraphicsItem):
     def paint(self, qp, QStyleOptionGraphicsItem, QWidget_widget=None):
     # def drawNode(self, qp, x_i, y_i, s, node):
 
-        if self.__upToDate == False:
-            self.__upToDate = True
+        # if self.__upToDate == False:
+            # self.__upToDate = True
 
-            qp.setBrush(QColor("white"))
+        qp.setBrush(QColor("white"))
 
-            # qpen = QPen()
-            # qpen.setColor(QColor("white"))
-            qp.setPen(QColor("lightgrey"))
+        # qpen = QPen()
+        # qpen.setColor(QColor("white"))
+        qp.setPen(QColor("lightgrey"))
 
-            # qb = QBrush()
-            # qb.setStyle(Qt.SolidPattern)
+        # qb = QBrush()
+        # qb.setStyle(Qt.SolidPattern)
 
-            # qb.setColor()
+        # qb.setColor()
 
-            qp.setBrush(self.__north_tx_brush)
-            qp.drawRect(self.__x + self.__m, self.__y - 2 * self.__m, 2 * self.__m, 2 * self.__m) #draw netdev north rx e tx
-            qp.setBrush(self.__north_rx_brush)
-            qp.drawRect(self.__x + 3 * self.__m, self.__y - 2 * self.__m, 2 * self.__m, 2 * self.__m) #draw netdev north rx e tx
+        qp.setBrush(self.__north_tx_brush)
+        qp.drawRect(self.__x + self.__m, self.__y - 2 * self.__m, 2 * self.__m, 2 * self.__m) #draw netdev north rx e tx
+        qp.setBrush(self.__north_rx_brush)
+        qp.drawRect(self.__x + 3 * self.__m, self.__y - 2 * self.__m, 2 * self.__m, 2 * self.__m) #draw netdev north rx e tx
 
-            qp.setBrush(self.__south_rx_brush)
-            qp.drawRect(self.__x + self.__m, self.__y + 6 * self.__m, 2 * self.__m, 2 * self.__m) #draw netdev south rx e tx
-            qp.setBrush(self.__south_tx_brush)
-            qp.drawRect(self.__x + 3 * self.__m, self.__y + 6 * self.__m, 2 * self.__m, 2 * self.__m)
+        qp.setBrush(self.__south_rx_brush)
+        qp.drawRect(self.__x + self.__m, self.__y + 6 * self.__m, 2 * self.__m, 2 * self.__m) #draw netdev south rx e tx
+        qp.setBrush(self.__south_tx_brush)
+        qp.drawRect(self.__x + 3 * self.__m, self.__y + 6 * self.__m, 2 * self.__m, 2 * self.__m)
 
-            qp.setBrush(self.__west_tx_brush)
-            qp.drawRect(self.__x - 2 * self.__m, self.__y + self.__m, 2 * self.__m, 2 * self.__m) #draw netdev east rx e tx
-            qp.setBrush(self.__west_rx_brush)
-            qp.drawRect(self.__x - 2 * self.__m, self.__y + 3 * self.__m, 2 * self.__m, 2 * self.__m)
+        qp.setBrush(self.__west_tx_brush)
+        qp.drawRect(self.__x - 2 * self.__m, self.__y + self.__m, 2 * self.__m, 2 * self.__m) #draw netdev east rx e tx
+        qp.setBrush(self.__west_rx_brush)
+        qp.drawRect(self.__x - 2 * self.__m, self.__y + 3 * self.__m, 2 * self.__m, 2 * self.__m)
 
-            qp.setBrush(self.__east_rx_brush)
-            qp.drawRect(self.__x + 6 * self.__m, self.__y + self.__m, 2 * self.__m, 2 * self.__m) #draw netdev west rx e tx
-            qp.setBrush(self.__east_tx_brush)
-            qp.drawRect(self.__x + 6 * self.__m, self.__y + 3 * self.__m, 2 * self.__m, 2 * self.__m)
+        qp.setBrush(self.__east_rx_brush)
+        qp.drawRect(self.__x + 6 * self.__m, self.__y + self.__m, 2 * self.__m, 2 * self.__m) #draw netdev west rx e tx
+        qp.setBrush(self.__east_tx_brush)
+        qp.drawRect(self.__x + 6 * self.__m, self.__y + 3 * self.__m, 2 * self.__m, 2 * self.__m)
 
 
-            qp.setPen(QColor("darkgrey"))
+        qp.setPen(QColor("darkgrey"))
 
-            if (self.__core_rx == 1):
-                qp.setBrush( self.__core_rx_brush)
-            if (self.__core_tx == 1):
-                qp.setBrush( self.__core_tx_brush)
+        if (self.__core_rx == 1):
+            qp.setBrush( self.__core_rx_brush)
+        if (self.__core_tx == 1):
+            qp.setBrush( self.__core_tx_brush)
 
-            qp.drawRect(self.__x, self.__y, 6 * self.__m, 6 * self.__m) #draw the node
+        qp.drawRect(self.__x, self.__y, 6 * self.__m, 6 * self.__m) #draw the node
 
 
 
@@ -193,19 +238,31 @@ class NOCAnim(QWidget):
 
         self.tb_time_ns = QLabel('0 ns    ', self)
         self.tb_time_ns.setFont(QFont("Monospace", 12, QFont.Bold))
-        self.tb_time_ns.setFont(QFont("Monospace", 12, QFont.Bold))
+
+        self.tb_zoom = QLabel('1.0x', self)
+        self.tb_zoom.setFont(QFont("Monospace", 10, QFont.Bold))
 
         self.zoom_slider = QSlider(Qt.Horizontal)
-        self.zoom_slider.setRange(5,20)
-        self.zoom_slider.setTickInterval(0.1)
+        self.zoom_slider.setRange(0,100)
+        self.zoom_slider.setTickInterval(1)
         self.zoom_slider.valueChanged.connect(self.doZoom)
 
+        self.tb_refresh = QLabel('50ms', self)
+        self.tb_refresh.setFont(QFont("Monospace", 10, QFont.Bold))
+
+        self.refresh_slider = QSlider(Qt.Horizontal)
+        self.refresh_slider.setRange(0,100)
+        self.refresh_slider.setTickInterval(1)
+        self.refresh_slider.valueChanged.connect(self.doChangeRefreshRate)
+
+
         self.graphics = QGraphicsView()
-        self.graphics.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.graphics.verticalScrollBar().setSingleStep(1)
-        self.graphics.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.graphics.horizontalScrollBar().setSingleStep(1)
-        # self.graphics.setViewport(QGLWidget())
+        # self.graphics.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        # self.graphics.verticalScrollBar().setSingleStep(1)
+        # self.graphics.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        # self.graphics.horizontalScrollBar().setSingleStep(1)
+        self.graphics.setViewport(QGLWidget())
+        self.graphics.resize(100,100)
 
         self.scene = QGraphicsScene()
         self.graphics.setScene(self.scene)
@@ -220,12 +277,20 @@ class NOCAnim(QWidget):
         hbox_l1.addWidget(self.tb_time_ns)
 
         hbox_l2 = QHBoxLayout()
+        hbox_l2.addStretch(1)
+        hbox_l2.addWidget(self.tb_zoom)
         hbox_l2.addWidget(self.zoom_slider)
+        hbox_l2.addSpacing(1)
+        hbox_l2.addWidget(self.tb_refresh)
+        hbox_l2.addWidget(self.refresh_slider)
+
 
         vbox = QVBoxLayout()
         vbox.addLayout(hbox_l1)
         vbox.addLayout(hbox_l2)
         vbox.addWidget(self.graphics)
+
+
 
 
         self.setLayout(vbox)
@@ -270,21 +335,40 @@ class NOCAnim(QWidget):
         #initialize data
         self.network = [[Node] * self.networkSize[0] for i in range(self.networkSize[1])]
 
-        self.node_s = 15
+        self.nodes_size = 12
+
+        self.node_refresh_rate = 50
+        self.zoom_rate = 0.5
 
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
-                n = Node([x,y], self.networkSize, node_size=self.node_s)
+                n = Node([x,y], self.networkSize, node_size=self.nodes_size)
                 self.network[y][x] = n
                 self.scene.addItem(n)
 
-        self.scene.setSceneRect(QRectF(0,0, (self.networkSize[0]-1) * self.node_s,  (self.networkSize[1]-1) * self.node_s))
+        self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]-1) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size))
 
         self.step_enable = False
         self.step = 0
 
     def doZoom(self):
-        self.node_s = self.zoom_slider.value()
+        range = [5, 20]
+        v = self.zoom_slider.value()
+        self.zoom_rate = round((v * range[1] / 100) + range[0], 1)
+        self.tb_zoom.setText(str(self.zoom_rate)+'x')
+
+        self.nodes_size = self.zoom_rate
+        # self.update()
+        # self.graphics.scale(self.zoom_rate,self.zoom_rate)
+        # self.graphics.resize(100,100)
+        # self.graphics.setma
+        #
+    def doChangeRefreshRate(self):
+        range = [50, 2000]
+        v = self.refresh_slider.value()
+        self.node_refresh_rate = round((v * range[1] / 100) + range[0], 1)
+        self.tb_refresh.setText(str(self.node_refresh_rate) + 'ms')
+        self.timer.setInterval(self.node_refresh_rate)
         # self.graphics.setma
 
 
@@ -294,7 +378,7 @@ class NOCAnim(QWidget):
             self.timer.stop()
             self.btn.setText('Start')
         else:
-            self.timer.start(50)
+            self.timer.start(self.node_refresh_rate)
             self.btn.setText('Stop')
 
 
@@ -314,6 +398,7 @@ class NOCAnim(QWidget):
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
                 self.network[y][x].reset()
+                self.network[y][x].updateSize(self.nodes_size)
 
     def timerEvent(self):
         lastT = int (self.packetTrace[-1][trace.time])
@@ -334,33 +419,33 @@ class NOCAnim(QWidget):
                 node = self.network[y][x]
 
                 if current_trans[trace.operation] == 'c':
-                    node.core_rx = 1
+                    node.setProperty(core_rx = 1)
                 elif current_trans[trace.operation] == 'g':
-                    node.core_tx = 1
+                    node.setProperty(core_tx = 1)
 
                 elif current_trans[trace.operation] == 'r':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:
                         # node.north_rx = 1
                         node.setProperty(north_rx=1)
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
-                        node.south_rx = 1
+                        node.setProperty(south_rx = 1)
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_E:
-                        node.east_rx = 1
+                        node.setProperty(east_rx = 1)
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
-                        node.west_rx = 1
+                        node.setProperty(west_rx = 1)
 
                 elif current_trans[trace.operation] == 't':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:
-                        node.north_tx = 1
+                        node.setProperty(north_tx = 1)
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
-                        node.south_tx = 1
+                        node.setProperty(south_tx = 1)
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_E:
-                        node.east_tx = 1
+                        node.setProperty(east_tx = 1)
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
-                        node.west_tx = 1
+                        node.setProperty(west_tx = 1)
 
             else:
-                self.t_next = int(current_trans[trace.time]) + self.packetDuration * 0.3
+                self.t_next = int(current_trans[trace.time]) + self.packetDuration * 0.6
                 break
 
 
@@ -377,8 +462,8 @@ class NOCAnim(QWidget):
             self.doAction()
 
         # self.graphics.update()
-        self.update()
         self.scene.update()
+        self.update()
 
 
 

@@ -141,8 +141,8 @@ class NOCAnim(QWidget):
 
         vbox = QVBoxLayout()
         vbox.addLayout(hbox)
-        vbox.addStretch(1)
-        # vbox.addWidget(self.graphics)
+        # vbox.addStretch(1)
+        vbox.addWidget(self.graphics)
 
         self.setLayout(vbox)
 
