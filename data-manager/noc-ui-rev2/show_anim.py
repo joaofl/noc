@@ -24,13 +24,14 @@ import files_io
 import packet_structure as trace
 from os.path import expanduser
 
+from PyQt5 import QtOpenGL
 from PyQt5.QtWidgets import * #QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
 from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPen
 from PyQt5.QtCore import QTimer, Qt
 from collections import namedtuple
 
 
-class NOCAnim(QWidget):
+class NOCAnim(QtOpenGL.QGLWidget):
 
     # nodesData = []
     # networkSize = [0,0]
@@ -128,8 +129,6 @@ class NOCAnim(QWidget):
         self.text2 = QLabel('0 ns    ', self)
         # self.text.move(590, 10)
         self.text2.setFont( QFont( "Monospace", 12, QFont.Bold) )
-
-        self.graphics = QGraphicsView()
 
         hbox = QHBoxLayout()
         hbox.addWidget(self.btn)
