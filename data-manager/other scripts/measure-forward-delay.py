@@ -12,14 +12,19 @@ import numpy as np
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
+def print_progress(i, n_samples):
+    print(str(round(((i/n_samples)*100),2)) + '% ')
+
 
 # measurement loop
-n_samples = 10
-br = 1500000
-context = 'fpga-'
+n_samples = 100000
+br = 3000000
+context = 'uc-'
 measurements = []
+pck = [0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02]
 # a = random.random
-fn = 'relay-delay-' + context + str(n_samples/1000) + 'ks@' + str(br/1000000) + 'Mbps' + '.data'
+output_dir = '/home/joao/noc-data/hw-measurements/'
+fn = output_dir + 'relay-delay-' + context + str(n_samples/1000) + 'ks@' + str(br/1000000) + 'Mbps' + '.data'
 
 #connect to FPGA serial
 serial_port = serial.Serial(port='/dev/ttyUSB0', baudrate=br)
@@ -36,32 +41,54 @@ if connect_rigol == True:
     print('Equipament found: '+ str(inf))
 
 
-for i in range(n_samples):
 
-    serial_port.write(('0000000000000000').encode('ascii'))
+i = 0
+while i < n_samples:
+
+    serial_port.write(pck)
 
     if connect_rigol == True:
         try:
-            sleep(0.5)
-            d1 = instr.ask(':MEASURE:PDELAY? CHAN1')
+            sleep_time = 0.5 + random.randint(0,50) / 100
+            sleep(sleep_time)
+            # d1 = instr.ask(':MEASURE:PDELAY? CHAN1')
+            d1 = instr.ask(':MEASURE:NDELAY? CHAN1')
             sleep(.1)
             instr.write(':KEY:RUN')
+            #Try to convert
             fd1 = float(d1)
+            #Continues if it is a valid value
             measurements.append(fd1)
-            progress = round(((i/n_samples)*100),2)
-            print(str(progress) + '% o:' + str(d1) + ' c:' + str(fd1))
+            print_progress(i, n_samples)
+            print('o:' + str(d1) + ' c:' + str(fd1))
+            i += 1
             sleep(.1)
 
-            if i % 20 == 0: #save the file every 10 cycles
+
+            if i % 20 == 0: #save the file every X cycles
                 pickle.dump(measurements, open( fn, 'wb' ))
                 print('File ' + fn + ' updated')
         except:
-            print('Failed to convert ' + str(d1))
-            sleep(2)
+            sleep(.1)
+            sd1 = str(d1)
+            if (sd1[2] == '<'):
+                d1 = d1[1:-1]
+                fd1 = float(d1)
+                print_progress(i, n_samples)
+                print('Below range of measurement ' + sd1 + '. Value stored was ' + str(fd1))
+                measurements.append(fd1)
+                i += 1
+
+            else:
+                print('Failed to convert ' + sd1)
+                sleep(2)
+
 
 
     # sleep(0.1) #seconds
 
+pickle.dump(measurements, open( fn, 'wb' ))
+print('File ' + fn + ' updated')
 
 if connect_rigol == True:
     instr.write(':KEY:LOCK DIS')
