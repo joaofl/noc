@@ -17,23 +17,23 @@ def print_progress(i, n_samples):
 
 
 # measurement loop
-n_samples = 5
+n_samples = 10000
 br = 3000000
-context = 'relay-delay-fpga-'
+context = 'relay-delay-uc-delay-until-1ms'
 measurements = []
 
 #10 bits per byte @ 3Mbps
 pck_duration_t = (16*10)/3e6 #theoretical
-pck_duration_m = 53.3e-6 #measured
+pck_duration_m = 533e-7 #measured
 
 
 pck = [0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02]
 # a = random.random
 output_dir = '/home/joao/noc-data/hw-measurements/'
-fn = output_dir + context + str(n_samples/1000) + 'ks@' + str(br/1000000) + 'Mbps' + '.data'
+fn = output_dir + context + '-' + str(n_samples/1000) + 'ks@' + str(br/1000000) + 'Mbps' + '.data'
 
 #connect to FPGA serial
-serial_port = serial.Serial(port='/dev/ttyUSB0', baudrate=br, stopbits=1, parity='None')
+serial_port = serial.Serial(port='/dev/ttyUSB0', baudrate=br)
 print('Connected = ' + str(serial_port.isOpen()))
 
 
