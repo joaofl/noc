@@ -17,17 +17,23 @@ def print_progress(i, n_samples):
 
 
 # measurement loop
-n_samples = 100000
+n_samples = 5
 br = 3000000
-context = 'uc-'
+context = 'relay-delay-fpga-'
 measurements = []
+
+#10 bits per byte @ 3Mbps
+pck_duration_t = (16*10)/3e6 #theoretical
+pck_duration_m = 53.3e-6 #measured
+
+
 pck = [0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02]
 # a = random.random
 output_dir = '/home/joao/noc-data/hw-measurements/'
-fn = output_dir + 'relay-delay-' + context + str(n_samples/1000) + 'ks@' + str(br/1000000) + 'Mbps' + '.data'
+fn = output_dir + context + str(n_samples/1000) + 'ks@' + str(br/1000000) + 'Mbps' + '.data'
 
 #connect to FPGA serial
-serial_port = serial.Serial(port='/dev/ttyUSB0', baudrate=br)
+serial_port = serial.Serial(port='/dev/ttyUSB0', baudrate=br, stopbits=1, parity='None')
 print('Connected = ' + str(serial_port.isOpen()))
 
 
@@ -51,12 +57,13 @@ while i < n_samples:
         try:
             sleep_time = 0.5 + random.randint(0,50) / 100
             sleep(sleep_time)
-            # d1 = instr.ask(':MEASURE:PDELAY? CHAN1')
-            d1 = instr.ask(':MEASURE:NDELAY? CHAN1')
+            d1 = instr.ask(':MEASURE:PDELAY? CHAN1')
+            # d1 = instr.ask(':MEASURE:NDELAY? CHAN1')
             sleep(.1)
             instr.write(':KEY:RUN')
             #Try to convert
             fd1 = float(d1)
+            fd1 = fd1 - pck_duration_m
             #Continues if it is a valid value
             measurements.append(fd1)
             print_progress(i, n_samples)
@@ -81,7 +88,7 @@ while i < n_samples:
 
             else:
                 print('Failed to convert ' + sd1)
-                sleep(2)
+                # sleep(2)
 
 
 
