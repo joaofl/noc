@@ -7,11 +7,19 @@ import serial
 import time
 import numpy
 import matplotlib.pyplot as plot
+import pickle
+
+
+context = 'raw-data-uc-delay-until-1ms'
+output_dir = '/home/joao/noc-data/hw-measurements/'
+fn1 = output_dir + context + '-ch1.data'
+fn2 = output_dir + context + '-ch2.data'
+
 
 # initialise device
 instr =  serialtmc.instrument() # Rigol DS1102CD
 
-instr.connect('/dev/ttyUSB1', 38400)
+instr.connect('/dev/ttyUSB1', 9600)
 
 inf = instr.ask('*IDN?')
 print('Equipament found: '+ str(inf))
@@ -25,9 +33,15 @@ print('Equipament found: '+ str(inf))
 #instr.write(":WAV:POIN:MODE NOR")
 
 
-rawdata = instr.ask_raw(":WAV:DATA? CHAN1",1024)[10:]
-rawdata2 = instr.ask_raw(":WAV:DATA? CHAN2",1024)[10:]# first ten bytes are header, so skip
+rawdata = instr.ask_raw(":WAV:DATA? CHAN1",1024)
+rawdata2 = instr.ask_raw(":WAV:DATA? CHAN2",1024)# first ten bytes are header, so skip
 data_size = len(rawdata)
+
+pickle.dump(rawdata, open( fn1, 'wb' ))
+pickle.dump(rawdata2, open( fn2, 'wb' ))
+
+rawdata = rawdata[10:]
+rawdata2 = rawdata2[10:]
 #
 # get metadata
 frequency = float(instr.ask_raw(':MEASure:FREQuency? CHAN2'))
