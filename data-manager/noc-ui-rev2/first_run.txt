@@ -6,14 +6,16 @@ sudo -H pip3.4 install numpy
 sudo apt-get install libfreetype6-dev
 sudo -H pip3.4 install matplotlib
 sudo apt-get install libffi-dev
-sudo -H pip3.4 install pyopengl
+
 
 #Optional
 sudo -H pip3.4 install cairocffi
 sudo apt-get install ffmpeg
+sudo -H pip3.4 install pyopengl
 
 #To run the netanim
-#Download sip
+
+#Depends on: sip
 wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.17/sip-4.17.tar.gz
 tar xzf sip-4.17.tar.gz
 cd sip-4.17
@@ -31,3 +33,7 @@ python3.4 configure.py
 make
 sudo make install
 cd ..
+
+#Optional for statistics - scipy
+$ sudo apt-get install libatlas-base-dev gfortran
+sudo -H pip3.4 install scipy
