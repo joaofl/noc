@@ -1,6 +1,10 @@
 import pickle
+
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import lognorm
+
+
 
 dir = '/home/joao/noc-data/hw-measurements/'
 # file_in = 'relay-delay-uc-light-sensor-noled10.0ks@3.0Mbps.data'
@@ -9,9 +13,9 @@ file_in = 'relay-delay-uc-delay-until-1ms-10.0ks@3.0Mbps.data'
 # file_in = 'relay-delay-fpga-10.0ks@3.0Mbps.data'
 file_out = file_in + '.eps'
 
-d = pickle.load(open(dir + file_in, 'rb'))
+d_in = pickle.load(open(dir + file_in, 'rb'))
 
-print ('Total of ' + str(len(d)) + ' samples.')
+print ('Total of ' + str(len(d_in)) + ' samples.')
 
 # Filter
 # r = 1e09
@@ -20,73 +24,113 @@ print ('Total of ' + str(len(d)) + ' samples.')
 #     d[i] = round(d[i], 0)/r
 
 
-d[:] = [x*1000000 for x in d] #in us
+
+d = [x*1000000 for x in d_in] #in us
 d_max = max(d)
 d_min = min(d)
 d_count = len(d)  # d = d_count
 
+np.savetxt(dir + file_in + '.csv', d, delimiter=',')
+
 weights = np.ones_like(d)/len(d)
 
-plt.figure('', figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
-plt.hist(d, 20, facecolor='green',weights=weights, alpha=0.9, normed=0)
+# plt.figure('', figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
+# plt.grid(True)
+# plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+# plt.xlabel('Forward Delay ($\mu$s)')
+# plt.ylabel('Normalized Density')
 
-plt.grid(True)
 
+fig, ax = plt.subplots(1, 1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
+ax.grid(True)
+fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+# fig.xlabel('Forward Delay ($\mu$s)')
+# fig.ylabel('Normalized Density')
+
+# ax.hist(d, 30, facecolor='green', alpha=0.5, normed=0, weights=weights)
+ax.hist(d, 30, facecolor='green', alpha=0.5, normed=1,cumulative=0, log=0)
+#
+# d.sort(reverse=True)
+x = np.linspace(d_min,d_max, d_count)
+
+# ax.plot(x, d)
+
+param = lognorm.fit(d)
+y = lognorm.pdf(x, param[0], param[1])
+ax.plot(x,y, color='darkgreen')
+
+# f = fitter(d)
+# f.fit()
+#
+# print(f.summary())
 # plt.gca().get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 # plt.gca().get_xaxis().get_major_formatter().set_powerlimits((0, 0))
 
-plt.xlabel('Forward Delay ($\mu$s)')
-plt.ylabel('Normalized Density')
+
+
+
 
 # plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
-plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+
 plt.savefig(dir + file_out)
 plt.show()
 
 
 
 
-from scipy.stats import expon
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots(1, 1)
+#####################################
 
-# Calculate a few first moments:
-# >>>
 
-mean, var, skew, kurt = expon.stats(moments='mvsk')
+# x = np.linspace(0,1000, 1001)
+# # x = np.linspace(expon.ppf(0.01), expon.ppf(0.99), 100)
+# param = expon.fit(d)
+# y = expon.pdf(x, param[0], param[1])
+# plt.plot(x, y)
+# plt.show()
 
-# Display the probability density function (pdf):
-# >>>
+# fig, ax = plt.subplots(1, 1)
 
-# x = np.linspace(expon.ppf(0.01), expon.ppf(0.99), 100)
-x = d
-ax.plot(x, expon.pdf(x), 'r-', lw=5, alpha=0.6, label='expon pdf')
-
-# Alternatively, freeze the distribution and display the frozen pdf:
-# >>>
-
-rv = expon()
-ax.plot(x, rv.pdf(x), 'k-', lw=2, label='frozen pdf')
-
-# Check accuracy of cdf and ppf:
-# >>>
-
-vals = expon.ppf([0.001, 0.5, 0.999])
-np.allclose([0.001, 0.5, 0.999], expon.cdf(vals))
-True
-
-# Generate random numbers:
-# >>>
-
-# r = expon.rvs(size=1000)
-r=d
-
-# And compare the histogram:
-# >>>
-
-ax.hist(r, normed=False, histtype='stepfilled', alpha=0.2)
-ax.legend(loc='best', frameon=False)
-plt.show()
+# fig, ax = plt.subplots(1, 1)
+#
+# # Calculate a few first moments:
+# # >>>
+#
+# param = expon.fit(d)
+#
+# mean, var, skew, kurt = expon.stats(moments='mvsk')
+#
+# # Display the probability density function (pdf):
+# # >>>
+#
+# # x = np.linspace(expon.ppf(0.01), expon.ppf(0.99), 100)
+# x = d
+# ax.plot(x, expon.pdf(x), 'r-', lw=5, alpha=0.6, label='expon pdf')
+#
+# # Alternatively, freeze the distribution and display the frozen pdf:
+# # >>>
+#
+# rv = expon()
+# ax.plot(x, rv.pdf(x), 'k-', lw=2, label='frozen pdf')
+#
+# # Check accuracy of cdf and ppf:
+# # >>>
+#
+# vals = expon.ppf([0.001, 0.5, 0.999])
+# np.allclose([0.001, 0.5, 0.999], expon.cdf(vals))
+# True
+#
+# # Generate random numbers:
+# # >>>
+#
+# # r = expon.rvs(size=1000)
+# r=d
+#
+# # And compare the histogram:
+# # >>>
+#
+# ax.hist(r, normed=False, histtype='stepfilled', alpha=0.2)
+# ax.legend(loc='best', frameon=False)
+# plt.show()
 
 
 # vs(loc=0, scale=1, size=1) 	Random variates.
