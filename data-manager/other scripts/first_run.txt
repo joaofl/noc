@@ -2,10 +2,12 @@
 sudo apt-get install python3.4-dev
 wget https://bootstrap.pypa.io/get-pip.py
 sudo python3.4 get-pip.py
-sudo -H pip3.4 install numpy
+sudo apt-get install cython git
+sudo -H pip3.4 install git+https://github.com/numpy/numpy.git
 sudo apt-get install libfreetype6-dev
 sudo -H pip3.4 install matplotlib
 sudo apt-get install libffi-dev
+
 
 
 #Optional
