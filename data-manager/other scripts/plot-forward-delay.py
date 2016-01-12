@@ -9,19 +9,13 @@ from scipy.stats import burr, pareto, invgamma, uniform
 dir = '/home/joao/noc-data/hw-measurements/'
 # file_in = 'relay-delay-uc-light-sensor-noled10.0ks@3.0Mbps.data'
 # file_in = 'relay-delay-fpga-100.0ks@1.5Mbps.data'
-file_in = 'relay-delay-uc-delay-until-1ms-10.0ks@3.0Mbps.data'
-# file_in = 'relay-delay-fpga-10.0ks@3.0Mbps.data'
+# file_in = 'relay-delay-uc-delay-until-1ms-10.0ks@3.0Mbps.data'
+file_in = 'relay-delay-fpga-10.0ks@3.0Mbps.data'
 file_out = file_in + '.eps'
 
 d_in = pickle.load(open(dir + file_in, 'rb'))
 
 print ('Total of ' + str(len(d_in)) + ' samples.')
-
-# Filter
-# r = 1e09
-# for i in range(len(d)):
-#     d[i] = d[i]*r
-#     d[i] = round(d[i], 0)/r
 
 
 
@@ -54,9 +48,14 @@ x = np.linspace(d_min,d_max, d_count)
 # k = 0.0214833
 
 
-param = burr.fit(d)
-y = burr.cdf(x, param[0], param[1])
-ax.plot(x,y,'r--', color='darkred', label='Burr distribution fit')
+# param = burr.fit(d)
+# y = burr.cdf(x, param[0], param[1])
+# ax.plot(x,y,'r--', color='darkred', label='Burr distribution fit')
+
+param = uniform.fit(d)
+# y = uniform.pdf(x, param[0], param[1])
+y = uniform.cdf(x, param[0], param[1])
+ax.plot(x,y,'r--', color='darkred', label='Uniform distribution fit')
 
 
 
@@ -69,7 +68,7 @@ ax.plot(x,y,'r--', color='darkred', label='Burr distribution fit')
 
 # plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
 
-ax.legend(loc='lower right', frameon=True, prop={'size':12})
+ax.legend(loc='upper left', frameon=True, prop={'size':12})
 fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
 plt.savefig(dir + file_out)
 plt.show()
