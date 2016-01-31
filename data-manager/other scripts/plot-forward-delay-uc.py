@@ -9,22 +9,24 @@ from scipy.stats import burr, pareto, invgamma, uniform, norm, dgamma
 dir = '/home/joao/noc-data/hw-measurements/'
 # file_in = 'relay-delay-uc-light-sensor-noled10.0ks@3.0Mbps.data'
 # file_in = 'relay-delay-fpga-100.0ks@1.5Mbps.data'
-file_in = 'relay-delay-uc-longtimeout-10.0ks@3.0Mbps.data'
+# file_in = 'relay-delay-uc-longtimeout-10.0ks@3.0Mbps.data'
+# file_in = 'relay-delay-uc-high-uart-irq-fine-100.0ks@3.0Mbps.data'
 # file_in = 'relay-delay-fpga-10.0ks@3.0Mbps.data'
+file_in = 'relay-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data'
 
 
-d_in = pickle.load(open(dir + file_in, 'rb'))
+din = pickle.load(open(dir + file_in, 'rb'))
 
 
-din = [x*1000000 for x in d_in] #in us
+din[:] = [x*1000000 for x in din] #in us
 
+d=[]
 
-filter = False
-if filter:
-    d=[]
+filter = True
+if filter: #remove outliers
     i=0
     while i < len(din) - 1:
-        if din[i] < 200:
+        if din[i] > 85 and din[i] < 104:
             d.append(din[i])
         i += 1
 else:
@@ -52,8 +54,9 @@ ax.set_ylabel('Cumulative Density')
 # ax.grid(True)
 
 ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
+# ax.hist(d, bins=100, facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
 
-x = np.linspace(d_min,d_max, d_count)
+x = np.linspace(d_min, d_max, d_count)
 
 # param = burr.fit(d,1,2)
 # y = burr.cdf(x, param[0], param[1])
@@ -63,13 +66,13 @@ x = np.linspace(d_min,d_max, d_count)
 # y = burr.cdf(x, param[0], param[1])
 # ax.plot(x,y,'r--', color='red', label='Burr distribution fit')
 
-param = dgamma.fit(d)
-y = dgamma.cdf(x, param[0])
-ax.plot(x,y,'r--', color='brown', label='DGamma distribution fit')
-
-param_norm = norm.fit(d)
-y_norm = norm.cdf(x, param_norm[0])
-ax.plot(x, y_norm,'r--', color='brown', label='Pareto distribution fit')
+# param = dgamma.fit(d)
+# y = dgamma.cdf(x, param[0])
+# ax.plot(x,y,'r--', color='brown', label='DGamma distribution fit')
+#
+param_norm = uniform.fit(d)
+y_norm = uniform.cdf(x, param_norm[0], param_norm[1])
+ax.plot(x, y_norm,'r--', color='brown', label='Uniform distribution fit')
 
 
 # plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
@@ -88,6 +91,7 @@ ax.set_ylabel('Normalized Density')
 # ax.grid(True)
 
 ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
+# ax.hist(d, bins=20, facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
 
 x = np.linspace(d_min,d_max, d_count)
 
@@ -99,13 +103,13 @@ x = np.linspace(d_min,d_max, d_count)
 # y = pareto.pdf(x, param[0])
 # ax.plot(x,y,'r--', color='brown', label='Pareto distribution fit')
 
-param = dgamma.fit(d)
-y = dgamma.pdf(x, param[0])
-ax.plot(x,y,'r--', color='brown', label='DGamma distribution fit')
-
-param_norm = norm.fit(d)
-y_norm = norm.pdf(x, param_norm[0])
-ax.plot(x,y_norm,'r--', color='brown', label='Pareto distribution fit')
+# param = dgamma.fit(d)
+# y = dgamma.pdf(x, param[0])
+# ax.plot(x,y,'r--', color='brown', label='DGamma distribution fit')
+#
+param_norm = uniform.fit(d)
+y_norm = uniform.pdf(x, param_norm[0], param_norm[1])
+ax.plot(x,y_norm,'r--', color='brown', label='Uniform distribution fit')
 
 # plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
 
