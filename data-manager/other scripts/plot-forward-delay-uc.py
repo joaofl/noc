@@ -2,15 +2,14 @@ import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.stats import burr, pareto, invgamma, uniform, norm, dgamma
+from pyqt_fit import kde
+from scipy.stats import burr, pareto, invgamma, uniform, norm, dgamma, gaussian_kde
+
 
 
 
 dir = '/home/joao/noc-data/hw-measurements/'
-# file_in = 'relay-delay-uc-light-sensor-noled10.0ks@3.0Mbps.data'
-# file_in = 'relay-delay-fpga-100.0ks@1.5Mbps.data'
-# file_in = 'relay-delay-uc-longtimeout-10.0ks@3.0Mbps.data'
-# file_in = 'relay-delay-uc-high-uart-irq-fine-100.0ks@3.0Mbps.data'
+
 # file_in = 'relay-delay-fpga-10.0ks@3.0Mbps.data'
 file_in = 'relay-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data'
 
@@ -18,7 +17,12 @@ file_in = 'relay-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data'
 din = pickle.load(open(dir + file_in, 'rb'))
 
 
-din[:] = [x*1000000 for x in din] #in us
+#10 bits per byte @ 3Mbps
+pck_duration_t = 0 #when it is not measured
+pck_duration_t = 53.3e-6 #theoretical
+# pck_duration_m = 533e-7 #measured
+
+din[:] = [(x - pck_duration_t)*1000000 for x in din] #in us
 
 d=[]
 
@@ -26,7 +30,7 @@ filter = True
 if filter: #remove outliers
     i=0
     while i < len(din) - 1:
-        if din[i] > 85 and din[i] < 104:
+        if din[i] > 0 and din[i] < 51:
             d.append(din[i])
         i += 1
 else:
@@ -45,44 +49,8 @@ print ('Mean measured: ' + str(d_mean))
 print ('Max measured: ' + str(d_max))
 
 np.savetxt(dir + file_in + '.csv', d, delimiter=',')
-
 ####################
 
-fig, ax = plt.subplots(1, 1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
-ax.set_xlabel('Forward Delay ($\mu s$)')
-ax.set_ylabel('Cumulative Density')
-# ax.grid(True)
-
-ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
-# ax.hist(d, bins=100, facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
-
-x = np.linspace(d_min, d_max, d_count)
-
-# param = burr.fit(d,1,2)
-# y = burr.cdf(x, param[0], param[1])
-# ax.plot(x,y,'r--', color='darkred', label='Burr distribution fit custom')
-#
-# param = burr.fit(d)
-# y = burr.cdf(x, param[0], param[1])
-# ax.plot(x,y,'r--', color='red', label='Burr distribution fit')
-
-# param = dgamma.fit(d)
-# y = dgamma.cdf(x, param[0])
-# ax.plot(x,y,'r--', color='brown', label='DGamma distribution fit')
-#
-param_norm = uniform.fit(d)
-y_norm = uniform.cdf(x, param_norm[0], param_norm[1])
-ax.plot(x, y_norm,'r--', color='brown', label='Uniform distribution fit')
-
-
-# plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
-
-ax.legend(loc='lower right', frameon=True, prop={'size':12})
-fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-file_out = file_in + '-cdf.eps'
-plt.savefig(dir + file_out)
-
-##########Do it again for the other plot
 
 
 fig, ax = plt.subplots(1, 1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
@@ -91,32 +59,52 @@ ax.set_ylabel('Normalized Density')
 # ax.grid(True)
 
 ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
-# ax.hist(d, bins=20, facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
+# ax.hist(d, bins=100, facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
 
-x = np.linspace(d_min,d_max, d_count)
+x = np.linspace(d_min, d_max, d_count)
 
-# param = burr.fit(d)
-# y = burr.pdf(x, param[0], param[1])
-# ax.plot(x,y,'r--', color='darkred', label='Burr distribution fit')
-#
-# param = pareto.fit(d)
-# y = pareto.pdf(x, param[0])
-# ax.plot(x,y,'r--', color='brown', label='Pareto distribution fit')
+est = kde.KDE1D(d)
+ax.plot(x, est(x), label='Estimate (bw={:.3g})'.format(est.bandwidth))
 
-# param = dgamma.fit(d)
-# y = dgamma.pdf(x, param[0])
-# ax.plot(x,y,'r--', color='brown', label='DGamma distribution fit')
-#
-param_norm = uniform.fit(d)
-y_norm = uniform.pdf(x, param_norm[0], param_norm[1])
-ax.plot(x,y_norm,'r--', color='brown', label='Uniform distribution fit')
+my_kde_pdf = gaussian_kde(d, bw_method=0.08)
+ax.plot(x, my_kde_pdf(x), label='Scipy')
+
+# param_norm = uniform.fit(d)
+# y_norm = uniform.cdf(x, param_norm[0], param_norm[1])
+# ax.plot(x, y_norm,'r--', color='brown', label='Uniform distribution fit')
+
 
 # plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
 
-ax.legend(loc='upper right', frameon=True, prop={'size':12})
+ax.legend(loc='best', frameon=True, prop={'size':12})
 fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
 file_out = file_in + '-pdf.eps'
 plt.savefig(dir + file_out)
+
+
+
+##########Do it again for the other plot
+
+
+# fig, ax = plt.subplots(1, 1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
+# ax.set_xlabel('Forward Delay ($\mu s$)')
+# ax.set_ylabel('Cumulative Density')
+# # ax.grid(True)
+#
+# ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
+# ax.hist(d, bins=20, facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
+
+
+# param_norm = uniform.fit(d)
+# y_norm = uniform.pdf(x, param_norm[0], param_norm[1])
+# ax.plot(x,y_norm,'r--', color='brown', label='Uniform distribution fit')
+
+# plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
+
+# ax.legend(loc='upper right', frameon=True, prop={'size':12})
+# fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+# file_out = file_in + '-cdf.eps'
+# plt.savefig(dir + file_out)
 
 
 plt.show()

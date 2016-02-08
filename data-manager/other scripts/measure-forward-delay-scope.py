@@ -17,14 +17,12 @@ def print_progress(i, n_samples):
 
 
 # measurement loop
-n_samples = 10000
+n_samples = 100000
 br = 3000000
-context = 'relay-delay-uc-delay-until-1ms'
+context = 'relay-delay-uc-high-uart-irq-fine'
 measurements = []
 
-#10 bits per byte @ 3Mbps
-pck_duration_t = (16*10)/3e6 #theoretical
-pck_duration_m = 533e-7 #measured
+
 
 
 pck = [0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02]
@@ -33,8 +31,12 @@ output_dir = '/home/joao/noc-data/hw-measurements/'
 fn = output_dir + context + '-' + str(n_samples/1000) + 'ks@' + str(br/1000000) + 'Mbps' + '.data'
 
 #connect to FPGA serial
-serial_port = serial.Serial(port='/dev/ttyUSB0', baudrate=br)
+serial_port = serial.Serial(port='/dev/ttyUSB2', baudrate=br)
 print('Connected = ' + str(serial_port.isOpen()))
+
+serial_port.parity = serial.PARITY_NONE
+serial_port.bytesize = serial.EIGHTBITS
+serial_port.stopbits = serial.STOPBITS_ONE
 
 
 # initialise device
@@ -42,28 +44,30 @@ connect_rigol = True
 
 if connect_rigol == True:
     instr =  serialtmc.instrument() # Rigol DS1052E
-    instr.connect('/dev/ttyUSB1', 9600)
+    instr.connect('/dev/ttyUSB0', 9600)
     inf = instr.ask('*IDN?')
     print('Equipament found: '+ str(inf))
 
 
 
 i = 0
+retry = 0
+failure = 0
 while i < n_samples:
 
     serial_port.write(pck)
 
     if connect_rigol == True:
         try:
-            sleep_time = 0.5 + random.randint(0,50) / 100
+            sleep_time = 0.5 + (random.randint(0,100) / 100)
             sleep(sleep_time)
-            d1 = instr.ask(':MEASURE:PDELAY? CHAN1')
-            # d1 = instr.ask(':MEASURE:NDELAY? CHAN1')
+            # d1 = instr.ask(':MEASURE:PDELAY? CHAN1')
+            d1 = instr.ask(':MEASURE:NDELAY? CHAN1')
             sleep(.1)
             instr.write(':KEY:RUN')
             #Try to convert
             fd1 = float(d1)
-            fd1 = fd1 - pck_duration_m
+            # fd1 = fd1 - pck_duration_t
             #Continues if it is a valid value
             measurements.append(fd1)
             print_progress(i, n_samples)
@@ -78,6 +82,7 @@ while i < n_samples:
         except:
             sleep(.1)
             sd1 = str(d1)
+            failure += 1
             if (sd1[2] == '<'):
                 d1 = d1[1:-1]
                 fd1 = float(d1)
@@ -88,7 +93,12 @@ while i < n_samples:
 
             else:
                 print('Failed to convert ' + sd1)
+                retry += 1
+
+                # if retry == 10:
+                #     break
                 # sleep(2)
+
 
 
 
@@ -96,6 +106,8 @@ while i < n_samples:
 
 pickle.dump(measurements, open( fn, 'wb' ))
 print('File ' + fn + ' updated')
+
+print('Number of failures: ' + str(failure))
 
 if connect_rigol == True:
     instr.write(':KEY:LOCK DIS')
