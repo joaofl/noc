@@ -24,18 +24,15 @@
 #include "ns3/header.h"
 #include "noc-types.h"
 
-#define PAYLOAD_SIZE 4
+#define PAYLOAD_SIZE 16
 
 namespace ns3 {
-
-    /**
+    /*
      * \ingroup NOC
      * \brief NoC generalized packet header
-     *
      */
     class XDenseHeader : public Header {
     public:
-        
         enum{
             DATA_ANNOUCEMENT_REQUEST,   
             DATA_ANNOUCEMENT,
@@ -103,7 +100,7 @@ namespace ns3 {
          */
 //        uint16_t m_protocol; 
         uint8_t m_protocol;
-        uint8_t m_data[PAYLOAD_SIZE];
+        uint8_t m_data[PAYLOAD_SIZE - 1];
 //        static const uint8_t m_max_header_size = 1 + 4 + 4 + 4 + 4 + 4;
         //int32_t m_currentX, m_currentY;
         //uint32_t m_hops_count, m_sensor_value;

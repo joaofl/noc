@@ -168,12 +168,14 @@ main(int argc, char *argv[]) {
     
 //    uint32_t sampling_cycles = 10;
 //    uint32_t sampling_period = 100000; //at every 100.000.000 ns = 100ms default
-    uint32_t size_x = 51;
-    uint32_t size_y = 51;
+    uint32_t size_x = 21;
+    uint32_t size_y = 21;
     uint32_t size_neighborhood = 5;
     uint32_t sinks_n = 1;
-    uint32_t baudrate = 1500000; //10000 kbps =  1,5 Mbps
-//    uint32_t operational_mode = 0; //sample the entire network
+    uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
+    uint32_t pck_size = 16 * 8; //16 bytes... But this is not a setting, since it 
+    //depends on the packet header. But this is used a debugging info only for post processing
+    //uint32_t operational_mode = 0; //sample the entire network
     
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
@@ -207,7 +209,7 @@ main(int argc, char *argv[]) {
     string dir_output = io_data_dir + context_dir.str() + "out/";
     string dir_input = io_data_dir + context_dir.str() + "in/";     
     
-    string animation_file = dir_output + "animation.xml";
+    //string animation_file = dir_output + "animation.xml";
     
     int status;
     status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -344,7 +346,8 @@ main(int argc, char *argv[]) {
             << " --size_y=" << size_y
             << " --size_neighborhood=" << size_neighborhood
             << " --sinks_n=" << sinks_n
-            << " --baudrate=" << baudrate;
+            << " --baudrate=" << baudrate
+            << " --packet_size=" << pck_size;
     file_simulation_info.close();
 
     filename = dir_output + "packets-trace-netdevice.csv";

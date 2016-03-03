@@ -261,7 +261,7 @@ namespace ns3 {
             t_wait = (x_source - 1) * (y_size - 2);
         }
         
-        Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+//        Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
         
 //        t_wait = x->GetInteger (0, x_size * y_size);
 ////        

@@ -256,6 +256,14 @@ if __name__ == '__main__':
         parser.add_option ('-c', '--inputconfigfile', help='config file containing the simulation parameters')
         parser.add_option ('-o', '--outputdir', help='', default=None)
 
+        parser.add_option ('-t', '--timeslotsize', help='time between two refreshes of the animator')
+        parser.add_option ('-x', '--size_x', help='network size', default=0)
+        parser.add_option ('-y', '--size_y', help='network size', default=0)
+        parser.add_option ('-s', '--sinks_n', help='number of sinks', default=1)
+        parser.add_option ('-b', '--baudrate', help='baudrate utilized', default=1500000)
+        parser.add_option ('-p', '--packet_size', help='packet_size in bits', default=16*8)
+        parser.add_option ('-n', '--size_neighborhood', help='neighborhood size', default=0)
+
 
         (options, args) = parser.parse_args()
         #if len(args) < 1:

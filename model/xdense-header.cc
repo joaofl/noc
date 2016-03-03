@@ -61,37 +61,21 @@ namespace ns3 {
 
     void
     XDenseHeader::Print(std::ostream &os) const {
-        //        std::string proto;
-        //
-        //        router (m_protocol) {
-        //            case 0x0021: /* IPv4 */
-        //                proto = "IP (0x0021)";
-        //                break;
-        //            case 0x0057: /* IPv6 */
-        //                proto = "IPv6 (0x0057)";
-        //                break;
-        //            default:
-        //                NS_ASSERT_MSG(false, "PPP Protocol number not defined!");
-        //        }
-        //        os << "Point-to-Point Protocol: " << proto;
 
-        //        std::cout << "\tP=" << m_protocol;
-        //        std::cout << "\t(x,y)=" << CurrentX << "," << CurrentY;
-        //std::cout << std::endl;
     }
 
     uint32_t
     XDenseHeader::GetSerializedSize(void) const {
 
 
-        return PAYLOAD_SIZE + 1;
+        return PAYLOAD_SIZE;
     }
     
     void
     XDenseHeader::Serialize(Buffer::Iterator start) const {
 
         start.WriteU8(m_protocol);
-        start.WriteU8(m_data[0], PAYLOAD_SIZE);
+        start.WriteU8(m_data[0], PAYLOAD_SIZE - 1);
         
     }
 
@@ -103,10 +87,8 @@ namespace ns3 {
 //        for (uint8_t i = 0 ; i < PAYLOAD_SIZE ; i++)
 //        {
 //            m_data[i] = start.ReadU8();
-        start.Read(m_data, PAYLOAD_SIZE);
+        start.Read(m_data, PAYLOAD_SIZE - 1);
 //        }
-  
-
 //            default:
 //                std::cout << "Error while deserializing data into the buffer. No known protocol defined in the header.\n";
 //                exit(1);
@@ -123,12 +105,5 @@ namespace ns3 {
     XDenseHeader::GetXdenseProtocol(void) {
         return m_protocol;
     }
-
-    //    void XDenseHeader::SetSensorValue(uint32_t n){
-    //        m_sensor_value = n;
-    //    }
-    //    uint32_t XDenseHeader::GetSensorValue(void){
-    //        return m_sensor_value;
-    //    }
 
 } // namespace ns3

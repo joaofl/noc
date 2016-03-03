@@ -71,8 +71,8 @@ namespace ns3 {
 
         if (IsSink == true) {
 //            Simulator::Schedule(TimeStartOffset, &XDenseApp::NetworkDiscovery, this);
-//            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
-            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::NetworkSetup, this);
+            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
+//            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::NetworkSetup, this);
             SinkReceivedData = CreateObject<NOCOutputData> ();
         }
         
@@ -190,7 +190,7 @@ namespace ns3 {
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT_REQUEST);
         pck->AddHeader(hd);
         
-        m_router->PacketMulticast(pck,NETWORK_ID_0, 5, 5);
+        m_router->PacketMulticast(pck, NETWORK_ID_0, 5, 5);
 //        m_router->PacketBroadcast(pck, 0);
     }
     
@@ -201,7 +201,9 @@ namespace ns3 {
         //size is actually the radius or square defined by the multicast size
         //pck duration is contained at the packet, but the total lenght is only at
         //the bottom layer. 
-        //TODO: is the schedule needs pck size, it should get it from below layers
+        
+        //TODO: is the schedule needs pck size, it should get it from below layers, since it is static
+        // and pre-defined
         uint16_t pck_duration = 11200;
         int8_t size_x = 10;
         int8_t size_y = 10;
@@ -209,11 +211,11 @@ namespace ns3 {
         
         for (uint8_t j = 0 ; j < 1 ; j++)
         {
-            int32_t t = 0;
-            t = NOCRoutingProtocols::ScheduleTransmission(origin_x, origin_y, size_x, size_y);
+            int32_t time_slot = 0;
+            time_slot = NOCRoutingProtocols::ScheduleTransmission(origin_x, origin_y, size_x, size_y);
 
-            if (t >= 0){
-                Time t_ns = Time::FromInteger(t * pck_duration, Time::NS);
+            if (time_slot >= 0){
+                Time t_ns = Time::FromInteger(time_slot * pck_duration, Time::NS);
                 Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x * -1, origin_y * -1);
             }
         }

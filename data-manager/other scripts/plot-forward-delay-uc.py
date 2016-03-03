@@ -3,7 +3,9 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 from pyqt_fit import kde
-from scipy.stats import burr, pareto, invgamma, uniform, norm, dgamma, gaussian_kde
+from scipy.stats import burr, pareto, invgamma, uniform, norm, dgamma
+
+from scipy.stats.kde import gaussian_kde as kde
 
 
 
@@ -66,7 +68,7 @@ x = np.linspace(d_min, d_max, d_count)
 est = kde.KDE1D(d)
 ax.plot(x, est(x), label='Estimate (bw={:.3g})'.format(est.bandwidth))
 
-my_kde_pdf = gaussian_kde(d, bw_method=0.08)
+my_kde_pdf = kde(d, bw_method=0.1)
 ax.plot(x, my_kde_pdf(x), label='Scipy')
 
 # param_norm = uniform.fit(d)

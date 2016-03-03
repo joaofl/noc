@@ -29,6 +29,7 @@ import os
 import glob
 import _thread
 
+
 class NOCLauncher(QWidget):
 
     selected_log = ''
@@ -47,7 +48,7 @@ class NOCLauncher(QWidget):
         self.edit_dir = QLineEdit(dir)
 
         self.button_load = QPushButton("Load log files")
-        self.button_load.clicked.connect(self.on_click)
+        self.button_load.clicked.connect(self.on_click_load)
 
         self.listbox = QListWidget()
         self.listbox.clicked.connect(self.on_select)
@@ -57,6 +58,11 @@ class NOCLauncher(QWidget):
 
         self.label_result = QLabel()
         self.label_scripts = QLabel()
+
+        self.label_title1 = QLabel()
+        self.label_title1.setText('Log files found:')
+        self.label_title2 = QLabel()
+        self.label_title2.setText('Script files found:')
 
         self.textbox_args = QLineEdit()
 
@@ -74,9 +80,11 @@ class NOCLauncher(QWidget):
         vbox.addWidget(self.label_dir)
         vbox.addWidget(self.edit_dir)
         vbox.addWidget(self.button_load)
+        vbox.addWidget(self.label_title1)
         vbox.addWidget(self.listbox)
         vbox.addWidget(self.label_result)
         # vbox.addWidget(self.button_load_anim)
+        vbox.addWidget(self.label_title2)
         vbox.addWidget(self.listbox_scripts)
         vbox.addWidget(self.label_scripts)
         vbox.addWidget(self.textbox_args)
@@ -106,7 +114,7 @@ class NOCLauncher(QWidget):
 
         self.label_scripts.setText(self.selected_script.split('/')[-1] + ' selected')
 
-    def on_click(self):
+    def on_click_load(self):
 
         ############ Load the logs
 
@@ -165,10 +173,12 @@ class NOCLauncher(QWidget):
         cmd = 'python3.4 ' + self.selected_script + args
         print('Command executed: ' + cmd)
 
+        launch_thread = True
 
-        _thread.start_new_thread(os.system,(cmd,))
-
-        # os.system(cmd)
+        if (launch_thread == True):
+            _thread.start_new_thread(os.system,(cmd,))
+        else:
+            os.system(cmd)
 
 
     def on_click_load_anim(self):
