@@ -2,18 +2,17 @@ import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
-from pyqt_fit import kde
-from scipy.stats import burr, pareto, invgamma, uniform, norm, dgamma
-
-from scipy.stats.kde import gaussian_kde as kde
+# from pyqt_fit import kde
+from pip._vendor import colorama
+from scipy.stats import burr, pareto, invgamma, uniform, norm, dgamma, gaussian_kde
 
 
 
 
 dir = '/home/joao/noc-data/hw-measurements/'
 
-# file_in = 'relay-delay-fpga-10.0ks@3.0Mbps.data'
-file_in = 'relay-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data'
+file_in = 'relay-delay-fpga-10.0ks@3.0Mbps.data'
+# file_in = 'relay-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data'
 
 
 din = pickle.load(open(dir + file_in, 'rb'))
@@ -21,7 +20,7 @@ din = pickle.load(open(dir + file_in, 'rb'))
 
 #10 bits per byte @ 3Mbps
 pck_duration_t = 0 #when it is not measured
-pck_duration_t = 53.3e-6 #theoretical
+# pck_duration_t = 53.3e-6 #theoretical
 # pck_duration_m = 533e-7 #measured
 
 din[:] = [(x - pck_duration_t)*1000000 for x in din] #in us
@@ -60,16 +59,16 @@ ax.set_xlabel('Forward Delay ($\mu s$)')
 ax.set_ylabel('Normalized Density')
 # ax.grid(True)
 
-ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
+ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Histogram')
 # ax.hist(d, bins=100, facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
 
 x = np.linspace(d_min, d_max, d_count)
 
-est = kde.KDE1D(d)
-ax.plot(x, est(x), label='Estimate (bw={:.3g})'.format(est.bandwidth))
+# est = kde.KDE1D(d)
+# ax.plot(x, est(x), label='Estimate (bw={:.3g})'.format(est.bandwidth))
 
-my_kde_pdf = kde(d, bw_method=0.1)
-ax.plot(x, my_kde_pdf(x), label='Scipy')
+my_kde_pdf = gaussian_kde(d, bw_method=None)
+ax.plot(x, my_kde_pdf(x), label='Gaussian kernel density', color='darkgreen')
 
 # param_norm = uniform.fit(d)
 # y_norm = uniform.cdf(x, param_norm[0], param_norm[1])
