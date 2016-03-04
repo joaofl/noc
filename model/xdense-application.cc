@@ -190,7 +190,11 @@ namespace ns3 {
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT_REQUEST);
         pck->AddHeader(hd);
         
-        m_router->PacketMulticast(pck, NETWORK_ID_0, 5, 5);
+//        m_router->PacketMulticast(pck, NETWORK_ID_0, 10, 10);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-10,-10,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-10, 10,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 10,-10,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 10,0);
 //        m_router->PacketBroadcast(pck, 0);
     }
     
@@ -204,7 +208,7 @@ namespace ns3 {
         
         //TODO: is the schedule needs pck size, it should get it from below layers, since it is static
         // and pre-defined
-        uint16_t pck_duration = 11200;
+        uint16_t pck_duration = 53300;
         int8_t size_x = 10;
         int8_t size_y = 10;
 //        

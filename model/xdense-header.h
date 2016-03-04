@@ -24,7 +24,7 @@
 #include "ns3/header.h"
 #include "noc-types.h"
 
-#define PAYLOAD_SIZE 16
+#define PAYLOAD_SIZE 11
 
 namespace ns3 {
     /*

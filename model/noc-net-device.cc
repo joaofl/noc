@@ -247,7 +247,12 @@ namespace ns3 {
         Time txTime;
         
         if (m_serialComm == true){
-            txTime =  m_bps.CalculateBytesTxTime(p->GetSize());
+            uint16_t s = p->GetSize();
+            txTime =  m_bps.CalculateBytesTxTime(s);
+            txTime += m_bps.CalculateBitsTxTime(2) * s;
+            
+            //since it simulates a UART port, it has to account for 2 extra bits
+            //per byte: Start and Stop bits.
 //            txTime += oneBitTransmissionTime * m_clockSkew;
         }
         else{
