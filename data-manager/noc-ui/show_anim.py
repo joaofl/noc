@@ -54,11 +54,11 @@ class Node(QGraphicsItem):
 
         self.__m = node_size / 10
 
-        self.__x_size, self.__y_size = nw_size
+        self.__x_size, xy_size = nw_size
         self.__x, self.__y = self.translateXY(position)
 
-    def updateSize(self, size):
-        self.__m = size / 10
+    # def updateSize(self, size):
+    #     self.__m = size / 10
 
     def boundingRect(self):
         r = QRectF(5 * self.__m, 5 * self.__m, 5 * self.__m, 5 * self.__m)
@@ -145,68 +145,50 @@ class Node(QGraphicsItem):
         x = c[0]
         y = c[1]
 
-        # window_y_size = self.geometry().height()
-        window_y_size = 0
-
         x_t = x * self.__m * 10 + offset_x
         y_t = y * self.__m * 10 + offset_y
 
         return x_t, y_t
 
     def paint(self, qp, QStyleOptionGraphicsItem, QWidget_widget=None):
-    # def drawNode(self, qp, x_i, y_i, s, node):
-
-        # if self.__upToDate == False:
-            # self.__upToDate = True
-
-        qp.setBrush(QColor("white"))
-
-        # qpen = QPen()
-        # qpen.setColor(QColor("white"))
+        # qp.setBrush(QColor("white"))
         qp.setPen(QColor("lightgrey"))
 
-        # qb = QBrush()
-        # qb.setStyle(Qt.SolidPattern)
-
-        # qb.setColor()
-
         c = self.__m
+        x = self.__x
+        y = self.__y
 
-        qp.setBrush(self.__north_tx_brush)
-        qp.drawRect(self.__x + c, self.__y - 2*c, 2*c, 3*c) #draw netdev north rx e tx
-        qp.setBrush(self.__north_rx_brush)
-        qp.drawRect(self.__x + 3 * c, self.__y - 2*c, 2*c, 3*c) #draw netdev north rx e tx
-
-        qp.setBrush(self.__south_rx_brush)
-        qp.drawRect(self.__x + c, self.__y + 5 * c, 2 * c, 3 * c) #draw netdev south rx e tx
         qp.setBrush(self.__south_tx_brush)
-        qp.drawRect(self.__x + 3 * c, self.__y + 5 * c, 2 * c, 3 * c)
+        qp.drawRect(x + c, y - 2*c, 2*c, 3*c) #draw netdev north rx e tx
+        qp.setBrush(self.__south_rx_brush)
+        qp.drawRect(x + 3*c, y - 2*c, 2*c, 3*c) #draw netdev north rx e tx
+
+        qp.setBrush(self.__north_rx_brush)
+        qp.drawRect(x + c, y + 5*c, 2 * c, 3 * c) #draw netdev south rx e tx
+        qp.setBrush(self.__north_tx_brush)
+        qp.drawRect(x + 3*c, y + 5*c, 2 * c, 3 * c)
 
         qp.setBrush(self.__west_tx_brush)
-        qp.drawRect(self.__x - 2 * c, self.__y + c, 3*c, 2 * c) #draw netdev east rx e tx
+        qp.drawRect(x - 2 * c, y + c, 3*c, 2 * c) #draw netdev east rx e tx
         qp.setBrush(self.__west_rx_brush)
-        qp.drawRect(self.__x - 2 * c, self.__y + 3 * c, 3*c, 2 * c)
+        qp.drawRect(x - 2 * c, y + 3 * c, 3*c, 2 * c)
 
         qp.setBrush(self.__east_rx_brush)
-        qp.drawRect(self.__x + 5 * c, self.__y + c, 3*c, 2 * c) #draw netdev west rx e tx
+        qp.drawRect(x + 5 * c, y + c, 3*c, 2 * c) #draw netdev west rx e tx
         qp.setBrush(self.__east_tx_brush)
-        qp.drawRect(self.__x + 5 * c, self.__y + 3 * c, 3*c, 2 * c)
+        qp.drawRect(x + 5 * c, y + 3 * c, 3*c, 2 * c)
 
 
         qp.setPen(QColor("darkgrey"))
+        qp.setBrush(QColor("white"))
 
         if (self.__core_rx == 1):
             qp.setBrush( self.__core_rx_brush)
         if (self.__core_tx == 1):
             qp.setBrush( self.__core_tx_brush)
 
-        qp.drawRect(self.__x + c, self.__y + c, 4 * c, 4 * c) #draw the node
+        qp.drawRect(x + c, self.__y + c, 4 * c, 4 * c) #draw the node
 
-
-
-# class Network(QOpenGLWidget):
-#     def __init__(self, parent=None):
-#         super(GLWidget, self).__init__(parent)
 
 class NOCAnim(QWidget):
 
@@ -216,9 +198,8 @@ class NOCAnim(QWidget):
         super().__init__()
 
         self.initUI()
-        self.initDataFirstRun()
+        # self.initDataFirstRun()
         self.initData()
-
 
 
     def initUI(self):
@@ -250,12 +231,15 @@ class NOCAnim(QWidget):
         self.zoom_slider.setTickInterval(1)
         self.zoom_slider.valueChanged.connect(self.doZoom)
 
+        # self.tb_refresh_label = QLabel('Refresh', self)
+        # self.tb_refresh_label.setFont(QFont("Monospace", 10, QFont.Bold))
+
         self.tb_refresh = QLabel('50ms', self)
         self.tb_refresh.setFont(QFont("Monospace", 10, QFont.Bold))
 
         self.refresh_slider = QSlider(Qt.Horizontal)
-        self.refresh_slider.setRange(5,40)
-        self.refresh_slider.setTickInterval(0.5)
+        self.refresh_slider.setRange(100,2000)
+        self.refresh_slider.setTickInterval(10)
         self.refresh_slider.valueChanged.connect(self.doChangeRefreshRate)
 
 
@@ -275,18 +259,19 @@ class NOCAnim(QWidget):
         hbox_l1.addWidget(self.btn)
         hbox_l1.addWidget(self.cb)
         hbox_l1.addWidget(self.btn2)
-        hbox_l1.addWidget(self.pbar)
-        hbox_l1.addWidget(self.tb_time_ns)
-        hbox_l1.addWidget(self.tb_time_tts)
+        hbox_l1.addWidget(self.tb_zoom)
+        hbox_l1.addWidget(self.zoom_slider)
+        hbox_l1.addSpacing(1)
+        hbox_l1.addWidget(self.tb_refresh)
+        hbox_l1.addWidget(self.refresh_slider)
+        hbox_l1.addStretch(1)
+
 
 
         hbox_l2 = QHBoxLayout()
-        hbox_l2.addStretch(1)
-        hbox_l2.addWidget(self.tb_zoom)
-        hbox_l2.addWidget(self.zoom_slider)
-        hbox_l2.addSpacing(1)
-        hbox_l2.addWidget(self.tb_refresh)
-        hbox_l2.addWidget(self.refresh_slider)
+        hbox_l2.addWidget(self.pbar)
+        hbox_l2.addWidget(self.tb_time_ns)
+        hbox_l2.addWidget(self.tb_time_tts)
 
 
         vbox = QVBoxLayout()
@@ -296,55 +281,46 @@ class NOCAnim(QWidget):
 
         self.setLayout(vbox)
 
-
-        self.setGeometry(800, 100, 800, 800)
+        self.setGeometry(800, 100, 900, 900)
                 # self.setGeometry(800, 100, self.networkSize[0] * 150 * self.s + 5, self.networkSize[1] * 150 * self.s + 50)
         self.setWindowTitle('NoC Anim')
         self.show()
 
-
-    def initDataFirstRun(self):
-        self.nodes_size = 100
-        self.node_refresh_rate = 50
-
-        self.zoom_slider.setValue(self.nodes_size)
-
-        # self.zoom_rate = 20
-
-
-
-
     def initData(self):
 
         global options, args
-        # load the log
-        # home = expanduser("~")
-        if (options.inputfile == None):
-            options.inputfile = '/home/joao/noc-data/nw51x51s1n5cTESTS/out/packets-trace-netdevice.csv'
-
-        self.networkSize = [int(options.size_x), int(options.size_y)]
-
-        self.packetDuration = (int(options.packet_size) / int(options.baudrate)) * 1e9
-
-        self.nextT = 0
-        self.t_next = 0
-        self.previous_index = 0
-
 
         self.packetTrace = files_io.load_list(options.inputfile)
         if (len(self.packetTrace) == 0):
             print ('No input file provided')
             return -1
 
-        if self.networkSize == [0,0]:
-            max_x = max( self.packetTrace[:,trace.x_absolute].astype(int) )
-            max_y = max( self.packetTrace[:,trace.y_absolute].astype(int) )
 
-            self.networkSize = [max_x + 1, max_y + 1]
+        self.networkSize = [int(options.size_x), int(options.size_y)]
+        self.network = [[Node] * self.networkSize[0] for i in range(self.networkSize[1])]
+
+        ps = int(options.packet_size)
+        br = int(options.baudrate)
+        self.packetDuration = ( ps / br ) * 1e9
+
+        self.nextT = 0
+        self.t_next = 0
+        self.previous_index = 0
+
+        self.anim_refresh_rate = 100
+        self.refresh_slider.setValue(self.anim_refresh_rate)
+
+        #Calculate node size based on canvas size
+        g = self.graphics.geometry().getRect()[2:4]
+        sx = g[1] / self.networkSize[0]
+        sy = g[0] / self.networkSize[1]
+        if sx < sy: self.nodes_size = round(sx*0.98, 0)
+        else:       self.nodes_size = round(sy*0.98, 0)
+        self.zoom_slider.setValue(self.nodes_size)
 
 
         #initialize data
-        self.network = [[Node] * self.networkSize[0] for i in range(self.networkSize[1])]
+
 
         self.scene.clear()
 
@@ -360,47 +336,36 @@ class NOCAnim(QWidget):
         self.step = 0
 
     def doZoom(self):
-        range = [5, 30]
         self.nodes_size = self.zoom_slider.value()
-        # zoom_rate = round((v * range[1] / 100) + range[0], 1)
         self.tb_zoom.setText(str(self.nodes_size))
 
-        # self.nodes_size = zoom_rate
+        # self.doActionReload()
+        # self.doActionStartStop()
+        # self.network = [[Node] * self.networkSize[0] for i in range(self.networkSize[1])]
 
-        # self.scene.clear()
-        #
-        # for x in range(self.networkSize[0]):
-        #     for y in range(self.networkSize[1]):
-        #         n = Node([x,y], self.networkSize, node_size=self.nodes_size)
-        #         self.network[y][x] = n
-        #         self.scene.addItem(n)
-        #
-        # self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]-1) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size))
+        self.scene.clear()
 
-        # self.update()
+        for x in range(self.networkSize[0]):
+            for y in range(self.networkSize[1]):
+                n = Node([x,y], self.networkSize, node_size=self.nodes_size)
+                self.network[y][x] = n
+                self.scene.addItem(n)
 
-        self.doActionReload()
+        self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]-1) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size))
+        self.update()
 
-        # self.graphics.scale(self.zoom_rate,self.zoom_rate)
-        # self.graphics.resize(100,100)
-        # self.graphics.setma
-        #
     def doChangeRefreshRate(self):
-        range = [50, 100000]
-        v = self.refresh_slider.value()
-        self.node_refresh_rate = round((v * range[1] / 100) + range[0], 1)
-        self.tb_refresh.setText(str(self.node_refresh_rate) + 'ms')
-        self.timer.setInterval(self.node_refresh_rate)
+        self.anim_refresh_rate = self.refresh_slider.value()
+        self.tb_refresh.setText(str(self.anim_refresh_rate / 1) + 'ms')
+        self.timer.setInterval(self.anim_refresh_rate)
         # self.graphics.setma
-
 
     def doActionStartStop(self):
-
         if self.timer.isActive():
             self.timer.stop()
             self.btn.setText('Start')
         else:
-            self.timer.start(self.node_refresh_rate)
+            self.timer.start(self.anim_refresh_rate)
             self.btn.setText('Stop')
 
 
@@ -420,7 +385,7 @@ class NOCAnim(QWidget):
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
                 self.network[y][x].reset()
-                self.network[y][x].updateSize(self.nodes_size)
+                # self.network[y][x].updateSize(self.nodes_size)
 
     def timerEvent(self):
         lastT = int (self.packetTrace[-1][trace.time])
@@ -447,7 +412,6 @@ class NOCAnim(QWidget):
 
                 elif current_trans[trace.operation] == 'r':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:
-                        # node.north_rx = 1
                         node.setProperty(north_rx=1)
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
                         node.setProperty(south_rx = 1)
@@ -473,12 +437,12 @@ class NOCAnim(QWidget):
 
         t = int (self.packetTrace[self.previous_index][trace.time])
         self.pbar.setValue( (t / lastT) * 100)
-        self.tb_time_tts.setText(str(round(t / self.packetDuration, 2)) + ' tts')
-        self.tb_time_ns.setText(str(round(t / 1000, 2)) + ' us')
+        self.tb_time_tts.setText(str(round(t / self.packetDuration, 2)) + 'tts')
+        self.tb_time_ns.setText(str(round(t / 1000, 2)) + 'µs')
 
-        if t >= lastT:
+        if self.previous_index == len(self.packetTrace) - 1:
             self.doActionStartStop()
-            return
+
 
         if self.cb.isChecked():
             self.doActionStartStop()
@@ -486,9 +450,6 @@ class NOCAnim(QWidget):
         # self.graphics.update()
         self.scene.update()
         #self.update()
-
-
-
 
 
 if __name__ == '__main__':
