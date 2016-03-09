@@ -442,8 +442,8 @@ class NOCAnim(QWidget):
 
         if self.previous_index == len(self.packetTrace) - 1:
             self.doActionStartStop()
-            self.doActionReload()
-            self.doActionStartStop()
+            # self.doActionReload()
+            # self.doActionStartStop()
 
         if self.cb.isChecked():
             self.doActionStartStop()

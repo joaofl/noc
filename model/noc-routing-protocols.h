@@ -35,19 +35,27 @@ namespace ns3 {
             ROUTING_COLUMN_FIRST,
             ROUTING_ROW_FIRST,
             ROUTING_CLOCKWISE,
+            ROUTING_COUNTERCLOCKWISE,
         };
         
-        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_dest, int32_t y_dest);
+//        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
-        static uint8_t MulticastClockwise(int32_t x_source, int32_t y_source, uint16_t n_hops);
-        static uint8_t MulticastClockwise(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
+        static uint8_t MulticastRadius(RoutingAlgos ra, int32_t x_source, int32_t y_source, uint16_t n_hops);
         
-        static uint8_t BroadcastClockwise(int32_t x_source, int32_t y_source);
+        static uint8_t MulticastArea(RoutingAlgos ra, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
-        static uint8_t UnicastClockwise(int32_t x_dest, int32_t y_dest);
+        static uint8_t MulticastIndividuals(RoutingAlgos ra, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
+        
+        static uint8_t Broadcast(RoutingAlgos ra, int32_t x_source, int32_t y_source);
+        
+        static uint8_t Unicast(RoutingAlgos ra, int32_t x_dest, int32_t y_dest);
+        
         
         static int32_t ScheduleTransmission(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size);
         
+        
+        
+//        
         
     private:
 //        static NodeRef NodeAt(std::vector<NodeRef> * sn, int8_t, int8_t);

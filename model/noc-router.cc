@@ -27,8 +27,6 @@
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "noc-routing-protocols.h"
-#include "ns3/noc-routing-protocols.h"
-
 
 using namespace std;
 namespace ns3 {
@@ -266,7 +264,7 @@ namespace ns3 {
         
         m_routerGxTrace(pck_c); //the router receives a pck from the application
         
-        uint8_t out = NOCRoutingProtocols::UnicastClockwise(destination_x, destination_y);
+        uint8_t out = NOCRoutingProtocols::Unicast(NOCRoutingProtocols::ROUTING_CLOCKWISE, destination_x, destination_y);
 //        uint8_t out = NOCRoutingProtocols::RouteTo(NOCRoutingProtocols::ROUTING_COLUMN_FIRST,0,0, destination_x, destination_y);
         
         return PacketSendMultiple(pck_c, network_id, out, P0);
@@ -281,7 +279,7 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::MulticastClockwise(0,0,n_hops);
+        uint8_t out = NOCRoutingProtocols::MulticastRadius(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0,0,n_hops);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
@@ -298,13 +296,33 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::MulticastClockwise(0,0,x_destination, y_destination);
+        uint8_t out = NOCRoutingProtocols::MulticastArea(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0, 0, x_destination, y_destination);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
         
         return false;    
     }
+    
+    bool 
+    NOCRouter::PacketMulticastLocalSinks(Ptr<const Packet> pck, uint8_t network_id, int32_t x_position, int32_t y_position) {
+        NOCHeader h;
+        h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST_LOCAL_SINKS);
+        h.SetSourceAddressXY(0,0);
+        h.SetDestinationAddressXY(x_position, y_position);
+        
+        Ptr<Packet> pck_c = pck->Copy();
+        pck_c->AddHeader(h);
+        
+        uint8_t out = NOCRoutingProtocols::Broadcast(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0,0);
+        
+        if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
+           return true;
+        
+        return false;    
+
+    }
+
 
     bool NOCRouter::PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id){
         NOCHeader h;
@@ -315,7 +333,7 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::BroadcastClockwise(0,0);
+        uint8_t out = NOCRoutingProtocols::Broadcast(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0,0);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
@@ -326,13 +344,11 @@ namespace ns3 {
     
     
     uint8_t
-    NOCRouter::PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){//, uint8_t optional network_id) {
+    NOCRouter::PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){
         //TODO: This function should get the pck, the destination address, priority comes in the packet?, and network it should write to.
         // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
         // the addressing scheme sould allow: Broadcast (with limited radius (hops)) and unicast (to an specific X,Y location)
-
-        //TODO:
-//        uint8_t out_ports_count = CountOnes(ports_mask);
+        //TODO: uint8_t out_ports_count = CountOnes(ports_mask);
         
         uint8_t sent = 0;
 
@@ -444,23 +460,29 @@ namespace ns3 {
         switch (p){
             case NOCHeader::PROTOCOL_BROADCAST:
 //                out = NOCRoutingProtocols::RouteTo(m_routing_broadcast,asx,asy,adx,ady);
-                out = NOCRoutingProtocols::BroadcastClockwise(asx,asy);
+                out = NOCRoutingProtocols::Broadcast(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy);
+                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
+                break;
+               
+            case NOCHeader::PROTOCOL_MULTICAST_LOCAL_SINKS:
+                out = NOCRoutingProtocols::MulticastRadius(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,10);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST_RADIUS:
-                out = NOCRoutingProtocols::MulticastClockwise(asx,asy,10);
+                //TODO: change 10 for the radius
+                out = NOCRoutingProtocols::MulticastRadius(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,10);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST:
-                out = NOCRoutingProtocols::MulticastClockwise(asx,asy,adx,ady);
+                out = NOCRoutingProtocols::MulticastArea(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,adx,ady);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_UNICAST:
 //                out = NOCRoutingProtocols::RouteTo(m_routing_unicast,asx,asy,adx,ady);
-                out = NOCRoutingProtocols::UnicastClockwise(adx,ady);
+                out = NOCRoutingProtocols::Unicast(NOCRoutingProtocols::ROUTING_CLOCKWISE, adx,ady);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
@@ -469,5 +491,7 @@ namespace ns3 {
                 break;
         }
     }
-}
 
+ 
+
+}

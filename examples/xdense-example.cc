@@ -48,12 +48,10 @@
 NS_LOG_COMPONENT_DEFINE("NOCExample");
 
 
-//myrepo
-//ssh://aruntu@joaofl.ddns.net//media/hd/Joao/Repositorios/ns-3-dev
+//Repo:
 //https://bitbucket.org/joaofl/noc
-
-//run command Netbeans
-//"${OUTPUT_PATH}" $(cat ~/usn-data/config/input-config.c.csv)
+//
+//To run using Netbeans:
 //Project Properties->Run->Run Directory: ./build
 
 
@@ -168,8 +166,8 @@ main(int argc, char *argv[]) {
     
 //    uint32_t sampling_cycles = 10;
 //    uint32_t sampling_period = 100000; //at every 100.000.000 ns = 100ms default
-    uint32_t size_x = 21;
-    uint32_t size_y = 21;
+    uint32_t size_x = 31;
+    uint32_t size_y = 31;
     uint32_t size_neighborhood = 5;
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
@@ -182,18 +180,11 @@ main(int argc, char *argv[]) {
         
     string io_data_dir = homedir + "/noc-data";
     
-    
-  
-
     CommandLine cmd;
     cmd.AddValue("size_x", "Network size in the X axe", size_x);
     cmd.AddValue("size_y", "Network size in the Y axe", size_y);
-//    cmd.AddValue("operational_mode", "Operate by detecting events (=1) or for sampling all the network (=0)", operational_mode);
     cmd.AddValue("size_neighborhood", "Neighborhood size", size_neighborhood);
     cmd.AddValue("sinks_n", "Network size in the X axe", sinks_n);
-//    cmd.AddValue("sampling_cycles", "The number of times each node should sample its sensor, and perform data exchange", sampling_cycles);
-//    cmd.AddValue("sampling_period", "The period between each sensor sampling [us]", sampling_period);
-//    cmd.AddValue("log_start_at_period", "The period from witch logging starts", log_start_at_period);
     cmd.AddValue("baudrate", "The baudrate of the node's communication ports [bps]", baudrate);
     cmd.AddValue("io_data_dir", "Directory with the I/O simulation data", io_data_dir);
 
@@ -201,9 +192,8 @@ main(int argc, char *argv[]) {
     ///////////////////////////////////////////////////////////////
 
     stringstream context_dir;
-//    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "/";
     context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "c";
-    context_dir << "TESTS";
+    context_dir << "PROTOCOLS_DEMO";
     context_dir << "/";
     
     string dir_output = io_data_dir + context_dir.str() + "out/";

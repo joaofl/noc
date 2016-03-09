@@ -59,13 +59,14 @@ namespace ns3 {
 
         enum NOCProtocols{
             // [4:7]
-            PROTOCOL_BROADCAST          =   0b00000000,
-            PROTOCOL_MULTICAST          =   0b00000001,
-            PROTOCOL_MULTICAST_RADIUS   =   0b00100001, //whatever
-            PROTOCOL_UNICAST            =   0b00000010,
+            PROTOCOL_BROADCAST              =   0b00000000,
+            PROTOCOL_MULTICAST              =   0b00000001,
+            PROTOCOL_MULTICAST_RADIUS       =   0b00100001, //whatever
+            PROTOCOL_MULTICAST_LOCAL_SINKS  =   0b00100010, //whatever
+            PROTOCOL_UNICAST                =   0b00000010,
             
-            PROTOCOL_BITMASK            =   0b00001111,
-            PROTOCOL_BITSHIFT           =   0
+            PROTOCOL_BITMASK                =   0b00001111,
+            PROTOCOL_BITSHIFT               =   0
         };        
         
         

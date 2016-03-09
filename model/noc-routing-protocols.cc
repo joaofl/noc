@@ -51,8 +51,9 @@ namespace ns3 {
 //        
 //        return dir;
 //    }
+    
     uint8_t
-    NOCRoutingProtocols::UnicastClockwise(int32_t x_dest, int32_t y_dest) {
+    NOCRoutingProtocols::Unicast(RoutingAlgos ra, int32_t x_dest, int32_t y_dest) {
         //Check in which quadrant the packet is in:
 
         /*              |
@@ -101,13 +102,13 @@ namespace ns3 {
 
     
     uint8_t
-    NOCRoutingProtocols::BroadcastClockwise(int32_t x_source, int32_t y_source) {
-        return MulticastClockwise(x_source, y_source, 0);
+    NOCRoutingProtocols::Broadcast(RoutingAlgos ra, int32_t x_source, int32_t y_source) {
+        return MulticastRadius(ROUTING_CLOCKWISE, x_source, y_source, 0);
     }
 
     
     uint8_t
-    NOCRoutingProtocols::MulticastClockwise(int32_t x_source, int32_t y_source, uint16_t n_hops) {
+    NOCRoutingProtocols::MulticastRadius(RoutingAlgos ra, int32_t x_source, int32_t y_source, uint16_t n_hops) {
  //Check in which quadrant the packet is in:
 
         /*              |
@@ -160,7 +161,7 @@ namespace ns3 {
     }
     
     uint8_t
-    NOCRoutingProtocols::MulticastClockwise(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest) {
+    NOCRoutingProtocols::MulticastArea(RoutingAlgos ra, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest) {
  //Check in which quadrant the packet is in:
 
         /*              |
@@ -238,6 +239,24 @@ namespace ns3 {
         return dir;
     }
     
+
+        
+//        Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+        
+//        t_wait = x->GetInteger (0, x_size * y_size);
+////        
+//        t_wait = 0;
+//        
+//        uint16_t t_wait = (origin_x - 1) * (y_size-2);
+        
+//        uint32_t t_wait = (x_source - 1) * (y_source - 2);
+//         t_wait = 1;
+
+//        t_wait = t_wait;
+//        t_wait = int32_t(100 * myRandomNo);
+//        return t_wait;
+//    }
+
     int32_t
     NOCRoutingProtocols::ScheduleTransmission(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size) {
         
@@ -261,21 +280,8 @@ namespace ns3 {
             t_wait = (x_source - 1) * (y_size - 2);
         }
         
-//        Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
         
-//        t_wait = x->GetInteger (0, x_size * y_size);
-////        
-//        t_wait = 0;
-//        
-//        uint16_t t_wait = (origin_x - 1) * (y_size-2);
-        
-//        uint32_t t_wait = (x_source - 1) * (y_source - 2);
-//         t_wait = 1;
-
-//        t_wait = t_wait;
-//        t_wait = int32_t(100 * myRandomNo);
         return t_wait;
     }
-
     
 }

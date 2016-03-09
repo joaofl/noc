@@ -148,9 +148,11 @@ namespace ns3 {
     XDenseApp::NetworkSetupReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
         
         if ((abs(origin_x) % 11 == 0) && (abs(origin_y) % 11 == 0)){
-            Simulator::Schedule(Time::FromInteger(1000000, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
+//            Simulator::Schedule(Time::FromInteger(1000000, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
+               DataAnnouncementRequest();
         }
-            
+        
+        
         return false;
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,10 +193,15 @@ namespace ns3 {
         pck->AddHeader(hd);
         
 //        m_router->PacketMulticast(pck, NETWORK_ID_0, 10, 10);
-        m_router->PacketUnicast(pck,NETWORK_ID_0,-10,-10,0);
-        m_router->PacketUnicast(pck,NETWORK_ID_0,-10, 10,0);
-        m_router->PacketUnicast(pck,NETWORK_ID_0, 10,-10,0);
-        m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 10,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,0);
+        
+        Time t_ns = Time::FromInteger(20 * pck_duration, Time::NS);
+        Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x * -1, origin_y * -1);
+        
+        
 //        m_router->PacketBroadcast(pck, 0);
     }
     
@@ -208,10 +215,10 @@ namespace ns3 {
         
         //TODO: is the schedule needs pck size, it should get it from below layers, since it is static
         // and pre-defined
-        uint16_t pck_duration = 53300;
-        int8_t size_x = 10;
-        int8_t size_y = 10;
-//        
+//        uint16_t pck_duration = 53300;
+//        int8_t size_x = 10;
+//        int8_t size_y = 10;
+////        
         
         for (uint8_t j = 0 ; j < 1 ; j++)
         {

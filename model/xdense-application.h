@@ -60,17 +60,15 @@ namespace ns3 {
 
         
 
-        bool IsSink,
-             IsClusterHead;
-        uint32_t MaxHops, 
-                MaxTransmissionTime,
-//                EventsDetectedCount,
-//                EventsAnnouncedCount,
-                SensorValueLast,
-                MinNeighborhood,
-                SamplingCycles,
-                SamplingPeriod,
-                OperationalMode;
+        bool IsSink;
+//             IsClusterHead;
+//        uint32_t MaxHops, 
+//                MaxTransmissionTime,
+//                SensorValueLast,
+//                MinNeighborhood,
+//                SamplingCycles,
+//                SamplingPeriod,
+//                OperationalMode;
         Time TimeStartOffset;
 
         Ptr <NOCOutputData> SinkReceivedData;
