@@ -62,6 +62,7 @@ namespace ns3 {
         };
 
         enum DirectionsMasks {
+            DIRECTION_MASK_NONE   = 0b00000000, //none
             DIRECTION_MASK_E   = 0b00000001, //east
             DIRECTION_MASK_S   = 0b00000010, //south
             DIRECTION_MASK_W   = 0b00000100, //west
@@ -104,9 +105,9 @@ namespace ns3 {
                             int32_t destination_y, bool absolute_address);
 //        bool PacketUnicastReceived (Ptr<const Packet> pck, uint8_t network_id);
 
-        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops);
-        bool PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, int32_t x_size, int32_t y_size);
-        bool PacketMulticastLocalSinks (Ptr<const Packet> pck, uint8_t network_id, int32_t x_position, int32_t y_position);
+        bool PacketMulticastRadius (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops);
+        bool PacketMulticastArea (Ptr<const Packet> pck, uint8_t network_id, int32_t x_size, int32_t y_size);
+        bool PacketMulticastIndividuals (Ptr<const Packet> pck, uint8_t network_id, int32_t x_position, int32_t y_position);
 //        bool PacketMulticastReceived (Ptr<const Packet> pck, uint8_t network_id);
 
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);

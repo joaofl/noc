@@ -62,7 +62,7 @@ namespace ns3 {
             PROTOCOL_BROADCAST              =   0b00000000,
             PROTOCOL_MULTICAST              =   0b00000001,
             PROTOCOL_MULTICAST_RADIUS       =   0b00100001, //whatever
-            PROTOCOL_MULTICAST_LOCAL_SINKS  =   0b00100010, //whatever
+            PROTOCOL_MULTICAST_INDIVIDUALS  =   0b00100010, //whatever
             PROTOCOL_UNICAST                =   0b00000010,
             
             PROTOCOL_BITMASK                =   0b00001111,

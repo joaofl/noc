@@ -270,7 +270,7 @@ namespace ns3 {
         return PacketSendMultiple(pck_c, network_id, out, P0);
     }
 
-    bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops){
+    bool NOCRouter::PacketMulticastRadius (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops){
         NOCHeader h;
         h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST_RADIUS);
         h.SetSourceAddressXY(0,0);
@@ -287,7 +287,7 @@ namespace ns3 {
         return false;    
     }
 
-    bool NOCRouter::PacketMulticast (Ptr<const Packet> pck, uint8_t network_id, int32_t x_destination, int32_t y_destination){
+    bool NOCRouter::PacketMulticastArea(Ptr<const Packet> pck, uint8_t network_id, int32_t x_destination, int32_t y_destination){
         NOCHeader h;
         h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST);
         h.SetSourceAddressXY(0,0);
@@ -305,16 +305,16 @@ namespace ns3 {
     }
     
     bool 
-    NOCRouter::PacketMulticastLocalSinks(Ptr<const Packet> pck, uint8_t network_id, int32_t x_position, int32_t y_position) {
+    NOCRouter::PacketMulticastIndividuals(Ptr<const Packet> pck, uint8_t network_id, int32_t x_position, int32_t y_position) {
         NOCHeader h;
-        h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST_LOCAL_SINKS);
+        h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST_INDIVIDUALS);
         h.SetSourceAddressXY(0,0);
         h.SetDestinationAddressXY(x_position, y_position);
         
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::Broadcast(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0,0);
+        uint8_t out = NOCRoutingProtocols::MulticastIndividuals(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0, 0,x_position, y_position);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
@@ -464,14 +464,14 @@ namespace ns3 {
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
-            case NOCHeader::PROTOCOL_MULTICAST_LOCAL_SINKS:
-                out = NOCRoutingProtocols::MulticastRadius(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,10);
+            case NOCHeader::PROTOCOL_MULTICAST_INDIVIDUALS:
+                out = NOCRoutingProtocols::MulticastIndividuals(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,adx, ady);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST_RADIUS:
                 //TODO: change 10 for the radius
-                out = NOCRoutingProtocols::MulticastRadius(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,10);
+                out = NOCRoutingProtocols::MulticastRadius(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,adx);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
