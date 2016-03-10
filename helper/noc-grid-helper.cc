@@ -56,10 +56,10 @@ GridHelper::GridHelper ()
 
 void 
 GridHelper::SetQueue (std::string type,
-                              std::string n1, const AttributeValue &v1,
-                              std::string n2, const AttributeValue &v2,
-                              std::string n3, const AttributeValue &v3,
-                              std::string n4, const AttributeValue &v4)
+                        std::string n1, const AttributeValue &v1,
+                        std::string n2, const AttributeValue &v2,
+                        std::string n3, const AttributeValue &v3,
+                        std::string n4, const AttributeValue &v4)
 {
   m_queueFactory.SetTypeId (type);
   m_queueFactory.Set (n1, v1);

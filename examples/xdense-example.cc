@@ -75,60 +75,6 @@ using namespace ns3;
 ofstream file_packets_trace_netdevice;
 ofstream file_simulation_info;
 
-uint32_t t_slot(){
-    //set this to 1 if one wants the start to 
-    //be offset to the first transmission, instead of t=0
-    static uint32_t pck_t = 11200;
-    static uint64_t t0 = 0; 
-//    static uint32_t t_transmission = 1;
-    static uint32_t t_transmission = pck_t;
-    static uint64_t t_slot = 0;
-    
-//    static XDenseHeader hd_xdense;
-//    static NOCHeader hd_noc;
-//    uint32_t s = hd_noc.GetSerializedSize() + hd_xdense->GetSerializedSize();
-//    Time t = Time::FromInteger(s/(baudrate * 1e-9), Time::NS);
-    
-
-    
-    uint64_t now = Simulator::Now().GetNanoSeconds();
-    
-    if (t0 == 1){ //first iteration
-        t0 = now;
-    }
-    else if (t_transmission == 1 && now > t0){
-        t_transmission = now - t0;
-        t_slot = 1;
-    }
-    else if (now > t0){
-        t_slot = (now - t0) / t_transmission;
-    }
-    
-    return t_slot;
-}
-
-//context << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
-//void
-//log_router_packets(string context, Ptr<const Packet> pck) 
-//{
-//    static uint64_t i = 1;
-//    uint64_t now = Simulator::Now().GetNanoSeconds();
-//
-//    NOCHeader hd;
-//    pck->PeekHeader(hd);
-//    
-//    file_packets_trace_router
-//    << "c,"
-//    << i << ","
-//    << t_slot() << ","
-//    << now << ","
-//    << pck->GetUid() << ","
-//    << context << "," 
-//    << "p,";
-//    hd.Print(file_packets_trace_router);
-//    
-//    i++;
-//}
 
 void
 log_netdevice_packets(string context, Ptr<const Packet> pck) 
@@ -142,7 +88,8 @@ log_netdevice_packets(string context, Ptr<const Packet> pck)
     file_packets_trace_netdevice
     << "c,"
     << i << ","
-    << t_slot() << ","
+//    << t_slot() << "," //removed time slot from log
+    << 0 << ","
     << now << ","
     << pck->GetUid() << ","
     << context << "," 
@@ -193,7 +140,7 @@ main(int argc, char *argv[]) {
 
     stringstream context_dir;
     context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "c";
-    context_dir << "PROTOCOLS_DEMO";
+    context_dir << "PROTOCOL_TEST";
     context_dir << "/";
     
     string dir_output = io_data_dir + context_dir.str() + "out/";
@@ -252,7 +199,8 @@ main(int argc, char *argv[]) {
 
         //Setup app
         my_xdense_app->IsSink = false;
-        my_xdense_app->MaxHops = size_neighborhood;
+        my_xdense_app->PacketDuration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);  //nano seconds
+//        my_xdense_app->MaxHops = size_neighborhood;
 //        my_xdense_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
 //        my_xdense_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
 //        my_xdense_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
