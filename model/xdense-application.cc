@@ -22,14 +22,17 @@
 
 #include "xdense-application.h"
 #include "xdense-header.h"
-#include "noc-header.h"
+
+//#include "noc-header.h"
 #include "noc-net-device.h"
 #include "noc-router.h"
+#include "noc-routing-protocols.h"
+
 #include "calc.h"
 #include "sensor-data-io.h"
-#include "noc-types.h"
-#include "ns3/noc-routing-protocols.h"
-#include "ns3/xdense-application.h"
+#include "ns3/noc-net-device.h"
+//#include "noc-types.h"
+
 
 
 
@@ -59,6 +62,15 @@ namespace ns3 {
         m_router->GetAttribute("AddressX", x);
         m_router->GetAttribute("AddressY", y);
         
+//        XDenseHeader h1;
+//        NOCHeader h2;
+        
+//        m_packetSize = h1.GetSerializedSize() + h2.GetSerializedSize();
+//        m_baudrate = NOCNetDevice.
+//        m_packetSize = 16; //bytes
+//        m_packetDuration = (m_packetSize * 10) / m_baudrate; //10 bits per byte
+        
+        
         
         
         //This is a threshold, to decide the min neghborhood a node have to be 
@@ -71,9 +83,10 @@ namespace ns3 {
 
         if (IsSink == true) {
 //            Simulator::Schedule(TimeStartOffset, &XDenseApp::NetworkDiscovery, this);
-            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
+//            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
 //            Simulator::Schedule(Time::FromInteger(0, Time::NS), &XDenseApp::NetworkSetup, this);
-            SinkReceivedData = CreateObject<NOCOutputData> ();
+//            SinkReceivedData = CreateObject<NOCOutputData> ();
+            Test();
         }
         
 
@@ -84,12 +97,46 @@ namespace ns3 {
     XDenseApp::StopApplication(void) {
         m_running = false;
     }
+    
+    void
+    XDenseApp::Test() {
+        Ptr<Packet> pck = Create<Packet>();
+        
+        XDenseHeader hd;
+        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT_REQUEST);
+        pck->AddHeader(hd);
+        
+        Time t_ns = Time::FromInteger(0,Time::NS);
+        
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,0);
+        t_ns += 60 * PacketDuration;        
+        
+        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastRadius, this->m_router, pck, NETWORK_ID_0, 7);
+        t_ns += 60 * PacketDuration;
+        
+        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastArea, this->m_router, pck, NETWORK_ID_0, 7, 7);
+        t_ns += 60 * PacketDuration;
+        
+        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastIndividuals, this->m_router, pck, NETWORK_ID_0, 4, 4);
+        t_ns += 60 * PacketDuration;
+
+        
+        Simulator::Schedule(t_ns, &NOCRouter::PacketBroadcast, this->m_router, pck, NETWORK_ID_0);
+        t_ns += 60 * PacketDuration;
+        
+//        m_router->PacketBroadcast(pck, 0);
+    }
+
+    
 
     void
     XDenseApp::DataSharingSchedule(uint8_t n_times, Time period) {
 
         for (uint8_t i = 0; i < n_times; i++) {
-            Time t = MilliSeconds(period.GetMilliSeconds() * i + TimeStartOffset.GetMilliSeconds() + period.GetMilliSeconds());
+            Time t = MilliSeconds(period.GetMilliSeconds() * i + period.GetMilliSeconds());
             Simulator::Schedule(t, &XDenseApp::DataSharing, this);
         }
 
@@ -128,10 +175,10 @@ namespace ns3 {
 
 //        if (IsSink == true) {
 
-        NodeRef me;
-        me.x = 0;
-        me.y = 0;
-        m_sinksList.push_back(me);
+//        NodeRef me;
+//        me.x = 0;
+//        me.y = 0;
+//        m_sinksList.push_back(me);
 
         XDenseHeader hd;
         hd.SetXdenseProtocol(XDenseHeader::NETWORK_SETUP);
@@ -186,23 +233,7 @@ namespace ns3 {
     
     void
     XDenseApp::DataAnnouncementRequest() {
-        Ptr<Packet> pck = Create<Packet>();
-        
-        XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT_REQUEST);
-        pck->AddHeader(hd);
-        
-//        m_router->PacketMulticast(pck, NETWORK_ID_0, 10, 10);
-        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,0);
-        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,0);
-        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,0);
-        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,0);
-        
-        Time t_ns = Time::FromInteger(20 * pck_duration, Time::NS);
-        Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x * -1, origin_y * -1);
-        
-        
-//        m_router->PacketBroadcast(pck, 0);
+
     }
     
     void
@@ -223,10 +254,10 @@ namespace ns3 {
         for (uint8_t j = 0 ; j < 1 ; j++)
         {
             int32_t time_slot = 0;
-            time_slot = NOCRoutingProtocols::ScheduleTransmission(origin_x, origin_y, size_x, size_y);
+//            time_slot = NOCRoutingProtocols::ScheduleTransmission(origin_x, origin_y, 5, 5);
 
             if (time_slot >= 0){
-                Time t_ns = Time::FromInteger(time_slot * pck_duration, Time::NS);
+                Time t_ns = time_slot * PacketDuration;
                 Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x * -1, origin_y * -1);
             }
         }

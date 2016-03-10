@@ -61,6 +61,7 @@ namespace ns3 {
         
 
         bool IsSink;
+        Time PacketDuration;
 //             IsClusterHead;
 //        uint32_t MaxHops, 
 //                MaxTransmissionTime,
@@ -69,7 +70,7 @@ namespace ns3 {
 //                SamplingCycles,
 //                SamplingPeriod,
 //                OperationalMode;
-        Time TimeStartOffset;
+//        Time TimeStartOffset;
 
         Ptr <NOCOutputData> SinkReceivedData;
         
@@ -77,47 +78,33 @@ namespace ns3 {
         virtual ~XDenseApp();
 
         void Setup(bool IsSink);
-        //void Setup ();
-
-//        vector <EventRef> EventsReceived;
+        
+        void Test(void);
         
         void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         
         void NetworkSetup();
         bool NetworkSetupReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
 
-        //Event triggered
-        
-        //Time triggered
-//        void DataAnnouncementTT();
         void DataAnnouncementRequest();
         void DataAnnouncementRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
         void DataAnnouncement(int32_t x_dest, int32_t y_dest);
         bool DataAnnoucementReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
-
         
-        NodeRef NearestClusterHead(void);
-
         void DataSharingSchedule(uint8_t n_times, Time period);
         void DataSharing();
         bool DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
-        
-//        
+        //        
         void AddRouter(Ptr<NOCRouter> r);
+//        NodeRef NearestClusterHead(void);
 //        void ScheduleTransmission(Ptr<const Packet> pck, uint8_t destination_port);
-
-
 //        NodeRef GetSinkAt(uint8_t);
 //        uint8_t GetSinkN(void);
-//
 //        NodeRef GetNeighborAt(uint8_t);
 //        uint8_t GetNeighborN(void);
-
-
-        //        IsPresent(vector<m_sink_type> *, m_sink_type *);
-
-        //uint32_t packetsReceived;
+//        IsPresent(vector<m_sink_type> *, m_sink_type *);
+//        uint32_t packetsReceived;
 
     private:
 
@@ -132,10 +119,11 @@ namespace ns3 {
         //void SendPacket(uint8_t ports, Ptr<Packet> pck);
 
         bool m_running;
-        uint32_t m_baudrate;
-        uint32_t m_packetSize;
+//        uint32_t m_baudrate;
+//        uint32_t m_packetSize;
+//        uint32_t m_packetDuration;
         Ptr<NOCRouter> m_router;
-        std::vector<NodeRef> m_sinksList;
+//        std::vector<NodeRef> m_sinksList;
         
         
 //        std::vector<NodeRef> m_neighborsList;
