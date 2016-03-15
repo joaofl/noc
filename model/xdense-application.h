@@ -62,7 +62,7 @@ namespace ns3 {
 
         bool IsSink;
         Time PacketDuration;
-//        uint8_t NeighborhoodSize; 
+        uint8_t ClusterSize; 
 //             IsClusterHead;
 //        uint32_t MaxHops, 
 //                MaxTransmissionTime,
@@ -80,24 +80,25 @@ namespace ns3 {
 
         void Setup(bool IsSink);
         
-        void Start(void);
+        void Tests(void);
         
         void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         
         void NetworkSetup();
         bool NetworkSetupReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
 
-        void DataAnnouncementRequest();
-        void DataAnnouncementRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
+        void DataSharingRequest();
+        void DataSharingRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
         void DataAnnouncement(int32_t x_dest, int32_t y_dest);
         bool DataAnnoucementReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
+        void ClusterDataRequest();
         bool ClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t dest_x, int32_t dest_y);
         
-        void DataSharingSchedule(uint8_t n_times, Time period);
-        void DataSharing();
-        bool DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
+//        void DataSharingSchedule(uint8_t n_times, Time period);
+//        void DataSharing();
+//        bool DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         //        
         void AddRouter(Ptr<NOCRouter> r);
 //        NodeRef NearestClusterHead(void);

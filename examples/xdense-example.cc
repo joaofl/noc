@@ -200,7 +200,7 @@ main(int argc, char *argv[]) {
         //Setup app
         my_xdense_app->IsSink = false;
         my_xdense_app->PacketDuration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);  //nano seconds
-//        my_xdense_app->MaxHops = size_neighborhood;
+        my_xdense_app->ClusterSize = size_neighborhood;
 //        my_xdense_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
 //        my_xdense_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
 //        my_xdense_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
