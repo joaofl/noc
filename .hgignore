@@ -73,3 +73,6 @@ data-manager/other scripts/.idea/other scripts.iml
 data-manager/other scripts/measure-delay/makefile
 data-manager/other scripts/measure-delay/measure-delay
 data-manager/other scripts/measure-delay/measure-delay.c
+data-manager/other scripts/measure-comm-delay/nbproject/private/Default.properties
+data-manager/other scripts/measure-comm-delay/nbproject/private/launcher.properties
+data-manager/other scripts/measure-comm-delay/nbproject/private/CodeAssistancePathMapper.properties
