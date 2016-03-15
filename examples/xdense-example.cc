@@ -140,7 +140,7 @@ main(int argc, char *argv[]) {
 
     stringstream context_dir;
     context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "c";
-    context_dir << "PROTOCOL_TEST";
+    context_dir << "READ_ALL";
     context_dir << "/";
     
     string dir_output = io_data_dir + context_dir.str() + "out/";

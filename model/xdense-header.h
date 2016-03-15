@@ -36,6 +36,8 @@ namespace ns3 {
         enum{
             DATA_ANNOUCEMENT_REQUEST,   
             DATA_ANNOUCEMENT,
+            CLUSTER_DATA_REQUEST,
+            CLUSTER_DATA,
             NETWORK_SETUP
         };
 

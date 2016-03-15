@@ -62,6 +62,7 @@ namespace ns3 {
 
         bool IsSink;
         Time PacketDuration;
+//        uint8_t NeighborhoodSize; 
 //             IsClusterHead;
 //        uint32_t MaxHops, 
 //                MaxTransmissionTime,
@@ -79,7 +80,7 @@ namespace ns3 {
 
         void Setup(bool IsSink);
         
-        void Test(void);
+        void Start(void);
         
         void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         
@@ -91,6 +92,8 @@ namespace ns3 {
         
         void DataAnnouncement(int32_t x_dest, int32_t y_dest);
         bool DataAnnoucementReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
+        
+        bool ClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t dest_x, int32_t dest_y);
         
         void DataSharingSchedule(uint8_t n_times, Time period);
         void DataSharing();
