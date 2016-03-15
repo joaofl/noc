@@ -398,7 +398,8 @@ namespace ns3 {
             return false;
         
         
-        Time t_ns = Time::FromInteger(m_random->GetInteger (0, 90)*10, Time::NS);
+//        Time t_ns = Time::FromInteger(m_random->GetInteger (0, 90)*10, Time::NS);
+        Time t_ns = Time::FromInteger(0, Time::NS);
         
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
         
