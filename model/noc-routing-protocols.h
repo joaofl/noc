@@ -36,6 +36,7 @@ namespace ns3 {
             ROUTING_ROW_FIRST,
             ROUTING_CLOCKWISE,
             ROUTING_COUNTERCLOCKWISE,
+            ROUTING_HIGHWAY
         };
         
 //        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
@@ -60,6 +61,7 @@ namespace ns3 {
     private:
 //        static NodeRef NodeAt(std::vector<NodeRef> * sn, int8_t, int8_t);
 
+        static char FindQuadrant(int32_t x_dest, int32_t y_dest);
 //        
 
     };

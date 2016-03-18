@@ -82,7 +82,8 @@ namespace ns3 {
         
 
         if (IsSink == true) {
-            ClusterDataRequest();
+            Tests();
+//            ClusterDataRequest();
         }
         
 
@@ -101,18 +102,18 @@ namespace ns3 {
     
     void
     XDenseApp::Tests() {
-//        Ptr<Packet> pck = Create<Packet>();
-//        
-//        XDenseHeader hd;
-//        hd.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA_REQUEST);
-//        pck->AddHeader(hd);
+        Ptr<Packet> pck = Create<Packet>();
+        
+        XDenseHeader hd;
+        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+        pck->AddHeader(hd);
 //        
 //        Time t_ns = Time::FromInteger(0,Time::NS);
 //        
-//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,0);
-//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,0);
-//        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,0);
-//        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,0);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,0);
 //        t_ns += 60 * PacketDuration;        
 //        
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastRadius, this->m_router, pck, NETWORK_ID_0, 7);

@@ -436,7 +436,7 @@ class NOCAnim(QWidget):
 
 
         t = int (self.packetTrace[self.previous_index][trace.time])
-        self.pbar.setValue( (t / lastT) * 100)
+        self.pbar.setValue((t / lastT) * 100)
         self.tb_time_tts.setText(str(round(t / self.packetDuration, 2)) + 'tts')
         self.tb_time_ns.setText(str(round(t / 1000, 2)) + 'µs')
 

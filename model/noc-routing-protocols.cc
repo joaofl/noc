@@ -65,38 +65,66 @@ namespace ns3 {
          *       C      |     D
          *              |
          */
-         uint8_t dir = 0;
+        uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
+                                                    //was received, but not sent to the app yet
 
-        dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
-                                 //was received, but not sent to the app yet
+        char quadrant = FindQuadrant(x_dest, y_dest);
 
-        //A: [+x +y[
-        if (x_dest >= 0 && y_dest > 0){
-           dir = NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
-           if (x_dest == 0) //if on the axis, send it right too
-               dir = NOCRouter::DIRECTION_MASK_N;
+        switch (quadrant) {
+
+            case 'a':
+                dir = NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
+                if (x_dest == 0) //if on the axis, send it right
+                    dir = NOCRouter::DIRECTION_MASK_N;
+                break;
+            case 'b':
+                dir = NOCRouter::DIRECTION_MASK_N;
+                if (y_dest == 0)
+                    dir = NOCRouter::DIRECTION_MASK_W;
+                break;
+            case 'c':
+                dir = NOCRouter::DIRECTION_MASK_W;
+                if (x_dest == 0)
+                    dir = NOCRouter::DIRECTION_MASK_S;
+                break;
+            case 'd':
+                dir = NOCRouter::DIRECTION_MASK_S;
+                if (y_dest == 0)
+                    dir = NOCRouter::DIRECTION_MASK_E;
+                break;
+            case 'l':
+                dir = NOCRouter::DIRECTION_MASK_L;
+                break;
+
         }
-        //B: ]-x +y]
-        else if (x_dest < 0 && y_dest >= 0){
-           dir = NOCRouter::DIRECTION_MASK_N;
-           if (y_dest == 0) 
-               dir = NOCRouter::DIRECTION_MASK_W;
-        }
-        //C: [-x -y[
-        else if (x_dest <= 0 && y_dest < 0){
-           dir = NOCRouter::DIRECTION_MASK_W;
-           if (x_dest == 0) 
-               dir = NOCRouter::DIRECTION_MASK_S;
-        }
-        //D: ]+x -y]
-        else if (x_dest > 0 && y_dest <= 0){
-           dir = NOCRouter::DIRECTION_MASK_S;
-           if (y_dest == 0) 
-               dir = NOCRouter::DIRECTION_MASK_E;
-        }
-        else if (x_dest == 0 && y_dest == 0){ //it is to me, consume it
-            dir = NOCRouter::DIRECTION_MASK_L;
-        }
+         
+//        //A: [+x +y[
+//        if (x_dest >= 0 && y_dest > 0){
+//           dir = NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
+//           if (x_dest == 0) //if on the axis, send it right too
+//               dir = NOCRouter::DIRECTION_MASK_N;
+//        }
+//        //B: ]-x +y]
+//        else if (x_dest < 0 && y_dest >= 0){
+//           dir = NOCRouter::DIRECTION_MASK_N;
+//           if (y_dest == 0) 
+//               dir = NOCRouter::DIRECTION_MASK_W;
+//        }
+//        //C: [-x -y[
+//        else if (x_dest <= 0 && y_dest < 0){
+//           dir = NOCRouter::DIRECTION_MASK_W;
+//           if (x_dest == 0) 
+//               dir = NOCRouter::DIRECTION_MASK_S;
+//        }
+//        //D: ]+x -y]
+//        else if (x_dest > 0 && y_dest <= 0){
+//           dir = NOCRouter::DIRECTION_MASK_S;
+//           if (y_dest == 0) 
+//               dir = NOCRouter::DIRECTION_MASK_E;
+//        }
+//        else if (x_dest == 0 && y_dest == 0){ //it is to me, consume it
+//            dir = NOCRouter::DIRECTION_MASK_L;
+//        }
         
         return dir;
     }
@@ -106,6 +134,8 @@ namespace ns3 {
     NOCRoutingProtocols::Broadcast(RoutingAlgos ra, int32_t x_source, int32_t y_source) {
         return MulticastRadius(ROUTING_CLOCKWISE, x_source, y_source, 0);
     }
+    
+    
 
     
     uint8_t
@@ -341,5 +371,41 @@ namespace ns3 {
         
         return t_wait;
     }
+    
+    char 
+    NOCRoutingProtocols::FindQuadrant(int32_t x_dest, int32_t y_dest) {
+        
+        /*              |
+         *       B      |     A
+         *              |
+         * -------------|-------------
+         *              |
+         *       C      |     D
+         *              |
+         */
+
+        //A: [+x +y[
+        if (x_dest >= 0 && y_dest > 0){
+            return 'a';
+        }
+        //B: ]-x +y]
+        else if (x_dest < 0 && y_dest >= 0){
+            return 'b';
+        }
+        //C: [-x -y[
+        else if (x_dest <= 0 && y_dest < 0){
+            return 'c';
+        }
+        //D: ]+x -y]
+        else if (x_dest > 0 && y_dest <= 0){
+            return 'd';
+        }
+        else if (x_dest == 0 && y_dest == 0){
+            return 'l';
+        }
+        
+        return 'u'; //unknow coordinades
+    }
+
     
 }
