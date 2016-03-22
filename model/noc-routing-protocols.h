@@ -41,16 +41,17 @@ namespace ns3 {
         
 //        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
-        static uint8_t MulticastRadius(RoutingAlgos ra, int32_t x_source, int32_t y_source, uint16_t n_hops);
+        static uint8_t MulticastRadius(int32_t x_source, int32_t y_source, uint16_t n_size);
         
-        static uint8_t MulticastArea(RoutingAlgos ra, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
+        static uint8_t MulticastArea(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
-        static uint8_t MulticastIndividuals(RoutingAlgos ra, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
+        static uint8_t MulticastIndividuals(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
-        static uint8_t Broadcast(RoutingAlgos ra, int32_t x_source, int32_t y_source);
+        static uint8_t Broadcast(int32_t x_source, int32_t y_source);
         
-        static uint8_t Unicast(RoutingAlgos ra, int32_t x_dest, int32_t y_dest);
+        static uint8_t UnicastClockwiseXY(int32_t x_dest, int32_t y_dest);
         
+        static uint8_t UnicastClockwiseHighway(int32_t x_dest, int32_t y_dest, uint8_t x_size, uint8_t y_size);
         
         static int32_t ScheduleTransmission(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size);
         

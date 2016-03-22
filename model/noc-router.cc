@@ -264,7 +264,7 @@ namespace ns3 {
         
         m_routerGxTrace(pck_c); //the router receives a pck from the application
         
-        uint8_t out = NOCRoutingProtocols::Unicast(NOCRoutingProtocols::ROUTING_CLOCKWISE, destination_x, destination_y);
+        uint8_t out = NOCRoutingProtocols::UnicastClockwiseXY(destination_x, destination_y);
 //        uint8_t out = NOCRoutingProtocols::RouteTo(NOCRoutingProtocols::ROUTING_COLUMN_FIRST,0,0, destination_x, destination_y);
         
         return PacketSendMultiple(pck_c, network_id, out, P0);
@@ -279,7 +279,7 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::MulticastRadius(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0,0,n_hops);
+        uint8_t out = NOCRoutingProtocols::MulticastRadius(0,0,n_hops);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
@@ -296,7 +296,7 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::MulticastArea(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0, 0, x_destination, y_destination);
+        uint8_t out = NOCRoutingProtocols::MulticastArea(0, 0, x_destination, y_destination);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
@@ -314,7 +314,7 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::MulticastIndividuals(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0, 0,x_position, y_position);
+        uint8_t out = NOCRoutingProtocols::MulticastIndividuals(0, 0,x_position, y_position);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
@@ -333,7 +333,7 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::Broadcast(NOCRoutingProtocols::ROUTING_CLOCKWISE, 0,0);
+        uint8_t out = NOCRoutingProtocols::Broadcast(0,0);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
@@ -461,29 +461,29 @@ namespace ns3 {
         switch (p){
             case NOCHeader::PROTOCOL_BROADCAST:
 //                out = NOCRoutingProtocols::RouteTo(m_routing_broadcast,asx,asy,adx,ady);
-                out = NOCRoutingProtocols::Broadcast(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy);
+                out = NOCRoutingProtocols::Broadcast(asx,asy);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST_INDIVIDUALS:
-                out = NOCRoutingProtocols::MulticastIndividuals(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,adx, ady);
+                out = NOCRoutingProtocols::MulticastIndividuals(asx,asy,adx,ady);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST_RADIUS:
                 //TODO: change 10 for the radius
-                out = NOCRoutingProtocols::MulticastRadius(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,adx);
+                out = NOCRoutingProtocols::MulticastRadius(asx,asy,adx);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST:
-                out = NOCRoutingProtocols::MulticastArea(NOCRoutingProtocols::ROUTING_CLOCKWISE, asx,asy,adx,ady);
+                out = NOCRoutingProtocols::MulticastArea(asx,asy,adx,ady);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_UNICAST:
 //                out = NOCRoutingProtocols::RouteTo(m_routing_unicast,asx,asy,adx,ady);
-                out = NOCRoutingProtocols::Unicast(NOCRoutingProtocols::ROUTING_CLOCKWISE, adx,ady);
+                out = NOCRoutingProtocols::UnicastClockwiseXY(adx,ady);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                

@@ -54,24 +54,14 @@ namespace ns3 {
 //    }
     
     uint8_t
-    NOCRoutingProtocols::Unicast(RoutingAlgos ra, int32_t x_dest, int32_t y_dest) {
-        //Check in which quadrant the packet is in:
+    NOCRoutingProtocols::UnicastClockwiseXY(int32_t x_dest, int32_t y_dest) {
 
-        /*              |
-         *       B      |     A
-         *              |
-         * -------------|-------------
-         *              |
-         *       C      |     D
-         *              |
-         */
         uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                                     //was received, but not sent to the app yet
 
         char quadrant = FindQuadrant(x_dest, y_dest);
 
         switch (quadrant) {
-
             case 'a':
                 dir = NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
                 if (x_dest == 0) //if on the axis, send it right
@@ -95,51 +85,51 @@ namespace ns3 {
             case 'l':
                 dir = NOCRouter::DIRECTION_MASK_L;
                 break;
-
         }
-         
-//        //A: [+x +y[
-//        if (x_dest >= 0 && y_dest > 0){
-//           dir = NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
-//           if (x_dest == 0) //if on the axis, send it right too
-//               dir = NOCRouter::DIRECTION_MASK_N;
-//        }
-//        //B: ]-x +y]
-//        else if (x_dest < 0 && y_dest >= 0){
-//           dir = NOCRouter::DIRECTION_MASK_N;
-//           if (y_dest == 0) 
-//               dir = NOCRouter::DIRECTION_MASK_W;
-//        }
-//        //C: [-x -y[
-//        else if (x_dest <= 0 && y_dest < 0){
-//           dir = NOCRouter::DIRECTION_MASK_W;
-//           if (x_dest == 0) 
-//               dir = NOCRouter::DIRECTION_MASK_S;
-//        }
-//        //D: ]+x -y]
-//        else if (x_dest > 0 && y_dest <= 0){
-//           dir = NOCRouter::DIRECTION_MASK_S;
-//           if (y_dest == 0) 
-//               dir = NOCRouter::DIRECTION_MASK_E;
-//        }
-//        else if (x_dest == 0 && y_dest == 0){ //it is to me, consume it
-//            dir = NOCRouter::DIRECTION_MASK_L;
-//        }
-        
         return dir;
     }
-
     
     uint8_t
-    NOCRoutingProtocols::Broadcast(RoutingAlgos ra, int32_t x_source, int32_t y_source) {
-        return MulticastRadius(ROUTING_CLOCKWISE, x_source, y_source, 0);
+    NOCRoutingProtocols::UnicastClockwiseHighway(int32_t x_dest, int32_t y_dest, uint8_t x_size, uint8_t y_size) {
+
+        uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
+                                                    //was received, but not sent to the app yet
+
+        char quadrant = FindQuadrant(x_dest, y_dest);
+
+        switch (quadrant) {
+            case 'a':
+
+                break;
+            case 'b':
+
+                break;
+            case 'c':
+
+                break;
+            case 'd':
+
+                break;
+            case 'l':
+
+                break;
+        }
+        return dir;
     }
     
     
 
     
     uint8_t
-    NOCRoutingProtocols::MulticastRadius(RoutingAlgos ra, int32_t x_source, int32_t y_source, uint16_t n_hops) {
+    NOCRoutingProtocols::Broadcast(int32_t x_source, int32_t y_source) {
+        return MulticastRadius(x_source, y_source, 0);
+    }
+    
+    
+
+    
+    uint8_t
+    NOCRoutingProtocols::MulticastRadius(int32_t x_source, int32_t y_source, uint16_t n_hops) {
  //Check in which quadrant the packet is in:
 
         /*              |
@@ -192,7 +182,7 @@ namespace ns3 {
     }
     
     uint8_t
-    NOCRoutingProtocols::MulticastIndividuals(RoutingAlgos ra, int32_t x_source, int32_t y_source, int32_t x_position, int32_t y_position) {
+    NOCRoutingProtocols::MulticastIndividuals(int32_t x_source, int32_t y_source, int32_t x_position, int32_t y_position) {
  //Check in which quadrant the packet is in:
 
         /*              |
@@ -249,7 +239,7 @@ namespace ns3 {
     }
     
     uint8_t
-    NOCRoutingProtocols::MulticastArea(RoutingAlgos ra, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest) {
+    NOCRoutingProtocols::MulticastArea(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest) {
  //Check in which quadrant the packet is in:
 
         /*              |
@@ -301,29 +291,7 @@ namespace ns3 {
                                                      //send it to all neighbors
                 dir = NOCRouter::DIRECTION_MASK_ALL_EXCEPT_LOCAL;
 
-        }
-//        else if ((abs(x_source) == x_dest && abs(y_source) < y_dest-1)
-//                || (abs(x_source) < x_dest-1 && abs(y_source) == y_dest))
-//        {
-//            //A: [+x +y[
-//            if (x_source >= 0 && y_source > 0){
-//               dir |= NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
-//            }
-//            //B: ]-x +y]
-//            else if (x_source < 0 && y_source >= 0){
-//               dir |= NOCRouter::DIRECTION_MASK_N;
-//            }
-//            //C: [-x -y[
-//            else if (x_source <= 0 && y_source < 0){
-//               dir |= NOCRouter::DIRECTION_MASK_W;
-//            }
-//            //D: ]+x -y]
-//            else if (x_source > 0 && y_source <= 0){
-//               dir |= NOCRouter::DIRECTION_MASK_S;
-//            }
-//            
-//        }
-        
+        }        
         return dir;
     }
     

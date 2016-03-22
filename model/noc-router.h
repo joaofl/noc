@@ -196,6 +196,9 @@ namespace ns3 {
         
         Ptr<UniformRandomVariable> m_random;// = CreateObject<UniformRandomVariable> ();
     };
+    
+    
+    
 
 }
 
