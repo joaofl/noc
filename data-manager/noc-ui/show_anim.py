@@ -146,7 +146,7 @@ class Node(QGraphicsItem):
         y = c[1]
 
         x_t = x * self.__m * 10 + offset_x
-        y_t = y * self.__m * 10 + offset_y
+        y_t = (y * self.__m * 10 + offset_y) * -1
 
         return x_t, y_t
 
@@ -158,14 +158,14 @@ class Node(QGraphicsItem):
         x = self.__x
         y = self.__y
 
-        qp.setBrush(self.__south_tx_brush)
+        qp.setBrush(self.__north_tx_brush)
         qp.drawRect(x + c, y - 2*c, 2*c, 3*c) #draw netdev north rx e tx
-        qp.setBrush(self.__south_rx_brush)
+        qp.setBrush(self.__north_rx_brush)
         qp.drawRect(x + 3*c, y - 2*c, 2*c, 3*c) #draw netdev north rx e tx
 
-        qp.setBrush(self.__north_rx_brush)
+        qp.setBrush(self.__south_rx_brush)
         qp.drawRect(x + c, y + 5*c, 2 * c, 3 * c) #draw netdev south rx e tx
-        qp.setBrush(self.__north_tx_brush)
+        qp.setBrush(self.__south_tx_brush)
         qp.drawRect(x + 3*c, y + 5*c, 2 * c, 3 * c)
 
         qp.setBrush(self.__west_tx_brush)
@@ -228,6 +228,7 @@ class NOCAnim(QWidget):
 
         self.zoom_slider = QSlider(Qt.Horizontal)
         self.zoom_slider.setRange(0,100)
+        self.zoom_slider.setValue(0) #Initial value
         self.zoom_slider.setTickInterval(1)
         self.zoom_slider.valueChanged.connect(self.doZoom)
 
@@ -316,7 +317,9 @@ class NOCAnim(QWidget):
         sy = g[0] / self.networkSize[1]
         if sx < sy: self.nodes_size = round(sx*0.98, 0)
         else:       self.nodes_size = round(sy*0.98, 0)
-        self.zoom_slider.setValue(self.nodes_size)
+
+        if self.zoom_slider.value() == 0:
+            self.zoom_slider.setValue(self.nodes_size)
 
 
         #initialize data
@@ -325,12 +328,13 @@ class NOCAnim(QWidget):
         self.scene.clear()
 
         for x in range(self.networkSize[0]):
-            for y in range(self.networkSize[1]):
+            for y in range(self.networkSize[1]-1, 0, -1):
                 n = Node([x,y], self.networkSize, node_size=self.nodes_size)
                 self.network[y][x] = n
                 self.scene.addItem(n)
 
-        self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]-1) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size))
+        # self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]-1) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size))
+        self.doZoom()
 
         self.step_enable = False
         self.step = 0
@@ -351,7 +355,7 @@ class NOCAnim(QWidget):
                 self.network[y][x] = n
                 self.scene.addItem(n)
 
-        self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]-1) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size))
+        self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]-1) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size * -1))
         self.update()
 
     def doChangeRefreshRate(self):
