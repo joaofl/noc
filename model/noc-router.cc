@@ -70,23 +70,23 @@ namespace ns3 {
                 MakeUintegerAccessor(&NOCRouter::m_channelCount),
                 MakeUintegerChecker<uint8_t>())
         
-                .AddAttribute("UnicastProtocol",
-                "Defines the routing protocol utilized for unicasting",
-                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
-                MakeUintegerAccessor(&NOCRouter::m_routing_unicast),
-                MakeUintegerChecker<uint8_t>())
-        
-                .AddAttribute("MultiProtocol",
-                "Defines the routing protocol utilized for multicasting",
-                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
-                MakeUintegerAccessor(&NOCRouter::m_routing_multicast),
-                MakeUintegerChecker<uint8_t>())
-        
-                .AddAttribute("BroadcastProtocol",
-                "Defines the routing protocol utilized for broadcasting",
-                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
-                MakeUintegerAccessor(&NOCRouter::m_routing_broadcast),
-                MakeUintegerChecker<uint8_t>())
+//                .AddAttribute("UnicastProtocol",
+//                "Defines the routing protocol utilized for unicasting",
+//                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
+//                MakeUintegerAccessor(&NOCRouter::m_routing_unicast),
+//                MakeUintegerChecker<uint8_t>())
+//        
+//                .AddAttribute("MultiProtocol",
+//                "Defines the routing protocol utilized for multicasting",
+//                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
+//                MakeUintegerAccessor(&NOCRouter::m_routing_multicast),
+//                MakeUintegerChecker<uint8_t>())
+//        
+//                .AddAttribute("BroadcastProtocol",
+//                "Defines the routing protocol utilized for broadcasting",
+//                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
+//                MakeUintegerAccessor(&NOCRouter::m_routing_broadcast),
+//                MakeUintegerChecker<uint8_t>())
         
                 .AddAttribute("AddressX",
                 "The X coordinate of the router in the grid (required depending on the protocol)",
@@ -244,7 +244,8 @@ namespace ns3 {
 //    }
     
     
-    bool NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, 
+    bool 
+    NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, 
             int32_t destination_x, int32_t destination_y, bool absolute_address)
     {
         
@@ -264,7 +265,31 @@ namespace ns3 {
         
         m_routerGxTrace(pck_c); //the router receives a pck from the application
         
+//        uint8_t out = NOCRoutingProtocols::UnicastClockwiseXY(destination_x, destination_y);
         uint8_t out = NOCRoutingProtocols::UnicastClockwiseXY(destination_x, destination_y);
+//        uint8_t out = NOCRoutingProtocols::RouteTo(NOCRoutingProtocols::ROUTING_COLUMN_FIRST,0,0, destination_x, destination_y);
+        
+        return PacketSendMultiple(pck_c, network_id, out, P0);
+    }
+    
+    bool 
+    NOCRouter::PacketUnicastHighway (Ptr<const Packet> pck, uint8_t network_id, 
+            int32_t destination_x, int32_t destination_y,
+            uint8_t size_x, uint8_t size_y)
+    {
+           
+        NOCHeader h;
+        h.SetProtocol(NOCHeader::PROTOCOL_UNICAST_HIGHWAY);
+        h.SetSourceAddressXY(0,0);
+        h.SetDestinationAddressXY(size_x, size_y);
+        
+        Ptr<Packet> pck_c = pck->Copy();
+        pck_c->AddHeader(h);
+        
+        m_routerGxTrace(pck_c); //the router receives a pck from the application
+        
+//        uint8_t out = NOCRoutingProtocols::UnicastClockwiseXY(destination_x, destination_y);
+        uint8_t out = NOCRoutingProtocols::UnicastClockwiseHighway(destination_x, destination_y, 3, 3);
 //        uint8_t out = NOCRoutingProtocols::RouteTo(NOCRoutingProtocols::ROUTING_COLUMN_FIRST,0,0, destination_x, destination_y);
         
         return PacketSendMultiple(pck_c, network_id, out, P0);
@@ -289,7 +314,7 @@ namespace ns3 {
 
     bool NOCRouter::PacketMulticastArea(Ptr<const Packet> pck, uint8_t network_id, int32_t x_destination, int32_t y_destination){
         NOCHeader h;
-        h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST);
+        h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST_AREA);
         h.SetSourceAddressXY(0,0);
         h.SetDestinationAddressXY(x_destination,y_destination);
         
@@ -476,7 +501,7 @@ namespace ns3 {
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
-            case NOCHeader::PROTOCOL_MULTICAST:
+            case NOCHeader::PROTOCOL_MULTICAST_AREA:
                 out = NOCRoutingProtocols::MulticastArea(asx,asy,adx,ady);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
@@ -484,6 +509,12 @@ namespace ns3 {
             case NOCHeader::PROTOCOL_UNICAST:
 //                out = NOCRoutingProtocols::RouteTo(m_routing_unicast,asx,asy,adx,ady);
                 out = NOCRoutingProtocols::UnicastClockwiseXY(adx,ady);
+                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
+                break;
+
+            case NOCHeader::PROTOCOL_UNICAST_HIGHWAY:
+//                out = NOCRoutingProtocols::RouteTo(m_routing_unicast,asx,asy,adx,ady);
+                out = NOCRoutingProtocols::UnicastClockwiseHighway(adx,ady, 3, 3);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                

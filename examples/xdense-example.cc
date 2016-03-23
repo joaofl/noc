@@ -124,6 +124,7 @@ main(int argc, char *argv[]) {
     
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
+    string context = "TEST_HIGHWAY";
         
     string io_data_dir = homedir + "/noc-data";
     
@@ -140,7 +141,7 @@ main(int argc, char *argv[]) {
 
     stringstream context_dir;
     context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "c";
-    context_dir << "READ_ALL";
+    context_dir << context;
     context_dir << "/";
     
     string dir_output = io_data_dir + context_dir.str() + "out/";
@@ -200,7 +201,7 @@ main(int argc, char *argv[]) {
         //Setup app
         my_xdense_app->IsSink = false;
         my_xdense_app->PacketDuration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);  //nano seconds
-        my_xdense_app->ClusterSize = size_neighborhood;
+        my_xdense_app->ClusterSize_x = size_neighborhood;
 //        my_xdense_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
 //        my_xdense_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
 //        my_xdense_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet

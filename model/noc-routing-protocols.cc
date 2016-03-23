@@ -55,10 +55,8 @@ namespace ns3 {
     
     uint8_t
     NOCRoutingProtocols::UnicastClockwiseXY(int32_t x_dest, int32_t y_dest) {
-
         uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                                     //was received, but not sent to the app yet
-
         char quadrant = FindQuadrant(x_dest, y_dest);
 
         switch (quadrant) {
@@ -99,7 +97,11 @@ namespace ns3 {
 
         switch (quadrant) {
             case 'a':
-
+                dir = NOCRouter::DIRECTION_MASK_E; 
+                if (x_dest == x_size)
+                    dir = NOCRouter::DIRECTION_MASK_N;
+                
+                    
                 break;
             case 'b':
 

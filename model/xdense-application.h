@@ -62,7 +62,7 @@ namespace ns3 {
 
         bool IsSink;
         Time PacketDuration;
-        uint8_t ClusterSize; 
+        uint8_t ClusterSize_x, ClusterSize_y; 
 //             IsClusterHead;
 //        uint32_t MaxHops, 
 //                MaxTransmissionTime,

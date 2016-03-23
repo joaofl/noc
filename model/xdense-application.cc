@@ -108,12 +108,22 @@ namespace ns3 {
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
         pck->AddHeader(hd);
 //        
-//        Time t_ns = Time::FromInteger(0,Time::NS);
+        Time t_ns = Time::FromInteger(0,Time::NS);
 //        
-        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,0);
-        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,0);
-        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,0);
-        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,0);
+        m_router->PacketUnicastHighway(pck,NETWORK_ID_0, 15, 15, 3, 3);
+//        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicastHighway, this->m_router, pck, NETWORK_ID_0, 15, 15, ClusterSize_x, ClusterSize_y); //Quadrant A
+        t_ns += 10 * PacketDuration;
+        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15, 15, 0); //Quadrant B
+        t_ns += 10 * PacketDuration;
+        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15, -15, 0); //Quadrant C
+        t_ns += 10 * PacketDuration;
+        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15,-15, 0); //Quadrant D
+        t_ns += 10 * PacketDuration;
+        
+//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,0);
+//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,0);
+//        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,0);
+//        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,0);
 //        t_ns += 60 * PacketDuration;        
 //        
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastRadius, this->m_router, pck, NETWORK_ID_0, 7);
@@ -181,7 +191,7 @@ namespace ns3 {
 
         Time t_ns = Time::FromInteger(0,Time::NS);
 
-        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastIndividuals, this->m_router, pck, NETWORK_ID_0, ClusterSize, ClusterSize);
+        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastIndividuals, this->m_router, pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
     }
     
     bool 
@@ -189,7 +199,7 @@ namespace ns3 {
         
 //        ClusterSize = size_x * size_y;
         
-        Time tbase = PacketDuration * ClusterSize;
+        Time tbase = PacketDuration * ClusterSize_x;
         Time t;
         
         for (int i = 1; i < 2; i++) {
@@ -272,7 +282,7 @@ namespace ns3 {
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT_REQUEST);
         pck->AddHeader(hd);
         
-        m_router->PacketMulticastArea(pck, NETWORK_ID_0, ClusterSize/2, ClusterSize/2);
+        m_router->PacketMulticastArea(pck, NETWORK_ID_0, ClusterSize_x/2, ClusterSize_y/2);
     }
     
     void
@@ -283,7 +293,7 @@ namespace ns3 {
         
         for (uint8_t j = 0 ; j < 1 ; j++)
         {
-            time_slot = NOCRoutingProtocols::ScheduleTransmission(origin_x, origin_y, ClusterSize, ClusterSize);
+            time_slot = NOCRoutingProtocols::ScheduleTransmission(origin_x, origin_y, ClusterSize_x, ClusterSize_y);
             
             if (time_slot >= 0){
                 t_ns = time_slot * PacketDuration;

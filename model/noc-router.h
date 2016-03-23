@@ -92,18 +92,17 @@ namespace ns3 {
 
         void PacketReceived(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
         
-//        void PacketSend(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask);
-        
-        
-        
-        // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
+/        // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
         
 //        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
 //                            int32_t destination_y);
         
         bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
                             int32_t destination_y, bool absolute_address);
-//        bool PacketUnicastReceived (Ptr<const Packet> pck, uint8_t network_id);
+        
+        bool PacketUnicastHighway (Ptr<const Packet> pck, uint8_t network_id, 
+                                    int32_t destination_x, int32_t destination_y,
+                                    uint8_t size_x, uint8_t size_y);
 
         bool PacketMulticastRadius (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops);
         bool PacketMulticastArea (Ptr<const Packet> pck, uint8_t network_id, int32_t x_size, int32_t y_size);
@@ -112,13 +111,6 @@ namespace ns3 {
 
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
 //        bool PacketBroadcastReceived (Ptr<const Packet> pck, uint8_t network_id);
-        
-        
-//        
-        
-//        void SendPacket(Ptr<const Packet> pck, uint8_t ports);
-        
-//        void SendSignal(uint8_t bits, uint8_t ports);
         
         void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t network, uint8_t direction);
         
