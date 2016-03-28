@@ -435,7 +435,7 @@ class NOCAnim(QWidget):
                         node.setProperty(west_tx = 1)
 
             else:
-                self.t_next = int(current_trans[trace.time]) + self.packetDuration * 0.2
+                self.t_next = int(current_trans[trace.time]) + self.packetDuration * 0.6
                 break
 
 
