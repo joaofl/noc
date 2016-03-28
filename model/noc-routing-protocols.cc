@@ -88,7 +88,7 @@ namespace ns3 {
     }
     
     uint8_t
-    NOCRoutingProtocols::UnicastClockwiseHighway(int32_t x_dest, int32_t y_dest, uint8_t x_size, uint8_t y_size) {
+    NOCRoutingProtocols::UnicastClockwiseOffsetXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig) {
 
         uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                                     //was received, but not sent to the app yet
@@ -97,23 +97,27 @@ namespace ns3 {
 
         switch (quadrant) {
             case 'a':
-                dir = NOCRouter::DIRECTION_MASK_E; 
-                if (x_dest == x_size)
+                dir = NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
+                if (x_dest == 1 || (x_orig == 0 && y_orig == 0)) //if on the axis, send it right
                     dir = NOCRouter::DIRECTION_MASK_N;
-                
-                    
                 break;
             case 'b':
-
+                dir = NOCRouter::DIRECTION_MASK_N;
+                if (y_dest == 1 || (x_orig == 0 && y_orig == 0))
+                    dir = NOCRouter::DIRECTION_MASK_W;
                 break;
             case 'c':
-
+                dir = NOCRouter::DIRECTION_MASK_W;
+                if (x_dest == 1 || (x_orig == 0 && y_orig == 0))
+                    dir = NOCRouter::DIRECTION_MASK_S;
                 break;
             case 'd':
-
+                dir = NOCRouter::DIRECTION_MASK_S;
+                if (y_dest == 1 || (x_orig == 0 && y_orig == 0))
+                    dir = NOCRouter::DIRECTION_MASK_E;
                 break;
             case 'l':
-
+                dir = NOCRouter::DIRECTION_MASK_L;
                 break;
         }
         return dir;

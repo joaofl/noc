@@ -64,7 +64,7 @@ namespace ns3 {
             PROTOCOL_MULTICAST_RADIUS       =   0b00100001, //whatever
             PROTOCOL_MULTICAST_INDIVIDUALS  =   0b00100010, //whatever
             PROTOCOL_UNICAST                =   0b00000010,
-            PROTOCOL_UNICAST_HIGHWAY        =   0b00000100
+            PROTOCOL_UNICAST_OFFSET        =   0b00000100
             
 //            PROTOCOL_BITMASK                =   0b00001111,
 //            PROTOCOL_BITSHIFT               =   0

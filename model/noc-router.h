@@ -92,7 +92,7 @@ namespace ns3 {
 
         void PacketReceived(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
         
-/        // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
+        // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
         
 //        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
 //                            int32_t destination_y);
@@ -100,9 +100,8 @@ namespace ns3 {
         bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
                             int32_t destination_y, bool absolute_address);
         
-        bool PacketUnicastHighway (Ptr<const Packet> pck, uint8_t network_id, 
-                                    int32_t destination_x, int32_t destination_y,
-                                    uint8_t size_x, uint8_t size_y);
+        bool PacketUnicastOffset (Ptr<const Packet> pck, uint8_t network_id, 
+                                    int32_t destination_x, int32_t destination_y);
 
         bool PacketMulticastRadius (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops);
         bool PacketMulticastArea (Ptr<const Packet> pck, uint8_t network_id, int32_t x_size, int32_t y_size);

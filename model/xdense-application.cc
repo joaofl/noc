@@ -109,21 +109,25 @@ namespace ns3 {
         pck->AddHeader(hd);
 //        
         Time t_ns = Time::FromInteger(0,Time::NS);
-//        
-        m_router->PacketUnicastHighway(pck,NETWORK_ID_0, 15, 15, 3, 3);
+
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicastHighway, this->m_router, pck, NETWORK_ID_0, 15, 15, ClusterSize_x, ClusterSize_y); //Quadrant A
-        t_ns += 10 * PacketDuration;
-        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15, 15, 0); //Quadrant B
-        t_ns += 10 * PacketDuration;
-        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15, -15, 0); //Quadrant C
-        t_ns += 10 * PacketDuration;
-        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15,-15, 0); //Quadrant D
-        t_ns += 10 * PacketDuration;
+//        t_ns += 10 * PacketDuration;
+//        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15, 15, 0); //Quadrant B
+//        t_ns += 10 * PacketDuration;
+//        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15, -15, 0); //Quadrant C
+//        t_ns += 10 * PacketDuration;
+//        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15,-15, 0); //Quadrant D
+//        t_ns += 10 * PacketDuration;
         
-//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,0);
-//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,0);
-//        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,0);
-//        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,0);
+//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,USE_RELATIVE_ADDRESS);
+//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,USE_RELATIVE_ADDRESS);
+//        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,USE_RELATIVE_ADDRESS);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,USE_RELATIVE_ADDRESS);
+
+//        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15,-15);
+//        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15, 15);
+//        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 15,-15);
+        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 15, 15);
 //        t_ns += 60 * PacketDuration;        
 //        
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastRadius, this->m_router, pck, NETWORK_ID_0, 7);

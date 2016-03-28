@@ -236,14 +236,6 @@ namespace ns3 {
     
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
-    
-    
-//    bool NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, 
-//        int32_t destination_x, int32_t destination_y){
-//        return PacketUnicast (pck, network_id, destination_x, destination_y, false);
-//    }
-    
-    
     bool 
     NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, 
             int32_t destination_x, int32_t destination_y, bool absolute_address)
@@ -265,32 +257,27 @@ namespace ns3 {
         
         m_routerGxTrace(pck_c); //the router receives a pck from the application
         
-//        uint8_t out = NOCRoutingProtocols::UnicastClockwiseXY(destination_x, destination_y);
         uint8_t out = NOCRoutingProtocols::UnicastClockwiseXY(destination_x, destination_y);
-//        uint8_t out = NOCRoutingProtocols::RouteTo(NOCRoutingProtocols::ROUTING_COLUMN_FIRST,0,0, destination_x, destination_y);
         
         return PacketSendMultiple(pck_c, network_id, out, P0);
     }
     
     bool 
-    NOCRouter::PacketUnicastHighway (Ptr<const Packet> pck, uint8_t network_id, 
-            int32_t destination_x, int32_t destination_y,
-            uint8_t size_x, uint8_t size_y)
+    NOCRouter::PacketUnicastOffset (Ptr<const Packet> pck, uint8_t network_id, 
+            int32_t destination_x, int32_t destination_y)
     {
            
         NOCHeader h;
-        h.SetProtocol(NOCHeader::PROTOCOL_UNICAST_HIGHWAY);
+        h.SetProtocol(NOCHeader::PROTOCOL_UNICAST_OFFSET);
         h.SetSourceAddressXY(0,0);
-        h.SetDestinationAddressXY(size_x, size_y);
+        h.SetDestinationAddressXY(destination_x, destination_y);
         
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
         m_routerGxTrace(pck_c); //the router receives a pck from the application
         
-//        uint8_t out = NOCRoutingProtocols::UnicastClockwiseXY(destination_x, destination_y);
-        uint8_t out = NOCRoutingProtocols::UnicastClockwiseHighway(destination_x, destination_y, 3, 3);
-//        uint8_t out = NOCRoutingProtocols::RouteTo(NOCRoutingProtocols::ROUTING_COLUMN_FIRST,0,0, destination_x, destination_y);
+        uint8_t out = NOCRoutingProtocols::UnicastClockwiseOffsetXY(destination_x, destination_y, 0, 0);
         
         return PacketSendMultiple(pck_c, network_id, out, P0);
     }
@@ -422,16 +409,14 @@ namespace ns3 {
         if (nd == NULL) //That node does not have a net device in that direction
             return false;
         
-        
 //        Time t_ns = Time::FromInteger(m_random->GetInteger (0, 90)*10, Time::NS);
         Time t_ns = Time::FromInteger(0, Time::NS);
         
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
-        
         Simulator::Schedule(t_ns, fp, nd, pck->Copy());
         
 //        if (nd->Send(pck->Copy())){
-            return true;
+        return true;
 //        }
 //        else{
 //            m_routerTxDropTrace(pck);
@@ -448,25 +433,32 @@ namespace ns3 {
         NOCHeader h;
         pck_c->RemoveHeader(h);
         
+        bool AddToDestination = false;
+        
+        if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST ||
+            h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST_OFFSET)
+            AddToDestination = true;
+            
+        
         switch (nd_i.direction){
             case DIRECTION_S: 
                 h.AddtoSourceAddress( 0, 1);
-                if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST)
+                if (AddToDestination)
                     h.AddtoDestinationAddress( 0, -1);
                 break;
             case DIRECTION_N:
                 h.AddtoSourceAddress( 0,-1); 
-                if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST)
+                if (AddToDestination)
                     h.AddtoDestinationAddress( 0, 1);
                 break;
             case DIRECTION_E: 
                 h.AddtoSourceAddress(-1, 0);
-                if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST)
+                if (AddToDestination)
                     h.AddtoDestinationAddress( 1, 0);
                 break;
             case DIRECTION_W: 
                 h.AddtoSourceAddress( 1, 0); 
-                if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST)
+                if (AddToDestination)
                     h.AddtoDestinationAddress( -1, 0);
                 break;
         }
@@ -485,7 +477,6 @@ namespace ns3 {
         uint8_t out = 0;
         switch (p){
             case NOCHeader::PROTOCOL_BROADCAST:
-//                out = NOCRoutingProtocols::RouteTo(m_routing_broadcast,asx,asy,adx,ady);
                 out = NOCRoutingProtocols::Broadcast(asx,asy);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
@@ -507,19 +498,17 @@ namespace ns3 {
                 break;
                
             case NOCHeader::PROTOCOL_UNICAST:
-//                out = NOCRoutingProtocols::RouteTo(m_routing_unicast,asx,asy,adx,ady);
                 out = NOCRoutingProtocols::UnicastClockwiseXY(adx,ady);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
 
-            case NOCHeader::PROTOCOL_UNICAST_HIGHWAY:
-//                out = NOCRoutingProtocols::RouteTo(m_routing_unicast,asx,asy,adx,ady);
-                out = NOCRoutingProtocols::UnicastClockwiseHighway(adx,ady, 3, 3);
+            case NOCHeader::PROTOCOL_UNICAST_OFFSET:
+                out = NOCRoutingProtocols::UnicastClockwiseOffsetXY(adx,ady,asx,asy);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
                
             default:
-                cout << "Protocol unknown" << std::endl;
+                cout << "Unknown protocol" << std::endl;
                 break;
         }
     }

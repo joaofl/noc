@@ -108,20 +108,15 @@ main(int argc, char *argv[]) {
     //LogComponentEnable("NOCChannel",LOG_LEVEL_ALL);
     //LogComponentEnable("XDenseHeader",LOG_LEVEL_ALL);
     
-    
     // Default values
     
-//    uint32_t sampling_cycles = 10;
-//    uint32_t sampling_period = 100000; //at every 100.000.000 ns = 100ms default
     uint32_t size_x = 31;
     uint32_t size_y = 31;
     uint32_t size_neighborhood = 5;
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
-    //depends on the packet header. But this is used a debugging info only for post processing
-    //uint32_t operational_mode = 0; //sample the entire network
-    
+
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
     string context = "TEST_HIGHWAY";
@@ -299,7 +294,7 @@ main(int argc, char *argv[]) {
     cout << endl << "Simulation started. Please wait..." << endl ;
     
 
-    Simulator::Stop(Seconds(50));
+    Simulator::Stop(Seconds(10));
     Simulator::Run();
 
     //************************************************************
