@@ -20,7 +20,9 @@
 
 #include "calc.h"
 #include "ns3/calc.h"
+#include <math.h>
 
+#define DEBUG 0
 
 //#include "src/lte/helper/radio-bearer-stats-calculator.h"
 
@@ -309,4 +311,286 @@ namespace ns3 {
         
         return f;
     }
+    
+    
+    
+    double prod_and_sum_double(double * value_x1, double * value_x2, int n){
+	int i;
+    double result=0;
+	for(i = 0; i < n; i++){
+		result += (value_x1[i] * value_x2[i]) ;
+	}
+	return result;
+}
+void matrix_print (int nr, int nc, double **A){
+    int i,j;
+
+
+    for (i = 0; i < nr; i++) {
+
+        for (j = 0; j < nc; j++) {
+            printf ("%9.4f  ", A[i][j]);
+        }
+
+        printf("\n");
+    }
+    return;
+}
+int vector_print (int nr, double *x){
+    int i;
+      
+    if ( nr <= 0 ) return (-1);
+
+    for (i = 0; i < nr; i++) {
+        printf ("%9.4f  \n", x[i]);
+    }
+    printf("\n"); 
+    return (0);
+}
+void gauss(double **a, double *b, double *x, int n) {
+    int   i,j,k,m,rowx;
+    double xfac,temp,temp1,amax;
+
+
+    /////////////////////////////////////////
+    // Do the forward reduction step. 
+    /////////////////////////////////////////
+
+    rowx = 0;   // Keep count of the row interchanges 
+    for (k=0; k<=n-2; ++k) {
+        
+         amax = (double) fabs(a[k][k]) ;
+         m = k;
+         for (i=k+1; i<=n-1; i++){   // Find the row with largest pivot 
+                   xfac = (double) fabs(a[i][k]);
+                   if(xfac > amax) {amax = xfac; m=i;}
+         }
+         if(m != k) {  // Row interchanges 
+                     rowx++;
+                     temp1 = b[k];
+                     b[k]  = b[m];
+                     b[m]  = temp1;
+                     for(j=k; j<=n-1; j++) {
+                           temp = a[k][j];
+                           a[k][j] = a[m][j];
+                           a[m][j] = temp;
+                     }
+          }
+           for (i=k+1; i<=n-1; ++i) {
+              xfac = a[i][k]/a[k][k];
+
+                   for (j=k+1; j<=n-1; ++j) {
+                       a[i][j] = a[i][j]-xfac*a[k][j];
+                   }
+              b[i] = b[i]-xfac*b[k];
+           }
+
+    if(DEBUG == 1) {printf("\n Matrix [A] after decomposition step [%d]\n\n",k);
+                     matrix_print(n, n, a);}        
+
+    }
+    
+    /////////////////////////////////////////
+    // Do the back substitution step 
+    /////////////////////////////////////////
+
+    for (j=0; j<=n-1; ++j) {
+      k=(n-(j+1)+1)-1;
+      x[k] = b[k];
+           for(i=k+1; i<=n-1; ++i) {
+             x[k] = x[k]-a[k][i]*x[i];
+           }
+      if(a[k][k]) {
+        x[k] = x[k]/a[k][k];
+      } else {
+        x[k] = 0;
+      }
+    }
+
+    if(DEBUG == 1) printf("\nNumber of row exchanges = %d\n",rowx);
+
+}
+int polyfit2indepentvars(double * x1, double *x2, double *y, int n, double * returned_b, double * returned_sse){
+	int i, j;
+	int result = 0;
+
+	int __n 		= n;
+	double *__1 	= (double *) malloc(sizeof(double) * n);
+	double *__x1 	= (double *) malloc(sizeof(double) * n);
+	double *__x2 	= (double *) malloc(sizeof(double) * n);
+	double *__x1_2 	= (double *) malloc(sizeof(double) * n);
+	double *__x2_2 	= (double *) malloc(sizeof(double) * n);
+	double *__x1x2 	= (double *) malloc(sizeof(double) * n);
+	double *__y 	= (double *) malloc(sizeof(double) * n);
+
+	//[row][col]
+	int __matrixA_rows = 6;
+	int __matrixA_cols = 7;
+	double ** __matrixA = (double **) malloc(__matrixA_rows * sizeof(double*));
+	for(i = 0; i < __matrixA_rows; i++) __matrixA[i] = (double *)malloc(__matrixA_cols * sizeof(double));
+	//double __matrixA[6][6]= {0};
+	int __matrixB_rows = 6;
+	double * __matrixB = (double *) malloc(__matrixB_rows * sizeof(double));
+	//double __matrixB[6][1]= {0};
+	int __matrixC_rows = 6;
+	double * __matrixC = (double *) malloc(__matrixC_rows * sizeof(double));
+	//double __matrixC[6][1]= {0};
+
+	for ( i = 0; i < __n; i++){
+		__1[i] = 1;
+		__x1[i] = x1[i];
+		__x2[i] = x2[i];
+		__x1_2[i] = x1[i] * x1[i];
+		__x2_2[i] = x2[i] * x2[i];
+		__x1x2[i] = x1[i] * x2[i];
+		__y[i] = y[i];
+	}
+
+	//Calc Matrix A
+	for ( i = 0; i < 6; i++){
+		switch(i){
+			case 0:
+					__matrixA[0][i] = __matrixA[i][0] = prod_and_sum_double(__1,    __1, __n);
+					__matrixA[1][i] = __matrixA[i][1] = prod_and_sum_double(__x1,   __1, __n);
+					__matrixA[2][i] = __matrixA[i][2] = prod_and_sum_double(__x2,   __1, __n);
+					__matrixA[3][i] = __matrixA[i][3] = prod_and_sum_double(__x1_2, __1, __n);
+					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __1, __n);
+					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __1, __n);
+			break;
+			case 1: //*x1
+					__matrixA[1][i] = __matrixA[i][1] = prod_and_sum_double(__x1,   __x1, __n);
+					__matrixA[2][i] = __matrixA[i][2] = prod_and_sum_double(__x2,   __x1, __n);
+					__matrixA[3][i] = __matrixA[i][3] = prod_and_sum_double(__x1_2, __x1, __n);
+					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __x1, __n);
+					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x1, __n);
+			break;
+			case 2: //*x2
+					__matrixA[2][i] = __matrixA[i][2] = prod_and_sum_double(__x2,   __x2, __n);
+					__matrixA[3][i] = __matrixA[i][3] = prod_and_sum_double(__x1_2, __x2, __n);
+					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __x2, __n);
+					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x2, __n);
+			break;
+			case 3: //*x1_2
+					__matrixA[3][i] = __matrixA[i][3] = prod_and_sum_double(__x1_2, __x1_2, __n);
+					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __x1_2, __n);
+					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x1_2, __n);
+			break;
+			case 4: //*x2_2
+					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __x2_2, __n);
+					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x2_2, __n);
+			break;
+			case 5: //*x1_x2
+					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x1x2, __n);
+			break;
+		}
+	}
+    if(DEBUG == 1) {
+        printf("Matrix A = \n");
+        for (i=0; i<6; i++)
+        {
+            for(j=0; j<6; j++)
+                printf("%lf  ", __matrixA[i][j]);
+            printf("\n");
+        }
+        printf("\n");
+    }
+
+	//Calc Matrix C
+	__matrixC[0] = prod_and_sum_double(__y, __1, __n);
+	__matrixC[1] = prod_and_sum_double(__y, __x1, __n);
+	__matrixC[2] = prod_and_sum_double(__y, __x2, __n);
+	__matrixC[3] = prod_and_sum_double(__y, __x1_2, __n);
+	__matrixC[4] = prod_and_sum_double(__y, __x2_2, __n);
+	__matrixC[5] = prod_and_sum_double(__y, __x1x2, __n);
+
+    if(DEBUG == 1) {
+        printf("Matrix C = \n");
+        for (i=0; i<6; i++)
+        {
+            printf("C[%d] = %lf     ", i, __matrixC[i]);
+            printf("\n");
+        }
+        printf("\n");
+    }
+    
+    //gauss elimination
+    gauss(__matrixA, __matrixC, __matrixB, 6);
+    
+    //copy from local var to external var
+    for (i=0; i<6; i++){
+        returned_b[i]=__matrixB[i];
+    }
+        
+    if(DEBUG == 1) {
+        printf("Matrix B = \n");
+        for (i=0; i<6; i++)
+        {
+            printf("B[%d] = %lf     ", i, __matrixB[i]);
+            printf("\n");
+        }
+        printf("\n");
+    }
+    
+    //Mean Squared Error Calc
+    int __ms_error=0;
+    for(i=0; i<n; i++){
+        __ms_error += pow(__y[i] - (__matrixB[0] + __matrixB[1] * __x1[i] + __matrixB[2] * __x2[i] + __matrixB[3] * __x1_2[i] + __matrixB[4] * __x2_2[i] + __matrixB[5] * __x1x2[i]), 2);
+    }
+    __ms_error /= n;
+    
+    *returned_sse = __ms_error;
+	
+    free(__x1);
+	free(__x2);
+	free(__x1_2);
+	free(__x2_2);
+	free(__x1x2);
+    free(__y);
+    
+    free(__matrixA);
+	free(__matrixB);
+    free(__matrixC);
+    
+
+	return result;
+}
+
+/*
+int main(){
+	printf("Hello World!\n");
+
+	double x[16] = {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
+	double y[16] = {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4};
+	double v[16] =  {10,10,10,10,10,10,10,10,10,10,10,10,12,12,12,12};
+    //double v[16] =  {10, 11, 12, 13, 14, 15, 16, 17, 18, 11, 12, 12, 13, 13, 14, 16};
+	double coeff[6];
+    double ms_error;
+    
+	polyfit2indepentvars(x, y, v, 16, coeff, &ms_error);
+    
+    //print equation
+    printf("\nf(x,y)= ");
+    if (coeff[0]>0.00000001 ||  coeff[0]<-0.00000001)
+        printf("%c %lf ", coeff[0] > 0 ? '+' : ' ', coeff[0]);
+    if (coeff[1]>0.00000001 ||  coeff[1]<-0.00000001)
+        printf("%c %lf * x ", coeff[1] > 0 ? '+' : ' ', coeff[1]);
+    if (coeff[2]>0.00000001 ||  coeff[2]<-0.00000001)
+        printf("%c %lf * y ", coeff[2] > 0 ? '+' : ' ', coeff[2]);
+    if (coeff[3]>0.00000001 ||  coeff[3]<-0.00000001)
+        printf("%c %lf * x^2", coeff[3] > 0 ? '+' : ' ', coeff[3]);
+    if (coeff[4]>0.00000001 ||  coeff[4]<-0.00000001)
+        printf("%c %lf * y^2", coeff[4] > 0 ? '+' : ' ', coeff[4]);
+    if (coeff[5]>0.00000001 ||  coeff[5]<-0.00000001)
+        printf("%c %lf * x.y", coeff[5] > 0 ? '+' : ' ', coeff[5]);
+    printf("\n\n");
+    
+    printf("Mean Square Error = %lf", ms_error);
+    printf("\n\n");
+    
+    return 0;
+}
+
+*/
+    
+    
 }
