@@ -53,7 +53,7 @@ namespace ns3 {
         
         static uint8_t UnicastClockwiseOffsetXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig);
         
-        static int32_t ScheduleTransmission(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size);
+        static int32_t CalculateTimeSlot(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size);
         
         
         

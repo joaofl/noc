@@ -23,36 +23,6 @@
 
 
 namespace ns3 {
-   //Using XY routing
-//    uint8_t NOCRoutingProtocols::RouteTo(uint8_t routing_alg, int32_t x_dest, int32_t y_dest) { //X-Y routing, with X first
-//        
-//        uint8_t dir = 0;
-//
-//        switch (routing_alg){       
-//            case ROUTING_COLUMN_FIRST:
-//                if      (y_dest < 0)    dir = NOCRouter::DIRECTION_MASK_S;
-//                else if (y_dest > 0)    dir = NOCRouter::DIRECTION_MASK_N;
-//
-//                else if (x_dest > 0)    dir = NOCRouter::DIRECTION_MASK_E;
-//                else if (x_dest < 0)    dir = NOCRouter::DIRECTION_MASK_W;
-//
-//                else if (0 == x_dest && 0 == y_dest) dir = NOCRouter::DIRECTION_MASK_L;
-//                break;
-//            
-//            case ROUTING_ROW_FIRST:
-//                if      (x_dest > 0)    dir = NOCRouter::DIRECTION_MASK_E;
-//                else if (x_dest < 0)    dir = NOCRouter::DIRECTION_MASK_W;
-//                
-//                else if (y_dest > 0)    dir = NOCRouter::DIRECTION_MASK_S;
-//                else if (y_dest < 0)    dir = NOCRouter::DIRECTION_MASK_N;
-//
-//                else if (0 == x_dest && 0 == y_dest) dir = NOCRouter::DIRECTION_MASK_L;
-//                break;    
-//        }
-//        
-//        return dir;
-//    }
-    
     uint8_t
     NOCRoutingProtocols::UnicastClockwiseXY(int32_t x_dest, int32_t y_dest) {
         uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
@@ -94,26 +64,42 @@ namespace ns3 {
                                                     //was received, but not sent to the app yet
 
         char quadrant = FindQuadrant(x_dest, y_dest);
+        
+        //Change quadrant in case the packet is aligned with its destination
+        if ( (y_dest == 0) xor (x_dest == 0) ){
+            if (y_dest == 0){
+                if (quadrant == 'd') 
+                    quadrant = 'a';
+                else if (quadrant == 'b') 
+                    quadrant = 'c';
+            }
+            if (x_dest == 0){
+                if (quadrant == 'c')
+                    quadrant = 'd';
+                else if (quadrant == 'a')
+                    quadrant = 'b';
+            }
+        }
 
         switch (quadrant) {
             case 'a':
                 dir = NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
-                if (x_dest == 1 || (x_orig == 0 && y_orig == 0)) //if on the axis, send it right
+                if ((x_dest == 1 && y_dest != 0) || (x_orig == 0 && y_orig == 0)) //if on the axis, send it right
                     dir = NOCRouter::DIRECTION_MASK_N;
                 break;
             case 'b':
                 dir = NOCRouter::DIRECTION_MASK_N;
-                if (y_dest == 1 || (x_orig == 0 && y_orig == 0))
+                if ((y_dest == 1  && x_dest != 0)|| (x_orig == 0 && y_orig == 0))
                     dir = NOCRouter::DIRECTION_MASK_W;
                 break;
             case 'c':
                 dir = NOCRouter::DIRECTION_MASK_W;
-                if (x_dest == 1 || (x_orig == 0 && y_orig == 0))
+                if ((x_dest == -1 && y_dest != 0)|| (x_orig == 0 && y_orig == 0))
                     dir = NOCRouter::DIRECTION_MASK_S;
                 break;
             case 'd':
                 dir = NOCRouter::DIRECTION_MASK_S;
-                if (y_dest == 1 || (x_orig == 0 && y_orig == 0))
+                if ((y_dest == -1  && x_dest != 0) || (x_orig == 0 && y_orig == 0))
                     dir = NOCRouter::DIRECTION_MASK_E;
                 break;
             case 'l':
@@ -320,7 +306,7 @@ namespace ns3 {
 //    }
 
     int32_t
-    NOCRoutingProtocols::ScheduleTransmission(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size) {
+    NOCRoutingProtocols::CalculateTimeSlot(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size) {
         
         
         uint32_t t_wait = -1;

@@ -326,7 +326,7 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRoutingProtocols::MulticastIndividuals(0, 0,x_position, y_position);
+        uint8_t out = NOCRoutingProtocols::MulticastIndividuals(0, 0, x_position, y_position);
         
         if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
            return true;
