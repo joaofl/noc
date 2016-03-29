@@ -37,6 +37,7 @@ namespace ns3 {
             DATA_ANNOUCEMENT_REQUEST,   
             DATA_ANNOUCEMENT,
             CLUSTER_DATA_REQUEST,
+            CLUSTER_DATA_RESPONSE,
             CLUSTER_DATA,
             NETWORK_SETUP
         };

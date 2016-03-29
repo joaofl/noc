@@ -63,15 +63,7 @@ namespace ns3 {
         bool IsSink;
         Time PacketDuration;
         uint8_t ClusterSize_x, ClusterSize_y; 
-//             IsClusterHead;
-//        uint32_t MaxHops, 
-//                MaxTransmissionTime,
-//                SensorValueLast,
-//                MinNeighborhood,
-//                SamplingCycles,
-//                SamplingPeriod,
-//                OperationalMode;
-//        Time TimeStartOffset;
+        
 
         Ptr <NOCOutputData> SinkReceivedData;
         
@@ -94,7 +86,8 @@ namespace ns3 {
         bool DataAnnoucementReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
         void ClusterDataRequest();
-        bool ClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t dest_x, int32_t dest_y);
+        void ClusterDataResponse(int32_t x_dest, int32_t y_dest);
+        bool ClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y);
         
 //        void DataSharingSchedule(uint8_t n_times, Time period);
 //        void DataSharing();
@@ -111,23 +104,31 @@ namespace ns3 {
 //        uint32_t packetsReceived;
 
     private:
+        
+        typedef struct {
+            int32_t x, y;
+//            uint32_t value;
+//            uint32_t serial_number; 
+//            bool updated;
+        } node_ref;
+        
+//        node_ref cluster_data_request_remetent;
+
 
         virtual void StartApplication(void);
         virtual void StopApplication(void);
 
-        void ScheduleTx(void);
-        //void SendPacket(void);
-
+        void CalculateTimeSlot(void);
         uint8_t DetectEvents(void);
-
-        //void SendPacket(uint8_t ports, Ptr<Packet> pck);
-
+        
         bool m_running;
 //        uint32_t m_baudrate;
 //        uint32_t m_packetSize;
 //        uint32_t m_packetDuration;
         Ptr<NOCRouter> m_router;
 //        std::vector<NodeRef> m_sinksList;
+        
+
         
         
 //        std::vector<NodeRef> m_neighborsList;

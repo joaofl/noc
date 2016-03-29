@@ -82,8 +82,8 @@ namespace ns3 {
         
 
         if (IsSink == true) {
-            Tests();
-//            ClusterDataRequest();
+//            Tests();
+            ClusterDataRequest();
         }
         
 
@@ -119,15 +119,15 @@ namespace ns3 {
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15,-15, 0); //Quadrant D
 //        t_ns += 10 * PacketDuration;
         
-//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,USE_RELATIVE_ADDRESS);
-//        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,USE_RELATIVE_ADDRESS);
-//        m_router->PacketUnicast(pck,NETWORK_ID_0, 15,-15,USE_RELATIVE_ADDRESS);
-        m_router->PacketUnicast(pck,NETWORK_ID_0, 15, 15,USE_RELATIVE_ADDRESS);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,USE_RELATIVE_ADDRESS);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,USE_RELATIVE_ADDRESS);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 7,-7,USE_RELATIVE_ADDRESS);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 7, 7,USE_RELATIVE_ADDRESS);
 
-//        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15,-15);
-//        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15, 15);
-//        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 15,-15);
-        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 15, 15);
+        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15,-15);
+        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15, 15);
+        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 7,-7);
+        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 7, 7);
 //        t_ns += 60 * PacketDuration;        
 //        
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastRadius, this->m_router, pck, NETWORK_ID_0, 7);
@@ -196,87 +196,42 @@ namespace ns3 {
         Time t_ns = Time::FromInteger(0,Time::NS);
 
         Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastIndividuals, this->m_router, pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
+        this->ClusterDataRequestReceived(pck, 0, 0, ClusterSize_x, ClusterSize_y);
     }
     
     bool 
     XDenseApp::ClusterDataRequestReceived(Ptr<const Packet> pck_r, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y) {
         
-//        ClusterSize = size_x * size_y;
+        //Cluster heads receive a request for it to share its cluster data
+        //then it schedule few local requests, and replies to the global sink,
+        //so it can send it back its pre-processed cluster data
         
         Time tbase = PacketDuration * ClusterSize_x;
         Time t;
         
         for (int i = 1; i < 2; i++) {
-            t = i * tbase;
+            t = (i + 0) * tbase;
             Simulator::Schedule(t, &XDenseApp::DataSharingRequest, this);
+            t = (i + 1) * tbase + PacketDuration;
+            Simulator::Schedule(t, &XDenseApp::ClusterDataResponse, this, origin_x*-1, origin_y*-1);
         }
         
         return true;
     }
-
-
-
     
-//    void
-//    XDenseApp::NetworkSetup() {
-//
-////        if (IsSink == true) {
-//
-////        NodeRef me;
-////        me.x = 0;
-////        me.y = 0;
-////        m_sinksList.push_back(me);
-//
-//        XDenseHeader hd;
-//        hd.SetXdenseProtocol(XDenseHeader::NETWORK_SETUP);
-//
-//
-//        Ptr<Packet> pck = Create<Packet>();
-//        pck->AddHeader(hd);
-//            
-//            
-//        m_router->PacketBroadcast(pck, 0);
-//    }
-//
-//    bool
-//    XDenseApp::NetworkSetupReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
-//        
-//        if ((abs(origin_x) % 11 == 0) && (abs(origin_y) % 11 == 0)){
-////            Simulator::Schedule(Time::FromInteger(1000000, Time::NS), &XDenseApp::DataAnnouncementRequest, this);
-//               DataSharingRequest();
-//        }
-//        
-//        
-//        return false;
-//    }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        void 
+    XDenseApp::ClusterDataResponse(int32_t x_dest, int32_t y_dest) {
+        Ptr<Packet> pck = Create<Packet>();
 
-//    void
-//    XDenseApp::DataSharing(void) {
-//        
-//    }
-//
-//    bool
-//    XDenseApp::DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
-//        return false;
-//    }
+        XDenseHeader hd;
+        hd.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA_RESPONSE);
+        pck->AddHeader(hd);
 
-//    For testing proposes
-//    void
-//    XDenseApp::DataAnnouncementTT(void) {
-//            Ptr<Packet> pck = Create<Packet>();
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 0, USE_ABSOLUTE_ADDRESS);  
-            
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 2, 2, USE_RELATIVE_ADDRESS);        
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 2, -2, USE_RELATIVE_ADDRESS);        
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, -2, -2, USE_RELATIVE_ADDRESS);       
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, -2, 2, USE_RELATIVE_ADDRESS);        
-            
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 4, 4, USE_ABSOLUTE_ADDRESS);        
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 4, 0, USE_ABSOLUTE_ADDRESS);        
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 10, 10, USE_ABSOLUTE_ADDRESS);        
-//            m_router->PacketUnicast(pck, NETWORK_ID_0, 0, 4, USE_ABSOLUTE_ADDRESS);                
-//    }
+        Time t_ns = Time::FromInteger(0,Time::NS);
+
+        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicastOffset, this->m_router, pck, NETWORK_ID_0, x_dest, y_dest);
+    }
+
     
     void
     XDenseApp::DataSharingRequest() {
@@ -297,7 +252,7 @@ namespace ns3 {
         
         for (uint8_t j = 0 ; j < 1 ; j++)
         {
-            time_slot = NOCRoutingProtocols::ScheduleTransmission(origin_x, origin_y, ClusterSize_x, ClusterSize_y);
+            time_slot = NOCRoutingProtocols::CalculateTimeSlot(origin_x, origin_y, ClusterSize_x, ClusterSize_y);
             
             if (time_slot >= 0){
                 t_ns = time_slot * PacketDuration;
