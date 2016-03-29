@@ -314,7 +314,8 @@ namespace ns3 {
     
     
     
-    double prod_and_sum_double(double * value_x1, double * value_x2, int n){
+    double 
+    NOCCalc::prod_and_sum_double(double * value_x1, double * value_x2, int n){
 	int i;
     double result=0;
 	for(i = 0; i < n; i++){
@@ -322,7 +323,8 @@ namespace ns3 {
 	}
 	return result;
 }
-void matrix_print (int nr, int nc, double **A){
+    void 
+    NOCCalc::matrix_print (int nr, int nc, double **A){
     int i,j;
 
 
@@ -336,7 +338,8 @@ void matrix_print (int nr, int nc, double **A){
     }
     return;
 }
-int vector_print (int nr, double *x){
+int 
+NOCCalc::vector_print (int nr, double *x){
     int i;
       
     if ( nr <= 0 ) return (-1);
@@ -347,7 +350,8 @@ int vector_print (int nr, double *x){
     printf("\n"); 
     return (0);
 }
-void gauss(double **a, double *b, double *x, int n) {
+void 
+NOCCalc::gauss(double **a, double *b, double *x, int n) {
     int   i,j,k,m,rowx;
     double xfac,temp,temp1,amax;
 
@@ -410,7 +414,8 @@ void gauss(double **a, double *b, double *x, int n) {
     if(DEBUG == 1) printf("\nNumber of row exchanges = %d\n",rowx);
 
 }
-int polyfit2indepentvars(double * x1, double *x2, double *y, int n, double * returned_b, double * returned_sse){
+int 
+NOCCalc::polyfit2indepentvars(double * x1, double *x2, double *y, int n, double * returned_b, double * returned_sse){
 	int i, j;
 	int result = 0;
 
