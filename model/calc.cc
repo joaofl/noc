@@ -15,18 +15,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: João Loureiro <joflo@isep.ipp.pt>
+ * Author: João Loureiro, Pedro Santos <[joflo,pjsol]@isep.ipp.pt>
  */
 
 #include "calc.h"
-#include "ns3/calc.h"
-#include <math.h>
 
 #define DEBUG 0
-
-//#include "src/lte/helper/radio-bearer-stats-calculator.h"
-
-//using namespace arma;
 
 namespace ns3 {
 
@@ -315,7 +309,7 @@ namespace ns3 {
     
     
     double 
-    NOCCalc::prod_and_sum_double(double * value_x1, double * value_x2, int n){
+    NOCCalc::SumProduct(double * value_x1, double * value_x2, int32_t n){
 	int i;
     double result=0;
 	for(i = 0; i < n; i++){
@@ -324,7 +318,7 @@ namespace ns3 {
 	return result;
 }
     void 
-    NOCCalc::matrix_print (int nr, int nc, double **A){
+    NOCCalc::PrintMatrix (int32_t nr, int32_t nc, double **A){
     int i,j;
 
 
@@ -338,8 +332,8 @@ namespace ns3 {
     }
     return;
 }
-int 
-NOCCalc::vector_print (int nr, double *x){
+int32_t 
+NOCCalc::PrintVector (int32_t nr, double *x){
     int i;
       
     if ( nr <= 0 ) return (-1);
@@ -350,8 +344,9 @@ NOCCalc::vector_print (int nr, double *x){
     printf("\n"); 
     return (0);
 }
+
 void 
-NOCCalc::gauss(double **a, double *b, double *x, int n) {
+NOCCalc::Gauss(double **a, double *b, double *x, int32_t n) {
     int   i,j,k,m,rowx;
     double xfac,temp,temp1,amax;
 
@@ -390,7 +385,7 @@ NOCCalc::gauss(double **a, double *b, double *x, int n) {
            }
 
     if(DEBUG == 1) {printf("\n Matrix [A] after decomposition step [%d]\n\n",k);
-                     matrix_print(n, n, a);}        
+                     PrintMatrix(n, n, a);}        
 
     }
     
@@ -414,8 +409,8 @@ NOCCalc::gauss(double **a, double *b, double *x, int n) {
     if(DEBUG == 1) printf("\nNumber of row exchanges = %d\n",rowx);
 
 }
-int 
-NOCCalc::polyfit2indepentvars(double * x1, double *x2, double *y, int n, double * returned_b, double * returned_sse){
+int32_t 
+NOCCalc::FindPoly(double * x1, double *x2, double *y, int32_t n, double * returned_b, double * returned_sse){
 	int i, j;
 	int result = 0;
 
@@ -455,37 +450,37 @@ NOCCalc::polyfit2indepentvars(double * x1, double *x2, double *y, int n, double 
 	for ( i = 0; i < 6; i++){
 		switch(i){
 			case 0:
-					__matrixA[0][i] = __matrixA[i][0] = prod_and_sum_double(__1,    __1, __n);
-					__matrixA[1][i] = __matrixA[i][1] = prod_and_sum_double(__x1,   __1, __n);
-					__matrixA[2][i] = __matrixA[i][2] = prod_and_sum_double(__x2,   __1, __n);
-					__matrixA[3][i] = __matrixA[i][3] = prod_and_sum_double(__x1_2, __1, __n);
-					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __1, __n);
-					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __1, __n);
+					__matrixA[0][i] = __matrixA[i][0] = SumProduct(__1,    __1, __n);
+					__matrixA[1][i] = __matrixA[i][1] = SumProduct(__x1,   __1, __n);
+					__matrixA[2][i] = __matrixA[i][2] = SumProduct(__x2,   __1, __n);
+					__matrixA[3][i] = __matrixA[i][3] = SumProduct(__x1_2, __1, __n);
+					__matrixA[4][i] = __matrixA[i][4] = SumProduct(__x2_2, __1, __n);
+					__matrixA[5][i] = __matrixA[i][5] = SumProduct(__x1x2, __1, __n);
 			break;
 			case 1: //*x1
-					__matrixA[1][i] = __matrixA[i][1] = prod_and_sum_double(__x1,   __x1, __n);
-					__matrixA[2][i] = __matrixA[i][2] = prod_and_sum_double(__x2,   __x1, __n);
-					__matrixA[3][i] = __matrixA[i][3] = prod_and_sum_double(__x1_2, __x1, __n);
-					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __x1, __n);
-					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x1, __n);
+					__matrixA[1][i] = __matrixA[i][1] = SumProduct(__x1,   __x1, __n);
+					__matrixA[2][i] = __matrixA[i][2] = SumProduct(__x2,   __x1, __n);
+					__matrixA[3][i] = __matrixA[i][3] = SumProduct(__x1_2, __x1, __n);
+					__matrixA[4][i] = __matrixA[i][4] = SumProduct(__x2_2, __x1, __n);
+					__matrixA[5][i] = __matrixA[i][5] = SumProduct(__x1x2, __x1, __n);
 			break;
 			case 2: //*x2
-					__matrixA[2][i] = __matrixA[i][2] = prod_and_sum_double(__x2,   __x2, __n);
-					__matrixA[3][i] = __matrixA[i][3] = prod_and_sum_double(__x1_2, __x2, __n);
-					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __x2, __n);
-					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x2, __n);
+					__matrixA[2][i] = __matrixA[i][2] = SumProduct(__x2,   __x2, __n);
+					__matrixA[3][i] = __matrixA[i][3] = SumProduct(__x1_2, __x2, __n);
+					__matrixA[4][i] = __matrixA[i][4] = SumProduct(__x2_2, __x2, __n);
+					__matrixA[5][i] = __matrixA[i][5] = SumProduct(__x1x2, __x2, __n);
 			break;
 			case 3: //*x1_2
-					__matrixA[3][i] = __matrixA[i][3] = prod_and_sum_double(__x1_2, __x1_2, __n);
-					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __x1_2, __n);
-					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x1_2, __n);
+					__matrixA[3][i] = __matrixA[i][3] = SumProduct(__x1_2, __x1_2, __n);
+					__matrixA[4][i] = __matrixA[i][4] = SumProduct(__x2_2, __x1_2, __n);
+					__matrixA[5][i] = __matrixA[i][5] = SumProduct(__x1x2, __x1_2, __n);
 			break;
 			case 4: //*x2_2
-					__matrixA[4][i] = __matrixA[i][4] = prod_and_sum_double(__x2_2, __x2_2, __n);
-					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x2_2, __n);
+					__matrixA[4][i] = __matrixA[i][4] = SumProduct(__x2_2, __x2_2, __n);
+					__matrixA[5][i] = __matrixA[i][5] = SumProduct(__x1x2, __x2_2, __n);
 			break;
 			case 5: //*x1_x2
-					__matrixA[5][i] = __matrixA[i][5] = prod_and_sum_double(__x1x2, __x1x2, __n);
+					__matrixA[5][i] = __matrixA[i][5] = SumProduct(__x1x2, __x1x2, __n);
 			break;
 		}
 	}
@@ -501,12 +496,12 @@ NOCCalc::polyfit2indepentvars(double * x1, double *x2, double *y, int n, double 
     }
 
 	//Calc Matrix C
-	__matrixC[0] = prod_and_sum_double(__y, __1, __n);
-	__matrixC[1] = prod_and_sum_double(__y, __x1, __n);
-	__matrixC[2] = prod_and_sum_double(__y, __x2, __n);
-	__matrixC[3] = prod_and_sum_double(__y, __x1_2, __n);
-	__matrixC[4] = prod_and_sum_double(__y, __x2_2, __n);
-	__matrixC[5] = prod_and_sum_double(__y, __x1x2, __n);
+	__matrixC[0] = SumProduct(__y, __1, __n);
+	__matrixC[1] = SumProduct(__y, __x1, __n);
+	__matrixC[2] = SumProduct(__y, __x2, __n);
+	__matrixC[3] = SumProduct(__y, __x1_2, __n);
+	__matrixC[4] = SumProduct(__y, __x2_2, __n);
+	__matrixC[5] = SumProduct(__y, __x1x2, __n);
 
     if(DEBUG == 1) {
         printf("Matrix C = \n");
@@ -519,7 +514,7 @@ NOCCalc::polyfit2indepentvars(double * x1, double *x2, double *y, int n, double 
     }
     
     //gauss elimination
-    gauss(__matrixA, __matrixC, __matrixB, 6);
+    Gauss(__matrixA, __matrixC, __matrixB, 6);
     
     //copy from local var to external var
     for (i=0; i<6; i++){

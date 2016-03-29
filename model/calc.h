@@ -51,8 +51,17 @@ namespace ns3 {
         
         static DataFit CannyEdge(std::vector<NodeRef> * sn);
         
+
+        static int32_t FindPoly(double * x1, double *x2, double *y, int32_t n, double * returned_b, double * returned_sse);
+
+        
     private:
         static NodeRef NodeAt(std::vector<NodeRef> * sn, int8_t, int8_t);
+        
+        static int32_t PrintVector (int int32_t, double *x);
+        static void PrintMatrix (int32_t nr, int32_t nc, double **A);
+        static void Gauss(double **a, double *b, double *x, int32_t n);
+        static double SumProduct(double * value_x1, double * value_x2, int32_t n);
 
 //        
 
