@@ -110,16 +110,16 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 31;
+    uint32_t size_x = 61;
     uint32_t size_y = 31;
-    uint32_t size_neighborhood = 5;
+    uint32_t size_neighborhood = 7; //odd only, so neighborhoods do not overlap eachother
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "TEST_HIGHWAY";
+    string context = "READ_ALL_HIGHWAY";
         
     string io_data_dir = homedir + "/noc-data";
     
@@ -197,9 +197,7 @@ main(int argc, char *argv[]) {
         my_xdense_app->IsSink = false;
         my_xdense_app->PacketDuration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);  //nano seconds
         my_xdense_app->ClusterSize_x = size_neighborhood;
-//        my_xdense_app->SamplingCycles = sampling_cycles; // at least 2, since the first is sacrificed to
-//        my_xdense_app->SamplingPeriod = sampling_period; // at least 2, since the first is sacrificed to
-//        my_xdense_app->OperationalMode = 255; //Not defined, since it is defined by the sink ND packet
+        my_xdense_app->ClusterSize_y = size_neighborhood;
         my_xdense_app->SetStartTime(Seconds(0));
 
 
@@ -265,7 +263,6 @@ main(int argc, char *argv[]) {
         uint32_t y = floor((double) size_y / 2);
         uint32_t n = x + y * size_x;
         my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
-//        my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->OperationalMode = operational_mode; //the sink should spread the operational mode to others
         my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
     }
 
@@ -294,7 +291,7 @@ main(int argc, char *argv[]) {
     cout << endl << "Simulation started. Please wait..." << endl ;
     
 
-    Simulator::Stop(Seconds(10));
+    Simulator::Stop(Seconds(1));
     Simulator::Run();
 
     //************************************************************
