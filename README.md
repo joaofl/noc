@@ -4,6 +4,9 @@ Ns-3 module for mesh grid dense sensor networks and network-on-chip like network
 
 It integrates with computational fluid dynamics to provide spatial and temporal data to the sensors in the network. We implement post-processing tools for packet and flow tracing, statistical survey and qualitative analysis of the sensed and processed data.
 
+Following link provides videos with demos of the visualizing tools developed:
+https://www.youtube.com/playlist?list=PLbRUoHMnHw7R9h8Hv8kuqBF7qa3Vf9whM
+
 ### More details in the [wiki](https://bitbucket.org/joaofl/noc/wiki/Home). ###
 
 **Scentific papers presented:**
