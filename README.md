@@ -44,4 +44,4 @@ Authors:
 João Loureiro
 
 Team members:
-Michele Albano, Tiago Cerqueira
+Pedro Santos, Michele Albano, Tiago Cerqueira
