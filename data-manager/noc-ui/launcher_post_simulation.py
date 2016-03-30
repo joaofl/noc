@@ -136,7 +136,7 @@ class NOCLauncher(QWidget):
         self.list_fnames = files_io.find_multiple_files(directory, "packets-trace")
 
         for item in self.list_fnames:
-            n = item.split('/')[4]
+            n = item.split('/')[-3]
             self.list_vnames.append(n)
             d = item.rsplit('/',1)[0]
             self.list_dir_names.append(d + '/')
