@@ -30,7 +30,7 @@ import glob
 import _thread
 
 
-class NOCPreLauncher(QWidget):
+class NOCLauncher(QWidget):
 
     selected_log = ''
     selected_script = ''
@@ -38,21 +38,16 @@ class NOCPreLauncher(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         # setGeometry(x_pos, y_pos, width, height)
-        self.setGeometry(300, 200, 300, 400)
+        self.setGeometry(300, 200, 300, 630)
 
-        self.setWindowTitle('NoC4ns3 Pre Simulation Launcher')
+        self.setWindowTitle('NoC4ns3 Launcher')
 
-        self.label_dir = QLabel("NS-3 base dir:")
-        dir = expanduser("~") + '/ns-3'
+        self.label_dir = QLabel("Base directory:")
+        dir = expanduser("~") + '/noc-data'
         # self.edit_dir = QLineEdit(os.getcwd()) #current dir
         self.edit_dir = QLineEdit(dir)
 
-        self.label_dir = QLabel("Input data base dir:")
-        dir = expanduser("~") + '/noc-data/input-data/'
-        # self.edit_dir = QLineEdit(os.getcwd()) #current dir
-        self.edit_dir = QLineEdit(dir)
-
-        self.button_load = QPushButton("Load input data files")
+        self.button_load = QPushButton("Load log files")
         self.button_load.clicked.connect(self.on_click_load)
 
         self.listbox = QListWidget()
@@ -65,9 +60,9 @@ class NOCPreLauncher(QWidget):
         self.label_scripts = QLabel()
 
         self.label_title1 = QLabel()
-        self.label_title1.setText('Data files found:')
+        self.label_title1.setText('Log files found:')
         self.label_title2 = QLabel()
-        self.label_title2.setText('Simulations to run:')
+        self.label_title2.setText('Script files found:')
 
         self.textbox_args = QLineEdit()
 
@@ -197,7 +192,7 @@ class NOCPreLauncher(QWidget):
 
 
 app =  QApplication([])
-mfl = NOCPreLauncher()
+mfl = NOCLauncher()
 mfl.show()
 
 app.exec_()

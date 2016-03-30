@@ -30,7 +30,7 @@ import glob
 import _thread
 
 
-class NOCLauncher(QWidget):
+class NOCPreLauncher(QWidget):
 
     selected_log = ''
     selected_script = ''
@@ -38,16 +38,21 @@ class NOCLauncher(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         # setGeometry(x_pos, y_pos, width, height)
-        self.setGeometry(300, 200, 230, 630)
+        self.setGeometry(300, 200, 300, 400)
 
-        self.setWindowTitle('NoC4ns3 Launcher')
+        self.setWindowTitle('NoC4ns3 Pre Simulation Launcher')
 
-        self.label_dir = QLabel("Base directory:")
-        dir = expanduser("~") + '/noc-data'
+        self.label_dir = QLabel("NS-3 base dir:")
+        dir = expanduser("~") + '/ns-3'
         # self.edit_dir = QLineEdit(os.getcwd()) #current dir
         self.edit_dir = QLineEdit(dir)
 
-        self.button_load = QPushButton("Load log files")
+        self.label_dir = QLabel("Input data base dir:")
+        dir = expanduser("~") + '/noc-data/input-data/'
+        # self.edit_dir = QLineEdit(os.getcwd()) #current dir
+        self.edit_dir = QLineEdit(dir)
+
+        self.button_load = QPushButton("Load input data files")
         self.button_load.clicked.connect(self.on_click_load)
 
         self.listbox = QListWidget()
@@ -60,9 +65,9 @@ class NOCLauncher(QWidget):
         self.label_scripts = QLabel()
 
         self.label_title1 = QLabel()
-        self.label_title1.setText('Log files found:')
+        self.label_title1.setText('Data files found:')
         self.label_title2 = QLabel()
-        self.label_title2.setText('Script files found:')
+        self.label_title2.setText('Simulations to run:')
 
         self.textbox_args = QLineEdit()
 
@@ -180,6 +185,29 @@ class NOCLauncher(QWidget):
         else:
             os.system(cmd)
 
+    # def pbRunSimulation_clicked(self):
+    #     #self.pbGenerate_clicked()
+    #     #TODO: replace the fixed string with the appropriated var
+    #     self.teCommand.setText('Starting simulation. Please be patient')
+    #     cmd = './waf --run "src/noc/examples/noc-example $(cat /home/joao/usn-data/config/input-config.c.csv)"'
+    #     cmd_dir = self.tbNs3Dir.text()
+    #
+    #     thread.start_new_thread(self.lunchSimulationProcess, (cmd,cmd_dir))
+    #     with file(self.config_file, 'r') as f:
+    #         self.teCommand.setText('Simulation running with the parameters:\n' + f.read())
+
+        # config = (
+        #     " --size_x=" + str(self.network_size_x) +
+        #     " --size_y=" + str(self.network_size_y) +
+        #     " --size_neighborhood=" + str(self.neighborhood_size) +
+        #     " --sinks_n=" + str(self.number_of_sinks) +
+        #     " --sampling_cycles=" + str(self.number_of_cycles) +
+        #     " --sampling_period=" + str(self.period) +
+        #     " --baudrate=" + str(self.baudrate) +
+        #     " --operational_mode=" + str(int(self.cbReadAll.isChecked())) +
+        #     " --io_data_dir=" + str(self.working_dir)
+        # )
+
 
     def on_click_load_anim(self):
         self.anim = noc_anim.NOCAnim()
@@ -192,7 +220,7 @@ class NOCLauncher(QWidget):
 
 
 app =  QApplication([])
-mfl = NOCLauncher()
+mfl = NOCPreLauncher()
 mfl.show()
 
 app.exec_()
