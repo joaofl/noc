@@ -85,6 +85,8 @@ def find_multiple_files(working_base_dir, filename):
         for file in filenames:
             if file.startswith(filename):
                 traces.append(os.path.join(dirpath, file))
+            elif file.endswith(filename):
+                traces.append(os.path.join(dirpath, file))
 
 
     traces.sort()
