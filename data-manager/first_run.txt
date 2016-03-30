@@ -36,3 +36,7 @@ cd ..
 #Optional for statistics - scipy
 $ sudo apt-get install libatlas-base-dev gfortran
 sudo -H pip3.4 install scipy
+
+#Optional for importing sensors data from image and video files
+sudo apt-get install -y     libavformat-dev libavcodec-dev libavdevice-dev     libavutil-dev libswscale-dev libavresample-dev
+sudo -H pip3.4 install av
