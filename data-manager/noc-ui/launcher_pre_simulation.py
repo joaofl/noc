@@ -20,7 +20,7 @@
 __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
 # from PyQt5.QtCore import *
-# from PyQt5.QtGui import *
+from PyQt5.QtGui import *
 from PyQt5.QtWidgets import * #QWidget, QApplication
 from os.path import expanduser
 import files_io
@@ -38,63 +38,104 @@ class NOCPreLauncher(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         # setGeometry(x_pos, y_pos, width, height)
-        self.setGeometry(300, 200, 300, 400)
+        self.setGeometry(300, 200, 250, 600)
+
+        font_title = QFont()
+        font_title.setBold(True)
 
         self.setWindowTitle('NoC4ns3 Pre Simulation Launcher')
 
-        self.label_dir = QLabel("NS-3 base dir:")
-        dir = expanduser("~") + '/ns-3'
+        ##########################################################
+        self.label_ns3_dir = QLabel("NS-3 base dir:")
+        self.label_ns3_dir.setFont(font_title)
+        dir = expanduser("~") + '/Repositorios/ns-3-dev'
         # self.edit_dir = QLineEdit(os.getcwd()) #current dir
-        self.edit_dir = QLineEdit(dir)
+        self.edit_ns3_dir = QLineEdit(dir)
 
-        self.label_dir = QLabel("Input data base dir:")
-        dir = expanduser("~") + '/noc-data/input-data/'
+        ##########################################################
+        self.label_input_param = QLabel("Simulation input parameters:")
+        self.label_input_param.setFont(font_title)
+
+        self.label_param_network_size = QLabel("Network size [x,y]:")
+        self.textbox_param_xsize = QLineEdit()
+        self.textbox_param_ysize = QLineEdit()
+
+        ##########################################################
+        self.label_dir = QLabel("Simulation input data:")
+        self.label_dir.setFont(font_title)
+
+        dir = expanduser("~") + '/noc-data/input-data'
         # self.edit_dir = QLineEdit(os.getcwd()) #current dir
         self.edit_dir = QLineEdit(dir)
 
         self.button_load = QPushButton("Load input data files")
         self.button_load.clicked.connect(self.on_click_load)
 
-        self.listbox = QListWidget()
-        self.listbox.clicked.connect(self.on_select)
+        self.button_import = QPushButton("Import...")
+        self.button_import.clicked.connect(self.on_click_import)
 
-        self.listbox_scripts = QListWidget()
-        self.listbox_scripts.clicked.connect(self.on_select_scripts)
+        self.listbox_data_files = QListWidget()
+        self.listbox_data_files.clicked.connect(self.on_select)
+        self.label_data_files = QLabel('Click on load to find files...')
 
-        self.label_result = QLabel()
-        self.label_scripts = QLabel()
+        ##########################################################
 
-        self.label_title1 = QLabel()
-        self.label_title1.setText('Data files found:')
-        self.label_title2 = QLabel()
-        self.label_title2.setText('Simulations to run:')
+        # self.listbox_scripts = QListWidget()
+        # self.listbox_scripts.clicked.connect(self.on_select_scripts)
 
-        self.textbox_args = QLineEdit()
 
-        # self.button_load_anim = QPushButton("Load animation")
-        # self.button_load_anim.clicked.connect(self.on_click_load_anim)
+        # self.label_scripts = QLabel()
 
-        self.button_run = QPushButton("Run selected script")
-        self.button_run.clicked.connect(self.on_click_run)
+        # self.label_title1 = QLabel()
+        # self.label_title1.setText('Data files found:')
+        self.label_simulation_command = QLabel('Simulation command:')
+        self.label_simulation_command.setFont(font_title)
 
-        # self.button_plot_service = QPushButton("Plot service curves")
-        # self.button_plot_service.clicked.connect(self.on_click_plot_service)
+        self.textbox_command = QTextEdit()
 
-        # layout the widgets (vertical)
+        self.button_add_to_batch = QPushButton("Add for batch processing")
+        self.button_add_to_batch.clicked.connect(self.on_click_add)
+
+        self.label_batch = QLabel('Simulations to run:')
+        self.label_batch.setFont(font_title)
+        self.listbox_batch = QListWidget()
+        self.listbox_batch.clicked.connect(self.on_select)
+        self.label_batch_selected = QLabel('Select one or more simuation to run...')
+        self.button_run_batch = QPushButton("Run selected")
+        self.button_run_batch.clicked.connect(self.on_click_run)
+
+
+        ###################### Displacing items ##################
         vbox = QVBoxLayout()
+        ##########################################################
+        vbox.addWidget(self.label_ns3_dir)
+        vbox.addWidget(self.edit_ns3_dir)
+        ##########################################################
+        vbox.addWidget(self.label_input_param)
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.label_param_network_size)
+        hbox.addWidget(self.textbox_param_xsize)
+        hbox.addWidget(self.textbox_param_ysize)
+        vbox.addItem(hbox)
+        ##########################################################
         vbox.addWidget(self.label_dir)
         vbox.addWidget(self.edit_dir)
-        vbox.addWidget(self.button_load)
-        vbox.addWidget(self.label_title1)
-        vbox.addWidget(self.listbox)
-        vbox.addWidget(self.label_result)
-        # vbox.addWidget(self.button_load_anim)
-        vbox.addWidget(self.label_title2)
-        vbox.addWidget(self.listbox_scripts)
-        vbox.addWidget(self.label_scripts)
-        vbox.addWidget(self.textbox_args)
-        vbox.addWidget(self.button_run)
-        # vbox.addWidget(self.button_plot_service)
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.button_load)
+        hbox.addWidget(self.button_import)
+        vbox.addItem(hbox)
+        vbox.addWidget(self.listbox_data_files)
+        vbox.addWidget(self.label_data_files)
+        ##########################################################
+        vbox.addWidget(self.label_simulation_command)
+        vbox.addWidget(self.textbox_command)
+        vbox.addWidget(self.button_add_to_batch)
+        ##########################################################
+        vbox.addWidget(self.label_batch)
+        vbox.addWidget(self.listbox_batch)
+        vbox.addWidget(self.label_batch_selected)
+        vbox.addWidget(self.button_run_batch)
+
         self.setLayout(vbox)
 
         # noc_anim.QApplication.exec()
@@ -104,20 +145,13 @@ class NOCPreLauncher(QWidget):
         an item in the listbox has been clicked/selected
         """
         # self.selected = self.listbox.currentItem().text()
-        i = self.listbox.currentRow()
+        i = self.listbox_data_files.currentRow()
         self.selected_log = self.list_fnames[i]
 
-        self.label_result.setText(self.list_vnames[i] + ' selected')
+        self.label_data_files.setText(self.list_vnames[i] + ' selected')
 
-        args = files_io.load_line(self.list_dir_names[i] + 'simulation-info.txt')
-        self.textbox_args.setText(args)
-
-    def on_select_scripts(self):
-
-        i = self.listbox_scripts.currentRow()
-        self.selected_script = self.list_scripts_fnames[i]
-
-        self.label_scripts.setText(self.selected_script.split('/')[-1] + ' selected')
+        # args = files_io.load_line(self.list_dir_names[i] + 'simulation-info.txt')
+        # self.textbox_args.setText(args)
 
     def on_click_load(self):
 
@@ -126,10 +160,10 @@ class NOCPreLauncher(QWidget):
         directory = self.edit_dir.text()
 
         if (os.path.isdir(directory)):
-            self.listbox.clear()
+            self.listbox_data_files.clear()
         else:
-            self.listbox.clear()
-            self.label_result.setText("No such directory")
+            self.listbox_data_files.clear()
+            self.label_data_files.setText("No such directory")
             return
 
         # create a list of all files in a given directory
@@ -138,17 +172,17 @@ class NOCPreLauncher(QWidget):
         self.list_dir_names = []
 
 
-        self.list_fnames = files_io.find_multiple_files(directory, "packets-trace")
+        self.list_fnames = files_io.find_multiple_files(directory, ".csv")
 
         for item in self.list_fnames:
-            n = item.split('/')[4]
+            n = item.split('/')[-1]
             self.list_vnames.append(n)
             d = item.rsplit('/',1)[0]
             self.list_dir_names.append(d + '/')
 
-        self.listbox.addItems(self.list_vnames)
+        self.listbox_data_files.addItems(self.list_vnames)
         sf = "{} log files found".format(len(self.list_fnames))
-        self.label_result.setText(sf)
+        self.label_data_files.setText(sf)
 
 
         ############## Load the scripts
@@ -161,19 +195,22 @@ class NOCPreLauncher(QWidget):
         for item in self.list_scripts_fnames:
             self.list_scripts_vnames.append(item.split('/')[-1].split('.')[0].replace('show_', ''))
 
-        self.listbox_scripts.clear()
-        self.listbox_scripts.addItems(self.list_scripts_vnames)
+        # self.listbox_scripts.clear()
+        # self.listbox_scripts.addItems(self.list_scripts_vnames)
 
 
         pass
 
+    def on_click_import(self):
+        print('Call the other script to do that')
 
-
+    def on_click_add(self):
+        print('Add to list')
 
     def on_click_run(self):
         # scriptname = 'noc_flow_analysis'
 
-        args = ' --inputfile=' + self.selected_log + ' ' + self.textbox_args.text()
+        args = ' --inputfile=' + self.selected_log + ' ' + self.textbox_command.text()
 
         cmd = 'python3.4 ' + self.selected_script + args
         print('Command executed: ' + cmd)
