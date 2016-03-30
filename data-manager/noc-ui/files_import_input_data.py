@@ -4,6 +4,7 @@ from PIL import Image
 import numpy as np
 from numpy.lib.npyio import savetxt
 import av
+import matplotlib.pyplot as plt
 
 
 def ImportFromImage(input_file ='/home/joao/noc-data/input-data/sources/images/flow.png', output_dir ='/home/joao/noc-data/input-data'):
@@ -23,7 +24,7 @@ def ImportFromImage(input_file ='/home/joao/noc-data/input-data/sources/images/f
     # ig = 0
     # timer_gd.start(200)
 
-def ImportFromVideo(output_dir = '/home/joao/noc-data/input-data/air_flow.csv'):
+def ImportFromVideo(output_dir = '/home/joao/noc-data/input-data/mixing_layer.csv'):
     # video_file = str(QFileDialog.getOpenFileName(self, ("Select a video file"), tbWorkingDir.text() + '\..\videos'))
     input_data_list = []
     video_file = '/home/joao/noc-data/input-data/sources/Large Eddy Simulation of a Plane Turbulent Mixing Layer - Laminar Inflow.mp4'
@@ -52,6 +53,8 @@ def ImportFromVideo(output_dir = '/home/joao/noc-data/input-data/air_flow.csv'):
 
 
     input_data_list = normalize_data_array(input_data_list, 16) #16 bits sensors
+
+    image_show(input_data_list[0])
 
     write_input_data_to_disk(output_dir, input_data_list)
 
@@ -168,6 +171,35 @@ def normalize_data_array(data_array, sensor_resolution):
         data_array[i] *= sens_scale
 
     return np.uint16(data_array)
+
+def image_show(data, filename='', label_x="", label_y="", colormap='hot_r', axis='on', view=True):
+    plt.figure(figsize=(3, 3), dpi=120, facecolor='w', edgecolor='w')
+    plt.xlabel(label_x, fontsize=30)
+    plt.ylabel(label_y, fontsize=30)
+    plt.tight_layout(pad=0, w_pad=0, h_pad=0)
+    # plt.labe
+    # rect=[0.1, 0.1, 0.1, 0.1]
+
+
+    if axis == 'off':
+        plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+
+    im = plt.imshow(data, cmap=plt.get_cmap(colormap), interpolation='nearest')
+
+    # cax = plt.divider.append_axes("right", size="5%", pad=0.05)
+    # plt.colorbar(im)
+    # plt.colorbar(im, cax=cax)
+
+
+    if filename!='':
+        plt.savefig(filename)
+
+    if view==True:
+        plt.show()
+
+    plt.close()
+#################################################################
 
 
 
