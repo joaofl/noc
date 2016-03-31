@@ -119,17 +119,20 @@ main(int argc, char *argv[]) {
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "READ_ALL_HIGHWAY";
+    string context = "";
         
-    string io_data_dir = homedir + "/noc-data";
+    string output_data_dir = homedir + "/noc-data";
+    string input_sensors_data = "";
     
     CommandLine cmd;
+    cmd.AddValue("context", "String to identify the simulation instance", context);
     cmd.AddValue("size_x", "Network size in the X axe", size_x);
     cmd.AddValue("size_y", "Network size in the Y axe", size_y);
-    cmd.AddValue("size_neighborhood", "Neighborhood size", size_neighborhood);
-    cmd.AddValue("sinks_n", "Network size in the X axe", sinks_n);
-    cmd.AddValue("baudrate", "The baudrate of the node's communication ports [bps]", baudrate);
-    cmd.AddValue("io_data_dir", "Directory with the I/O simulation data", io_data_dir);
+    cmd.AddValue("size_n", "Neighborhood size", size_neighborhood);
+    cmd.AddValue("sinks", "Network size in the X axe", sinks_n);
+    cmd.AddValue("baudrate", "The baudrate of the node's communication ports [bbps]", baudrate);
+    cmd.AddValue("output_data", "Directory for simulation's output", output_data_dir);
+    cmd.AddValue("input_data", "Directory for simulation's input", input_sensors_data);
 
     cmd.Parse(argc, argv);
     ///////////////////////////////////////////////////////////////
@@ -139,8 +142,8 @@ main(int argc, char *argv[]) {
     context_dir << context;
     context_dir << "/";
     
-    string dir_output = io_data_dir + context_dir.str() + "out/";
-    string dir_input = io_data_dir + context_dir.str() + "in/";     
+    string dir_output = output_data_dir + context_dir.str() + "out/";
+    string dir_input = output_data_dir + context_dir.str() + "in/";     
     
     //string animation_file = dir_output + "animation.xml";
     
