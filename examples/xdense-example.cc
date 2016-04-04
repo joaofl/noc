@@ -40,7 +40,7 @@
 
 #include "ns3/noc-module.h"
 #include "src/noc/model/xdense-application.h"
-#include "src/noc/model/sensor-data-io.h"
+#include "src/noc/model/data-io.h"
 #include "src/noc/model/noc-header.h"
 #include "src/noc/model/xdense-header.h"
 
@@ -110,9 +110,9 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 61;
-    uint32_t size_y = 31;
-    uint32_t size_neighborhood = 7; //odd only, so neighborhoods do not overlap eachother
+    uint32_t size_x = 51;
+    uint32_t size_y = 51;
+    uint32_t size_neighborhood = 3; //odd only, so neighborhoods do not overlap eachother
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -122,7 +122,8 @@ main(int argc, char *argv[]) {
     string context = "";
         
     string output_data_dir = homedir + "/noc-data";
-    string input_sensors_data = "";
+    string input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
+    string input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data.csv";
     
     CommandLine cmd;
     cmd.AddValue("context", "String to identify the simulation instance", context);
@@ -132,7 +133,8 @@ main(int argc, char *argv[]) {
     cmd.AddValue("sinks", "Network size in the X axe", sinks_n);
     cmd.AddValue("baudrate", "The baudrate of the node's communication ports [bbps]", baudrate);
     cmd.AddValue("output_data", "Directory for simulation's output", output_data_dir);
-    cmd.AddValue("input_data", "Directory for simulation's input", input_sensors_data);
+    cmd.AddValue("input_data", "Directory for simulation's input", input_sensors_data_path);
+    cmd.AddValue("input_delay_data", "Directory with delays measurements", input_delay_data_path);
 
     cmd.Parse(argc, argv);
     ///////////////////////////////////////////////////////////////
@@ -182,11 +184,24 @@ main(int argc, char *argv[]) {
     uint32_t n_nodes = my_node_container.GetN();
     
         //TODO: this should be done inside the sensor module
-    NOCInputData my_input_data;
-    if ( my_input_data.LoadFromFile(dir_input + "input-data.s.csv")  == 0){
-        cout << "Error loading the input data file at " << dir_input << "input-data.s.csv";
-//        return -1;
+    NOCInputDataSensors my_sensors_data;
+    if ( my_sensors_data.LoadFromFile(input_sensors_data_path)  == 0){
+        cout << "Error loading the input data file at " << input_sensors_data_path << "\n";
     }
+    else{
+        cout << "Sensor's data sucessfully loaded:  " << input_sensors_data_path << "\n";
+    }
+    
+    NOCInputDataDelays my_delay_data;
+    if ( my_delay_data.LoadFromFile(input_delay_data_path)  == 0){
+        cout << "Error loading the input data file at " << input_delay_data_path << "\n";
+    }
+    else{
+        cout << "Delay's data sucessfully loaded:  " << input_delay_data_path << "\n";
+    }
+    
+    
+    cout << my_delay_data.GetDelay(0.02);
     
     
     for (uint32_t i = 0; i < n_nodes; i++) {
@@ -244,7 +259,7 @@ main(int argc, char *argv[]) {
         //Setup sensor
         my_sensor->SensorPosition.x = x.Get();
         my_sensor->SensorPosition.y = y.Get();
-        my_sensor->InputData = &my_input_data;
+        my_sensor->InputData = &my_sensors_data;
 
 
         //Should be installed in this order!!!

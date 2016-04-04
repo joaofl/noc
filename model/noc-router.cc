@@ -124,7 +124,7 @@ namespace ns3 {
 //        Simulator::Schedule(PicoSeconds(1500), &NOCRouter::ServePackets, this);
 //        m_port_to_serve = DIRECTION_E;
         m_random = CreateObject<UniformRandomVariable> ();
-        m_useRelativeAddress = 1;
+//        m_useRelativeAddress = 1;
     }
 
     void

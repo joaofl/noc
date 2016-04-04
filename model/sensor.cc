@@ -41,7 +41,7 @@ namespace ns3 {
     
     uint32_t Sensor::ReadSensor(void){
         
-        uint32_t r = InputData->ReadNode(m_time_instant, SensorPosition.x, SensorPosition.y);
+        uint32_t r = InputData->ReadSensor(m_time_instant, SensorPosition.x, SensorPosition.y);
         m_time_instant++;
         
         return r;

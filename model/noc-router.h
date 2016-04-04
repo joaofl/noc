@@ -81,8 +81,6 @@ namespace ns3 {
             bool    wait;
             bool    wait_remote;
             Ptr<NOCNetDevice> nd_pointer;
-//            Ptr<Packet> pck_buffer;
-//            bool pck_buffered;
         }NetDeviceInfo;
         
         NOCRouter();
@@ -92,10 +90,7 @@ namespace ns3 {
 
         void PacketReceived(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
         
-        // Basic comm abstractions of the router, which actually step on the basic functions //////////////////////
-        
-//        bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
-//                            int32_t destination_y);
+
         
         bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
                             int32_t destination_y, bool absolute_address);
@@ -173,17 +168,11 @@ namespace ns3 {
         
         int32_t m_addressX, m_addressY;
         
-        uint8_t m_useRelativeAddress;
-        
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
         
-        uint8_t m_port_to_serve;
+//        uint8_t m_port_to_serve;
         
         uint8_t m_channelCount;
-        
-        uint8_t m_routing_unicast; 
-        uint8_t m_routing_multicast;
-        uint8_t m_routing_broadcast;
         
         Ptr<UniformRandomVariable> m_random;// = CreateObject<UniformRandomVariable> ();
     };

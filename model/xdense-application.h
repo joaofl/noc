@@ -40,7 +40,7 @@
 #include "noc-types.h"
 #include "sensor.h"
 #include "calc.h"
-#include "sensor-data-io.h"
+#include "data-io.h"
 
 
 #define USE_ABSOLUTE_ADDRESS true
@@ -65,7 +65,7 @@ namespace ns3 {
         uint8_t ClusterSize_x, ClusterSize_y; 
         
 
-        Ptr <NOCOutputData> SinkReceivedData;
+        Ptr <NOCOutputDataSensors> SinkReceivedData;
         
         XDenseApp();
         virtual ~XDenseApp();

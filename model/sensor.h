@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
-#include "sensor-data-io.h"
+#include "data-io.h"
 
 namespace ns3 {
 
@@ -34,7 +34,7 @@ namespace ns3 {
         
         Coordinate SensorPosition;
         
-        NOCInputData * InputData;
+        NOCInputDataSensors * InputData;
         
         uint32_t ReadSensor(void);
         

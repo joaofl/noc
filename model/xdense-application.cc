@@ -29,7 +29,7 @@
 #include "noc-routing-protocols.h"
 
 #include "calc.h"
-#include "sensor-data-io.h"
+#include "data-io.h"
 #include "ns3/noc-net-device.h"
 #include "ns3/xdense-application.h"
 //#include "noc-types.h"
