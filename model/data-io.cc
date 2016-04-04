@@ -18,12 +18,7 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  * 
  */
-
-#include <complex>
-
-#include "sensor-data-io.h"
-#include "ns3/noc-types.h"
-
+#include "data-io.h"
 /////////////////////////////////////////////////////////////////////////////////////////////
 typedef struct stat Stat;
 
@@ -85,12 +80,42 @@ int mkpath(const char *path, mode_t mode)
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+namespace ns3{
+    bool
+    NOCInputDataDelays::LoadFromFile(string fn){
+        
+        ifstream file(fn.c_str());
+        string sv;
+        float v;
+
+        while (file.good()) {
+            getline(file, sv, '\n');
+//            v = float(sv);
+//            v = 0;
+            v = std::atof(sv.c_str());
+            
+            m_data.push_back(v);
+        }
+        
+        return true;
+    }
+    
+    Time
+    NOCInputDataDelays::GetDelay(double rn){
+        uint32_t i = rn * ( m_data.size() - 1 );
+        Time t = Time::FromDouble( m_data.at(i), Time::US );
+        
+        return t;
+    } 
+}
+
+
+
 namespace ns3 {
 
     uint8_t
-    NOCInputData::LoadFromFile(string fn) {
+    NOCInputDataSensors::LoadFromFile(string fn) {
 
-        //        float data[38][27];
         ifstream file(fn.c_str());
 
         string line_value = "";
@@ -133,7 +158,7 @@ namespace ns3 {
         return r;
     }
     
-    uint32_t NOCInputData::ReadNode(uint32_t t, uint32_t x, uint32_t y) {
+    uint32_t NOCInputDataSensors::ReadSensor(uint32_t t, uint32_t x, uint32_t y) {
         //
         //        vector<uint32_t> line;
         //        uint32_t data;
@@ -150,29 +175,31 @@ namespace ns3 {
     
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
-    
+}
+
+namespace ns3{
     
         TypeId
-    NOCOutputData::GetTypeId(void) {
+    NOCOutputDataSensors::GetTypeId(void) {
         static TypeId tid = TypeId("ns3::NOCOutputData")
                 .SetParent<Application> ()
-                .AddConstructor<NOCOutputData> ()
+                .AddConstructor<NOCOutputDataSensors> ()
                 ;
         return tid;
     }
         
-    NOCOutputData::NOCOutputData() {
+    NOCOutputDataSensors::NOCOutputDataSensors() {
         sink_neighbors.up.y = 100;
         sink_neighbors.down.y = -100;
         sink_neighbors.right.x = 100;
         sink_neighbors.left.x = -100;
     }
 
-    NOCOutputData::~NOCOutputData(){
+    NOCOutputDataSensors::~NOCOutputDataSensors(){
         
     }
     
-    uint8_t NOCOutputData::WriteToFile(string filename, uint8_t n_size){
+    uint8_t NOCOutputDataSensors::WriteToFile(string filename, uint8_t n_size){
         
 //        DataFit p_sink;
 //        p_sink.x = 0; p_sink.y = 0; 
@@ -246,7 +273,7 @@ namespace ns3 {
         return 0;
     }
     
-    uint8_t NOCOutputData::WritePointsToFile(string filename, uint8_t x_size, uint8_t y_size){
+    uint8_t NOCOutputDataSensors::WritePointsToFile(string filename, uint8_t x_size, uint8_t y_size){
         
         matrix data(x_size, vector <uint16_t>(y_size));
         
@@ -275,7 +302,7 @@ namespace ns3 {
         
     }
     
-    uint32_t NOCOutputData::AddFit(DataFit p){
+    uint32_t NOCOutputDataSensors::AddFit(DataFit p){
         
         if (p.x > bounds.x_max) bounds.x_max = p.x;
         if (p.x < bounds.x_min) bounds.x_min = p.x;
@@ -299,7 +326,7 @@ namespace ns3 {
 
     
     
-    uint32_t NOCOutputData::AddPoint(Point p){
+    uint32_t NOCOutputDataSensors::AddPoint(Point p){
         
         
         points.push_back(p);

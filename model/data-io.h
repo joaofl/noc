@@ -25,6 +25,8 @@
 #include <errno.h>
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <stdio.h>
 #include <vector>
 #include <string>
 #include <math.h>
@@ -33,8 +35,7 @@
 #include <sys/stat.h>
 #include <pwd.h>
 
-#include <fstream>
-#include <sstream>
+
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
 
@@ -42,17 +43,30 @@
 
 
 
-using namespace std;
+using namespace std;    
 
 int do_mkdir(const char *path, mode_t mode);
 int mkpath(const char *path, mode_t mode);
 
 namespace ns3 {
     
-    class NOCInputData{
+    /**************************************************************************/
+    class NOCInputDataDelays{
+    public:
+        bool LoadFromFile(string);
+        Time GetDelay(double); //a random number between 0 and 1
+        
+    private:
+                vector<uint32_t> m_data;        
+    };
+    
+    /**************************************************************************/
+    class NOCInputDataSensors{
     public:
         uint8_t LoadFromFile(string);
-        uint32_t ReadNode(uint32_t t, uint32_t x, uint32_t y);
+        uint32_t ReadSensor(uint32_t t, uint32_t x, uint32_t y);
+        
+        
         
 
     private:
@@ -64,13 +78,14 @@ namespace ns3 {
         
     };
     
-    class NOCOutputData : public Application {
+    /**************************************************************************/
+    class NOCOutputDataSensors : public Application {
     public:
         
         static TypeId GetTypeId (void);
         
-        NOCOutputData();
-        virtual ~NOCOutputData();
+        NOCOutputDataSensors();
+        virtual ~NOCOutputDataSensors();
         
         uint8_t WriteToFile(string, uint8_t);
         uint8_t WritePointsToFile(string filename, uint8_t x_size, uint8_t y_size);
@@ -83,9 +98,6 @@ namespace ns3 {
         typedef vector< vector<uint16_t> > matrix;
         
         ofstream ss;
-        
-//        matrix m_data;
-//        vector< matrix > m_data_on_time;
 //        
         vector<DataFit> planes;
         vector<DataFit> curves;
@@ -101,11 +113,7 @@ namespace ns3 {
             DataFit up, down, left, right;
         }sink_neighbors;
         
-    };
-
-/* ... */
-
-    
+    };    
 }
 
 #endif /* NOC_H */

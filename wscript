@@ -31,7 +31,7 @@ def build(bld):
         'model/epiphany-application.cc',
 
         'model/sensor.cc',
-        'model/sensor-data-io.cc',        
+        'model/data-io.cc',        
 
         'model/calc.cc',
         'model/fast-edge.cc',
@@ -64,7 +64,7 @@ def build(bld):
         'model/epiphany-application.h',
 
         'model/sensor.h',
-        'model/sensor-data-io.h',
+        'model/data-io.h',
 
         'model/calc.h',
         'model/fast-edge.h',
