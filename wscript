@@ -30,7 +30,7 @@ def build(bld):
         'model/epiphany-header.cc',
         'model/epiphany-application.cc',
 
-        'model/sensor.cc',
+        #'model/sensor.cc',
         'model/data-io.cc',        
 
         'model/calc.cc',
@@ -63,7 +63,7 @@ def build(bld):
         'model/epiphany-header.h',
         'model/epiphany-application.h',
 
-        'model/sensor.h',
+        #'model/sensor.h',
         'model/data-io.h',
 
         'model/calc.h',
