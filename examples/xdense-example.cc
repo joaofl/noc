@@ -137,6 +137,7 @@ main(int argc, char *argv[]) {
     cmd.AddValue("input_delay_data", "Directory with delays measurements", input_delay_data_path);
 
     cmd.Parse(argc, argv);
+    
     ///////////////////////////////////////////////////////////////
 
     stringstream context_dir;
@@ -179,21 +180,19 @@ main(int argc, char *argv[]) {
     ApplicationContainer my_xdense_sink_app_container;
     ApplicationContainer my_xdense_app_container;
     ApplicationContainer my_xdense_router_container;
-    ApplicationContainer my_xdense_sensor_container;
+    ApplicationContainer my_xdense_data_io_container;
     
     uint32_t n_nodes = my_node_container.GetN();
     
         //TODO: this should be done inside the sensor module
-    NOCInputDataSensors my_sensors_data;
-    if ( my_sensors_data.LoadFromFile(input_sensors_data_path)  == 0){
+    NOCInputData my_input_data;
+    if ( my_input_data.LoadSensorsDataFromFile(input_sensors_data_path)  == 0){
         cout << "Error loading the input data file at " << input_sensors_data_path << "\n";
     }
     else{
         cout << "Sensor's data sucessfully loaded:  " << input_sensors_data_path << "\n";
     }
-    
-    NOCInputDataDelays my_delay_data;
-    if ( my_delay_data.LoadFromFile(input_delay_data_path)  == 0){
+    if ( my_input_data.LoadDelayDataFromFile(input_delay_data_path)  == 0){
         cout << "Error loading the input data file at " << input_delay_data_path << "\n";
     }
     else{
@@ -201,7 +200,7 @@ main(int argc, char *argv[]) {
     }
     
     
-    cout << my_delay_data.GetDelay(0.02);
+//    cout << my_delay_data.GetDelay(0.02);
     
     
     for (uint32_t i = 0; i < n_nodes; i++) {
@@ -209,7 +208,7 @@ main(int argc, char *argv[]) {
 //        uint32_t y = floor(i / size_y);
 
         Ptr<XDenseApp> my_xdense_app = CreateObject<XDenseApp> ();
-        Ptr<Sensor> my_sensor = CreateObject<Sensor> ();
+        Ptr<NOCDataIO> my_node_io = CreateObject<NOCDataIO> ();
 
         //Setup app
         my_xdense_app->IsSink = false;
@@ -257,17 +256,17 @@ main(int argc, char *argv[]) {
         }
 
         //Setup sensor
-        my_sensor->SensorPosition.x = x.Get();
-        my_sensor->SensorPosition.y = y.Get();
-        my_sensor->InputData = &my_sensors_data;
+        my_node_io->SensorPosition.x = x.Get();
+        my_node_io->SensorPosition.y = y.Get();
+        my_node_io->InputData = &my_input_data;
 
 
         //Should be installed in this order!!!
         my_node_container.Get(i)->AddApplication(my_xdense_app);
-        my_node_container.Get(i)->AddApplication(my_sensor);
+        my_node_container.Get(i)->AddApplication(my_node_io);
 
         my_xdense_app_container.Add(my_xdense_app);
-        my_xdense_sensor_container.Add(my_sensor);
+        my_xdense_data_io_container.Add(my_node_io);
         my_xdense_app->AddRouter(my_noc_router);
     }
 
@@ -280,6 +279,7 @@ main(int argc, char *argv[]) {
         uint32_t x = floor((i + 1) * 2 * delta_x - delta_x);
         uint32_t y = floor((double) size_y / 2);
         uint32_t n = x + y * size_x;
+        
         my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
         my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
     }
@@ -302,10 +302,6 @@ main(int argc, char *argv[]) {
     filename = dir_output + "packets-trace-netdevice.csv";
     file_packets_trace_netdevice.open(filename.c_str(), ios::out);
 
-//    filename = dir_output + "packets-trace-router.csv";
-//    file_packets_trace_router.open(filename.c_str(), ios::out);
-
-    
     cout << endl << "Simulation started. Please wait..." << endl ;
     
 

@@ -38,7 +38,6 @@
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "noc-header.h"
-#include "noc-types.h"
 
 using namespace std;
 namespace ns3 {
@@ -173,8 +172,6 @@ namespace ns3 {
 //        uint8_t m_port_to_serve;
         
         uint8_t m_channelCount;
-        
-        Ptr<UniformRandomVariable> m_random;// = CreateObject<UniformRandomVariable> ();
     };
     
     

@@ -49,35 +49,34 @@ int do_mkdir(const char *path, mode_t mode);
 int mkpath(const char *path, mode_t mode);
 
 namespace ns3 {
-    
     /**************************************************************************/
-    class NOCInputDataDelays{
+//    class NOCInputDataDelays{
+//    public:
+//        bool LoadDelayDataFromFile(string);
+//        Time GetDelay(double); //a random number between 0 and 1
+//        
+//    private:
+//                vector<uint32_t> m_data;        
+//    };
+//
+    /**************************************************************************/
+    class NOCInputData{
     public:
-        bool LoadFromFile(string);
+        uint8_t LoadSensorsDataFromFile(string);
+        uint32_t ReadSensor(uint32_t t, uint32_t x, uint32_t y);
+        
+        bool LoadDelayDataFromFile(string);
         Time GetDelay(double); //a random number between 0 and 1
         
     private:
-                vector<uint32_t> m_data;        
-    };
-    
-    /**************************************************************************/
-    class NOCInputDataSensors{
-    public:
-        uint8_t LoadFromFile(string);
-        uint32_t ReadSensor(uint32_t t, uint32_t x, uint32_t y);
-        
-        
-        
-
-    private:
         //bool initialized;
-                vector< vector<uint32_t> > m_data;
-                vector< vector< vector <uint32_t> > > m_data_on_time;
-        
-        
-        
+
+        vector<float> m_data_delay;
+
+        vector< vector<uint32_t> > m_data_sensors;
+        vector< vector< vector <uint32_t> > > m_data_sensors_on_time;
     };
-    
+
     /**************************************************************************/
     class NOCOutputDataSensors : public Application {
     public:
@@ -114,6 +113,30 @@ namespace ns3 {
         }sink_neighbors;
         
     };    
+
+
+    class NOCDataIO : public Application {
+    public:
+        
+        Coordinate SensorPosition;
+        
+        NOCInputData * InputData;
+        
+        uint32_t ReadSensor(void);
+        Time GetDelay(void);
+        
+        NOCDataIO();
+        virtual ~NOCDataIO();
+    private:
+       virtual void StartApplication(void);
+        virtual void StopApplication(void);
+
+        bool m_running;
+        uint32_t m_time_instant;
+        EventId m_sendEvent;
+        
+        Ptr<UniformRandomVariable> m_random;
+    };
 }
 
 #endif /* NOC_H */

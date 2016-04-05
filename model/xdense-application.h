@@ -38,7 +38,6 @@
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "noc-types.h"
-#include "sensor.h"
 #include "calc.h"
 #include "data-io.h"
 

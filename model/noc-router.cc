@@ -27,6 +27,7 @@
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "noc-routing-protocols.h"
+#include "ns3/data-io.h"
 
 using namespace std;
 namespace ns3 {
@@ -68,25 +69,7 @@ namespace ns3 {
                 "Defines the number of NOCNetDevices installed at each direction",
                 UintegerValue(1),
                 MakeUintegerAccessor(&NOCRouter::m_channelCount),
-                MakeUintegerChecker<uint8_t>())
-        
-//                .AddAttribute("UnicastProtocol",
-//                "Defines the routing protocol utilized for unicasting",
-//                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
-//                MakeUintegerAccessor(&NOCRouter::m_routing_unicast),
-//                MakeUintegerChecker<uint8_t>())
-//        
-//                .AddAttribute("MultiProtocol",
-//                "Defines the routing protocol utilized for multicasting",
-//                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
-//                MakeUintegerAccessor(&NOCRouter::m_routing_multicast),
-//                MakeUintegerChecker<uint8_t>())
-//        
-//                .AddAttribute("BroadcastProtocol",
-//                "Defines the routing protocol utilized for broadcasting",
-//                UintegerValue(NOCRoutingProtocols::ROUTING_CLOCKWISE),
-//                MakeUintegerAccessor(&NOCRouter::m_routing_broadcast),
-//                MakeUintegerChecker<uint8_t>())
+                MakeUintegerChecker<uint8_t>())        
         
                 .AddAttribute("AddressX",
                 "The X coordinate of the router in the grid (required depending on the protocol)",
@@ -120,11 +103,6 @@ namespace ns3 {
 //            (*nd)->GetObject<NOCNetDevice>()->SetRemoteSignalChangedCallback(MakeCallback(&NOCRouter::RemoteWaitChanged, this));
 //            (*nd)->GetObject<NOCNetDevice>()->SetLocalSignalChangedCallback(MakeCallback(&NOCRouter::LocalWaitChanged, this));
         }
-        
-//        Simulator::Schedule(PicoSeconds(1500), &NOCRouter::ServePackets, this);
-//        m_port_to_serve = DIRECTION_E;
-        m_random = CreateObject<UniformRandomVariable> ();
-//        m_useRelativeAddress = 1;
     }
 
     void
@@ -409,8 +387,11 @@ namespace ns3 {
         if (nd == NULL) //That node does not have a net device in that direction
             return false;
         
-//        Time t_ns = Time::FromInteger(m_random->GetInteger (0, 90)*10, Time::NS);
         Time t_ns = Time::FromInteger(0, Time::NS);
+        if (this->GetNode()->GetApplication(1)->GetObject<NOCDataIO>() != 0){
+            Ptr<NOCDataIO> io = this->GetNode()->GetApplication(1)->GetObject<NOCDataIO>();
+            t_ns = io->GetDelay();
+        }
         
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
         Simulator::Schedule(t_ns, fp, nd, pck->Copy());
@@ -487,7 +468,6 @@ namespace ns3 {
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST_RADIUS:
-                //TODO: change 10 for the radius
                 out = NOCRoutingProtocols::MulticastRadius(asx,asy,adx);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;

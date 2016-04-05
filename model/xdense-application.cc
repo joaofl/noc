@@ -146,19 +146,6 @@ namespace ns3 {
 //        m_router->PacketBroadcast(pck, 0);
     }
 
-    
-
-//    void
-//    XDenseApp::DataSharingSchedule(uint8_t n_times, Time period) {
-//
-//        for (uint8_t i = 0; i < n_times; i++) {
-//            Time t = MilliSeconds(period.GetMilliSeconds() * i + period.GetMilliSeconds());
-//            Simulator::Schedule(t, &XDenseApp::DataSharing, this);
-//        }
-//
-//    }
-
- 
     void 
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x, int32_t origin_y, int32_t dest_x,int32_t dest_y) {
         //TODO: here, at this layer, we remove the XDense header and see what to do with the packet.
