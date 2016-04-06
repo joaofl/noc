@@ -38,6 +38,7 @@
 #include "noc-net-device.h"
 #include "noc-router.h"
 #include "noc-header.h"
+#include "data-io.h"
 
 using namespace std;
 namespace ns3 {
@@ -81,6 +82,8 @@ namespace ns3 {
             bool    wait_remote;
             Ptr<NOCNetDevice> nd_pointer;
         }NetDeviceInfo;
+        
+        Ptr<NOCRouterDelayModel> RoutingDelays;
         
         NOCRouter();
         virtual ~NOCRouter();

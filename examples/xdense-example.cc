@@ -110,20 +110,21 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 51;
-    uint32_t size_y = 51;
-    uint32_t size_neighborhood = 3; //odd only, so neighborhoods do not overlap eachother
+    uint32_t size_x = 31;
+    uint32_t size_y = 31;
+    uint32_t size_neighborhood = 5; //odd only, so neighborhoods do not overlap eachother
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "";
+    string context = "DELAY_MODEL_FPGA";
         
     string output_data_dir = homedir + "/noc-data";
     string input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
-    string input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data.csv";
+//    string input_delay_data_path = ""; //"/home/joao/noc-data/input-data/delays/forward-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data.csv";
+    string input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
     
     CommandLine cmd;
     cmd.AddValue("context", "String to identify the simulation instance", context);
@@ -156,6 +157,21 @@ main(int argc, char *argv[]) {
     if (status != 0) {
         cout << "Error creating the directory " << dir_output << "\n";
     }
+    
+    DataIO my_input_data;
+    if ( my_input_data.LoadArray3D(input_sensors_data_path)  == 0){
+        cout << "Error loading the input data file at " << input_sensors_data_path << "\n";
+    }
+    else{
+        cout << "Sensor's data sucessfully loaded:  " << input_sensors_data_path << "\n";
+    }
+    if ( my_input_data.LoadArray(input_delay_data_path)  == 0){
+        cout << "Error loading the input data file at " << input_delay_data_path << "\n";
+    }
+    else{
+        cout << "Delay's data sucessfully loaded:  " << input_delay_data_path << "\n";
+    }
+    
    
     //Using the new helper
     GridHelper my_grid_network_helper;
@@ -183,39 +199,21 @@ main(int argc, char *argv[]) {
     ApplicationContainer my_xdense_data_io_container;
     
     uint32_t n_nodes = my_node_container.GetN();
-    
-        //TODO: this should be done inside the sensor module
-    NOCInputData my_input_data;
-    if ( my_input_data.LoadSensorsDataFromFile(input_sensors_data_path)  == 0){
-        cout << "Error loading the input data file at " << input_sensors_data_path << "\n";
-    }
-    else{
-        cout << "Sensor's data sucessfully loaded:  " << input_sensors_data_path << "\n";
-    }
-    if ( my_input_data.LoadDelayDataFromFile(input_delay_data_path)  == 0){
-        cout << "Error loading the input data file at " << input_delay_data_path << "\n";
-    }
-    else{
-        cout << "Delay's data sucessfully loaded:  " << input_delay_data_path << "\n";
-    }
-    
-    
-//    cout << my_delay_data.GetDelay(0.02);
-    
-    
+        
     for (uint32_t i = 0; i < n_nodes; i++) {
 //        uint32_t x = i % size_x;
 //        uint32_t y = floor(i / size_y);
 
         Ptr<XDenseApp> my_xdense_app = CreateObject<XDenseApp> ();
-        Ptr<NOCDataIO> my_node_io = CreateObject<NOCDataIO> ();
+        Ptr<XDenseSensorModel> my_sensor_model = CreateObject<XDenseSensorModel> ();
+        Ptr<NOCRouterDelayModel> my_router_delay_model = CreateObject<NOCRouterDelayModel> ();
 
         //Setup app
         my_xdense_app->IsSink = false;
         my_xdense_app->PacketDuration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);  //nano seconds
         my_xdense_app->ClusterSize_x = size_neighborhood;
         my_xdense_app->ClusterSize_y = size_neighborhood;
-        my_xdense_app->SetStartTime(Seconds(0));
+//        my_xdense_app->SetStartTime(Seconds(0));
 
 
         //Setup router
@@ -223,7 +221,9 @@ main(int argc, char *argv[]) {
         IntegerValue x, y;
         my_noc_router->GetAttribute("AddressX", x);
         my_noc_router->GetAttribute("AddressY", y);
-//        my_noc_router->GetAttribute("UniqueID", i);
+        my_noc_router->RoutingDelays = my_router_delay_model;
+        my_router_delay_model->InputData = &my_input_data;
+//        my_router_delay_model->SetStartTime(Seconds(0));
         
 //        int8_t direction = -1;
         ostringstream context_router_rx, context_router_tx, context_router_cx, context_router_gx;
@@ -231,7 +231,6 @@ main(int argc, char *argv[]) {
 //        my_noc_router->TraceConnect("RouterRxTrace", context_router_rx.str(), MakeCallback(&log_router_packets));
 //        context_router_tx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
 //        my_noc_router->TraceConnect("RouterTxTrace", context_router_tx.str(), MakeCallback(&log_router_packets));
-        
         
         
         context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",c";
@@ -256,17 +255,19 @@ main(int argc, char *argv[]) {
         }
 
         //Setup sensor
-        my_node_io->SensorPosition.x = x.Get();
-        my_node_io->SensorPosition.y = y.Get();
-        my_node_io->InputData = &my_input_data;
+        my_sensor_model->SensorPosition.x = x.Get();
+        my_sensor_model->SensorPosition.y = y.Get();
+        my_sensor_model->InputData = &my_input_data;
 
 
         //Should be installed in this order!!!
         my_node_container.Get(i)->AddApplication(my_xdense_app);
-        my_node_container.Get(i)->AddApplication(my_node_io);
+        my_node_container.Get(i)->AddApplication(my_sensor_model);
+        my_node_container.Get(i)->AddApplication(my_router_delay_model);
 
         my_xdense_app_container.Add(my_xdense_app);
-        my_xdense_data_io_container.Add(my_node_io);
+        my_xdense_data_io_container.Add(my_sensor_model);
+        my_xdense_data_io_container.Add(my_router_delay_model);
         my_xdense_app->AddRouter(my_noc_router);
     }
 

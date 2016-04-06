@@ -83,7 +83,7 @@ int mkpath(const char *path, mode_t mode)
 namespace ns3 {
 
     bool
-    NOCInputData::LoadDelayDataFromFile(string fn) {
+    DataIO::LoadArray(string fn) {
 
         ifstream file(fn.c_str());
         string sv;
@@ -97,21 +97,19 @@ namespace ns3 {
 
         return true;
     }
+    uint32_t 
+    DataIO::GetArraySize() {
+        return m_data_delay.size();
+    }
 
-    Time
-    NOCInputData::GetDelay(double rn) {
-        uint32_t size = m_data_delay.size();
-        Time t = Time::FromInteger(0, Time::US);
-        if (size > 0){
-            uint32_t i = rn * (size - 1);
-            t = Time::FromDouble(m_data_delay.at(i), Time::US);
-        }
-        
-        return t;
+    
+    float
+    DataIO::GetValue(uint32_t i) {
+        return m_data_delay.at(i);
     } 
 
     uint8_t
-    NOCInputData::LoadSensorsDataFromFile(string fn) {
+    DataIO::LoadArray3D(string fn) {
 
         ifstream file(fn.c_str());
 
@@ -156,7 +154,12 @@ namespace ns3 {
     }
     
     uint32_t 
-    NOCInputData::ReadSensor(uint32_t t, uint32_t x, uint32_t y) {
+    DataIO::GetArraySize3D() {
+        return m_data_delay.size();
+    }
+    
+    uint32_t 
+    DataIO::GetValue3D(uint32_t t, uint32_t x, uint32_t y) {
         //
         //        vector<uint32_t> line;
         //        uint32_t data;
@@ -177,43 +180,29 @@ namespace ns3 {
     
 
 
-    NOCDataIO::NOCDataIO()
+    XDenseSensorModel::XDenseSensorModel()
     : m_running(false){
     }
-
-    NOCDataIO::~NOCDataIO() {
+    
+    XDenseSensorModel::~XDenseSensorModel() {
     }
-
-
+    
     void
-    NOCDataIO::StartApplication(void) {
-
+    XDenseSensorModel::StartApplication(void) {
         Ptr<Node> nd = this->GetNode();
         m_time_instant = 0;
-        m_random = CreateObject<UniformRandomVariable> ();
-        
     }
     
     uint32_t 
-    NOCDataIO::ReadSensor(void){
+    XDenseSensorModel::ReadSensor(void){
         
-        uint32_t r = InputData->ReadSensor(m_time_instant, SensorPosition.x, SensorPosition.y);
+        uint32_t r = InputData->GetValue3D(m_time_instant, SensorPosition.x, SensorPosition.y);
         m_time_instant++;
         
         return r;
-    }
-    Time 
-    NOCDataIO::GetDelay(void) {
-        double v;
-        v = m_random->GetValue();
-//        v = 0.002;
-        Time t = InputData->GetDelay(v);
-        return t;
-    }
-
-    
+    }    
     void
-    NOCDataIO::StopApplication(void) {
+    XDenseSensorModel::StopApplication(void) {
         m_running = false;
 
         if (m_sendEvent.IsRunning()) {
@@ -221,6 +210,52 @@ namespace ns3 {
         }
     }
     
+    
+    
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    
+    NOCRouterDelayModel::NOCRouterDelayModel()
+    : m_running(false){
+    }
+
+    NOCRouterDelayModel::~NOCRouterDelayModel() {
+    }
+
+
+    void
+    NOCRouterDelayModel::StartApplication(void) {
+        m_random = CreateObject<UniformRandomVariable> ();
+    }
+    
+    Time 
+    NOCRouterDelayModel::GetDelay(void) {
+        uint32_t i;
+        float v;
+
+        Time t = Time::FromInteger(0, Time::US);
+        uint32_t size = InputData->GetArraySize();
+        if (size > 0){
+            i = m_random->GetInteger(0, size -1);
+            v = InputData->GetValue(i);
+            t = Time::FromDouble(v, Time::US);            
+        }        
+        return t;
+    }
+
+    
+    void
+    NOCRouterDelayModel::StopApplication(void) {
+        m_running = false;
+
+        if (m_sendEvent.IsRunning()) {
+            Simulator::Cancel(m_sendEvent);
+        }
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     
     TypeId
     NOCOutputDataSensors::GetTypeId(void) {

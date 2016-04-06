@@ -387,14 +387,13 @@ namespace ns3 {
         if (nd == NULL) //That node does not have a net device in that direction
             return false;
         
-        Time t_ns = Time::FromInteger(0, Time::NS);
-        if (this->GetNode()->GetApplication(1)->GetObject<NOCDataIO>() != 0){
-            Ptr<NOCDataIO> io = this->GetNode()->GetApplication(1)->GetObject<NOCDataIO>();
-            t_ns = io->GetDelay();
-        }
+        Time t = Time::FromInteger(0, Time::NS);
+//        if (RoutingDelays->Get){
+            t = RoutingDelays->GetDelay();
+//        }
         
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
-        Simulator::Schedule(t_ns, fp, nd, pck->Copy());
+        Simulator::Schedule(t, fp, nd, pck->Copy());
         
 //        if (nd->Send(pck->Copy())){
         return true;

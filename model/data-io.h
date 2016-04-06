@@ -60,13 +60,16 @@ namespace ns3 {
 //    };
 //
     /**************************************************************************/
-    class NOCInputData{
+    class DataIO{
     public:
-        uint8_t LoadSensorsDataFromFile(string);
-        uint32_t ReadSensor(uint32_t t, uint32_t x, uint32_t y);
+        uint8_t LoadArray3D(string);
+        uint32_t GetArraySize3D(void);
+        uint32_t GetValue3D(uint32_t t, uint32_t x, uint32_t y);
         
-        bool LoadDelayDataFromFile(string);
-        Time GetDelay(double); //a random number between 0 and 1
+        
+        bool LoadArray(string file_name);
+        uint32_t GetArraySize(void);
+        float GetValue(uint32_t i); //a random number between 0 and 1
         
     private:
         //bool initialized;
@@ -115,18 +118,18 @@ namespace ns3 {
     };    
 
 
-    class NOCDataIO : public Application {
+    class XDenseSensorModel : public Application {
     public:
         
         Coordinate SensorPosition;
         
-        NOCInputData * InputData;
+        DataIO * InputData;
         
         uint32_t ReadSensor(void);
-        Time GetDelay(void);
+//        Time GetDelay(void);
         
-        NOCDataIO();
-        virtual ~NOCDataIO();
+        XDenseSensorModel();
+        virtual ~XDenseSensorModel();
     private:
        virtual void StartApplication(void);
         virtual void StopApplication(void);
@@ -134,6 +137,28 @@ namespace ns3 {
         bool m_running;
         uint32_t m_time_instant;
         EventId m_sendEvent;
+        
+//        Ptr<UniformRandomVariable> m_random;
+    };
+    
+    class NOCRouterDelayModel : public Application {
+    public:
+        
+        Coordinate SensorPosition;
+        
+        DataIO * InputData;
+        
+        Time GetDelay(void);
+        
+        NOCRouterDelayModel();
+        virtual ~NOCRouterDelayModel();
+    private:
+       virtual void StartApplication(void);
+        virtual void StopApplication(void);
+
+        bool m_running;
+        EventId m_sendEvent;
+        
         
         Ptr<UniformRandomVariable> m_random;
     };
