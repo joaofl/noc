@@ -226,6 +226,7 @@ namespace ns3 {
     void
     NOCRouterDelayModel::StartApplication(void) {
         m_random = CreateObject<UniformRandomVariable> ();
+        random_counter = 0;
     }
     
     Time 
@@ -237,6 +238,10 @@ namespace ns3 {
         uint32_t size = InputData->GetArraySize();
         if (size > 0){
             i = m_random->GetInteger(0, size -1);
+            random_counter++;
+            
+//            cout << "i=" << random_counter << " n=" << i << "\n";
+            
             v = InputData->GetValue(i);
             t = Time::FromDouble(v, Time::US);            
         }        

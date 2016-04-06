@@ -49,17 +49,7 @@ int do_mkdir(const char *path, mode_t mode);
 int mkpath(const char *path, mode_t mode);
 
 namespace ns3 {
-    /**************************************************************************/
-//    class NOCInputDataDelays{
-//    public:
-//        bool LoadDelayDataFromFile(string);
-//        Time GetDelay(double); //a random number between 0 and 1
-//        
-//    private:
-//                vector<uint32_t> m_data;        
-//    };
-//
-    /**************************************************************************/
+    ////////////////////////////////////////////////////////////////////////////
     class DataIO{
     public:
         uint8_t LoadArray3D(string);
@@ -117,6 +107,7 @@ namespace ns3 {
         
     };    
 
+    ////////////////////////////////////////////////////////////////////////////
 
     class XDenseSensorModel : public Application {
     public:
@@ -141,6 +132,8 @@ namespace ns3 {
 //        Ptr<UniformRandomVariable> m_random;
     };
     
+    ////////////////////////////////////////////////////////////////////////////
+    
     class NOCRouterDelayModel : public Application {
     public:
         
@@ -152,8 +145,9 @@ namespace ns3 {
         
         NOCRouterDelayModel();
         virtual ~NOCRouterDelayModel();
+        
     private:
-       virtual void StartApplication(void);
+        virtual void StartApplication(void);
         virtual void StopApplication(void);
 
         bool m_running;
@@ -161,6 +155,7 @@ namespace ns3 {
         
         
         Ptr<UniformRandomVariable> m_random;
+        uint32_t random_counter;
     };
 }
 

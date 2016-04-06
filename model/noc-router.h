@@ -172,9 +172,8 @@ namespace ns3 {
         
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
         
-//        uint8_t m_port_to_serve;
-        
         uint8_t m_channelCount;
+        
     };
     
     
