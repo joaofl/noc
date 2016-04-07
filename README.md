@@ -24,21 +24,17 @@ J. Loureiro, R. Rangarajan, and E. Tovar, “Distributed sensing of fluid dynami
 
 # How do I get set up? #
 
-To set it up, place the module inside the **src** dir of ns-3, install lib-armadillo, configure ns-3 and build it. Check the input parameters to run the example.
+To set it up, place the module inside the **src** dir of ns-3, configure ns-3 and build it. Check the input parameters to run the example.
 
 Tested in version 3.23 of ns-3. Testers not implemented yet.
 
 Dependencies of the GUI (you need to install them before executing the user interface):
-
-- python-OpenCV
 
 - python-numpy
 
 - python-mathplotlib
 
 - python-joblib
-
-
 
 
 # Who do I talk to? #
