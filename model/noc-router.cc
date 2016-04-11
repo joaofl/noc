@@ -445,6 +445,13 @@ namespace ns3 {
         
         pck_c->AddHeader(h);
         
+        //TODO: Instead of serving imediatelly, queue it and serve it within a
+        //delay, captured from the hardware measurements. If set to 0, then it
+        //is pretty much like doing it in parallel.
+        
+        //The input delay should be modeled here, and the output delay in the 
+        //packet send function, as it is now.
+        
              
         int32_t adx = h.GetDestinationAddressX();
         int32_t ady = h.GetDestinationAddressY();
