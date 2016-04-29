@@ -94,8 +94,11 @@ namespace ns3 {
             v = std::atof(sv.c_str());
             m_data_delay.push_back(v);
         }
-
-        return true;
+        
+        if (m_data_delay.size() == 0)
+            return false;
+        else
+            return true;
     }
     uint32_t 
     DataIO::GetArraySize() {
