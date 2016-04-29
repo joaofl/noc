@@ -170,7 +170,7 @@ class NOCLauncher(QWidget):
 
         args = ' --inputfile=' + self.selected_log + ' ' + self.textbox_args.text()
 
-        cmd = 'python3.4 ' + self.selected_script + args
+        cmd = 'python3.5 ' + self.selected_script + args
         print('Command executed: ' + cmd)
 
         launch_thread = True
