@@ -8,5 +8,8 @@ def build(bld):
     obj = bld.create_ns3_program('xdense-example', ['noc'])
     obj.source = 'xdense-example.cc'
 
+    obj = bld.create_ns3_program('xdense-wc', ['noc'])
+    obj.source = 'xdense-wc.cc'
+
     obj = bld.create_ns3_program('epiphany-example', ['noc'])
     obj.source = 'epiphany-example.cc'
