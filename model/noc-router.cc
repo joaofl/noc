@@ -211,6 +211,12 @@ namespace ns3 {
     NOCRouter::GetNDevices(void){
         return m_netDevices.GetN();
     }    
+
+    void 
+    NOCRouter::SetRoutingProtocol(RoutingProtocols rp) {
+        routing_protocol = rp;
+    }
+
     
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
@@ -236,7 +242,7 @@ namespace ns3 {
         m_routerGxTrace(pck_c); //the router receives a pck from the application
         
         uint8_t out = NOCRoutingProtocols::UnicastClockwiseXY(destination_x, destination_y);
-        
+                void SetRoutingProtocol(RoutingProtocols);
         return PacketSendMultiple(pck_c, network_id, out, P0);
     }
     
@@ -462,6 +468,9 @@ namespace ns3 {
         
         
         uint8_t out = 0;
+        
+        // Switches between the different possible protocols contained in the pck header
+        
         switch (p){
             case NOCHeader::PROTOCOL_BROADCAST:
                 out = NOCRoutingProtocols::Broadcast(asx,asy);
@@ -484,7 +493,19 @@ namespace ns3 {
                 break;
                
             case NOCHeader::PROTOCOL_UNICAST:
-                out = NOCRoutingProtocols::UnicastClockwiseXY(adx,ady);
+                //Now, switches between the different possible routing mechanisms
+                //pre-configured for the router
+                switch(routing_protocol){
+                    case RP_XY_CLOCKWISE:
+                        out = NOCRoutingProtocols::UnicastClockwiseXY(adx,ady);
+                        break;
+                    case RP_YFIRST:
+                        out = NOCRoutingProtocols::UnicastFirstY(adx, ady);
+                        break;
+                    default:
+                        cout << "Unknown protocol" << std::endl;
+                        break;
+                }
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
 

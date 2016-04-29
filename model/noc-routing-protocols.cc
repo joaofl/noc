@@ -23,6 +23,33 @@
 
 
 namespace ns3 {
+    
+    uint8_t 
+    NOCRoutingProtocols::UnicastFirstX(int32_t x_dest, int32_t y_dest) {
+        uint8_t dir = NOCRouter::DIRECTION_MASK_L;
+        
+        if (x_dest > 0) dir = NOCRouter::DIRECTION_MASK_E;
+        else if (x_dest < 0) dir = NOCRouter::DIRECTION_MASK_W;
+        else if (y_dest > 0) dir = NOCRouter::DIRECTION_MASK_S;
+        else if (y_dest < 0) dir = NOCRouter::DIRECTION_MASK_N;
+        
+        return dir;
+    }
+    
+    
+    uint8_t 
+    NOCRoutingProtocols::UnicastFirstY(int32_t x_dest, int32_t y_dest) {
+        uint8_t dir = NOCRouter::DIRECTION_MASK_L;
+        
+        if (y_dest > 0) dir = NOCRouter::DIRECTION_MASK_S;
+        else if (y_dest < 0) dir = NOCRouter::DIRECTION_MASK_N;
+        else if (x_dest > 0) dir = NOCRouter::DIRECTION_MASK_E;
+        else if (x_dest < 0) dir = NOCRouter::DIRECTION_MASK_W;
+        
+        return dir;
+    }
+
+    
     uint8_t
     NOCRoutingProtocols::UnicastClockwiseXY(int32_t x_dest, int32_t y_dest) {
         uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it

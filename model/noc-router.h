@@ -48,6 +48,13 @@ namespace ns3 {
 
         static TypeId GetTypeId (void);
         
+        enum RoutingProtocols{
+            RP_XY_CLOCKWISE,
+            RP_XY_CCLOCKWISE,
+            RP_YFIRST,
+            RP_XFIRST
+        };
+
         enum Priority{
             P0,
             P1
@@ -107,6 +114,8 @@ namespace ns3 {
 
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
 //        bool PacketBroadcastReceived (Ptr<const Packet> pck, uint8_t network_id);
+        
+        void SetRoutingProtocol(RoutingProtocols);
         
         void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t network, uint8_t direction);
         
@@ -173,6 +182,8 @@ namespace ns3 {
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
         
         uint8_t m_channelCount;
+        
+        RoutingProtocols routing_protocol;
         
     };
     

@@ -49,6 +49,10 @@ namespace ns3 {
         
         static uint8_t Broadcast(int32_t x_source, int32_t y_source);
         
+        static uint8_t UnicastFirstY(int32_t x_dest, int32_t y_dest);
+        
+        static uint8_t UnicastFirstX(int32_t x_dest, int32_t y_dest);
+        
         static uint8_t UnicastClockwiseXY(int32_t x_dest, int32_t y_dest);
         
         static uint8_t UnicastClockwiseOffsetXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig);
