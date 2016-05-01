@@ -36,6 +36,8 @@ class Node(QGraphicsItem):
     #This should be private
     __upToDate = False
 
+    __queue_size = ''
+
     __core_rx, __core_tx = 0,0
     __north_rx, __north_tx = 0,0
     __south_rx, __south_tx = 0,0
@@ -70,7 +72,12 @@ class Node(QGraphicsItem):
 
 
     def setProperty(self, core_rx=None, core_tx=None, north_rx=None, north_tx=None,
-                    south_tx=None, south_rx=None, east_tx=None, east_rx=None, west_rx=None, west_tx=None):
+                    south_tx=None, south_rx=None, east_tx=None, east_rx=None, west_rx=None, west_tx=None,
+                    queue_size = None):
+
+        if queue_size is not None:
+            self.__queue_size = queue_size
+
         if core_rx is not None:
             if core_rx != self.__core_rx:
                 self.__core_rx = core_rx
@@ -188,6 +195,8 @@ class Node(QGraphicsItem):
             qp.setBrush( self.__core_tx_brush)
 
         qp.drawRect(x + c, self.__y + c, 4 * c, 4 * c) #draw the node
+
+        qp.drawText(x + 1.8 * c, self.__y + 3.5 * c, self.__queue_size)
 
 
 class NOCAnim(QWidget):
@@ -434,8 +443,10 @@ class NOCAnim(QWidget):
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
                         node.setProperty(west_tx = 1)
 
+                    node.setProperty(queue_size=current_trans[trace.queue_size])
+
             else:
-                self.t_next = int(current_trans[trace.time]) + self.packetDuration * 1.0
+                self.t_next = int(current_trans[trace.time]) + self.packetDuration * 0.5
                 break
 
 

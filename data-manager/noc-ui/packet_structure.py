@@ -3,23 +3,26 @@ __author__ = 'joao'
 # These are the indexes of each of this field in the packet trace.
 
 # contextual data
-time_slot = 2
-time = 3
-id = 4
-unique_address = 5
-x_absolute = 6
-y_absolute = 7
-direction = 8
-operation = 9  # r (received), t (transmitted), c (consumed)
+# time_slot = 2
+time = 0
+unique_address = 1
+x_absolute = 2
+y_absolute = 3
+direction = 4
+operation = 5  # r (received), t (transmitted), c (consumed)
+queue_size = 6
+id = 7
 
 # packet data
-control_bits = 11
-protocol = 12
+control_bits = 8
+protocol = 9
 
-x_source = 13
-y_source = 14
-x_dest = 15
-y_dest = 16
+x_source = 10
+y_source = 11
+x_dest = 12
+y_dest = 13
+
+protocol_app = 14
 
 # Definition of the NetDevices direction by their index
 
