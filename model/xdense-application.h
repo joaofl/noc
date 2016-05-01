@@ -24,6 +24,8 @@
 
 #include <fstream>
 #include <math.h>
+#include "src/core/model/object-base.h"
+
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/address.h"
@@ -32,14 +34,12 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 
-//#include "noc-application.h"
-#include "xdense-header.h"
-//#include "noc-header.h"
-#include "noc-net-device.h"
-#include "noc-router.h"
-#include "noc-types.h"
-#include "calc.h"
-#include "data-io.h"
+#include "ns3/xdense-header.h"
+#include "ns3/noc-router.h"
+#include "ns3/noc-routing-protocols.h"
+#include "ns3/calc.h"
+#include "ns3/data-io.h"
+#include "ns3/noc-net-device.h"
 
 
 #define USE_ABSOLUTE_ADDRESS true
@@ -72,6 +72,7 @@ namespace ns3 {
         void Setup(bool IsSink);
         
         void Tests(void);
+        void WCAnalysis(void);
         
         void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         

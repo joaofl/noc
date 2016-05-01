@@ -73,8 +73,8 @@ namespace ns3 {
         os << (int) this->m_controlBits << ",";
         os << (int) this->m_protocol << ",";
         os << this->m_srcAddressX << "," << this->m_srcAddressY << ",";
-        os << this->m_destAddressX << "," << this->m_destAddressY << ",";
-        os << std::endl;
+        os << this->m_destAddressX << "," << this->m_destAddressY;
+//        os << std::endl;
     }
 
     uint32_t

@@ -24,11 +24,6 @@
 #include "ns3/header.h"
 #include "noc-types.h"
 
-
-
-
-
-
 namespace ns3 {
 
     /**

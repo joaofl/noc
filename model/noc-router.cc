@@ -213,8 +213,8 @@ namespace ns3 {
     }    
 
     void 
-    NOCRouter::SetRoutingProtocol(RoutingProtocols rp) {
-        routing_protocol = rp;
+    NOCRouter::SetRoutingProtocolUnicast(RoutingProtocols rp) {
+        unicast_routing_protocol = rp;
     }
 
     
@@ -239,10 +239,11 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        m_routerGxTrace(pck_c); //the router receives a pck from the application
+        m_routerGxTrace(pck_c, 0); //the router receives a pck from the application
         
-        uint8_t out = NOCRoutingProtocols::UnicastClockwiseXY(destination_x, destination_y);
-                void SetRoutingProtocol(RoutingProtocols);
+        uint8_t out = NOCRoutingProtocols::Unicast(destination_x, destination_y, unicast_routing_protocol);
+        
+        
         return PacketSendMultiple(pck_c, network_id, out, P0);
     }
     
@@ -259,7 +260,7 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        m_routerGxTrace(pck_c); //the router receives a pck from the application
+        m_routerGxTrace(pck_c, 0); //the router receives a pck from the application
         
         uint8_t out = NOCRoutingProtocols::UnicastClockwiseOffsetXY(destination_x, destination_y, 0, 0);
         
@@ -374,14 +375,14 @@ namespace ns3 {
             }
         }
         if ( (ports_mask >> DIRECTION_L) & 1){
-            m_routerCxTrace(pck);
+            m_routerCxTrace(pck, 0);
             Ptr<Packet> pck_c = pck->Copy();
             NOCHeader h;
             pck_c->RemoveHeader(h);
             m_receiveCallBack(pck_c, h.GetProtocol(), h.GetSourceAddressX(), h.GetSourceAddressY(), h.GetDestinationAddressX(), h.GetDestinationAddressY());           
         }
         
-        if (sent > 0) m_routerTxTrace(pck);
+        if (sent > 0) m_routerTxTrace(pck, 0);
         
         return sent;
     }
@@ -412,7 +413,7 @@ namespace ns3 {
        
     void
     NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
-        m_routerRxTrace(pck);
+        m_routerRxTrace(pck, 0);
         Ptr<Packet> pck_c = pck->Copy();
         NetDeviceInfo nd_i = GetNetDeviceInfo(nd);
         
@@ -493,19 +494,7 @@ namespace ns3 {
                 break;
                
             case NOCHeader::PROTOCOL_UNICAST:
-                //Now, switches between the different possible routing mechanisms
-                //pre-configured for the router
-                switch(routing_protocol){
-                    case RP_XY_CLOCKWISE:
-                        out = NOCRoutingProtocols::UnicastClockwiseXY(adx,ady);
-                        break;
-                    case RP_YFIRST:
-                        out = NOCRoutingProtocols::UnicastFirstY(adx, ady);
-                        break;
-                    default:
-                        cout << "Unknown protocol" << std::endl;
-                        break;
-                }
+                out = NOCRoutingProtocols::Unicast(adx,ady, unicast_routing_protocol);
                 PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
                 break;
 

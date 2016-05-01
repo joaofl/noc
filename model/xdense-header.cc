@@ -19,15 +19,10 @@
  */
 
 
-#include <iostream>
-#include "ns3/abort.h"
-#include "ns3/assert.h"
-#include "ns3/log.h"
-#include "ns3/header.h"
-#include "src/network/model/buffer.h"
+
 
 #include "xdense-header.h"
-#include "noc-types.h"
+//#include "noc-types.h"
 
 
 NS_LOG_COMPONENT_DEFINE("XDenseHeader");
@@ -61,7 +56,10 @@ namespace ns3 {
 
     void
     XDenseHeader::Print(std::ostream &os) const {
-
+        os << (int) this->m_protocol;    
+//        for (uint8_t i = 0 ; i < PAYLOAD_SIZE ; i++){
+//            os << this->m_data[i];            
+//        }
     }
 
     uint32_t

@@ -18,26 +18,9 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#include "src/core/model/object-base.h"
-
 #include "xdense-application.h"
-#include "xdense-header.h"
-
-//#include "noc-header.h"
-#include "noc-net-device.h"
-#include "noc-router.h"
-#include "noc-routing-protocols.h"
-
-#include "calc.h"
-#include "data-io.h"
-#include "ns3/noc-net-device.h"
-#include "ns3/xdense-application.h"
-//#include "noc-types.h"
 
 
-
-
-//using namespace ns3NOCCalc;
 using namespace std;
 namespace ns3 {
 
@@ -81,14 +64,20 @@ namespace ns3 {
 
         
 
-        if (IsSink == true) {
-//            Tests();
-            ClusterDataRequest();
-        }
+//        if (IsSink == true) {
+////            Tests();
+////            ClusterDataRequest();
+//            
+//        }
+//        
+        Time t_ns = Time::FromInteger(0,Time::NS);
+//        WCAnalysis();
+        Simulator::Schedule(t_ns, &XDenseApp::WCAnalysis, this);
         
-
         
     }
+    
+    
     
     void
     XDenseApp::StopApplication(void) {
@@ -99,6 +88,35 @@ namespace ns3 {
     XDenseApp::AddRouter(Ptr<NOCRouter> r) {
         m_router = r;
     }
+    
+    void 
+    XDenseApp::WCAnalysis() {
+        Ptr<Packet> pck = Create<Packet>();
+        
+        XDenseHeader hd;
+
+        if (IsSink == true) {
+            hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+            pck->AddHeader(hd);
+
+            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+        }
+        else{
+            hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+            pck->AddHeader(hd);
+
+//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+        }
+        
+        
+    }
+
+    
     
     void
     XDenseApp::Tests() {
@@ -145,6 +163,8 @@ namespace ns3 {
 //        
 //        m_router->PacketBroadcast(pck, 0);
     }
+    
+    
 
     void 
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x, int32_t origin_y, int32_t dest_x,int32_t dest_y) {
@@ -167,6 +187,8 @@ namespace ns3 {
                 break;
             case XDenseHeader::NETWORK_SETUP:
 //                NetworkSetupReceived(pck, origin_x, origin_y);                
+            case XDenseHeader::TRACE:
+                cout << "Received at:" << Simulator::Now() << "\n";            
                 break;
             
         }

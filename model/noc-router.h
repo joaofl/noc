@@ -49,10 +49,10 @@ namespace ns3 {
         static TypeId GetTypeId (void);
         
         enum RoutingProtocols{
-            RP_XY_CLOCKWISE,
-            RP_XY_CCLOCKWISE,
-            RP_YFIRST,
-            RP_XFIRST
+            ROUTING_PROTOCOL_XY_CLOCKWISE,
+            ROUTING_PROTOCOL_XY_CCLOCKWISE,
+            ROUTING_PROTOCOL_YFIRST,
+            ROUTING_PROTOCOL_XFIRST
         };
 
         enum Priority{
@@ -115,7 +115,7 @@ namespace ns3 {
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
 //        bool PacketBroadcastReceived (Ptr<const Packet> pck, uint8_t network_id);
         
-        void SetRoutingProtocol(RoutingProtocols);
+        void SetRoutingProtocolUnicast(RoutingProtocols);
         
         void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t network, uint8_t direction);
         
@@ -156,11 +156,11 @@ namespace ns3 {
         
     private:
 
-        TracedCallback<Ptr<const Packet> > m_routerRxTrace;
-        TracedCallback<Ptr<const Packet> > m_routerTxTrace;
-        TracedCallback<Ptr<const Packet> > m_routerCxTrace;
-        TracedCallback<Ptr<const Packet> > m_routerGxTrace;
-        TracedCallback<Ptr<const Packet> > m_routerTxDropTrace;
+        TracedCallback<Ptr<const Packet>, uint32_t > m_routerRxTrace;
+        TracedCallback<Ptr<const Packet>, uint32_t > m_routerTxTrace;
+        TracedCallback<Ptr<const Packet>, uint32_t > m_routerCxTrace;
+        TracedCallback<Ptr<const Packet>, uint32_t > m_routerGxTrace;
+        TracedCallback<Ptr<const Packet>, uint32_t > m_routerTxDropTrace;
         
         virtual void StartApplication(void);
         virtual void StopApplication(void);
@@ -183,7 +183,8 @@ namespace ns3 {
         
         uint8_t m_channelCount;
         
-        RoutingProtocols routing_protocol;
+        RoutingProtocols unicast_routing_protocol;
+        
         
     };
     

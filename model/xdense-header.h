@@ -18,11 +18,15 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#ifndef NOC_HEADER_H
-#define NOC_HEADER_H
+#ifndef XDENSE_HEADER_H
+#define XDENSE_HEADER_H
 
+#include <iostream>
+#include "ns3/abort.h"
+#include "ns3/assert.h"
+#include "ns3/log.h"
 #include "ns3/header.h"
-#include "noc-types.h"
+#include "src/network/model/buffer.h"
 
 #define PAYLOAD_SIZE 11
 
@@ -39,7 +43,8 @@ namespace ns3 {
             CLUSTER_DATA_REQUEST,
             CLUSTER_DATA_RESPONSE,
             CLUSTER_DATA,
-            NETWORK_SETUP
+            NETWORK_SETUP,
+            TRACE
         };
 
         /**
@@ -101,16 +106,11 @@ namespace ns3 {
         /**
          * \brief The PPP protocol type of the payload packet
          */
-//        uint16_t m_protocol; 
         uint8_t m_protocol;
         uint8_t m_data[PAYLOAD_SIZE - 1];
-//        static const uint8_t m_max_header_size = 1 + 4 + 4 + 4 + 4 + 4;
-        //int32_t m_currentX, m_currentY;
-        //uint32_t m_hops_count, m_sensor_value;
-
     };
 
 } // namespace ns3
 
 
-#endif /* NOC_HEADER_H */
+#endif /* XDENSE_HEADER_H */

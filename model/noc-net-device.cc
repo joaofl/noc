@@ -301,7 +301,7 @@ void
             //
             m_snifferTrace(p1);
             m_promiscSnifferTrace(p1);
-            m_macTxTrace(p1);
+            m_macTxTrace(p1, queue_size_prioritized);
             TransmitStart(p1);
             return;
         }
@@ -313,7 +313,7 @@ void
             //
             m_snifferTrace(p0);
             m_promiscSnifferTrace(p0);
-            m_macTxTrace(p0);
+            m_macTxTrace(p0, queue_size);
             TransmitStart(p0);
             return;
         }
@@ -442,7 +442,7 @@ void
                 m_promiscCallback(this, packet, protocol, GetRemote(), GetAddress(), NetDevice::PACKET_HOST);
             }
 
-            m_macRxTrace(packet);
+            m_macRxTrace(packet, 0);
             m_rxCallback(packet, this);
         }
     }
@@ -583,7 +583,7 @@ void
                     
                     m_snifferTrace(packet);
                     m_promiscSnifferTrace(packet);
-                    m_macTxTrace(packet);
+                    m_macTxTrace(packet, queue_size_prioritized);
                     
                     return TransmitStart(packet);
                 } else {
@@ -604,7 +604,7 @@ void
                 
                 m_snifferTrace(packet);
                 m_promiscSnifferTrace(packet);
-                m_macTxTrace(packet);
+                m_macTxTrace(packet, queue_size);
                 
                 return TransmitStart(packet);
             } else {

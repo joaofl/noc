@@ -376,7 +376,7 @@ namespace ns3 {
          *
          * \see class CallBackTraceSource
          */
-        TracedCallback<Ptr<const Packet> > m_macTxTrace;
+        TracedCallback<Ptr<const Packet> , uint32_t> m_macTxTrace;
 
         /**
          * The trace source fired when packets coming into the "top" of the device
@@ -404,7 +404,7 @@ namespace ns3 {
          *
          * \see class CallBackTraceSource
          */
-        TracedCallback<Ptr<const Packet> > m_macRxTrace;
+        TracedCallback<Ptr<const Packet>, uint32_t > m_macRxTrace;
 
         /**
          * The trace source fired for packets successfully received by the device

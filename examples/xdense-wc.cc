@@ -17,6 +17,20 @@
  *
  * Author: João Loureiro <joflo@isep.ipp.pt>
  * 
+ * Repo:
+ * https://bitbucket.org/joaofl/noc
+ *
+ * To run using Netbeans:
+ * Project Properties->Run->Run Directory: ./build
+ *
+ * Using Eclipse
+ * Run -> Run Configurations
+ *
+ * Under ns-3 project, Tab environment variables: Add
+ *
+ * name: LD_LIBRARY_PATH
+ * value: ${workspace_loc:ns-3-dev}/build
+ * Mark: "Append..."
  */
 
 #include <errno.h>
@@ -31,45 +45,24 @@
 #include <pwd.h>
 
 #include "ns3/core-module.h"
-//#include "ns3/config-store-module.h"
-//#include "ns3/netanim-module.h"
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "src/core/model/object-base.h"
 
 #include "ns3/noc-module.h"
-#include "src/noc/model/xdense-application.h"
 #include "src/noc/model/data-io.h"
 #include "src/noc/model/noc-header.h"
 #include "src/noc/model/xdense-header.h"
+#include "src/network/model/packet.h"
+#include "src/noc/model/xdense-application.h"
 
 
-NS_LOG_COMPONENT_DEFINE("NOCExample");
 
-
-//Repo:
-//https://bitbucket.org/joaofl/noc
-//
-//To run using Netbeans:
-//Project Properties->Run->Run Directory: ./build
-
-
-/*
- * Using Eclipse
- * Run -> Run Configurations
- *
- * Under ns-3 project, Tab environment variables: Add
- *
- * name: LD_LIBRARY_PATH
- * value: ${workspace_loc:ns-3-dev}/build
- * Mark: "Append..."
- */
+NS_LOG_COMPONENT_DEFINE("XDenseWCAnalysis");
 
 using namespace std;
 using namespace ns3;
-
-
 
 //ofstream file_packets_trace_router;
 ofstream file_packets_trace_netdevice;
@@ -77,26 +70,27 @@ ofstream file_simulation_info;
 
 
 void
-log_netdevice_packets(string context, Ptr<const Packet> pck) 
+log_netdevice_packets(string context, Ptr<const Packet> pck, uint32_t queue_size) 
 {
-    static uint64_t i = 1;
     uint64_t now = Simulator::Now().GetNanoSeconds();
     
-    NOCHeader hd;
-    pck->PeekHeader(hd);
+    NOCHeader hdnoc;
+    pck->PeekHeader(hdnoc);
+    
+    XDenseHeader hdxd;
+    pck->PeekHeader(hdxd);
     
     file_packets_trace_netdevice
-    << "c,"
-    << i << ","
-//    << t_slot() << "," //removed time slot from log
-    << 0 << ","
+//  Context info
     << now << ","
-    << pck->GetUid() << ","
-    << context << "," 
-    << "p,";
-    hd.Print(file_packets_trace_netdevice);
-    
-    i++;
+    << context << "," //<< i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",c";
+    << queue_size << ","
+//  Packet info
+    << pck->GetUid() << ",";
+    hdnoc.Print(file_packets_trace_netdevice);
+    file_packets_trace_netdevice << ",";
+    hdxd.Print(file_packets_trace_netdevice);
+    file_packets_trace_netdevice << "\n";
 }
 
 
@@ -124,9 +118,8 @@ main(int argc, char *argv[]) {
     string output_data_dir = homedir + "/noc-data";
     string input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
     
-    string input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data.csv";
-//    string input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
-    
+    string input_delay_data_path = "";
+ 
     CommandLine cmd;
     cmd.AddValue("context", "String to identify the simulation instance", context);
     cmd.AddValue("size_x", "Network size in the X axe", size_x);
@@ -149,8 +142,6 @@ main(int argc, char *argv[]) {
     
     string dir_output = output_data_dir + context_dir.str() + "out/";
     string dir_input = output_data_dir + context_dir.str() + "in/";     
-    
-    //string animation_file = dir_output + "animation.xml";
     
     int status;
     status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -214,7 +205,7 @@ main(int argc, char *argv[]) {
         my_noc_router->GetAttribute("AddressX", x);
         my_noc_router->GetAttribute("AddressY", y);
         my_noc_router->RoutingDelays = my_router_delay_model;
-        my_noc_router->SetRoutingProtocol(NOCRouter::RP_YFIRST);
+        my_noc_router->SetRoutingProtocolUnicast(NOCRouter::ROUTING_PROTOCOL_YFIRST);
 	my_router_delay_model->InputData = &my_input_data;
         
   
@@ -255,9 +246,14 @@ main(int argc, char *argv[]) {
     uint32_t x = 0;
     uint32_t y = 1;
     uint32_t n = x + y * size_x;
-
     my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
     my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
+    
+//    x=0;
+//    y=2;
+//    n = x + y * size_x;
+//    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
+//    my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
 
     //**************** Simulation Setup **************************
 
