@@ -23,6 +23,24 @@
 
 
 namespace ns3 {
+    uint8_t 
+    NOCRoutingProtocols::Unicast(int32_t x_dest, int32_t y_dest, NOCRouter::RoutingProtocols rp) {
+        uint8_t out = 0;
+        switch(rp){
+            case NOCRouter::ROUTING_PROTOCOL_XY_CLOCKWISE:
+                out = UnicastClockwiseXY(x_dest,y_dest);
+                break;
+            case NOCRouter::ROUTING_PROTOCOL_YFIRST:
+                out = UnicastFirstY(x_dest,y_dest);
+                break;
+            default:
+                cout << "Unknown protocol" << std::endl;
+                break;
+        }
+        
+        return out;
+    }
+
     
     uint8_t 
     NOCRoutingProtocols::UnicastFirstX(int32_t x_dest, int32_t y_dest) {
@@ -41,8 +59,8 @@ namespace ns3 {
     NOCRoutingProtocols::UnicastFirstY(int32_t x_dest, int32_t y_dest) {
         uint8_t dir = NOCRouter::DIRECTION_MASK_L;
         
-        if (y_dest > 0) dir = NOCRouter::DIRECTION_MASK_S;
-        else if (y_dest < 0) dir = NOCRouter::DIRECTION_MASK_N;
+        if (y_dest > 0) dir = NOCRouter::DIRECTION_MASK_N;
+        else if (y_dest < 0) dir = NOCRouter::DIRECTION_MASK_S;
         else if (x_dest > 0) dir = NOCRouter::DIRECTION_MASK_E;
         else if (x_dest < 0) dir = NOCRouter::DIRECTION_MASK_W;
         

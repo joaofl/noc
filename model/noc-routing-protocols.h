@@ -41,6 +41,18 @@ namespace ns3 {
         
 //        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
+        static uint8_t Unicast(int32_t x_dest, int32_t y_dest, NOCRouter::RoutingProtocols);
+        
+        static uint8_t UnicastFirstY(int32_t x_dest, int32_t y_dest);
+        
+        static uint8_t UnicastFirstX(int32_t x_dest, int32_t y_dest);
+        
+        static uint8_t UnicastClockwiseXY(int32_t x_dest, int32_t y_dest);
+        
+        
+        
+        static uint8_t UnicastClockwiseOffsetXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig);
+        
         static uint8_t MulticastRadius(int32_t x_source, int32_t y_source, uint16_t n_size);
         
         static uint8_t MulticastArea(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
@@ -49,13 +61,8 @@ namespace ns3 {
         
         static uint8_t Broadcast(int32_t x_source, int32_t y_source);
         
-        static uint8_t UnicastFirstY(int32_t x_dest, int32_t y_dest);
         
-        static uint8_t UnicastFirstX(int32_t x_dest, int32_t y_dest);
-        
-        static uint8_t UnicastClockwiseXY(int32_t x_dest, int32_t y_dest);
-        
-        static uint8_t UnicastClockwiseOffsetXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig);
+
         
         static int32_t CalculateTimeSlot(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size);
         
