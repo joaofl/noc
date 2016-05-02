@@ -466,11 +466,11 @@ class NOCAnim(QWidget):
                     node.setProperty(text=current_trans[trace.queue_size])
 
             else:
-                self.t_next = int(current_trans[trace.time]) + self.packetDuration * 0.5
+                self.t_next = int(current_trans[trace.time]) + self.packetDuration * 0.1
                 break
 
 
-        t = int (self.packetTrace[self.previous_index-1][trace.time])
+        t = int (self.packetTrace[self.previous_index - 1][trace.time])
         self.pbar.setValue((t / lastT) * 100)
 
         tts = round(t / self.packetDuration, 2)
