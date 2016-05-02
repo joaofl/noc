@@ -395,18 +395,20 @@ namespace ns3 {
             return false;
         
         Time t = Time::FromInteger(0, Time::NS);
-//        if (RoutingDelays->Get){
-            t = RoutingDelays->GetDelay();
-//        }
+        t = RoutingDelays->GetDelay();
+
+        //Tweak
+        if (port_direction == DIRECTION_E)
+            t = Time::FromInteger(1, Time::NS);
         
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
         Simulator::Schedule(t, fp, nd, pck->Copy());
         
 //        if (nd->Send(pck->Copy())){
-        return true;
+            return true;
 //        }
 //        else{
-//            m_routerTxDropTrace(pck);
+//            m_routerTxDropTrace(pck, 0);
 //        }
 //        return false;
     }
