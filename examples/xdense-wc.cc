@@ -70,15 +70,17 @@ ofstream file_simulation_info;
 
 
 void
-log_netdevice_packets(string context, Ptr<const Packet> pck, uint32_t queue_size) 
+log_netdevice_packets(string context, Ptr<const Packet> pck_r, uint32_t queue_size) 
 {
     uint64_t now = Simulator::Now().GetNanoSeconds();
     
+    Ptr<Packet> pck = pck_r->Copy();
+    
     NOCHeader hdnoc;
-    pck->PeekHeader(hdnoc);
+    pck->RemoveHeader(hdnoc);
     
     XDenseHeader hdxd;
-    pck->PeekHeader(hdxd);
+    pck->RemoveHeader(hdxd);
     
     file_packets_trace_netdevice
 //  Context info
@@ -119,6 +121,7 @@ main(int argc, char *argv[]) {
     string input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
     
     string input_delay_data_path = "";
+//    input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
  
     CommandLine cmd;
     cmd.AddValue("context", "String to identify the simulation instance", context);

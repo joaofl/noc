@@ -94,9 +94,10 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
         
         XDenseHeader hd;
-
+        Time t_ns = Time::FromInteger(0,Time::NS);
+        
         if (IsSink == true) {
-            hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+            hd.SetXdenseProtocol(XDenseHeader::TRACE);
             pck->AddHeader(hd);
 
             m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
@@ -105,12 +106,11 @@ namespace ns3 {
             hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
             pck->AddHeader(hd);
 
-//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
-//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
-//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
-//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
-//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
-//            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+            for (int i = 0; i < 300; i++) {
+//                m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+                Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+                t_ns += 10 * PacketDuration;
+            }
         }
         
         

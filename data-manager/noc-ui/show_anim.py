@@ -36,7 +36,9 @@ class Node(QGraphicsItem):
     #This should be private
     __upToDate = False
 
-    __queue_size = ''
+    __text = ''
+    __led = 0
+    __led_on_brush, __led_off_brush = QColor("green"), QColor("white")
 
     __core_rx, __core_tx = 0,0
     __north_rx, __north_tx = 0,0
@@ -73,65 +75,68 @@ class Node(QGraphicsItem):
 
     def setProperty(self, core_rx=None, core_tx=None, north_rx=None, north_tx=None,
                     south_tx=None, south_rx=None, east_tx=None, east_rx=None, west_rx=None, west_tx=None,
-                    queue_size = None):
+                    text = None, led = None):
 
-        if queue_size is not None:
-            self.__queue_size = queue_size
+        if text is not None:
+            self.__text = text
+
+        if led is not None:
+            self.__led = led
 
         if core_rx is not None:
             if core_rx != self.__core_rx:
                 self.__core_rx = core_rx
                 self.__core_rx_brush = self.valueToColor(core_rx, 'rx')
-                self.__upToDate = False
+                # self.__upToDate = False
         if core_tx is not None:
             if core_tx != self.__core_tx:
                 self.__core_tx = core_tx
                 self.__core_tx_brush = self.valueToColor(core_tx, 'tx')
-                self.__upToDate = False
+                # self.__upToDate = False
 
         if north_rx is not None:
             if north_rx != self.__north_rx:
                 self.__north_rx = north_rx
                 self.__north_rx_brush = self.valueToColor(north_rx, 'rx')
-                self.__upToDate = False
+                # self.__upToDate = False
         if north_tx is not None:
             if north_tx != self.__north_tx:
                 self.__north_tx = north_tx
                 self.__north_tx_brush = self.valueToColor(north_tx, 'tx')
-                self.__upToDate = False
+                # self.__upToDate = False
 
         if south_rx is not None:
             if south_rx != self.__south_rx:
                 self.__south_rx = south_rx
                 self.__south_rx_brush = self.valueToColor(south_rx, 'rx')
-                self.__upToDate = False
+                # self.__upToDate = False
         if south_tx is not None:
             if south_tx != self.__south_tx:
                 self.__south_tx = south_tx
                 self.__south_tx_brush = self.valueToColor(south_tx, 'tx')
-                self.__upToDate = False
+                # self.__upToDate = False
 
         if east_rx is not None:
             if east_rx != self.__east_rx:
                 self.__east_rx = east_rx
                 self.__east_rx_brush = self.valueToColor(east_rx, 'rx')
-                self.__upToDate = False
+                # self.__upToDate = False
         if east_tx is not None:
             if east_tx != self.__east_tx:
                 self.__east_tx = east_tx
                 self.__east_tx_brush = self.valueToColor(east_tx, 'tx')
-                self.__upToDate = False
+                # self.__upToDate = False
 
         if west_rx is not None:
             if west_rx != self.__west_rx:
                 self.__west_rx = west_rx
                 self.__west_rx_brush = self.valueToColor(west_rx, 'rx')
-                self.__upToDate = False
+                # self.__upToDate = False
         if west_tx is not None:
             if west_tx != self.__west_tx:
                 self.__west_tx = west_tx
                 self.__west_tx_brush = self.valueToColor(west_tx, 'tx')
-                self.__upToDate = False
+                # self.__upToDate = False
 
 
     def valueToColor(self, v, direction):
@@ -196,7 +201,19 @@ class Node(QGraphicsItem):
 
         qp.drawRect(x + c, self.__y + c, 4 * c, 4 * c) #draw the node
 
-        qp.drawText(x + 1.8 * c, self.__y + 3.5 * c, self.__queue_size)
+
+        qp.setBrush(QColor("white"))
+
+        if (self.__led == 1):
+            qp.setBrush( self.__led_on_brush)
+            qp.setPen(QColor("green"))
+            qp.drawEllipse(x + 3.3 * c, self.__y + 3.3 * c, 1.3 * c, 1.3 * c)  # draw the node
+        # if (self.__led == 0):
+        #     qp.setBrush( self.__led_off_brush)
+
+
+        qp.setPen(QColor("darkgrey"))
+        qp.drawText(x + 1.8 * c, self.__y + 3 * c, self.__text)
 
 
 class NOCAnim(QWidget):
@@ -418,6 +435,9 @@ class NOCAnim(QWidget):
 
                 node = self.network[y][x]
 
+                if current_trans[trace.protocol_app] == '6':
+                    node.setProperty(led = 1)
+
                 if current_trans[trace.operation] == 'c':
                     node.setProperty(core_rx = 1)
                 elif current_trans[trace.operation] == 'g':
@@ -443,7 +463,7 @@ class NOCAnim(QWidget):
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
                         node.setProperty(west_tx = 1)
 
-                    node.setProperty(queue_size=current_trans[trace.queue_size])
+                    node.setProperty(text=current_trans[trace.queue_size])
 
             else:
                 self.t_next = int(current_trans[trace.time]) + self.packetDuration * 0.5
