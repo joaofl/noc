@@ -19,22 +19,20 @@
  */
 
 #include "noc-routing-protocols.h"
-#include "ns3/noc-router.h"
-
 
 namespace ns3 {
     uint8_t 
-    NOCRoutingProtocols::Unicast(int32_t x_dest, int32_t y_dest, NOCRouter::RoutingProtocols rp) {
+    NOCRoutingProtocols::Unicast(int32_t x_dest, int32_t y_dest, RoutingProtocols rp) {
         uint8_t out = 0;
         switch(rp){
-            case NOCRouter::ROUTING_PROTOCOL_XY_CLOCKWISE:
+            case ROUTING_PROTOCOL_XY_CLOCKWISE:
                 out = UnicastClockwiseXY(x_dest,y_dest);
                 break;
-            case NOCRouter::ROUTING_PROTOCOL_YFIRST:
+            case ROUTING_PROTOCOL_YFIRST:
                 out = UnicastFirstY(x_dest,y_dest);
                 break;
             default:
-                cout << "Unknown protocol" << std::endl;
+                std::cout << "Unknown protocol" << std::endl;
                 break;
         }
         
@@ -44,12 +42,12 @@ namespace ns3 {
     
     uint8_t 
     NOCRoutingProtocols::UnicastFirstX(int32_t x_dest, int32_t y_dest) {
-        uint8_t dir = NOCRouter::DIRECTION_MASK_L;
+        uint8_t dir = DIRECTION_MASK_L;
         
-        if (x_dest > 0) dir = NOCRouter::DIRECTION_MASK_E;
-        else if (x_dest < 0) dir = NOCRouter::DIRECTION_MASK_W;
-        else if (y_dest > 0) dir = NOCRouter::DIRECTION_MASK_S;
-        else if (y_dest < 0) dir = NOCRouter::DIRECTION_MASK_N;
+        if (x_dest > 0) dir = DIRECTION_MASK_E;
+        else if (x_dest < 0) dir = DIRECTION_MASK_W;
+        else if (y_dest > 0) dir = DIRECTION_MASK_S;
+        else if (y_dest < 0) dir = DIRECTION_MASK_N;
         
         return dir;
     }
@@ -57,12 +55,12 @@ namespace ns3 {
     
     uint8_t 
     NOCRoutingProtocols::UnicastFirstY(int32_t x_dest, int32_t y_dest) {
-        uint8_t dir = NOCRouter::DIRECTION_MASK_L;
+        uint8_t dir = DIRECTION_MASK_L;
         
-        if (y_dest > 0) dir = NOCRouter::DIRECTION_MASK_N;
-        else if (y_dest < 0) dir = NOCRouter::DIRECTION_MASK_S;
-        else if (x_dest > 0) dir = NOCRouter::DIRECTION_MASK_E;
-        else if (x_dest < 0) dir = NOCRouter::DIRECTION_MASK_W;
+        if (y_dest > 0) dir = DIRECTION_MASK_N;
+        else if (y_dest < 0) dir = DIRECTION_MASK_S;
+        else if (x_dest > 0) dir = DIRECTION_MASK_E;
+        else if (x_dest < 0) dir = DIRECTION_MASK_W;
         
         return dir;
     }
@@ -70,33 +68,33 @@ namespace ns3 {
     
     uint8_t
     NOCRoutingProtocols::UnicastClockwiseXY(int32_t x_dest, int32_t y_dest) {
-        uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
+        uint8_t dir = DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                                     //was received, but not sent to the app yet
         char quadrant = FindQuadrant(x_dest, y_dest);
 
         switch (quadrant) {
             case 'a':
-                dir = NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
+                dir = DIRECTION_MASK_E; //send it up, dir +y
                 if (x_dest == 0) //if on the axis, send it right
-                    dir = NOCRouter::DIRECTION_MASK_N;
+                    dir = DIRECTION_MASK_N;
                 break;
             case 'b':
-                dir = NOCRouter::DIRECTION_MASK_N;
+                dir = DIRECTION_MASK_N;
                 if (y_dest == 0)
-                    dir = NOCRouter::DIRECTION_MASK_W;
+                    dir = DIRECTION_MASK_W;
                 break;
             case 'c':
-                dir = NOCRouter::DIRECTION_MASK_W;
+                dir = DIRECTION_MASK_W;
                 if (x_dest == 0)
-                    dir = NOCRouter::DIRECTION_MASK_S;
+                    dir = DIRECTION_MASK_S;
                 break;
             case 'd':
-                dir = NOCRouter::DIRECTION_MASK_S;
+                dir = DIRECTION_MASK_S;
                 if (y_dest == 0)
-                    dir = NOCRouter::DIRECTION_MASK_E;
+                    dir = DIRECTION_MASK_E;
                 break;
             case 'l':
-                dir = NOCRouter::DIRECTION_MASK_L;
+                dir = DIRECTION_MASK_L;
                 break;
         }
         return dir;
@@ -105,7 +103,7 @@ namespace ns3 {
     uint8_t
     NOCRoutingProtocols::UnicastClockwiseOffsetXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig) {
 
-        uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
+        uint8_t dir = DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                                     //was received, but not sent to the app yet
 
         char quadrant = FindQuadrant(x_dest, y_dest);
@@ -128,27 +126,27 @@ namespace ns3 {
 
         switch (quadrant) {
             case 'a':
-                dir = NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
+                dir = DIRECTION_MASK_E; //send it up, dir +y
                 if ((x_dest == 1 && y_dest != 0) || (x_orig == 0 && y_orig == 0)) //if on the axis, send it right
-                    dir = NOCRouter::DIRECTION_MASK_N;
+                    dir = DIRECTION_MASK_N;
                 break;
             case 'b':
-                dir = NOCRouter::DIRECTION_MASK_N;
+                dir = DIRECTION_MASK_N;
                 if ((y_dest == 1  && x_dest != 0)|| (x_orig == 0 && y_orig == 0))
-                    dir = NOCRouter::DIRECTION_MASK_W;
+                    dir = DIRECTION_MASK_W;
                 break;
             case 'c':
-                dir = NOCRouter::DIRECTION_MASK_W;
+                dir = DIRECTION_MASK_W;
                 if ((x_dest == -1 && y_dest != 0)|| (x_orig == 0 && y_orig == 0))
-                    dir = NOCRouter::DIRECTION_MASK_S;
+                    dir = DIRECTION_MASK_S;
                 break;
             case 'd':
-                dir = NOCRouter::DIRECTION_MASK_S;
+                dir = DIRECTION_MASK_S;
                 if ((y_dest == -1  && x_dest != 0) || (x_orig == 0 && y_orig == 0))
-                    dir = NOCRouter::DIRECTION_MASK_E;
+                    dir = DIRECTION_MASK_E;
                 break;
             case 'l':
-                dir = NOCRouter::DIRECTION_MASK_L;
+                dir = DIRECTION_MASK_L;
                 break;
         }
         return dir;
@@ -178,7 +176,7 @@ namespace ns3 {
          *              |
          */
 
-        uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
+        uint8_t dir = DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                  //was received, but not sent to the app yet
 
         //First of all, check if have not exceeded the radius defined by n_hops
@@ -187,31 +185,31 @@ namespace ns3 {
 
             //A: [+x +y[
             if (x_source >= 0 && y_source > 0){
-               dir |= NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
+               dir |= DIRECTION_MASK_E; //send it up, dir +y
                if (x_source == 0) //if on the axis, send it right too
-                   dir |= NOCRouter::DIRECTION_MASK_N;
+                   dir |= DIRECTION_MASK_N;
             }
             //B: ]-x +y]
             else if (x_source < 0 && y_source >= 0){
-               dir |= NOCRouter::DIRECTION_MASK_N;
+               dir |= DIRECTION_MASK_N;
                if (y_source == 0) 
-                   dir |= NOCRouter::DIRECTION_MASK_W;
+                   dir |= DIRECTION_MASK_W;
             }
             //C: [-x -y[
             else if (x_source <= 0 && y_source < 0){
-               dir |= NOCRouter::DIRECTION_MASK_W;
+               dir |= DIRECTION_MASK_W;
                if (x_source == 0) 
-                   dir |= NOCRouter::DIRECTION_MASK_S;
+                   dir |= DIRECTION_MASK_S;
             }
             //D: ]+x -y]
             else if (x_source > 0 && y_source <= 0){
-               dir |= NOCRouter::DIRECTION_MASK_S;
+               dir |= DIRECTION_MASK_S;
                if (y_source == 0) 
-                   dir |= NOCRouter::DIRECTION_MASK_E;
+                   dir |= DIRECTION_MASK_E;
             }
             else if (x_source == 0 && y_source == 0) //generated by myself.
                                                      //send it to all neighbors
-                dir = NOCRouter::DIRECTION_MASK_ALL_EXCEPT_LOCAL;
+                dir = DIRECTION_MASK_ALL_EXCEPT_LOCAL;
 
         }
         
@@ -232,41 +230,41 @@ namespace ns3 {
          */
 
 //        uint8_t n_hops = 0; //broadcast
-        uint8_t dir = NOCRouter::DIRECTION_MASK_NONE;
+        uint8_t dir = DIRECTION_MASK_NONE;
         
         if (abs(x_source) % x_position == 0 && abs(y_source) % y_position == 0 )
-            dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
+            dir = DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                  //was received, but not sent to the app yet
 
         //First of all, check if have not exceeded the radius defined by n_hops
 
         //A: [+x +y[
         if (x_source >= 0 && y_source > 0){
-           dir |= NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
+           dir |= DIRECTION_MASK_E; //send it up, dir +y
            if (x_source == 0) //if on the axis, send it right too
-               dir |= NOCRouter::DIRECTION_MASK_N;
+               dir |= DIRECTION_MASK_N;
         }
         //B: ]-x +y]
         else if (x_source < 0 && y_source >= 0){
-           dir |= NOCRouter::DIRECTION_MASK_N;
+           dir |= DIRECTION_MASK_N;
            if (y_source == 0) 
-               dir |= NOCRouter::DIRECTION_MASK_W;
+               dir |= DIRECTION_MASK_W;
         }
         //C: [-x -y[
         else if (x_source <= 0 && y_source < 0){
-           dir |= NOCRouter::DIRECTION_MASK_W;
+           dir |= DIRECTION_MASK_W;
            if (x_source == 0) 
-               dir |= NOCRouter::DIRECTION_MASK_S;
+               dir |= DIRECTION_MASK_S;
         }
         //D: ]+x -y]
         else if (x_source > 0 && y_source <= 0){
-           dir |= NOCRouter::DIRECTION_MASK_S;
+           dir |= DIRECTION_MASK_S;
            if (y_source == 0) 
-               dir |= NOCRouter::DIRECTION_MASK_E;
+               dir |= DIRECTION_MASK_E;
         }
         else if (x_source == 0 && y_source == 0) //generated by myself.
                                                  //send it to all neighbors
-            dir = NOCRouter::DIRECTION_MASK_ALL_EXCEPT_LOCAL;
+            dir = DIRECTION_MASK_ALL_EXCEPT_LOCAL;
 
         
         
@@ -288,7 +286,7 @@ namespace ns3 {
          *              |
          */
 
-        uint8_t dir = NOCRouter::DIRECTION_MASK_L; //It sends the packet inside anyway, since it
+        uint8_t dir = DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                  //was received, but not sent to the app yet
 
         //First of all, check if have not exceeded the radius defined by n_hops
@@ -299,34 +297,34 @@ namespace ns3 {
             //A: [+x +y[
             if (x_source >= 0 && y_source > 0){
                 if (abs(x_source) < x_dest)
-                    dir |= NOCRouter::DIRECTION_MASK_E; //send it up, dir +y
+                    dir |= DIRECTION_MASK_E; //send it up, dir +y
                 if (x_source == 0 && abs(y_source) < y_dest) //if on the axis, send it right too
-                    dir |= NOCRouter::DIRECTION_MASK_N;
+                    dir |= DIRECTION_MASK_N;
             }
             //B: ]-x +y]
             else if (x_source < 0 && y_source >= 0){
                 if (abs(y_source) < y_dest)
-                    dir |= NOCRouter::DIRECTION_MASK_N;
+                    dir |= DIRECTION_MASK_N;
                if (y_source == 0 && abs(x_source) < x_dest) 
-                   dir |= NOCRouter::DIRECTION_MASK_W;
+                   dir |= DIRECTION_MASK_W;
             }
             //C: [-x -y[
             else if (x_source <= 0 && y_source < 0){
                 if (abs(x_source) < x_dest)
-                    dir |= NOCRouter::DIRECTION_MASK_W;
+                    dir |= DIRECTION_MASK_W;
                 if (x_source == 0 && abs(y_source) < y_dest) 
-                   dir |= NOCRouter::DIRECTION_MASK_S;
+                   dir |= DIRECTION_MASK_S;
             }
             //D: ]+x -y]
             else if (x_source > 0 && y_source <= 0){
                 if (abs(y_source) < y_dest)
-                    dir |= NOCRouter::DIRECTION_MASK_S;
+                    dir |= DIRECTION_MASK_S;
                 if (y_source == 0 && abs(x_source) < x_dest) 
-                   dir |= NOCRouter::DIRECTION_MASK_E;
+                   dir |= DIRECTION_MASK_E;
             }
             else if (x_source == 0 && y_source == 0) //generated by myself.
                                                      //send it to all neighbors
-                dir = NOCRouter::DIRECTION_MASK_ALL_EXCEPT_LOCAL;
+                dir = DIRECTION_MASK_ALL_EXCEPT_LOCAL;
 
         }        
         return dir;

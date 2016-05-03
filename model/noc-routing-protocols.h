@@ -24,7 +24,17 @@
 
 //#include <math.h>
 #include <stdio.h>
-#include"noc-router.h"
+//#include"noc-router.h"
+
+//#include "ns3/callback.h"
+#include "ns3/core-module.h"
+//#include "ns3/applications-module.h"
+//#include "ns3/address.h"
+//#include "ns3/node.h"
+//#include "ns3/data-rate.h"
+//#include "ns3/ptr.h"
+//#include "ns3/net-device-container.h"
+//#include "ns3/object.h"
 
 namespace ns3 {
 
@@ -39,9 +49,37 @@ namespace ns3 {
 //            ROUTING_HIGHWAY
 //        };
         
+        
+        enum Directions{
+            DIRECTION_E        = 0, //east
+            DIRECTION_S        = 1, //south
+            DIRECTION_W        = 2, //west
+            DIRECTION_N        = 3, //north
+            DIRECTION_L        = 4  //Internal, local processor
+        };
+
+        enum DirectionsMasks {
+            DIRECTION_MASK_NONE   = 0b00000000, //none
+            DIRECTION_MASK_E   = 0b00000001, //east
+            DIRECTION_MASK_S   = 0b00000010, //south
+            DIRECTION_MASK_W   = 0b00000100, //west
+            DIRECTION_MASK_N   = 0b00001000, //north
+            DIRECTION_MASK_L   = 0b00010000, //local
+            DIRECTION_MASK_ALL = 0b00011111,
+            DIRECTION_MASK_ALL_EXCEPT_LOCAL = 0b00001111
+                    
+        };
+        
+        enum RoutingProtocols{
+            ROUTING_PROTOCOL_XY_CLOCKWISE,
+            ROUTING_PROTOCOL_XY_CCLOCKWISE,
+            ROUTING_PROTOCOL_YFIRST,
+            ROUTING_PROTOCOL_XFIRST
+        };
+        
 //        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
-        static uint8_t Unicast(int32_t x_dest, int32_t y_dest, NOCRouter::RoutingProtocols);
+        static uint8_t Unicast(int32_t x_dest, int32_t y_dest, RoutingProtocols);
         
         static uint8_t UnicastFirstY(int32_t x_dest, int32_t y_dest);
         

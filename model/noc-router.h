@@ -19,8 +19,8 @@
  * 
  */
 
-#ifndef NOC_SWITCH_H
-#define NOC_SWITCH_H
+#ifndef NOC_ROUTER_H
+#define NOC_ROUTER_H
 
 
 #include <fstream>
@@ -34,10 +34,12 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 #include "ns3/net-device-container.h"
+#include "ns3/object.h"
 
-#include "noc-net-device.h"
-#include "noc-router.h"
 #include "noc-header.h"
+#include "xdense-header.h"
+#include "noc-net-device.h"
+#include "noc-routing-protocols.h"
 #include "data-io.h"
 
 using namespace std;
@@ -47,37 +49,10 @@ namespace ns3 {
     public:
 
         static TypeId GetTypeId (void);
-        
-        enum RoutingProtocols{
-            ROUTING_PROTOCOL_XY_CLOCKWISE,
-            ROUTING_PROTOCOL_XY_CCLOCKWISE,
-            ROUTING_PROTOCOL_YFIRST,
-            ROUTING_PROTOCOL_XFIRST
-        };
 
         enum Priority{
             P0,
             P1
-        };
-        
-        enum Directions{
-            DIRECTION_E        = 0, //east
-            DIRECTION_S        = 1, //south
-            DIRECTION_W        = 2, //west
-            DIRECTION_N        = 3, //north
-            DIRECTION_L        = 4  //Internal, local processor
-        };
-
-        enum DirectionsMasks {
-            DIRECTION_MASK_NONE   = 0b00000000, //none
-            DIRECTION_MASK_E   = 0b00000001, //east
-            DIRECTION_MASK_S   = 0b00000010, //south
-            DIRECTION_MASK_W   = 0b00000100, //west
-            DIRECTION_MASK_N   = 0b00001000, //north
-            DIRECTION_MASK_L   = 0b00010000, //local
-            DIRECTION_MASK_ALL = 0b00011111,
-            DIRECTION_MASK_ALL_EXCEPT_LOCAL = 0b00001111
-                    
         };
 
         typedef struct {
@@ -115,7 +90,7 @@ namespace ns3 {
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
 //        bool PacketBroadcastReceived (Ptr<const Packet> pck, uint8_t network_id);
         
-        void SetRoutingProtocolUnicast(RoutingProtocols);
+        void SetRoutingProtocolUnicast(NOCRoutingProtocols::RoutingProtocols);
         
         void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t network, uint8_t direction);
         
@@ -183,7 +158,7 @@ namespace ns3 {
         
         uint8_t m_channelCount;
         
-        RoutingProtocols unicast_routing_protocol;
+        NOCRoutingProtocols::RoutingProtocols unicast_routing_protocol;
         
         
     };

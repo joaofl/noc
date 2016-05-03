@@ -94,22 +94,26 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
         
         XDenseHeader hd;
-        Time t_ns = Time::FromInteger(0,Time::NS);
+        Time t_ns;
+        t_ns = Time::FromInteger(0,Time::NS); 
         
-        if (IsSink == true) {
+        if (IsSink) {
+           
             hd.SetXdenseProtocol(XDenseHeader::TRACE);
             pck->AddHeader(hd);
-
-            m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
+            Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, 4, 1, USE_ABSOLUTE_ADDRESS);
+            
+//            m_router->PacketUnicast(pck,NETWORK_ID_0, 4, 1, USE_ABSOLUTE_ADDRESS);
         }
-        else{
+        else if(IsActive){
+            t_ns = Time::FromInteger(0,Time::NS);
             hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
             pck->AddHeader(hd);
-
-            for (int i = 0; i < 300; i++) {
+            
+            for (int i = 0; i < 100; i++) {
 //                m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
-                Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
-                t_ns += 10 * PacketDuration;
+                Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, 4, 1, USE_ABSOLUTE_ADDRESS);
+                t_ns += 1 * PacketDuration;// - Time::FromInteger(1,Time::NS);
             }
         }
         
@@ -188,7 +192,7 @@ namespace ns3 {
             case XDenseHeader::NETWORK_SETUP:
 //                NetworkSetupReceived(pck, origin_x, origin_y);                
             case XDenseHeader::TRACE:
-                cout << "Received at:" << Simulator::Now() << "\n";            
+                cout << "Received at the app layer:" << Simulator::Now().GetNanoSeconds() << " tts:" << Simulator::Now().GetNanoSeconds() / PacketDuration << "\n";            
                 break;
             
         }

@@ -64,8 +64,6 @@ namespace ns3 {
 
     uint32_t
     XDenseHeader::GetSerializedSize(void) const {
-
-
         return PAYLOAD_SIZE;
     }
     

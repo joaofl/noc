@@ -226,7 +226,13 @@ namespace ns3 {
         NS_LOG_FUNCTION_NOARGS();
         m_tInterframeGap = t;
     }
+    Time 
+    NOCNetDevice::GetTransmissionTime(Ptr<const Packet> p) {
+        Time t = m_bps.CalculateBitsTxTime(p->GetSize() * 10);
+        return t;
+    }
 
+    
     bool
     NOCNetDevice::TransmitStart(Ptr<Packet> p) {
         NS_LOG_FUNCTION(this << p);

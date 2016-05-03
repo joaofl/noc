@@ -59,7 +59,7 @@ namespace ns3 {
 
         
 
-        bool IsSink;
+        bool IsSink, IsActive;
         Time PacketDuration;
         uint8_t ClusterSize_x, ClusterSize_y; 
         
@@ -69,7 +69,7 @@ namespace ns3 {
         XDenseApp();
         virtual ~XDenseApp();
 
-        void Setup(bool IsSink);
+//        void Setup(bool IsSink);
         
         void Tests(void);
         void WCAnalysis(void);

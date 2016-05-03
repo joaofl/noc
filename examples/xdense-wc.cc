@@ -56,6 +56,7 @@
 #include "src/noc/model/xdense-header.h"
 #include "src/network/model/packet.h"
 #include "src/noc/model/xdense-application.h"
+#include "src/noc/model/noc-routing-protocols.h"
 
 
 
@@ -106,7 +107,7 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 11;
+    uint32_t size_x = 5;
     uint32_t size_y = 3;
     uint32_t size_neighborhood = 5; //odd only, so neighborhoods do not overlap eachother
     uint32_t sinks_n = 1;
@@ -197,6 +198,7 @@ main(int argc, char *argv[]) {
 
         //Setup app
         my_xdense_app->IsSink = false;
+        my_xdense_app->IsActive = true;
         //TODO: Believe it should be get from the packet header itself
         my_xdense_app->PacketDuration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);  //nano seconds
         my_xdense_app->ClusterSize_x = size_neighborhood;
@@ -208,17 +210,17 @@ main(int argc, char *argv[]) {
         my_noc_router->GetAttribute("AddressX", x);
         my_noc_router->GetAttribute("AddressY", y);
         my_noc_router->RoutingDelays = my_router_delay_model;
-        my_noc_router->SetRoutingProtocolUnicast(NOCRouter::ROUTING_PROTOCOL_YFIRST);
+        my_noc_router->SetRoutingProtocolUnicast(NOCRoutingProtocols::ROUTING_PROTOCOL_YFIRST);
 	my_router_delay_model->InputData = &my_input_data;
         
   
 //        int8_t direction = -1;
         ostringstream context_router_rx, context_router_tx, context_router_cx, context_router_gx;
         
-        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",c";
+        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRoutingProtocols::DIRECTION_L << ",c";
         my_noc_router->TraceConnect("RouterCxTrace", context_router_cx.str(), MakeCallback(&log_netdevice_packets));
         
-        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",g";
+        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRoutingProtocols::DIRECTION_L << ",g";
         my_noc_router->TraceConnect("RouterGxTrace", context_router_gx.str(), MakeCallback(&log_netdevice_packets));
         
         //Setup NetDevice's Callback
@@ -252,11 +254,17 @@ main(int argc, char *argv[]) {
     my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
     my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
     
-//    x=0;
-//    y=2;
-//    n = x + y * size_x;
-//    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
-//    my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
+    x=0;
+    y=2;
+    n = x + y * size_x;
+    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsActive = false;
+    my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
+
+    x=0;
+    y=0;
+    n = x + y * size_x;
+    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsActive = false;
+    my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
 
     //**************** Simulation Setup **************************
 

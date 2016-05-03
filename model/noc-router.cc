@@ -20,14 +20,8 @@
  */
 
 
-#include "src/core/model/object.h"
-#include "src/network/model/node.h"
-
-#include "noc-header.h"
-#include "noc-net-device.h"
 #include "noc-router.h"
-#include "noc-routing-protocols.h"
-#include "ns3/data-io.h"
+
 
 using namespace std;
 namespace ns3 {
@@ -213,7 +207,7 @@ namespace ns3 {
     }    
 
     void 
-    NOCRouter::SetRoutingProtocolUnicast(RoutingProtocols rp) {
+    NOCRouter::SetRoutingProtocolUnicast(NOCRoutingProtocols::RoutingProtocols rp) {
         unicast_routing_protocol = rp;
     }
 
@@ -349,32 +343,32 @@ namespace ns3 {
         
         uint8_t sent = 0;
 
-        if ( (ports_mask >> DIRECTION_N) & 1)
+        if ( (ports_mask >> NOCRoutingProtocols::DIRECTION_N) & 1)
         {
             Ptr<Packet> pck_c = pck->Copy();
-            if (PacketSendSingle(pck_c, network_id, DIRECTION_N, priority)){
+            if (PacketSendSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_N, priority)){
                 sent++;
             }
         }
-        if ( (ports_mask >> DIRECTION_S) & 1){
+        if ( (ports_mask >> NOCRoutingProtocols::DIRECTION_S) & 1){
             Ptr<Packet> pck_c = pck->Copy();
-            if (PacketSendSingle(pck_c, network_id, DIRECTION_S, priority)){
+            if (PacketSendSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_S, priority)){
                 sent++;
             }
         }
-        if ( (ports_mask >> DIRECTION_E & 1) & 1){
+        if ( (ports_mask >> NOCRoutingProtocols::DIRECTION_E & 1) & 1){
             Ptr<Packet> pck_c = pck->Copy();
-            if (PacketSendSingle(pck_c, network_id, DIRECTION_E, priority)){
+            if (PacketSendSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_E, priority)){
                 sent++;
             }
         }
-        if ( (ports_mask >> DIRECTION_W) & 1){
+        if ( (ports_mask >> NOCRoutingProtocols::DIRECTION_W) & 1){
             Ptr<Packet> pck_c = pck->Copy();      
-            if (PacketSendSingle(pck_c, network_id, DIRECTION_W, priority)){
+            if (PacketSendSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_W, priority)){
                 sent++;
             }
         }
-        if ( (ports_mask >> DIRECTION_L) & 1){
+        if ( (ports_mask >> NOCRoutingProtocols::DIRECTION_L) & 1){
             m_routerCxTrace(pck, 0);
             Ptr<Packet> pck_c = pck->Copy();
             NOCHeader h;
@@ -398,7 +392,7 @@ namespace ns3 {
         t = RoutingDelays->GetDelay();
 
         //Tweak
-        if (port_direction == DIRECTION_E)
+        if (port_direction == NOCRoutingProtocols::DIRECTION_E)
             t = Time::FromInteger(1, Time::NS);
         
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
@@ -419,8 +413,17 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         NetDeviceInfo nd_i = GetNetDeviceInfo(nd);
         
+        Time packet_duration = nd->GetTransmissionTime(pck); 
+        
         NOCHeader h;
         pck_c->RemoveHeader(h);
+        
+        
+        XDenseHeader hxd;
+        pck_c->PeekHeader(hxd);
+        
+        if (hxd.GetXdenseProtocol() == XDenseHeader::TRACE)
+            cout << "Received at:" << Simulator::Now().GetNanoSeconds() << " tts:" << Simulator::Now().GetNanoSeconds() / packet_duration << "\n";  
         
         bool AddToDestination = false;
         
@@ -430,22 +433,22 @@ namespace ns3 {
             
         
         switch (nd_i.direction){
-            case DIRECTION_S: 
+            case NOCRoutingProtocols::DIRECTION_S: 
                 h.AddtoSourceAddress( 0, 1);
                 if (AddToDestination)
                     h.AddtoDestinationAddress( 0, -1);
                 break;
-            case DIRECTION_N:
+            case NOCRoutingProtocols::DIRECTION_N:
                 h.AddtoSourceAddress( 0,-1); 
                 if (AddToDestination)
                     h.AddtoDestinationAddress( 0, 1);
                 break;
-            case DIRECTION_E: 
+            case NOCRoutingProtocols::DIRECTION_E: 
                 h.AddtoSourceAddress(-1, 0);
                 if (AddToDestination)
                     h.AddtoDestinationAddress( 1, 0);
                 break;
-            case DIRECTION_W: 
+            case NOCRoutingProtocols::DIRECTION_W: 
                 h.AddtoSourceAddress( 1, 0); 
                 if (AddToDestination)
                     h.AddtoDestinationAddress( -1, 0);
@@ -508,6 +511,9 @@ namespace ns3 {
             default:
                 cout << "Unknown protocol" << std::endl;
                 break;
+                
+                
+            
         }
     }
 

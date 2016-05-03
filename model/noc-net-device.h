@@ -94,6 +94,10 @@ namespace ns3 {
          * @param bps the data rate at which this object operates
          */
         void SetDataRate(DataRate bps);
+        
+        
+        
+        Time GetTransmissionTime(Ptr<const Packet> p);
 
         /**
          * Set the interframe gap used to separate packets.  The interframe gap

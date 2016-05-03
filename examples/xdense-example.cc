@@ -233,10 +233,10 @@ main(int argc, char *argv[]) {
 //        my_noc_router->TraceConnect("RouterTxTrace", context_router_tx.str(), MakeCallback(&log_router_packets));
         
         
-        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",c";
+        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRoutingProtocols::DIRECTION_L << ",c";
         my_noc_router->TraceConnect("RouterCxTrace", context_router_cx.str(), MakeCallback(&log_netdevice_packets));
         
-        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",g";
+        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRoutingProtocols::DIRECTION_L << ",g";
         my_noc_router->TraceConnect("RouterGxTrace", context_router_gx.str(), MakeCallback(&log_netdevice_packets));
         
         //Setup NetDevice's Callback
