@@ -14,9 +14,10 @@
 ##########################
 
 class flow:
-    def __init__(p=0, j=0):
-        self.period = p
+    def __init__(destination=0, r=0, j=0):
+        self.rate = r
         self.jitter = j
+        self.port_destination = destination
 
 class port:
     DIR_N = 0
@@ -33,38 +34,15 @@ class port:
 
 class node:
     def __init__(self, id):
-                # n_in_flow = flow(0,0), n_out_flow = flow(0,0),
-                # s_in_flow = flow(0,0), s_out_flow = flow(0,0),
-                # e_in_flow = flow(0,0), e_out_flow = flow(0,0),
-                # w_in_flow = flow(0,0), w_out_flow = flow(0,0),
-                # i_in_flow = flow(0,0), i_out_flow = flow(0,0)):
 
-        # self.n_in  = n_in_flow
-        # self.n_out = n_out_flow
-        #
-        # self.s_in  = s_in_flow
-        # self.s_out = s_out_flow
-        #
-        # self.e_in  = e_in_flow
-        # self.e_out = e_out_flow
-        #
-        # self.w_in  = w_in_flow
-        # self.w_out = w_out_flow
-        #
-        # self.i_in  = i_in_flow
-        # self.i_out = i_out_flow
-
-        port_north      = port(port.DIR_N)
-        port_south      = port(port.DIR_S)
-        port_east       = port(port.DIR_E)
-        port_west       = port(port.DIR_W)
-        port_internal   = port(port.DIR_I)
-
-        self.ports = [port_north, port_south, port_east, port_west, port_internal]
+        self.port_north      = port(port.DIR_N)
+        self.port_south      = port(port.DIR_S)
+        self.port_east       = port(port.DIR_E)
+        self.port_west       = port(port.DIR_W)
+        self.port_internal   = port(port.DIR_I)
+        self.ports = [self.port_north, self.port_south, self.port_east, self.port_west, self.port_internal]
 
         self.id = id
-
-        #Outputs
         self.queue = 0 #Queue initial size
 
         #Packets totals
@@ -72,9 +50,13 @@ class node:
         self.stats_received = 0
 
     def iterate(self):
-        balance = 0
+        balance_east = 0
+
         for p in self.ports:
-            balance +=
+            if p.input.port_dest == port.DIR_E:
+                balance_east += p.input.rate
+            if p.output.port_dest == port.DIR_E:
+                balance_east += 1
 
 
 
@@ -100,6 +82,7 @@ class node:
 
 
 #tf = 10 #Transmission time slots
+f = flow()
 n_nodes = 4
 nodes = []
 
