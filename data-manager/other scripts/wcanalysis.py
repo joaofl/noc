@@ -13,35 +13,45 @@
 #
 ##########################
 #
+
+def generate(period, duration, jitter):
+    f = []
+    if duration == 0:
+        duration = 100
+
+    for t in range(duration):
+        if period == 0 or t < jitter:
+            f.append(0)
+            continue
+
+        if t % period == 0:
+            f.append(1)
+            continue
+
+        f.append(0)
+
+    return f
+
 class flow:
 
-    def __init__(self, period=1, hperiod = 1, jitter=0):
-        self.hperiod = hperiod
+    #duration 0 means flow last forever
+    def __init__(self, period=1, duration = 0, jitter=0):
+        self.duration = duration
         self.period = period
         self.jitter = jitter
         self.released = False
         self.t = 0
 
-    #This function will release or not packets according to flows characteristics
-    def generate(self):
-        out = 0
+        self.flow = generate(self.period, self.duration, self.jitter)
 
-        if self.released == False:
-            if self.t == self.jitter:
-                self.t = 0
-                self.released = True
-                out = 1
+        #This function will release or not packets according to flows characteristics
 
-        else:
-            if self.t == self.hperiod:
-                self.t = 0;
-
-            if self.t % self.period == 0:
-                out = 1
-
+    def get(self):
+        if self.t >= len(self.flow):
+            return 0
+        r = self.flow[self.t]
         self.t += 1
-
-        return out
+        return r
 
 class node:
     def __init__(self, id, input_flows=[], output_flow=flow()):
@@ -59,6 +69,8 @@ class node:
         self.stats_received = 0
         self.t = -1
 
+        self.output = []
+
     def iterate(self):
         self.t += 1
 
@@ -66,7 +78,7 @@ class node:
         output_balance = 0
 
         for f in self.input_flows:
-            input_balance += f.generate()
+            input_balance += f.get()
 
         self.stats_tot_received += input_balance
         self.stats_received = input_balance
@@ -74,13 +86,15 @@ class node:
 
         self.queue += input_balance
 
-        output_capacity = self.output_flow_capacity.generate()
+        output_capacity = self.output_flow_capacity.get()
 
         if output_capacity > 0 and self.queue > 0:
             output_balance = output_capacity
             self.queue -= output_capacity #queue decreases if no packet comes in and there is outpuc capacity
             self.stats_tot_transmitted += output_balance
             self.stats_transmitted = output_balance
+
+        self.output.append(self.stats_transmitted)
 
         return self.stats_transmitted
 
@@ -99,52 +113,47 @@ class node:
 
 ############# Declaring ###################################
 
-
-
-#tf = 10 #Transmission time slots
-# out = ''
-# for i in range(0,50):
-#     out += str(f.generate())
-# print(out)
-# exit(0)
-
-
-
-# ia, ib, ic = [flow(period=1, hperiod=1, jitter=1) for i in range(3)]
-ia = flow(period=1, hperiod=1, jitter=0)
-ib = flow(period=1, hperiod=1, jitter=0)
-ic = flow(period=1, hperiod=1, jitter=0)
-id = flow(period=1, hperiod=1, jitter=0) #The flow generated inside has jitter 0 because it is buffered 1 cycle before
+# ia, ib, ic = [flow(period=1, duration=1, jitter=1) for i in range(3)]
+ia = flow(period=1, duration=0, jitter=0)
+ib = flow(period=1, duration=0, jitter=0)
+ic = flow(period=1, duration=0, jitter=0)
+id = flow(period=1, duration=0, jitter=0) #The flow generated inside has jitter 0 because it is buffered 1 cycle before
                                         # the neighbors packets arrive
-o = flow(period=1, hperiod=1, jitter=0)
+o = flow(period=1, duration=0, jitter=0)
+
+print('Input flows:')
+print(ia.flow)
+print(ib.flow)
+print(ic.flow)
+print(id.flow)
+print(o.flow)
 
 n_nodes = 4
 nodes = []
 
 for i in range(n_nodes):
-    n = node(i, input_flows=[ia,ib,ic,id], output_flow=o)
+    n = node(i, input_flows=[ia, ib, ic, id], output_flow=o)
     nodes.append(n)
 
-# n = nodes[0]
-# for t in range(10):
-#     n.iterate()
-#     n.print()
+# nodes[0].input_flows.append(id)
 
 ############## Running ####################################
-t = 0
-for n in nodes:
-    for i in range(t+1):
-        n.iterate()
-    t += n.queue + 1
+print('\nNodes output:')
+t = 1   #we analyse from the next second time instant,
+        # since it is when it have already received and transmitted packets
+for i in range(len(nodes)):
+    for j in range(t):
+        nodes[i].iterate()
 
-wc = nodes[-1].t + 1 #+1 is the the last transmission delay
-
+    t += nodes[i].queue + 1
+    print(nodes[i].output)
 ############# Showing results ############################
-
-#print('Duration: ' + str(tf) + '\n')
-
-# wc = 0
+print('\nResults:')
+wc = nodes[-1].t + 1 #+1 is the the last transmission delay
 for n in nodes:
     n.print()
 
 print('\nWC=' + str(wc))
+
+#Next step would be to iterate once again with the worst case as limit t, but then, feed the nodes with the output
+#of the previous ones, to converge to the real WC.
