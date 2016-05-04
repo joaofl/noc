@@ -71,10 +71,9 @@ namespace ns3 {
         virtual ~NOCRouter();
         
         // Basic comm functions//////////////////////
-
-        void PacketReceived(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
+        void PacketTrace(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
         
-
+        void PacketReceived(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
         
         bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
                             int32_t destination_y, bool absolute_address);
