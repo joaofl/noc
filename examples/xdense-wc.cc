@@ -247,24 +247,37 @@ main(int argc, char *argv[]) {
         my_xdense_app->AddRouter(my_noc_router);
     }
 
+    for (uint32_t x = 0; x < size_x; x++) {
+        
+        for (uint32_t y = 0; y < size_y; y++) {
+            uint32_t n = x + y * size_x;
+            //One have to make sure to not schedule 2 flows to the same node
+            //neither send packets to itsel
+            if (x== 0 && y == 1){ 
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 1, 4, 1, true); 
+                my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only                
+            }
+            else if (x > 0 && x < 4){
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(2, 0, 50, 4, 1, false); 
+            }
+            
+//            else if (y == 0 && x != 0){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 50, 4, 1, false); 
+//            }
+//            else if (y == 1 && x != 0 && x != 4){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 50, 4, 1, false); 
+//            }
+//            else if (y == 2 && x != 0){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 50, 4, 1, false); 
+//            }
+//            
+//            if (x == 4){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsActive = false;
+//            }
+            
+        }
+    }
 
-    uint32_t x = 0;
-    uint32_t y = 1;
-    uint32_t n = x + y * size_x;
-    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
-    my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
-    
-    x=0;
-    y=2;
-    n = x + y * size_x;
-    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsActive = false;
-    my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
-
-    x=0;
-    y=0;
-    n = x + y * size_x;
-    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsActive = false;
-    my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only
 
     //**************** Simulation Setup **************************
 

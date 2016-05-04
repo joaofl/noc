@@ -19,6 +19,7 @@
  */
 
 #include "xdense-application.h"
+#include "xdense-header.h"
 
 
 using namespace std;
@@ -56,28 +57,15 @@ namespace ns3 {
 //        m_packetSize = 16; //bytes
 //        m_packetDuration = (m_packetSize * 10) / m_baudrate; //10 bits per byte
         
-        //This is a threshold, to decide the min neghborhood a node have to be 
-        //to be able to do event annoucements.
-        //These are all the possible neighbors times a factor, to include nodes in the edges,
-        //which have less neighbors.
-//        MinNeighborhood = MaxHops * 2 * (MaxHops + 1) * 0.7; //add some tolerance.Ex 20%
-
-        
 
 //        if (IsSink == true) {
 ////            Tests();
 ////            ClusterDataRequest();
-//            
 //        }
-//        
-        Time t_ns = Time::FromInteger(0,Time::NS);
-//        WCAnalysis();
-        Simulator::Schedule(t_ns, &XDenseApp::WCAnalysis, this);
         
-        
+//        Time t_ns = Time::FromInteger(0,Time::NS);
+//        Simulator::Schedule(t_ns, &XDenseApp::GenerateFlow, this);
     }
-    
-    
     
     void
     XDenseApp::StopApplication(void) {
@@ -90,37 +78,27 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::WCAnalysis() {
+    XDenseApp::SetFlowGenerator(uint32_t period, uint32_t jitter, uint32_t duration, uint32_t dest_x, uint32_t dest_y, bool trace) {
+        if (period == 0 || IsActive == false) return;
+        
         Ptr<Packet> pck = Create<Packet>();
-        
         XDenseHeader hd;
-        Time t_ns;
-        t_ns = Time::FromInteger(0,Time::NS); 
+        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+        if (trace) hd.SetXdenseProtocol(XDenseHeader::TRACE);
+        pck->AddHeader(hd);
         
-        if (IsSink) {
-           
-            hd.SetXdenseProtocol(XDenseHeader::TRACE);
-            pck->AddHeader(hd);
-            Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, 4, 1, USE_ABSOLUTE_ADDRESS);
+        Time t_ns;
+        
+        for (uint32_t tslot = 0; tslot < duration; tslot++) {
+            if (tslot < jitter) continue;
             
-//            m_router->PacketUnicast(pck,NETWORK_ID_0, 4, 1, USE_ABSOLUTE_ADDRESS);
-        }
-        else if(IsActive){
-            t_ns = Time::FromInteger(0,Time::NS);
-            hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
-            pck->AddHeader(hd);
-            
-            for (int i = 0; i < 100; i++) {
-//                m_router->PacketUnicast(pck,NETWORK_ID_0, 10, 1, USE_ABSOLUTE_ADDRESS);
-                Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, 4, 1, USE_ABSOLUTE_ADDRESS);
-                t_ns += 1 * PacketDuration;// - Time::FromInteger(1,Time::NS);
+            if (tslot % period == 0){
+                t_ns = tslot * PacketDuration;
+                Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
             }
         }
-        
-        
     }
 
-    
     
     void
     XDenseApp::Tests() {

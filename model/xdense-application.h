@@ -72,7 +72,8 @@ namespace ns3 {
 //        void Setup(bool IsSink);
         
         void Tests(void);
-        void WCAnalysis(void);
+
+        void SetFlowGenerator(uint32_t period, uint32_t jitter, uint32_t duration, uint32_t dest_x, uint32_t dest_y, bool trace);
         
         void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         
