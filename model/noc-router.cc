@@ -406,24 +406,42 @@ namespace ns3 {
 //        }
 //        return false;
     }
-       
+
+//    void
+//    NOCRouter::PacketTrace(Ptr<const Packet> packet, Ptr<NOCNetDevice> device) {
+//
+//    }
+
+    
     void
-    NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
-        m_routerRxTrace(pck, 0);
+    NOCRouter::PacketTrace(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd){
         Ptr<Packet> pck_c = pck->Copy();
-        NetDeviceInfo nd_i = GetNetDeviceInfo(nd);
         
         Time packet_duration = nd->GetTransmissionTime(pck); 
         
         NOCHeader h;
         pck_c->RemoveHeader(h);
         
-        
         XDenseHeader hxd;
         pck_c->PeekHeader(hxd);
         
         if (hxd.GetXdenseProtocol() == XDenseHeader::TRACE)
-            cout << "Received at:" << Simulator::Now().GetNanoSeconds() << " tts:" << Simulator::Now().GetNanoSeconds() / packet_duration << "\n";  
+            cout << "Received at:" << Simulator::Now().GetNanoSeconds() 
+                 << " tts:" << Simulator::Now().GetNanoSeconds() / packet_duration << "\n";  
+    }
+       
+    void
+    NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
+        //Debug only
+        PacketTrace(pck, nd);
+        
+        m_routerRxTrace(pck, 0);
+        Ptr<Packet> pck_c = pck->Copy();
+        
+        NetDeviceInfo nd_i = GetNetDeviceInfo(nd);
+        
+        NOCHeader h;
+        pck_c->RemoveHeader(h);
         
         bool AddToDestination = false;
         
