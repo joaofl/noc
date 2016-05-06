@@ -64,7 +64,7 @@ def main ():
     # max_x = 11
     # max_y = 11
 
-    node_x, node_y = 11,10
+    node_x, node_y = 6, 5
 
     axis_x_transmitted=[]
     axis_y_transmitted=[]
@@ -83,13 +83,18 @@ def main ():
     imgs = []
     imgs_transmitted = []
 
+    pck_duration = ( float(options.baudrate) / float(options.packet_size))
+
     t, t_a = 0, 0
 
     for line in data:
         abs_x = int( line[trace.x_absolute] )
         abs_y = int( line[trace.y_absolute] )
 
-        t = int ( line[trace.time_slot] )
+
+        time_slot = int(line[trace.time]) / pck_duration
+
+        t = int ( time_slot )
 
         #Get the full picture
         if line[trace.operation] == 'r' or line[trace.operation] == 'g':
@@ -107,10 +112,10 @@ def main ():
                 transmitted_s = numpy.zeros([max_y + 1, max_x + 1])
 
         if abs_x == node_x and abs_y == node_y:
-            axis_x_transmitted.append(int(line[trace.time_slot]))
+            axis_x_transmitted.append(time_slot)
             axis_y_transmitted.append(transmitted[node_y, node_x])
 
-            axis_x_received.append(int(line[trace.time_slot]))
+            axis_x_received.append(time_slot)
             axis_y_received.append(received[node_y, node_x])
 
 
@@ -158,7 +163,7 @@ def main ():
 
 def plotMatrix(data):
 
-    filename=None; show=True; title = ""; lable_x = ""; lable_y = ""; x_size = 6; y_size = 6;
+    filename=None; show=True; title = ""; lable_x = ""; lable_y = ""; x_size = 8; y_size = 8;
 
     plt.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
     plt.imshow(data, cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')

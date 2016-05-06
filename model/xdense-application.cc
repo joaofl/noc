@@ -89,7 +89,7 @@ namespace ns3 {
         
         Time t_ns;
         
-        for (uint32_t tslot = 0; tslot < duration; tslot++) {
+        for (uint32_t tslot = 0; tslot < duration + jitter; tslot++) {
             if (tslot < jitter) continue;
             
             if (tslot % period == 0){

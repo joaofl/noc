@@ -225,6 +225,9 @@ namespace ns3 {
                 destination_y = destination_y - m_addressY;
         }
         
+        if (destination_x == 0 && destination_y == 0)
+            return 0; // dont send it to myself
+        
         NOCHeader h;
         h.SetProtocol(NOCHeader::PROTOCOL_UNICAST);
         h.SetSourceAddressXY(0,0);

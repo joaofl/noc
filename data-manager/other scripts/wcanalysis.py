@@ -101,8 +101,8 @@ class node:
     def print(self):
 
         print(
-            't=' + str(self.t) + '\t\t' +
             'id=' + str(self.id) + '\t' +
+            't=' + str(self.t) + '\t\t' +
             'rt:\t' + str(self.stats_tot_received) + '\t' +
             'tt:\t' + str(self.stats_tot_transmitted) + '\t' +
             'r:\t' + str(self.stats_received) + '\t' +
@@ -114,9 +114,9 @@ class node:
 ############# Declaring ###################################
 
 # ia, ib, ic = [flow(period=1, duration=1, jitter=1) for i in range(3)]
-ia = flow(period=1, duration=0, jitter=0)
-ib = flow(period=1, duration=0, jitter=0)
-ic = flow(period=1, duration=0, jitter=0)
+ia = flow(period=2, duration=0, jitter=0)
+ib = flow(period=2, duration=0, jitter=0)
+ic = flow(period=2, duration=0, jitter=0)
 id = flow(period=1, duration=0, jitter=0) #The flow generated inside has jitter 0 because it is buffered 1 cycle before
                                         # the neighbors packets arrive
 o = flow(period=1, duration=0, jitter=0)
@@ -141,12 +141,15 @@ for i in range(n_nodes):
 print('\nNodes output:')
 t = 1   #we analyse from the next second time instant,
         # since it is when it have already received and transmitted packets
-for i in range(len(nodes)):
+for n in nodes:
     for j in range(t):
-        nodes[i].iterate()
+        n.iterate()
+    t += n.queue + 1
+    print(n.output)
+    # Next step would be to iterate once again with the worst
+    # case as limit t, but then, feed the nodes with the output
+    # of the previous ones, to converge to the real WC.
 
-    t += nodes[i].queue + 1
-    print(nodes[i].output)
 ############# Showing results ############################
 print('\nResults:')
 wc = nodes[-1].t + 1 #+1 is the the last transmission delay
@@ -155,5 +158,20 @@ for n in nodes:
 
 print('\nWC=' + str(wc))
 
-#Next step would be to iterate once again with the worst case as limit t, but then, feed the nodes with the output
-#of the previous ones, to converge to the real WC.
+
+nodes = []
+for i in range(n_nodes + 1):
+    n = node(i, input_flows=[ia, ib, ic], output_flow=o)
+    nodes.append(n)
+
+############ Re-iteration ###############################
+# id = flow(period=2, duration=0, jitter=0)
+# nodes[0].input_flows.append(id)
+#
+# for i in range(len(nodes) - 1):
+#     for t in range(wc):
+#         nodes[i].iterate()
+#
+#     f = nodes[i].output
+#     nodes[i+1].input_flows.append(f)
+#
