@@ -93,6 +93,7 @@ namespace ns3 {
     NOCRouter::StartApplication(void) {
         m_running = true;
         m_server_state = IDLE;
+        m_actual_port = NOCRoutingProtocols::DIRECTION_E;
         
         NetDeviceContainer::Iterator nd;
         for (nd = m_netDevices.Begin() ; nd != m_netDevices.End() ; nd++){    
@@ -444,21 +445,18 @@ namespace ns3 {
                     ServePorts();                    
                 }
 
-                break;
-                       
-                     
+                break;       
         }
     }
 
     void
     NOCRouter::ServePorts(void) {
-        static uint8_t actual_port = NOCRoutingProtocols::DIRECTION_E;
 
         Time t_ns;
         Time packet_duration;
         
         Ptr<Packet> pck;
-        Ptr<NOCNetDevice> nd = GetNetDevice(0, actual_port);
+        Ptr<NOCNetDevice> nd = GetNetDevice(0, m_actual_port);
         
         uint8_t queue_e = 0;
         Ptr<NOCNetDevice> nd_e = GetNetDevice(0, NOCRoutingProtocols::DIRECTION_E);
@@ -491,7 +489,7 @@ namespace ns3 {
 
         switch (m_server_state) {
             case (BUSY):
-                switch (actual_port) {
+                switch (m_actual_port) {
                     /////////////////////// EAST ////////////////////////////////////////////////
                     case NOCRoutingProtocols::DIRECTION_E:
                         if (queue_e > 0) {
@@ -504,7 +502,7 @@ namespace ns3 {
                             Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
                         }
 
-                        actual_port = NOCRoutingProtocols::DIRECTION_N;
+                        m_actual_port = NOCRoutingProtocols::DIRECTION_N;
                         break;
                     /////////////////////// EAST ////////////////////////////////////////////////
                     case NOCRoutingProtocols::DIRECTION_N:
@@ -518,7 +516,7 @@ namespace ns3 {
                             Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
                         }
 
-                        actual_port = NOCRoutingProtocols::DIRECTION_W;
+                        m_actual_port = NOCRoutingProtocols::DIRECTION_W;
                         break;
                     /////////////////////// EAST ////////////////////////////////////////////////
                     case NOCRoutingProtocols::DIRECTION_W:
@@ -532,7 +530,7 @@ namespace ns3 {
                             Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
                         }
 
-                        actual_port = NOCRoutingProtocols::DIRECTION_S;
+                        m_actual_port = NOCRoutingProtocols::DIRECTION_S;
                         break;
                     /////////////////////// EAST ////////////////////////////////////////////////
                     case NOCRoutingProtocols::DIRECTION_S:
@@ -546,7 +544,10 @@ namespace ns3 {
                             Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
                         }
 
-                        actual_port = NOCRoutingProtocols::DIRECTION_E;
+                        m_actual_port = NOCRoutingProtocols::DIRECTION_E;
+                        break;
+                        
+                    default:
                         break;
                 }
                 break;

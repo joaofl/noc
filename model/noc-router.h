@@ -148,6 +148,7 @@ namespace ns3 {
         };
         
         m_server_state_machine m_server_state;
+        NOCRoutingProtocols::Directions m_actual_port;
 
         TracedCallback<Ptr<const Packet>, uint32_t > m_routerRxTrace;
         TracedCallback<Ptr<const Packet>, uint32_t > m_routerTxTrace;

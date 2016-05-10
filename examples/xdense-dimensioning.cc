@@ -213,8 +213,8 @@ main(int argc, char *argv[]) {
         my_noc_router->GetAttribute("AddressX", x);
         my_noc_router->GetAttribute("AddressY", y);
         my_noc_router->RoutingDelays = my_router_delay_model; //TODO: use a method set instead, otherwise there will be no default value, and it wont work.
-        my_noc_router->ServerPolicy = NOCRouter::ROUND_ROBIN; //TODO: use a method set instead
-//        my_noc_router->ServerPolicy = NOCRouter::FIFO; //TODO: use a method set instead
+//        my_noc_router->ServerPolicy = NOCRouter::ROUND_ROBIN; //TODO: use a method set instead
+        my_noc_router->ServerPolicy = NOCRouter::FIFO; //TODO: use a method set instead
         my_noc_router->SetRoutingProtocolUnicast(NOCRoutingProtocols::ROUTING_PROTOCOL_XY_CLOCKWISE);
 	my_router_delay_model->InputData = &my_input_data;
         
@@ -279,7 +279,7 @@ main(int argc, char *argv[]) {
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true); 
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, true); 
             }
-            if( (x == 8 && y == 15) ){ //  || (x == 10 && y == 19)){
+            if( (x == 8 && y == 14) ){ //  || (x == 10 && y == 19)){
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s2x, s2y, true); 
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, true); 
             }
