@@ -97,6 +97,9 @@ log_netdevice_packets(string context, Ptr<const Packet> pck_r, uint32_t queue_si
 }
 
 
+uint32_t GetN(uint32_t size_x, uint32_t size_y, uint32_t x, uint32_t y){
+    return (size_x * size_y) - ((y + 1) * size_x - x);
+}
 
 int
 main(int argc, char *argv[]) {
@@ -209,7 +212,9 @@ main(int argc, char *argv[]) {
         IntegerValue x, y;
         my_noc_router->GetAttribute("AddressX", x);
         my_noc_router->GetAttribute("AddressY", y);
-        my_noc_router->RoutingDelays = my_router_delay_model;
+        my_noc_router->RoutingDelays = my_router_delay_model; //TODO: use a method set instead, otherwise there will be no default value, and it wont work.
+        my_noc_router->ServerPolicy = NOCRouter::ROUND_ROBIN; //TODO: use a method set instead
+//        my_noc_router->ServerPolicy = NOCRouter::FIFO; //TODO: use a method set instead
         my_noc_router->SetRoutingProtocolUnicast(NOCRoutingProtocols::ROUTING_PROTOCOL_XY_CLOCKWISE);
 	my_router_delay_model->InputData = &my_input_data;
         
@@ -247,33 +252,44 @@ main(int argc, char *argv[]) {
         my_xdense_app->AddRouter(my_noc_router);
     }
 
-    uint32_t s1x, s1y, s2x, s2y;
+    uint32_t s1x, s1y, s2x, s2y, s3x, s3y, s4x, s4y;
     s1x = 0; s1y = 0;
-    s2x = 5; s2y = 5;
+    s2x = 19; s2y = 0;
+    s3x = 10; s3y = 0;
+    s4x = 15; s4y = 0;
     
-    uint32_t period, jitter, distance;
+    uint32_t period, jitter, duration, distance;
     
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
-            uint32_t n = (size_x * size_y) - (x + y * size_x);
+            uint32_t n = GetN(size_x, size_y, x, y);
             //One have to make sure to not schedule 2 flows to the same node
             //neither send packets to itsel
-            s2x = s2x; s2y = s2y;
+            s1x = s1x; s1y = s1y; s2x = s2x; s2y = s2y; s3x = s3x; s3y = s3y; s4x = s4x; s4y = s4y;
             
             distance = (x - s1x) + (y - s1y);
             distance = distance;
             
             period = 1;
             jitter = y * size_x - 1;
+            jitter = 0;
+            duration = 1;
             
-//            if( (x == 19 && y == 9) || (x == 0 && y == 0)){
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 1, s1x, s1y, true); 
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 1, s2x, s2y, true); 
-//            }
+            if( (x == 12 && y == 10) ){ //  || (x == 10 && y == 19)){
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true); 
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, true); 
+            }
+            if( (x == 8 && y == 15) ){ //  || (x == 10 && y == 19)){
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s2x, s2y, true); 
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, true); 
+            }
 //            else{
-            if (y != s1y){ 
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, false);               
-            }            
+//            if (y != s1y){ 
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, false);               
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s2x, s2y, false);               
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s3x, s3y, false);               
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s4x, s4y, false);                            
+//            }            
 //            if (x < 10){ 
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(5, 0, 100, s2x, s2y, false);               
 //            }    

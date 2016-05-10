@@ -41,15 +41,6 @@ namespace ns3 {
     class NOCRoutingProtocols {
     public:
         
-//        enum RoutingAlgos{
-//            ROUTING_COLUMN_FIRST,
-//            ROUTING_ROW_FIRST,
-//            ROUTING_CLOCKWISE,
-//            ROUTING_COUNTERCLOCKWISE,
-//            ROUTING_HIGHWAY
-//        };
-        
-        
         enum Directions{
             DIRECTION_E        = 0, //east
             DIRECTION_S        = 1, //south
@@ -76,6 +67,14 @@ namespace ns3 {
             ROUTING_PROTOCOL_YFIRST,
             ROUTING_PROTOCOL_XFIRST
         };
+        
+//        enum RoutingAlgos{
+//            ROUTING_COLUMN_FIRST,
+//            ROUTING_ROW_FIRST,
+//            ROUTING_CLOCKWISE,
+//            ROUTING_COUNTERCLOCKWISE,
+//            ROUTING_HIGHWAY
+//        };
         
 //        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         

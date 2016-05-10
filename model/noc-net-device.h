@@ -66,8 +66,8 @@ namespace ns3 {
         static TypeId GetTypeId(void);
 
 
-        uint32_t queue_size_prioritized;
-        uint32_t queue_size;
+//        uint32_t queue_size_prioritized;
+//        uint32_t queue_size;
         
         /**
          * Construct a NOCNetDevice
@@ -124,7 +124,7 @@ namespace ns3 {
          * @see DropTailQueue
          * @param queue Ptr to the new queues. With low and high priorities.
          */
-        void SetQueue(Ptr<Queue> queuep0, Ptr<Queue> queuep1);
+        void SetQueue(Ptr<Queue> qi, Ptr<Queue> qip, Ptr<Queue> qo, Ptr<Queue> qop);
 
         /**
          * Get a copy of the attached Queue.
@@ -152,7 +152,12 @@ namespace ns3 {
         bool GetLocalWait(void);
         
         void SetLocalWait(bool);     
+        
+        
+        
+        Ptr<Packet> DequeueReceived(void);
 
+        uint32_t GetInputQueueSize();
         /**
          * Receive a packet from a connected NOCChannel.
          *
@@ -363,9 +368,13 @@ namespace ns3 {
          * @see class Queue
          * @see class DropTailQueue
          */
-        Ptr<Queue> m_queue;
+        Ptr<Queue> m_queue_output;
         
-        Ptr<Queue> m_queue_prioritized;
+        Ptr<Queue> m_queue_output_p;
+
+        Ptr<Queue> m_queue_input;
+        
+        Ptr<Queue> m_queue_input_p;
         
         Ptr<Queue> m_signal_queue;
 

@@ -107,7 +107,7 @@ namespace ns3 {
                 .AddAttribute("TxQueue",
                 "A queue to use as the transmit queue in the device.",
                 PointerValue(),
-                MakePointerAccessor(&NOCNetDevice::m_queue),
+                MakePointerAccessor(&NOCNetDevice::m_queue_output),
                 MakePointerChecker<Queue> ())
 
                 //
@@ -197,8 +197,8 @@ namespace ns3 {
     m_remoteWait(false),
     m_currentPkt(0) {
         NS_LOG_FUNCTION(this);
-        queue_size_prioritized = 0;
-        queue_size = 0;
+//        queue_size_prioritized = 0;
+//        queue_size = 0;
     }
 
     NOCNetDevice::~NOCNetDevice() {
@@ -299,27 +299,27 @@ void
         m_currentPkt = 0;
 
 
-        Ptr<Packet> p1 = m_queue_prioritized->Dequeue();
-        queue_size_prioritized = m_queue_prioritized->GetNPackets();
+        Ptr<Packet> p1 = m_queue_output_p->Dequeue();
+//        uint32_t queue_size_prioritized = m_queue_prioritized->GetNPackets();
         if (p1 != 0) {
             //
             // There was packets on the high p queue, send them...
             //
             m_snifferTrace(p1);
             m_promiscSnifferTrace(p1);
-            m_macTxTrace(p1, queue_size_prioritized);
+            m_macTxTrace(p1, m_queue_output_p->GetNPackets());
             TransmitStart(p1);
             return;
         }
-        Ptr<Packet> p0 = m_queue->Dequeue();
-        queue_size = m_queue->GetNPackets();
+        Ptr<Packet> p0 = m_queue_output->Dequeue();
+//        uint32_t queue_size = m_queue->GetNPackets();
         if (p0 != 0) {
             //
             // There was no packets on the high p, but on the lp queue, send them...
             //
             m_snifferTrace(p0);
             m_promiscSnifferTrace(p0);
-            m_macTxTrace(p0, queue_size);
+            m_macTxTrace(p0, m_queue_output->GetNPackets());
             TransmitStart(p0);
             return;
         }
@@ -394,17 +394,21 @@ void
     }
 
     void
-    NOCNetDevice::SetQueue(Ptr<Queue> qp0, Ptr<Queue> qp1) {
-        NS_LOG_FUNCTION(this << qp0);
-        NS_LOG_FUNCTION(this << qp1);
-        m_queue = qp0;
-        m_queue_prioritized = qp1;
+    NOCNetDevice::SetQueue(Ptr<Queue> qi, Ptr<Queue> qip, Ptr<Queue> qo, Ptr<Queue> qop) {
+        NS_LOG_FUNCTION(this << qo);
+        NS_LOG_FUNCTION(this << qop);
+        
+        m_queue_output = qo;
+        m_queue_output_p = qop;
+        
+        m_queue_input = qi;
+        m_queue_input = qip;
     }
     
     Ptr<Queue>
     NOCNetDevice::GetQueue(void) const {
         NS_LOG_FUNCTION_NOARGS();
-        return m_queue;
+        return m_queue_output;
     }
 
     void
@@ -412,6 +416,17 @@ void
         NS_LOG_FUNCTION(this << em);
         m_receiveErrorModel = em;
     }
+    
+    Ptr<Packet>
+    NOCNetDevice::DequeueReceived() {
+        return m_queue_input->Dequeue();
+    }
+    uint32_t
+    NOCNetDevice::GetInputQueueSize() {
+        return m_queue_input->GetNPackets();
+    }
+
+
 
     void
     NOCNetDevice::Receive(Ptr<Packet> packet) {
@@ -435,13 +450,6 @@ void
             m_phyRxEndTrace(packet);
 
             //
-            // Strip off the point-to-point protocol header and forward this packet
-            // up the protocol stack.  Since this is a simple point-to-point link,
-            // there is no difference in what the promisc callback sees and what the
-            // normal receive callback sees.
-            //
-            //ProcessHeader (packet->Copy(), protocol);
-
             if (!m_promiscCallback.IsNull()) {
                 m_macPromiscRxTrace(packet);
 
@@ -449,6 +457,8 @@ void
             }
 
             m_macRxTrace(packet, 0);
+            
+            m_queue_input->Enqueue(packet);
             m_rxCallback(packet, this);
         }
     }
@@ -559,11 +569,7 @@ void
 
     bool
     NOCNetDevice::Send(Ptr<Packet> packet, uint8_t priority) {
-        //Address dest = Mac48Address("ff:ff:ff:ff:ff:ff");
-        //uint16_t protocolNumber = 0X800;
-
         NS_LOG_FUNCTION_NOARGS();
-        //NS_LOG_LOGIC ("p=" << packet << ", dest=" << &dest);
         NS_LOG_LOGIC("UID is " << packet->GetUid());
 
         //
@@ -583,13 +589,13 @@ void
             //TODO: change queue to an array of queue, so multiple priorities
             //can be utilized
             if (priority > 0) {
-                if (m_queue_prioritized->Enqueue(packet) == true) {
-                    queue_size_prioritized = m_queue_prioritized->GetNPackets();
-                    packet = m_queue_prioritized->Dequeue();
+                if (m_queue_output_p->Enqueue(packet) == true) {
+//                    uint32_t queue_size_prioritized = m_queue_prioritized->GetNPackets();
+                    packet = m_queue_output_p->Dequeue();
                     
                     m_snifferTrace(packet);
                     m_promiscSnifferTrace(packet);
-                    m_macTxTrace(packet, queue_size_prioritized);
+                    m_macTxTrace(packet, m_queue_output_p->GetNPackets());
                     
                     return TransmitStart(packet);
                 } else {
@@ -604,13 +610,13 @@ void
             // Even if the transmitter is immediately available, we still enqueue and
             // dequeue the packet to hit the tracing hooks.
             //
-            if (m_queue->Enqueue(packet) == true) {
-                queue_size = m_queue->GetNPackets();
-                packet = m_queue->Dequeue();
+            if (m_queue_output->Enqueue(packet) == true) {
+//                uint32_t queue_size = m_queue->GetNPackets();
+                packet = m_queue_output->Dequeue();
                 
                 m_snifferTrace(packet);
                 m_promiscSnifferTrace(packet);
-                m_macTxTrace(packet, queue_size);
+                m_macTxTrace(packet, m_queue_output->GetNPackets());
                 
                 return TransmitStart(packet);
             } else {
@@ -623,13 +629,13 @@ void
         else //m_txMachineState != READY
         {
             if (priority > 0){
-                bool r = m_queue_prioritized->Enqueue(packet);
-                queue_size_prioritized = m_queue_prioritized->GetNPackets();
+                bool r = m_queue_output_p->Enqueue(packet);
+//                uint32_t queue_size_prioritized = m_queue_prioritized->GetNPackets();
                 return r;
             }
             else{
-                bool r = m_queue->Enqueue(packet);
-                queue_size = m_queue->GetNPackets();
+                bool r = m_queue_output->Enqueue(packet);
+//                uint32_t queue_size = m_queue->GetNPackets();
                 return r;
             }
         }

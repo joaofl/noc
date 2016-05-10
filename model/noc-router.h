@@ -31,7 +31,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/address.h"
 #include "ns3/node.h"
-#include "ns3/data-rate.h"
+//#include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 #include "ns3/net-device-container.h"
 #include "ns3/object.h"
@@ -44,16 +44,27 @@
 
 using namespace std;
 namespace ns3 {
+    
+    class Queue;
 
     class NOCRouter : public Application {
     public:
 
         static TypeId GetTypeId (void);
+        
+//        Ptr<Queue> input_queue;
 
         enum Priority{
             P0,
             P1
         };
+        
+        enum ServerPolicy{
+            FIFO,
+            ROUND_ROBIN
+        };
+        
+        ServerPolicy ServerPolicy;
 
         typedef struct {
             uint32_t unique_id; //not used so far
@@ -74,6 +85,7 @@ namespace ns3 {
         void PacketTrace(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
         
         void PacketReceived(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
+        
         
         bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
                             int32_t destination_y, bool absolute_address);
@@ -129,6 +141,13 @@ namespace ns3 {
         void SetReceiveCallback(ReceiveCallback cb);
         
     private:
+        
+        enum m_server_state_machine{
+            IDLE,
+            BUSY
+        };
+        
+        m_server_state_machine m_server_state;
 
         TracedCallback<Ptr<const Packet>, uint32_t > m_routerRxTrace;
         TracedCallback<Ptr<const Packet>, uint32_t > m_routerTxTrace;
@@ -139,9 +158,13 @@ namespace ns3 {
         virtual void StartApplication(void);
         virtual void StopApplication(void);
         
+        void ConsumePacket(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
 
-        uint8_t PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
-        bool PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
+        void ServePorts(void);
+        
+
+        uint8_t Transmit(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
+        bool TransmitSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
         
         
         ReceiveCallback m_receiveCallBack;
@@ -158,6 +181,8 @@ namespace ns3 {
         uint8_t m_channelCount;
         
         NOCRoutingProtocols::RoutingProtocols unicast_routing_protocol;
+        
+        
         
         
     };

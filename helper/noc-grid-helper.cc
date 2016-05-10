@@ -223,28 +223,28 @@ GridHelper::EnablePcapInternal (std::string prefix, Ptr<NetDevice> nd, bool prom
   // that are wandering through all of devices on perhaps all of the nodes in
   // the system.  We can only deal with devices of type NOCNetDevice.
   //
-  Ptr<NOCNetDevice> device = nd->GetObject<NOCNetDevice> ();
-  if (device == 0)
-    {
-      NS_LOG_INFO ("GridHelper::EnablePcapInternal(): Device " << device << " not of type ns3::NOCNetDevice");
-      return;
-    }
-
-  PcapHelper pcapHelper;
-
-  std::string filename;
-  if (explicitFilename)
-    {
-      filename = prefix;
-    }
-  else
-    {
-      filename = pcapHelper.GetFilenameFromDevice (prefix, device);
-    }
-
-  Ptr<PcapFileWrapper> file = pcapHelper.CreateFile (filename, std::ios::out, 
-                                                     PcapHelper::DLT_PPP);
-  pcapHelper.HookDefaultSink<NOCNetDevice> (device, "PromiscSniffer", file);
+//  Ptr<NOCNetDevice> device = nd->GetObject<NOCNetDevice> ();
+//  if (device == 0)
+//    {
+//      NS_LOG_INFO ("GridHelper::EnablePcapInternal(): Device " << device << " not of type ns3::NOCNetDevice");
+//      return;
+//    }
+//
+//  PcapHelper pcapHelper;
+//
+//  std::string filename;
+//  if (explicitFilename)
+//    {
+//      filename = prefix;
+//    }
+//  else
+//    {
+//      filename = pcapHelper.GetFilenameFromDevice (prefix, device);
+//    }
+//
+//  Ptr<PcapFileWrapper> file = pcapHelper.CreateFile (filename, std::ios::out, 
+//                                                     PcapHelper::DLT_PPP);
+//  pcapHelper.HookDefaultSink<NOCNetDevice> (device, "PromiscSniffer", file);
 }
 
 void 
@@ -371,16 +371,20 @@ GridHelper::Install (Ptr<Node> a, Ptr<Node> b)
   Ptr<NOCNetDevice> devA = m_deviceFactory.Create<NOCNetDevice> ();
   devA->SetAddress (NOCAddress::Allocate ());
   a->AddDevice (devA);
-  Ptr<Queue> queueAp0 = m_queueFactory.Create<Queue> ();
-  Ptr<Queue> queueAp1 = m_queueFactory.Create<Queue> ();
-  devA->SetQueue (queueAp0, queueAp1);
+  Ptr<Queue> qoutputA = m_queueFactory.Create<Queue> ();
+  Ptr<Queue> qoutputpA = m_queueFactory.Create<Queue> ();
+  Ptr<Queue> qinputA = m_queueFactory.Create<Queue> ();
+  Ptr<Queue> qinputpA = m_queueFactory.Create<Queue> ();
+  devA->SetQueue (qinputA, qinputpA, qoutputA, qoutputpA);
   
   Ptr<NOCNetDevice> devB = m_deviceFactory.Create<NOCNetDevice> ();
   devB->SetAddress (NOCAddress::Allocate ());
   b->AddDevice (devB);
-  Ptr<Queue> queueBp0 = m_queueFactory.Create<Queue> ();
-  Ptr<Queue> queueBp1 = m_queueFactory.Create<Queue> ();
-  devB->SetQueue (queueBp0, queueBp1);
+  Ptr<Queue> qoutputB = m_queueFactory.Create<Queue> ();
+  Ptr<Queue> qoutputpB = m_queueFactory.Create<Queue> ();
+  Ptr<Queue> qinputB = m_queueFactory.Create<Queue> ();
+  Ptr<Queue> qinputpB = m_queueFactory.Create<Queue> ();
+  devB->SetQueue (qinputB, qinputpB, qoutputB, qoutputpB);
   // If MPI is enabled, we need to see if both nodes have the same system id 
   // (rank), and the rank is the same as this instance.  If both are true, 
   //use a normal p2p channel, otherwise use a remote channel

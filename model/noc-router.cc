@@ -21,6 +21,8 @@
 
 
 #include "noc-router.h"
+#include "ns3/noc-routing-protocols.h"
+#include "ns3/noc-net-device.h"
 
 
 using namespace std;
@@ -90,6 +92,7 @@ namespace ns3 {
     void
     NOCRouter::StartApplication(void) {
         m_running = true;
+        m_server_state = IDLE;
         
         NetDeviceContainer::Iterator nd;
         for (nd = m_netDevices.Begin() ; nd != m_netDevices.End() ; nd++){    
@@ -97,6 +100,8 @@ namespace ns3 {
 //            (*nd)->GetObject<NOCNetDevice>()->SetRemoteSignalChangedCallback(MakeCallback(&NOCRouter::RemoteWaitChanged, this));
 //            (*nd)->GetObject<NOCNetDevice>()->SetLocalSignalChangedCallback(MakeCallback(&NOCRouter::LocalWaitChanged, this));
         }
+        
+        
     }
 
     void
@@ -123,9 +128,8 @@ namespace ns3 {
         nd_info.network_id = network;
         nd_info.direction = direction;
         nd_info.nd_pointer = nd;
-        nd_info.wait = false;
-        nd_info.wait_remote = false;
-//        nd_info.pck_buffered = false;
+//        nd_info.wait = false;
+//        nd_info.wait_remote = false;
         m_netDeviceInfoArray.push_back(nd_info);
         
         nd->SetIfIndex(m_netDeviceInfoArray.size() - 1);        
@@ -178,14 +182,6 @@ namespace ns3 {
     }
     int8_t
     NOCRouter::GetNetDeviceInfoIndex(Ptr<NOCNetDevice> nd){
-//        for (uint8_t i = 0 ; i < this->m_netDeviceInfoArray.size() ; i++){
-//            if (nd == this->m_netDeviceInfoArray[i].nd_pointer)
-//            {
-//                return i; //From the index initially set
-//            }
-//        }
-//        return -1; //if the specified node was not found  
-        
         return nd->GetIfIndex();
     }
     
@@ -241,7 +237,7 @@ namespace ns3 {
         uint8_t out = NOCRoutingProtocols::Unicast(destination_x, destination_y, unicast_routing_protocol);
         
         
-        return PacketSendMultiple(pck_c, network_id, out, P0);
+        return Transmit(pck_c, network_id, out, P0);
     }
     
     bool 
@@ -261,7 +257,7 @@ namespace ns3 {
         
         uint8_t out = NOCRoutingProtocols::UnicastClockwiseOffsetXY(destination_x, destination_y, 0, 0);
         
-        return PacketSendMultiple(pck_c, network_id, out, P0);
+        return Transmit(pck_c, network_id, out, P0);
     }
 
     bool NOCRouter::PacketMulticastRadius (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops){
@@ -275,7 +271,7 @@ namespace ns3 {
         
         uint8_t out = NOCRoutingProtocols::MulticastRadius(0,0,n_hops);
         
-        if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
+        if (Transmit(pck_c, network_id, out, P0) > 0)
            return true;
         
         return false;    
@@ -292,7 +288,7 @@ namespace ns3 {
         
         uint8_t out = NOCRoutingProtocols::MulticastArea(0, 0, x_destination, y_destination);
         
-        if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
+        if (Transmit(pck_c, network_id, out, P0) > 0)
            return true;
         
         return false;    
@@ -310,7 +306,7 @@ namespace ns3 {
         
         uint8_t out = NOCRoutingProtocols::MulticastIndividuals(0, 0, x_position, y_position);
         
-        if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
+        if (Transmit(pck_c, network_id, out, P0) > 0)
            return true;
         
         return false;    
@@ -329,7 +325,7 @@ namespace ns3 {
         
         uint8_t out = NOCRoutingProtocols::Broadcast(0,0);
         
-        if (PacketSendMultiple(pck_c, network_id, out, P0) > 0)
+        if (Transmit(pck_c, network_id, out, P0) > 0)
            return true;
         
         return false;    
@@ -338,7 +334,7 @@ namespace ns3 {
     
     
     uint8_t
-    NOCRouter::PacketSendMultiple(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){
+    NOCRouter::Transmit(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){
         //TODO: This function should get the pck, the destination address, priority comes in the packet?, and network it should write to.
         // the rout should be calculated by the router itself. and the routing algorithms should be here (or in separate files).
         // the addressing scheme sould allow: Broadcast (with limited radius (hops)) and unicast (to an specific X,Y location)
@@ -349,25 +345,25 @@ namespace ns3 {
         if ( (ports_mask >> NOCRoutingProtocols::DIRECTION_N) & 1)
         {
             Ptr<Packet> pck_c = pck->Copy();
-            if (PacketSendSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_N, priority)){
+            if (TransmitSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_N, priority)){
                 sent++;
             }
         }
         if ( (ports_mask >> NOCRoutingProtocols::DIRECTION_S) & 1){
             Ptr<Packet> pck_c = pck->Copy();
-            if (PacketSendSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_S, priority)){
+            if (TransmitSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_S, priority)){
                 sent++;
             }
         }
         if ( (ports_mask >> NOCRoutingProtocols::DIRECTION_E & 1) & 1){
             Ptr<Packet> pck_c = pck->Copy();
-            if (PacketSendSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_E, priority)){
+            if (TransmitSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_E, priority)){
                 sent++;
             }
         }
         if ( (ports_mask >> NOCRoutingProtocols::DIRECTION_W) & 1){
             Ptr<Packet> pck_c = pck->Copy();      
-            if (PacketSendSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_W, priority)){
+            if (TransmitSingle(pck_c, network_id, NOCRoutingProtocols::DIRECTION_W, priority)){
                 sent++;
             }
         }
@@ -385,7 +381,7 @@ namespace ns3 {
     }
     
     bool
-    NOCRouter::PacketSendSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port_direction, uint8_t priority){
+    NOCRouter::TransmitSingle(Ptr<const Packet> pck, uint8_t network_id, uint8_t port_direction, uint8_t priority){
         Ptr<NOCNetDevice> nd;     
         nd = GetNetDevice(network_id, port_direction);
         if (nd == NULL) //That node does not have a net device in that direction
@@ -430,11 +426,139 @@ namespace ns3 {
         
         if (hxd.GetXdenseProtocol() == XDenseHeader::TRACE)
             cout << "Received at:" << Simulator::Now().GetNanoSeconds() 
-                 << " tts:" << Simulator::Now().GetNanoSeconds() / packet_duration << "\n";  
+                 << " tts:" << Simulator::Now().GetNanoSeconds() / packet_duration
+                 << " Q:" << nd->GetInputQueueSize() << "\n";  
     }
-       
+    
     void
     NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
+        
+        switch (ServerPolicy){
+            case FIFO:
+                ConsumePacket(pck, nd);
+            break;
+                
+            case ROUND_ROBIN:
+                if (m_server_state == IDLE){
+//                    m_server_state = BUSY;
+                    ServePorts();                    
+                }
+
+                break;
+                       
+                     
+        }
+    }
+
+    void
+    NOCRouter::ServePorts(void) {
+        static uint8_t actual_port = NOCRoutingProtocols::DIRECTION_E;
+
+        Time t_ns;
+        Time packet_duration;
+        
+        Ptr<Packet> pck;
+        Ptr<NOCNetDevice> nd = GetNetDevice(0, actual_port);
+        
+        uint8_t queue_e = 0;
+        Ptr<NOCNetDevice> nd_e = GetNetDevice(0, NOCRoutingProtocols::DIRECTION_E);
+        if (nd_e != NULL) 
+            queue_e = nd_e->GetInputQueueSize();
+        
+        uint8_t queue_n = 0;
+        Ptr<NOCNetDevice> nd_n = GetNetDevice(0, NOCRoutingProtocols::DIRECTION_N);
+        if (nd_n != NULL) 
+            queue_n = nd_n->GetInputQueueSize();
+        
+        uint8_t queue_w = 0;
+        Ptr<NOCNetDevice> nd_w = GetNetDevice(0, NOCRoutingProtocols::DIRECTION_W);
+        if (nd_w != NULL) 
+            queue_w = nd_w->GetInputQueueSize();
+        
+        uint8_t queue_s = 0;
+        Ptr<NOCNetDevice> nd_s = GetNetDevice(0, NOCRoutingProtocols::DIRECTION_S);
+        if (nd_s != NULL) 
+            queue_s = nd_s->GetInputQueueSize();
+        
+        uint16_t queue_total = queue_e + queue_n + queue_s + queue_w;
+
+        if (queue_total == 0) {
+            m_server_state = IDLE;
+        }
+        else{
+            m_server_state = BUSY;
+        }
+
+        switch (m_server_state) {
+            case (BUSY):
+                switch (actual_port) {
+                    /////////////////////// EAST ////////////////////////////////////////////////
+                    case NOCRoutingProtocols::DIRECTION_E:
+                        if (queue_e > 0) {
+                            pck = nd->DequeueReceived();
+                            this->ConsumePacket(pck, nd);
+                            packet_duration = nd->GetTransmissionTime(pck);
+                            Simulator::Schedule(packet_duration, &NOCRouter::ServePorts, this);
+                        } else {
+                            t_ns = Time::FromInteger(0, Time::NS);
+                            Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
+                        }
+
+                        actual_port = NOCRoutingProtocols::DIRECTION_N;
+                        break;
+                    /////////////////////// EAST ////////////////////////////////////////////////
+                    case NOCRoutingProtocols::DIRECTION_N:
+                        if (queue_n > 0) {
+                            pck = nd->DequeueReceived();
+                            this->ConsumePacket(pck, nd);
+                            packet_duration = nd->GetTransmissionTime(pck);
+                            Simulator::Schedule(packet_duration, &NOCRouter::ServePorts, this);
+                        } else {
+                            t_ns = Time::FromInteger(0, Time::NS);
+                            Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
+                        }
+
+                        actual_port = NOCRoutingProtocols::DIRECTION_W;
+                        break;
+                    /////////////////////// EAST ////////////////////////////////////////////////
+                    case NOCRoutingProtocols::DIRECTION_W:
+                        if (queue_w > 0) {
+                            pck = nd->DequeueReceived();
+                            this->ConsumePacket(pck, nd);
+                            packet_duration = nd->GetTransmissionTime(pck);
+                            Simulator::Schedule(packet_duration, &NOCRouter::ServePorts, this);
+                        } else {
+                            t_ns = Time::FromInteger(0, Time::NS);
+                            Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
+                        }
+
+                        actual_port = NOCRoutingProtocols::DIRECTION_S;
+                        break;
+                    /////////////////////// EAST ////////////////////////////////////////////////
+                    case NOCRoutingProtocols::DIRECTION_S:
+                        if (queue_s > 0) {
+                            pck = nd->DequeueReceived();
+                            this->ConsumePacket(pck, nd);
+                            packet_duration = nd->GetTransmissionTime(pck);
+                            Simulator::Schedule(packet_duration, &NOCRouter::ServePorts, this);
+                        } else {
+                            t_ns = Time::FromInteger(0, Time::NS);
+                            Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
+                        }
+
+                        actual_port = NOCRoutingProtocols::DIRECTION_E;
+                        break;
+                }
+                break;
+
+            case (IDLE):
+                break;
+        }
+    }
+
+    
+    void
+    NOCRouter::ConsumePacket(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
         //Debug only
         PacketTrace(pck, nd);
         
@@ -478,6 +602,8 @@ namespace ns3 {
         
         pck_c->AddHeader(h);
         
+        
+        
         //TODO: Instead of serving imediatelly, queue it and serve it within a
         //delay, captured from the hardware measurements. If set to 0, then it
         //is pretty much like doing it in parallel.
@@ -501,40 +627,38 @@ namespace ns3 {
         switch (p){
             case NOCHeader::PROTOCOL_BROADCAST:
                 out = NOCRoutingProtocols::Broadcast(asx,asy);
-                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
+                Transmit(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST_INDIVIDUALS:
                 out = NOCRoutingProtocols::MulticastIndividuals(asx,asy,adx,ady);
-                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
+                Transmit(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST_RADIUS:
                 out = NOCRoutingProtocols::MulticastRadius(asx,asy,adx);
-                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
+                Transmit(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_MULTICAST_AREA:
                 out = NOCRoutingProtocols::MulticastArea(asx,asy,adx,ady);
-                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
+                Transmit(pck_c, nd_i.network_id, out, P0);
                 break;
                
             case NOCHeader::PROTOCOL_UNICAST:
                 out = NOCRoutingProtocols::Unicast(adx,ady, unicast_routing_protocol);
-                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
+                Transmit(pck_c, nd_i.network_id, out, P0);
                 break;
 
             case NOCHeader::PROTOCOL_UNICAST_OFFSET:
                 out = NOCRoutingProtocols::UnicastClockwiseOffsetXY(adx,ady,asx,asy);
-                PacketSendMultiple(pck_c, nd_i.network_id, out, P0);
+                Transmit(pck_c, nd_i.network_id, out, P0);
                 break;
                
             default:
                 cout << "Unknown protocol" << std::endl;
                 break;
                 
-                
-            
         }
     }
 
