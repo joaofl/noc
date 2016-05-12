@@ -94,6 +94,7 @@ public:
    * \returns newly allocated NOCAddress 
    */
   static NOCAddress Allocate (void);
+//  static NOCAddress Allocate (uint32_t, int32_t, int32_t, uint8_t, uint8_t);
 
 
   typedef void (* TracedCallback)(const NOCAddress value);

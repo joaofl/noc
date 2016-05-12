@@ -66,37 +66,6 @@ NOCAddress::NOCAddress ()
   m_address[2] = 0;
   m_address[3] = 0;
 }
-//NOCAddress::NOCAddress (const char *str)
-//{
-//  NS_LOG_FUNCTION (this << str);
-//  int i = 0;
-//  while (*str != 0 && i < 6) 
-//    {
-//      uint8_t byte = 0;
-//      while (*str != ASCII_COLON && *str != 0) 
-//        {
-//          byte <<= 4;
-//          char low = AsciiToLowCase (*str);
-//          if (low >= ASCII_a)
-//            {
-//              byte |= low - ASCII_a + 10;
-//            }
-//          else
-//            {
-//              byte |= low - ASCII_ZERO;
-//            }
-//          str++;
-//        }
-//      m_address[i] = byte;
-//      i++;
-//      if (*str == 0) 
-//        {
-//          break;
-//        }
-//      str++;
-//    }
-//  NS_ASSERT (i == 6);
-//}
 
 void 
 NOCAddress::CopyFrom (const uint8_t buffer[4])
@@ -138,20 +107,21 @@ NOCAddress::ConvertFrom (const Address &address)
   return retval;
 }
 
-NOCAddress 
-NOCAddress::Allocate (void)
-{
-  NS_LOG_FUNCTION_NOARGS ();
-  static uint64_t id = 0;
-  id++;
-  NOCAddress address;
-  address.m_address[0] = (id >> 24) & 0xff;
-  address.m_address[1] = (id >> 16) & 0xff;
-  address.m_address[2] = (id >> 8) & 0xff;
-  address.m_address[3] = (id >> 0) & 0xff;
-  
-  return address;
-}
+//NOCAddress 
+//NOCAddress::Allocate (void)
+////NOCAddress::Allocate (uint32_t, int32_t, int32_t, uint8_t, uint8_t)
+//{
+//  NS_LOG_FUNCTION_NOARGS ();
+//  static uint64_t id = 0;
+//  id++;
+//  NOCAddress address;
+//  address.m_address[0] = (id >> 24) & 0xff;
+//  address.m_address[1] = (id >> 16) & 0xff;
+//  address.m_address[2] = (id >> 8) & 0xff;
+//  address.m_address[3] = (id >> 0) & 0xff;
+//  
+//  return address;
+//}
 
 uint8_t 
 NOCAddress::GetType (void)

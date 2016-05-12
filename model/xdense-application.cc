@@ -243,7 +243,7 @@ namespace ns3 {
         
         for (uint8_t j = 0 ; j < 1 ; j++)
         {
-            time_slot = NOCRoutingProtocols::CalculateTimeSlot(origin_x, origin_y, ClusterSize_x, ClusterSize_y);
+            time_slot = NOCRouting::CalculateTimeSlot(origin_x, origin_y, ClusterSize_x, ClusterSize_y);
             
             if (time_slot >= 0){
                 t_ns = time_slot * PacketDuration;

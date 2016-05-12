@@ -56,7 +56,7 @@
 #include "src/noc/model/xdense-header.h"
 #include "src/network/model/packet.h"
 #include "src/noc/model/xdense-application.h"
-#include "src/noc/model/noc-routing-protocols.h"
+#include "src/noc/model/noc-routing.h"
 
 
 
@@ -210,17 +210,17 @@ main(int argc, char *argv[]) {
         my_noc_router->GetAttribute("AddressX", x);
         my_noc_router->GetAttribute("AddressY", y);
         my_noc_router->RoutingDelays = my_router_delay_model;
-        my_noc_router->SetRoutingProtocolUnicast(NOCRoutingProtocols::ROUTING_PROTOCOL_YFIRST);
+        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_YFIRST);
 	my_router_delay_model->InputData = &my_input_data;
         
   
 //        int8_t direction = -1;
         ostringstream context_router_rx, context_router_tx, context_router_cx, context_router_gx;
         
-        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRoutingProtocols::DIRECTION_L << ",c";
+        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
         my_noc_router->TraceConnect("RouterCxTrace", context_router_cx.str(), MakeCallback(&log_netdevice_packets));
         
-        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRoutingProtocols::DIRECTION_L << ",g";
+        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",g";
         my_noc_router->TraceConnect("RouterGxTrace", context_router_gx.str(), MakeCallback(&log_netdevice_packets));
         
         //Setup NetDevice's Callback

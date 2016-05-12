@@ -37,6 +37,21 @@
 
 #include "noc-address.h"
 
+//#include "ns3/log.h"
+#include "ns3/queue.h"
+//#include "ns3/simulator.h"
+//#include "ns3/llc-snap-header.h"
+#include "ns3/error-model.h"
+//#include "ns3/trace-source-accessor.h"
+//#include "ns3/uinteger.h"
+//#include "ns3/double.h"
+//#include "ns3/pointer.h"
+
+#include "noc-address.h"
+#include "noc-net-device.h"
+#include "noc-channel.h"
+#include "noc-routing.h"
+
 namespace ns3 {
 
     class Queue;
@@ -145,17 +160,19 @@ namespace ns3 {
         void SetReceiveErrorModel(Ptr<ErrorModel> em);
         
         
-        void RemoteSignalChanged(uint8_t signalName, bool);
+//        void RemoteSignalChanged(uint8_t signalName, bool);
 //
-        bool GetRemoteWait(void);
-        
-        bool GetLocalWait(void);
-        
-        void SetLocalWait(bool);     
+//        bool GetRemoteWait(void);
+//        
+//        bool GetLocalWait(void);
+//        
+//        void SetLocalWait(bool);     
         
         
         
         Ptr<Packet> DequeueReceived(void);
+        
+        Ptr<const Packet> PeekReceived(void);
 
         uint32_t GetInputQueueSize();
         /**
@@ -224,6 +241,9 @@ namespace ns3 {
         virtual Ptr<Channel> GetChannel(void) const;
 
         virtual void SetAddress(Address address);
+        
+        void SetDirection(NOCRouting::Directions direction);
+        
         virtual Address GetAddress(void) const;
 
         virtual bool SetMtu(const uint16_t mtu);
@@ -519,6 +539,7 @@ namespace ns3 {
 
         Ptr<Node> m_node;
         NOCAddress m_address;
+        NOCRouting::Directions m_direction;
         NOCNetDevice::ReceiveCallback m_rxCallback;
         NetDevice::PromiscReceiveCallback m_promiscCallback;
         bool m_serialComm;
@@ -533,7 +554,7 @@ namespace ns3 {
 //        
 //        RemoteTransmissionStartedCallback m_transmissionStartedCallback;
         
-        SignalChangedCallback m_localWaitChanged, m_remoteWaitChanged;
+//        SignalChangedCallback m_localWaitChanged, m_remoteWaitChanged;
         
         TracedCallback<> m_linkChangeCallbacks;
 

@@ -56,7 +56,7 @@
 #include "src/noc/model/xdense-header.h"
 #include "src/network/model/packet.h"
 #include "src/noc/model/xdense-application.h"
-#include "src/noc/model/noc-routing-protocols.h"
+#include "src/noc/model/noc-routing.h"
 
 
 
@@ -111,7 +111,7 @@ main(int argc, char *argv[]) {
     // Default values
     
     uint32_t size_x = 20;
-    uint32_t size_y = 20;
+    uint32_t size_y = 21;
     uint32_t size_neighborhood = 5; //odd only, so neighborhoods do not overlap eachother
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
@@ -213,19 +213,19 @@ main(int argc, char *argv[]) {
         my_noc_router->GetAttribute("AddressX", x);
         my_noc_router->GetAttribute("AddressY", y);
         my_noc_router->RoutingDelays = my_router_delay_model; //TODO: use a method set instead, otherwise there will be no default value, and it wont work.
-//        my_noc_router->ServerPolicy = NOCRouter::ROUND_ROBIN; //TODO: use a method set instead
-        my_noc_router->ServerPolicy = NOCRouter::FIFO; //TODO: use a method set instead
-        my_noc_router->SetRoutingProtocolUnicast(NOCRoutingProtocols::ROUTING_PROTOCOL_XY_CLOCKWISE);
+        my_noc_router->ServerPolicy = NOCRouter::ROUND_ROBIN; //TODO: use a method set instead
+//        my_noc_router->ServerPolicy = NOCRouter::FIFO; //TODO: use a method set instead
+        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_XY_CLOCKWISE);
 	my_router_delay_model->InputData = &my_input_data;
         
   
 //        int8_t direction = -1;
         ostringstream context_router_rx, context_router_tx, context_router_cx, context_router_gx;
         
-        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRoutingProtocols::DIRECTION_L << ",c";
+        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
         my_noc_router->TraceConnect("RouterCxTrace", context_router_cx.str(), MakeCallback(&log_netdevice_packets));
         
-        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRoutingProtocols::DIRECTION_L << ",g";
+        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",g";
         my_noc_router->TraceConnect("RouterGxTrace", context_router_gx.str(), MakeCallback(&log_netdevice_packets));
         
         //Setup NetDevice's Callback
@@ -270,29 +270,37 @@ main(int argc, char *argv[]) {
             distance = (x - s1x) + (y - s1y);
             distance = distance;
             
-            period = 1;
+            period = 10;
             jitter = y * size_x - 1;
             jitter = 0;
-            duration = 1;
+            duration = 100;
             
-            if( (x == 12 && y == 10) ){ //  || (x == 10 && y == 19)){
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true); 
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, true); 
+//            if( (x == 19 && y == 1) ){ //  || (x == 10 && y == 19)){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true); 
+//            }
+//            else if( (x == 0 && y == 20) ){ //  || (x == 10 && y == 19)){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true); 
+//            }
+            
+            
+            if(x == 8 && y == 14){
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true);           
             }
-            if( (x == 8 && y == 14) ){ //  || (x == 10 && y == 19)){
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s2x, s2y, true); 
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, true); 
+            else if (x == 4 && y == 18){
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s2x, s2y, true);
             }
+            
+            
 //            else{
-//            if (y != s1y){ 
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, false);               
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s2x, s2y, false);               
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s3x, s3y, false);               
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s4x, s4y, false);                            
+//            if (y != 0){ 
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, false);                                          
 //            }            
-//            if (x < 10){ 
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(5, 0, 100, s2x, s2y, false);               
-//            }    
+//            else if (y == 1){ 
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, false);               
+//            }
+//            else if(x == 0){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, false); 
+//            }
 //            }
                 
                 

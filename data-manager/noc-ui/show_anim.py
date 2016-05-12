@@ -453,6 +453,8 @@ class NOCAnim(QWidget):
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
                         node.setProperty(west_rx = 1)
 
+                    node.setProperty(text=current_trans[trace.queue_size])
+
                 elif current_trans[trace.operation] == 't':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:
                         node.setProperty(north_tx = 1)
@@ -463,7 +465,7 @@ class NOCAnim(QWidget):
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
                         node.setProperty(west_tx = 1)
 
-                    node.setProperty(text=current_trans[trace.queue_size])
+
 
             else:
                 self.t_next = int(current_trans[trace.time]) + self.packetDuration * 0.1

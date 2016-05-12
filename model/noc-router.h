@@ -39,7 +39,7 @@
 #include "noc-header.h"
 #include "xdense-header.h"
 #include "noc-net-device.h"
-#include "noc-routing-protocols.h"
+#include "noc-routing.h"
 #include "data-io.h"
 
 using namespace std;
@@ -101,7 +101,7 @@ namespace ns3 {
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);
 //        bool PacketBroadcastReceived (Ptr<const Packet> pck, uint8_t network_id);
         
-        void SetRoutingProtocolUnicast(NOCRoutingProtocols::RoutingProtocols);
+        void SetRoutingProtocolUnicast(NOCRouting::RoutingProtocols);
         
         void AddNetDevice(Ptr<NOCNetDevice> nd, uint8_t cluster, uint32_t network, uint8_t direction);
         
@@ -117,6 +117,17 @@ namespace ns3 {
         
         uint8_t GetNDevices(void);
      
+        
+        //            void
+        //    NOCNetDevice::SetAddress(Address address) {
+        ////        m_address = Mac48Address::ConvertFrom(address);
+        //        m_address = NOCAddress::ConvertFrom(address);
+        //    }
+        //
+        //    Address
+        //    NOCNetDevice::GetAddress(void) const {
+        //        return m_address;
+        //    }
  
         
         /**
@@ -148,7 +159,11 @@ namespace ns3 {
         };
         
         m_server_state_machine m_server_state;
-        NOCRoutingProtocols::Directions m_actual_port;
+        NOCRouting::Directions m_actual_port;
+        
+        uint8_t m_E, m_W, m_S, m_N;
+        uint8_t m_EC, m_WC, m_SC, m_NC;
+        
 
         TracedCallback<Ptr<const Packet>, uint32_t > m_routerRxTrace;
         TracedCallback<Ptr<const Packet>, uint32_t > m_routerTxTrace;
@@ -162,6 +177,7 @@ namespace ns3 {
         void ConsumePacket(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
 
         void ServePorts(void);
+        void NextPort(void);
         
 
         uint8_t Transmit(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority);
@@ -181,7 +197,7 @@ namespace ns3 {
         
         uint8_t m_channelCount;
         
-        NOCRoutingProtocols::RoutingProtocols unicast_routing_protocol;
+        NOCRouting::RoutingProtocols routing_conf;
         
         
         

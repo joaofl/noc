@@ -118,18 +118,18 @@ NOCChannel::TransmitStart (
   return true;
     }
 
-void
-NOCChannel::PropagateSignal(uint8_t signalName, bool signal, Ptr<NOCNetDevice> src, Time propDelay) {
-  NS_LOG_FUNCTION (this << src << ": " << signalName << " = " << signal);
-
-  NS_ASSERT (m_link[0].m_state != INITIALIZING);
-  NS_ASSERT (m_link[1].m_state != INITIALIZING);
-
-  uint32_t wire = src == m_link[0].m_src ? 0 : 1;
-  
-  Simulator::Schedule(propDelay, &NOCNetDevice::RemoteSignalChanged, m_link[wire].m_dst,
-                                  signalName, signal);
-}
+//void
+//NOCChannel::PropagateSignal(uint8_t signalName, bool signal, Ptr<NOCNetDevice> src, Time propDelay) {
+//  NS_LOG_FUNCTION (this << src << ": " << signalName << " = " << signal);
+//
+//  NS_ASSERT (m_link[0].m_state != INITIALIZING);
+//  NS_ASSERT (m_link[1].m_state != INITIALIZING);
+//
+//  uint32_t wire = src == m_link[0].m_src ? 0 : 1;
+//  
+//  Simulator::Schedule(propDelay, &NOCNetDevice::RemoteSignalChanged, m_link[wire].m_dst,
+//                                  signalName, signal);
+//}
 
 
 uint32_t 

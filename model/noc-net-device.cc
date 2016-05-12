@@ -21,19 +21,9 @@
  * 
  */
 
-#include "ns3/log.h"
-#include "ns3/queue.h"
-#include "ns3/simulator.h"
-#include "ns3/llc-snap-header.h"
-#include "ns3/error-model.h"
-#include "ns3/trace-source-accessor.h"
-#include "ns3/uinteger.h"
-#include "ns3/double.h"
-#include "ns3/pointer.h"
 
-#include "noc-address.h"
 #include "noc-net-device.h"
-#include "noc-channel.h"
+
 
 NS_LOG_COMPONENT_DEFINE("NOCNetDevice");
 
@@ -325,54 +315,54 @@ void
         }
     }
 
-    void 
-    NOCNetDevice::SetRemoteSignalChangedCallback(SignalChangedCallback cb){
-        m_remoteWaitChanged = cb;
-    }
-
-    void 
-    NOCNetDevice::SetLocalSignalChangedCallback(SignalChangedCallback cb){
-        m_localWaitChanged = cb;
-    }
-    
-    void 
-    NOCNetDevice::RemoteSignalChanged(uint8_t signalName, bool signal){
-        if (signalName == NOCChannel::REMOTE_TRANSMISSION_STARTED){
-            /* 
-            * On the rising edge of the first bits being transmitted to this node,
-            * the wait signal is rised up to ensure no other packet is sent until
-            * the received packet is dispatched from the input buffer.
-            */
-            SetLocalWait(signal);
-        }
-        else if(signalName == NOCChannel::WAIT){
-            m_remoteWait = signal;
-            m_remoteWaitChanged(NOCChannel::WAIT, this, m_remoteWait);            
-        }
-    }
-    
-    bool
-    NOCNetDevice::GetRemoteWait(void){
-        return m_remoteWait;
-    }
-    
-    bool
-    NOCNetDevice::GetLocalWait(void) {
-        return m_wait;
-    }
-    
-    void
-    NOCNetDevice::SetLocalWait(bool wait) {
-        if (m_wait != wait){
-            m_wait = wait;
-            //This simulate a pin being risen in one device, causing an interruption
-            //in the device connected to it
-            m_channel->PropagateSignal(NOCChannel::WAIT, m_wait, this, PicoSeconds(0));
-            
-            //Callback to upper layers to announce the local change
-            m_localWaitChanged(NOCChannel::WAIT, this, m_wait);
-        }
-    }
+//    void 
+//    NOCNetDevice::SetRemoteSignalChangedCallback(SignalChangedCallback cb){
+//        m_remoteWaitChanged = cb;
+//    }
+//
+//    void 
+//    NOCNetDevice::SetLocalSignalChangedCallback(SignalChangedCallback cb){
+//        m_localWaitChanged = cb;
+//    }
+//    
+//    void 
+//    NOCNetDevice::RemoteSignalChanged(uint8_t signalName, bool signal){
+//        if (signalName == NOCChannel::REMOTE_TRANSMISSION_STARTED){
+//            /* 
+//            * On the rising edge of the first bits being transmitted to this node,
+//            * the wait signal is rised up to ensure no other packet is sent until
+//            * the received packet is dispatched from the input buffer.
+//            */
+//            SetLocalWait(signal);
+//        }
+//        else if(signalName == NOCChannel::WAIT){
+//            m_remoteWait = signal;
+//            m_remoteWaitChanged(NOCChannel::WAIT, this, m_remoteWait);            
+//        }
+//    }
+//    
+//    bool
+//    NOCNetDevice::GetRemoteWait(void){
+//        return m_remoteWait;
+//    }
+//    
+//    bool
+//    NOCNetDevice::GetLocalWait(void) {
+//        return m_wait;
+//    }
+//    
+//    void
+//    NOCNetDevice::SetLocalWait(bool wait) {
+//        if (m_wait != wait){
+//            m_wait = wait;
+//            //This simulate a pin being risen in one device, causing an interruption
+//            //in the device connected to it
+//            m_channel->PropagateSignal(NOCChannel::WAIT, m_wait, this, PicoSeconds(0));
+//            
+//            //Callback to upper layers to announce the local change
+//            m_localWaitChanged(NOCChannel::WAIT, this, m_wait);
+//        }
+//    }
     
     
 
@@ -421,17 +411,18 @@ void
     NOCNetDevice::DequeueReceived() {
         return m_queue_input->Dequeue();
     }
+    Ptr<const Packet>
+    NOCNetDevice::PeekReceived() {
+        return m_queue_input->Peek();
+    }
     uint32_t
     NOCNetDevice::GetInputQueueSize() {
         return m_queue_input->GetNPackets();
     }
 
-
-
     void
     NOCNetDevice::Receive(Ptr<Packet> packet) {
         NS_LOG_FUNCTION(this << packet);
-        uint16_t protocol = 0;
 
         if (m_receiveErrorModel && m_receiveErrorModel->IsCorrupt(packet)) {
             // 
@@ -445,21 +436,51 @@ void
             // device becuase it is so simple, but this is not usually the case in 
             // more complicated devices.
             //
-            m_snifferTrace(packet);
-            m_promiscSnifferTrace(packet);
             m_phyRxEndTrace(packet);
 
-            //
-            if (!m_promiscCallback.IsNull()) {
-                m_macPromiscRxTrace(packet);
+            m_macRxTrace(packet, m_queue_input->GetNPackets());
 
-                m_promiscCallback(this, packet, protocol, GetRemote(), GetAddress(), NetDevice::PACKET_HOST);
+            NOCHeader h;
+            packet->RemoveHeader(h);
+
+            bool AddToDestination = false;
+
+            if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST ||
+                    h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST_OFFSET)
+                AddToDestination = true;
+
+
+            switch (m_direction) {
+                case NOCRouting::DIRECTION_S:
+                    h.AddtoSourceAddress(0, 1);
+                    if (AddToDestination)
+                        h.AddtoDestinationAddress(0, -1);
+                    break;
+                case NOCRouting::DIRECTION_N:
+                    h.AddtoSourceAddress(0, -1);
+                    if (AddToDestination)
+                        h.AddtoDestinationAddress(0, 1);
+                    break;
+                case NOCRouting::DIRECTION_E:
+                    h.AddtoSourceAddress(-1, 0);
+                    if (AddToDestination)
+                        h.AddtoDestinationAddress(1, 0);
+                    break;
+                case NOCRouting::DIRECTION_W:
+                    h.AddtoSourceAddress(1, 0);
+                    if (AddToDestination)
+                        h.AddtoDestinationAddress(-1, 0);
+                    break;
+                default:
+                    break;
             }
 
-            m_macRxTrace(packet, 0);
+            packet->AddHeader(h);
             
             m_queue_input->Enqueue(packet);
+            
             m_rxCallback(packet, this);
+
         }
     }
 
@@ -493,9 +514,16 @@ void
     void
     NOCNetDevice::SetAddress(Address address) {
 //        m_address = Mac48Address::ConvertFrom(address);
-        m_address = NOCAddress::ConvertFrom(address);
+//        m_address = NOCAddress::ConvertFrom(address);
+//        m_address = NOCAddress::ConvertFrom(address);
+    }
+    
+    void 
+    NOCNetDevice::SetDirection(NOCRouting::Directions direction) {
+        m_direction = direction;
     }
 
+    
     Address
     NOCNetDevice::GetAddress(void) const {
         return m_address;

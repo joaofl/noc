@@ -164,14 +164,14 @@ GridHelper::InitializeNetwork()
                     my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + 1));
 
                     my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>();
-                    my_noc_net_device->SetAddress(NOCAddress::Allocate());
+                    my_noc_net_device->SetDirection(NOCRouting::DIRECTION_E);
                     my_noc_router = my_node_container.Get(node_this)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRoutingProtocols::DIRECTION_E);
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRouting::DIRECTION_E);
 
                     my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>();
-                    my_noc_net_device->SetAddress(NOCAddress::Allocate());
+                    my_noc_net_device->SetDirection(NOCRouting::DIRECTION_W);
                     my_noc_router = my_node_container.Get(node_this + 1)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRoutingProtocols::DIRECTION_W);
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRouting::DIRECTION_W);
 
                     my_net_device_container.Get(0)->Initialize();
                     my_net_device_container.Get(1)->Initialize();                    
@@ -182,14 +182,14 @@ GridHelper::InitializeNetwork()
                     my_net_device_container = Install(my_node_container.Get(node_this), my_node_container.Get(node_this + m_sizeX));
 
                     my_noc_net_device = my_net_device_container.Get(0)->GetObject<NOCNetDevice>(); //netdevice of current node
-                    my_noc_net_device->SetAddress(NOCAddress::Allocate()); //data port 2 - DOWN
+                    my_noc_net_device->SetDirection(NOCRouting::DIRECTION_S); //data port 2 - DOWN
                     my_noc_router = my_node_container.Get(node_this)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRoutingProtocols::DIRECTION_S);
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRouting::DIRECTION_S);
 
                     my_noc_net_device = my_net_device_container.Get(1)->GetObject<NOCNetDevice>(); //remote netdevice
-                    my_noc_net_device->SetAddress(NOCAddress::Allocate()); //data port 4 - UP
+                    my_noc_net_device->SetDirection(NOCRouting::DIRECTION_N); //data port 4 - UP
                     my_noc_router = my_node_container.Get(node_this + m_sizeX)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
-                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRoutingProtocols::DIRECTION_N);                 
+                    my_noc_router->AddNetDevice(my_noc_net_device, 0, i, NOCRouting::DIRECTION_N);                 
 
                     my_net_device_container.Get(0)->Initialize();
                     my_net_device_container.Get(1)->Initialize();
@@ -369,7 +369,7 @@ GridHelper::Install (Ptr<Node> a, Ptr<Node> b)
   NetDeviceContainer container;
 
   Ptr<NOCNetDevice> devA = m_deviceFactory.Create<NOCNetDevice> ();
-  devA->SetAddress (NOCAddress::Allocate ());
+//  devA->SetAddress (NOCAddress::Allocate ());
   a->AddDevice (devA);
   Ptr<Queue> qoutputA = m_queueFactory.Create<Queue> ();
   Ptr<Queue> qoutputpA = m_queueFactory.Create<Queue> ();
@@ -378,7 +378,7 @@ GridHelper::Install (Ptr<Node> a, Ptr<Node> b)
   devA->SetQueue (qinputA, qinputpA, qoutputA, qoutputpA);
   
   Ptr<NOCNetDevice> devB = m_deviceFactory.Create<NOCNetDevice> ();
-  devB->SetAddress (NOCAddress::Allocate ());
+//  devB->SetAddress (NOCAddress::Allocate ());
   b->AddDevice (devB);
   Ptr<Queue> qoutputB = m_queueFactory.Create<Queue> ();
   Ptr<Queue> qoutputpB = m_queueFactory.Create<Queue> ();
