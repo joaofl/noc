@@ -18,11 +18,65 @@
  * Author: João Loureiro <joflo@isep.ipp.pt>
  */
 
-#include "noc-routing-protocols.h"
+#include "noc-routing.h"
+
 
 namespace ns3 {
+
+    uint8_t
+    NOCRouting::Route(Ptr<const Packet> pck, RoutingProtocols param) {
+
+        Ptr<Packet> pck_c = pck->Copy();
+        
+        NOCHeader h;
+        pck_c->PeekHeader(h);
+
+        int32_t adx = h.GetDestinationAddressX();
+        int32_t ady = h.GetDestinationAddressY();
+        int32_t asx = h.GetSourceAddressX();
+        int32_t asy = h.GetSourceAddressY();
+        uint8_t p = h.GetProtocol();
+
+        uint8_t out = 0;
+
+        // Switches between the different possible protocols contained in the pck header
+
+        switch (p) {
+            case NOCHeader::PROTOCOL_BROADCAST:
+                out = Broadcast(asx, asy);
+                break;
+
+            case NOCHeader::PROTOCOL_MULTICAST_INDIVIDUALS:
+                out = MulticastIndividuals(asx, asy, adx, ady);
+                break;
+
+            case NOCHeader::PROTOCOL_MULTICAST_RADIUS:
+                out = MulticastRadius(asx, asy, adx);
+                break;
+
+            case NOCHeader::PROTOCOL_MULTICAST_AREA:
+                out = MulticastArea(asx, asy, adx, ady);
+                break;
+
+            case NOCHeader::PROTOCOL_UNICAST:
+                out = Unicast(adx, ady, param);
+                break;
+
+            case NOCHeader::PROTOCOL_UNICAST_OFFSET:
+                out = UnicastClockwiseOffsetXY(adx, ady, asx, asy);
+                break;
+
+            default:
+                std::cout << "Unknown protocol" << std::endl;
+                break;
+        }
+        
+        return out;
+    }
+
+    
     uint8_t 
-    NOCRoutingProtocols::Unicast(int32_t x_dest, int32_t y_dest, RoutingProtocols rp) {
+    NOCRouting::Unicast(int32_t x_dest, int32_t y_dest, RoutingProtocols rp) {
         uint8_t out = 0;
         switch(rp){
             case ROUTING_PROTOCOL_XY_CLOCKWISE:
@@ -41,7 +95,7 @@ namespace ns3 {
 
     
     uint8_t 
-    NOCRoutingProtocols::UnicastFirstX(int32_t x_dest, int32_t y_dest) {
+    NOCRouting::UnicastFirstX(int32_t x_dest, int32_t y_dest) {
         uint8_t dir = DIRECTION_MASK_L;
         
         if (x_dest > 0) dir = DIRECTION_MASK_E;
@@ -54,7 +108,7 @@ namespace ns3 {
     
     
     uint8_t 
-    NOCRoutingProtocols::UnicastFirstY(int32_t x_dest, int32_t y_dest) {
+    NOCRouting::UnicastFirstY(int32_t x_dest, int32_t y_dest) {
         uint8_t dir = DIRECTION_MASK_L;
         
         if (y_dest > 0) dir = DIRECTION_MASK_N;
@@ -67,7 +121,7 @@ namespace ns3 {
 
     
     uint8_t
-    NOCRoutingProtocols::UnicastClockwiseXY(int32_t x_dest, int32_t y_dest) {
+    NOCRouting::UnicastClockwiseXY(int32_t x_dest, int32_t y_dest) {
         uint8_t dir = DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                                     //was received, but not sent to the app yet
         char quadrant = FindQuadrant(x_dest, y_dest);
@@ -101,7 +155,7 @@ namespace ns3 {
     }
     
     uint8_t
-    NOCRoutingProtocols::UnicastClockwiseOffsetXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig) {
+    NOCRouting::UnicastClockwiseOffsetXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig) {
 
         uint8_t dir = DIRECTION_MASK_L; //It sends the packet inside anyway, since it
                                                     //was received, but not sent to the app yet
@@ -156,7 +210,7 @@ namespace ns3 {
 
     
     uint8_t
-    NOCRoutingProtocols::Broadcast(int32_t x_source, int32_t y_source) {
+    NOCRouting::Broadcast(int32_t x_source, int32_t y_source) {
         return MulticastRadius(x_source, y_source, 0);
     }
     
@@ -164,7 +218,7 @@ namespace ns3 {
 
     
     uint8_t
-    NOCRoutingProtocols::MulticastRadius(int32_t x_source, int32_t y_source, uint16_t n_hops) {
+    NOCRouting::MulticastRadius(int32_t x_source, int32_t y_source, uint16_t n_hops) {
  //Check in which quadrant the packet is in:
 
         /*              |
@@ -217,7 +271,7 @@ namespace ns3 {
     }
     
     uint8_t
-    NOCRoutingProtocols::MulticastIndividuals(int32_t x_source, int32_t y_source, int32_t x_position, int32_t y_position) {
+    NOCRouting::MulticastIndividuals(int32_t x_source, int32_t y_source, int32_t x_position, int32_t y_position) {
  //Check in which quadrant the packet is in:
 
         /*              |
@@ -274,7 +328,7 @@ namespace ns3 {
     }
     
     uint8_t
-    NOCRoutingProtocols::MulticastArea(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest) {
+    NOCRouting::MulticastArea(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest) {
  //Check in which quadrant the packet is in:
 
         /*              |
@@ -349,7 +403,7 @@ namespace ns3 {
 //    }
 
     int32_t
-    NOCRoutingProtocols::CalculateTimeSlot(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size) {
+    NOCRouting::CalculateTimeSlot(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size) {
         
         
         uint32_t t_wait = -1;
@@ -376,7 +430,7 @@ namespace ns3 {
     }
     
     char 
-    NOCRoutingProtocols::FindQuadrant(int32_t x_dest, int32_t y_dest) {
+    NOCRouting::FindQuadrant(int32_t x_dest, int32_t y_dest) {
         
         /*              |
          *       B      |     A

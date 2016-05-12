@@ -19,26 +19,19 @@
  */
 
 
-#ifndef NOC_ROUTING_PROTOCOLS_H
-#define NOC_ROUTING_PROTOCOLS_H
+#ifndef NOC_ROUTING_H
+#define NOC_ROUTING_H
 
 //#include <math.h>
 #include <stdio.h>
-//#include"noc-router.h"
-
-//#include "ns3/callback.h"
 #include "ns3/core-module.h"
-//#include "ns3/applications-module.h"
-//#include "ns3/address.h"
-//#include "ns3/node.h"
-//#include "ns3/data-rate.h"
-//#include "ns3/ptr.h"
-//#include "ns3/net-device-container.h"
-//#include "ns3/object.h"
+#include "ns3/packet.h"
+
+#include "noc-header.h"
 
 namespace ns3 {
 
-    class NOCRoutingProtocols {
+    class NOCRouting {
     public:
         
         enum Directions{
@@ -68,6 +61,7 @@ namespace ns3 {
             ROUTING_PROTOCOL_XFIRST
         };
         
+        
 //        enum RoutingAlgos{
 //            ROUTING_COLUMN_FIRST,
 //            ROUTING_ROW_FIRST,
@@ -77,6 +71,8 @@ namespace ns3 {
 //        };
         
 //        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
+        
+        static uint8_t Route(Ptr<const Packet> pck, RoutingProtocols param);
         
         static uint8_t Unicast(int32_t x_dest, int32_t y_dest, RoutingProtocols);
         
@@ -110,8 +106,7 @@ namespace ns3 {
     private:
 //        static NodeRef NodeAt(std::vector<NodeRef> * sn, int8_t, int8_t);
 
-        static char FindQuadrant(int32_t x_dest, int32_t y_dest);
-//        
+        static char FindQuadrant(int32_t x_dest, int32_t y_dest);  
 
     };
 }
