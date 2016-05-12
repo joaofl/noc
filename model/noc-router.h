@@ -44,16 +44,25 @@
 
 using namespace std;
 namespace ns3 {
-    
-    class Queue;
+
+    class RoundRobin {
+    public:
+        NOCRouting::Directions m_actual_port;
+
+        uint8_t m_E, m_W, m_S, m_N;
+        uint8_t m_EC, m_WC, m_SC, m_NC;
+
+        void Start(void);
+        void NextPort(void);
+    private:
+        
+    };
 
     class NOCRouter : public Application {
     public:
 
         static TypeId GetTypeId (void);
         
-//        Ptr<Queue> input_queue;
-
         enum Priority{
             P0,
             P1
@@ -153,18 +162,6 @@ namespace ns3 {
         
     private:
         
-        enum m_server_state_machine{
-            IDLE,
-            BUSY
-        };
-        
-        m_server_state_machine m_server_state;
-        NOCRouting::Directions m_actual_port;
-        
-        uint8_t m_E, m_W, m_S, m_N;
-        uint8_t m_EC, m_WC, m_SC, m_NC;
-        
-
         TracedCallback<Ptr<const Packet>, uint32_t > m_routerRxTrace;
         TracedCallback<Ptr<const Packet>, uint32_t > m_routerTxTrace;
         TracedCallback<Ptr<const Packet>, uint32_t > m_routerCxTrace;
@@ -200,7 +197,14 @@ namespace ns3 {
         NOCRouting::RoutingProtocols routing_conf;
         
         
+        enum server_state_machine{
+            IDLE,
+            BUSY
+        };
         
+        server_state_machine m_server_state;
+        
+        RoundRobin rr_e, rr_n, rr_w, rr_s;
         
     };
     

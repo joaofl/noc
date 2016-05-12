@@ -93,9 +93,6 @@ namespace ns3 {
     NOCRouter::StartApplication(void) {
         m_running = true;
         m_server_state = IDLE;
-        m_actual_port = NOCRouting::DIRECTION_E;
-        m_E = 1; m_N = 1; m_W = 1; m_S = 1;
-        m_EC = 0; m_NC = 0; m_WC = 0; m_SC = 0;
         
         NetDeviceContainer::Iterator nd;
         for (nd = m_netDevices.Begin() ; nd != m_netDevices.End() ; nd++){    
@@ -103,6 +100,11 @@ namespace ns3 {
 //            (*nd)->GetObject<NOCNetDevice>()->SetRemoteSignalChangedCallback(MakeCallback(&NOCRouter::RemoteWaitChanged, this));
 //            (*nd)->GetObject<NOCNetDevice>()->SetLocalSignalChangedCallback(MakeCallback(&NOCRouter::LocalWaitChanged, this));
         }
+        
+        rr_e.Start();
+        rr_n.Start();
+        rr_w.Start();
+        rr_s.Start();       
         
         
     }
@@ -394,8 +396,8 @@ namespace ns3 {
         t = RoutingDelays->GetDelay();
 
         //Tweak
-        if (port_direction == NOCRouting::DIRECTION_E)
-            t = Time::FromInteger(1, Time::NS);
+//        if (port_direction == NOCRouting::DIRECTION_E)
+//            t = Time::FromInteger(1, Time::NS);
         
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
         Simulator::Schedule(t, fp, nd, pck->Copy());
@@ -436,7 +438,8 @@ namespace ns3 {
     void
     NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
         
-        
+//        PacketTrace(pck, nd);
+        m_routerRxTrace(pck, 0);        
         
         switch (ServerPolicy){
             case FIFO:
@@ -452,6 +455,15 @@ namespace ns3 {
                 break;       
         }
     }
+    
+    void
+    NOCRouter::ConsumePacket(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
+        //Debug only
+        NetDeviceInfo nd_i = GetNetDeviceInfo(nd);
+                
+        uint8_t out = NOCRouting::Route(pck, routing_conf);
+        Transmit(pck, nd_i.network_id, out, P0);
+    }
 
     void
     NOCRouter::ServePorts(void) {
@@ -461,7 +473,7 @@ namespace ns3 {
         
         Ptr<Packet> pck;
 //        Ptr<const Packet> pck_e, pck_n, pck_w, pck_s;
-        Ptr<NOCNetDevice> nd = GetNetDevice(0, m_actual_port);
+        Ptr<NOCNetDevice> nd = GetNetDevice(0, rr_e.m_actual_port);
         
         uint8_t queue_e, queue_n, queue_w, queue_s;
         uint16_t queue_total;
@@ -507,7 +519,7 @@ namespace ns3 {
 
         switch (m_server_state) {
             case (BUSY):
-                switch (m_actual_port) {
+                switch (rr_e.m_actual_port) {
                     /////////////////////// EAST ////////////////////////////////////////////////
                     case NOCRouting::DIRECTION_E:
                         if (queue_e > 0) {
@@ -520,7 +532,7 @@ namespace ns3 {
                             Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
                         }
 
-                        this->NextPort();
+                        rr_e.NextPort();
                         break;
                     /////////////////////// EAST ////////////////////////////////////////////////
                     case NOCRouting::DIRECTION_N:
@@ -534,7 +546,7 @@ namespace ns3 {
                             Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
                         }
 
-                        this->NextPort();
+                        rr_e.NextPort();
                         break;
                     /////////////////////// EAST ////////////////////////////////////////////////
                     case NOCRouting::DIRECTION_W:
@@ -548,7 +560,7 @@ namespace ns3 {
                             Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
                         }
 
-                        this->NextPort();
+                        rr_e.NextPort();
                         break;
                     /////////////////////// EAST ////////////////////////////////////////////////
                     case NOCRouting::DIRECTION_S:
@@ -562,7 +574,7 @@ namespace ns3 {
                             Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
                         }
 
-                        this->NextPort();
+                        rr_e.NextPort();
                         break;
                         
                     default:
@@ -576,7 +588,7 @@ namespace ns3 {
     }
         
     void
-    NOCRouter::NextPort() {
+    RoundRobin::NextPort(void) {
         switch (m_actual_port) {
             /////////////////////// EAST ////////////////////////////////////////////////
             case NOCRouting::DIRECTION_E:
@@ -623,24 +635,24 @@ namespace ns3 {
                 break;
         }
     }
+    void 
+    RoundRobin::Start() {
+        m_actual_port = NOCRouting::DIRECTION_E;
+        
+        m_E = 1;
+        m_N = 1;
+        m_W = 1;
+        m_S = 1;
+        m_EC = 0;
+        m_NC = 0;
+        m_WC = 0;
+        m_SC = 0;
+    }
+
 
 
     
-    void
-    NOCRouter::ConsumePacket(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
-        //Debug only
-        PacketTrace(pck, nd);
-        
-        m_routerRxTrace(pck, 0);
-//        Ptr<Packet> pck_c = pck->Copy();
-        
-        NetDeviceInfo nd_i = GetNetDeviceInfo(nd);
-                
-        uint8_t out = NOCRouting::Route(pck, routing_conf);
-        Transmit(pck, nd_i.network_id, out, P0);
-        
-        
-    }
+
 
  
 
