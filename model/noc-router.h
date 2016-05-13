@@ -51,6 +51,8 @@ namespace ns3 {
 
         uint8_t m_E, m_W, m_S, m_N;
         uint8_t m_EC, m_WC, m_SC, m_NC;
+        
+        
 
         void Start(void);
         void NextPort(void);
@@ -194,7 +196,7 @@ namespace ns3 {
         
         uint8_t m_channelCount;
         
-        NOCRouting::RoutingProtocols routing_conf;
+        NOCRouting::RoutingProtocols m_routing_conf;
         
         
         enum server_state_machine{
@@ -204,7 +206,7 @@ namespace ns3 {
         
         server_state_machine m_server_state;
         
-        RoundRobin rr_e, rr_n, rr_w, rr_s;
+        RoundRobin m_input_ports, rr_n, rr_w, rr_s;
         
     };
     

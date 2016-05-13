@@ -54,6 +54,12 @@ namespace ns3 {
                     
         };
         
+//        inline DirectionsMasks operator | (DirectionsMasks a, DirectionsMasks b)
+//        {return static_cast<DirectionsMasks>(static_cast<int>(a) | static_cast<int>(b));}
+//
+//        inline DirectionsMasks operator = (DirectionsMasks a, DirectionsMasks b)
+//        {return static_cast<DirectionsMasks>(static_cast<int>(a) | static_cast<int>(b));}
+        
         enum RoutingProtocols{
             ROUTING_PROTOCOL_XY_CLOCKWISE,
             ROUTING_PROTOCOL_XY_CCLOCKWISE,

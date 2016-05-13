@@ -77,7 +77,7 @@ namespace ns3 {
     
     uint8_t 
     NOCRouting::Unicast(int32_t x_dest, int32_t y_dest, RoutingProtocols rp) {
-        uint8_t out = 0;
+        uint8_t out = DIRECTION_MASK_NONE;
         switch(rp){
             case ROUTING_PROTOCOL_XY_CLOCKWISE:
                 out = UnicastClockwiseXY(x_dest,y_dest);

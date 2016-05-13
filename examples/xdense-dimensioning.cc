@@ -272,7 +272,7 @@ main(int argc, char *argv[]) {
             
             period = 10;
             jitter = y * size_x - 1;
-            jitter = 0;
+            jitter = 100;
             duration = 100;
             
 //            if( (x == 19 && y == 1) ){ //  || (x == 10 && y == 19)){
@@ -281,9 +281,12 @@ main(int argc, char *argv[]) {
 //            else if( (x == 0 && y == 20) ){ //  || (x == 10 && y == 19)){
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true); 
 //            }
+            if( (x == 0 && y == 0) ){ //  || (x == 10 && y == 19)){
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->ClusterDataRequest(); 
+            }
             
             
-            if(x == 8 && y == 14){
+            else if(x == 8 && y == 14){
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true);           
             }
             else if (x == 4 && y == 18){
