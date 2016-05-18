@@ -71,7 +71,7 @@ ofstream file_simulation_info;
 
 
 void
-log_netdevice_packets(string context, Ptr<const Packet> pck_r, uint32_t queue_size) 
+log_netdevice_packets(string context, Ptr<const Packet> pck_r) 
 {
     uint64_t now = Simulator::Now().GetNanoSeconds();
     
@@ -86,8 +86,8 @@ log_netdevice_packets(string context, Ptr<const Packet> pck_r, uint32_t queue_si
     file_packets_trace_netdevice
 //  Context info
     << now << ","
-    << context << "," //<< i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouter::DIRECTION_L << ",c";
-    << queue_size << ","
+    << context << "," //[ i, x, y, port, event ];
+    << 0 << ","
 //  Packet info
     << pck->GetUid() << ",";
     hdnoc.Print(file_packets_trace_netdevice);
@@ -97,6 +97,9 @@ log_netdevice_packets(string context, Ptr<const Packet> pck_r, uint32_t queue_si
 }
 
 
+uint32_t GetN(uint32_t size_x, uint32_t size_y, uint32_t x, uint32_t y){
+    return (size_x * size_y) - ((y + 1) * size_x - x);
+}
 
 int
 main(int argc, char *argv[]) {
@@ -108,8 +111,8 @@ main(int argc, char *argv[]) {
     // Default values
     
     uint32_t size_x = 5;
-    uint32_t size_y = 3;
-    uint32_t size_neighborhood = 5; //odd only, so neighborhoods do not overlap eachother
+    uint32_t size_y = 4;
+    uint32_t size_neighborhood = 0; //odd only, so neighborhoods do not overlap eachother
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -184,7 +187,6 @@ main(int argc, char *argv[]) {
     my_node_container = my_grid_network_helper.InitializeNetwork();
     
     //Install applications;
-    ApplicationContainer my_xdense_sink_app_container;
     ApplicationContainer my_xdense_app_container;
     ApplicationContainer my_xdense_router_container;
     ApplicationContainer my_xdense_data_io_container;
@@ -199,7 +201,7 @@ main(int argc, char *argv[]) {
         //Setup app
         my_xdense_app->IsSink = false;
         my_xdense_app->IsActive = true;
-        //TODO: Believe it should be get from the packet header itself
+        //TODO: Believe it should be get from the packet header itself, or ask the router
         my_xdense_app->PacketDuration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);  //nano seconds
         my_xdense_app->ClusterSize_x = size_neighborhood;
         my_xdense_app->ClusterSize_y = size_neighborhood;
@@ -209,12 +211,14 @@ main(int argc, char *argv[]) {
         IntegerValue x, y;
         my_noc_router->GetAttribute("AddressX", x);
         my_noc_router->GetAttribute("AddressY", y);
-        my_noc_router->RoutingDelays = my_router_delay_model;
-        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_YFIRST);
+        my_noc_router->SetDataRate(DataRate(baudrate));
+        my_noc_router->RoutingDelays = my_router_delay_model; //TODO: use a method set instead, otherwise there will be no default value, and it wont work.
+        my_noc_router->ServerPolicy = NOCRouter::ROUND_ROBIN; //TODO: use a method set instead
+//        my_noc_router->ServerPolicy = NOCRouter::FIFO; //TODO: use a method set instead
+        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_XY_CLOCKWISE);
 	my_router_delay_model->InputData = &my_input_data;
         
-  
-//        int8_t direction = -1;
+        
         ostringstream context_router_rx, context_router_tx, context_router_cx, context_router_gx;
         
         context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
@@ -239,42 +243,84 @@ main(int argc, char *argv[]) {
         }
 
         //Should be installed in this order!!!
-        my_node_container.Get(i)->AddApplication(my_xdense_app);
+        my_node_container.Get(i)->AddApplication(my_noc_router);
         my_node_container.Get(i)->AddApplication(my_router_delay_model);
+        my_node_container.Get(i)->AddApplication(my_xdense_app);
 
         my_xdense_app_container.Add(my_xdense_app);
         my_xdense_data_io_container.Add(my_router_delay_model);
         my_xdense_app->AddRouter(my_noc_router);
     }
 
+    uint32_t s1x, s1y, s2x, s2y, s3x, s3y, s4x, s4y;
+    
+    s1x = 0; s1y = 0;
+    s2x = 19; s2y = 0;
+    s3x = 10; s3y = 0;
+    s4x = 15; s4y = 0;
+    
+    //Tweak the compiler if not in use
+    s1x = s1x; s1y = s1y; 
+    s2x = s2x; s2y = s2y; 
+    s3x = s3x; s3y = s3y; 
+    s4x = s4x; s4y = s4y;    
+    
+    uint32_t period, jitter, duration, distance;
+    
+//    Time t_ns = Time::FromInteger(0, Time::NS);
+    
     for (uint32_t x = 0; x < size_x; x++) {
-        
         for (uint32_t y = 0; y < size_y; y++) {
-            uint32_t n = x + y * size_x;
+            uint32_t n = GetN(size_x, size_y, x, y);
             //One have to make sure to not schedule 2 flows to the same node
             //neither send packets to itsel
-            if (x== 0 && y == 1){ 
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 1, 4, 1, true); 
-                my_xdense_sink_app_container.Add(my_xdense_app_container.Get(n)); //container with the sinks only                
-            }
-            else if (x > 0 && x < 4){
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(2, 0, 50, 4, 1, false); 
-            }
             
-//            else if (y == 0 && x != 0){
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 50, 4, 1, false); 
+            
+            distance = (x - s1x) + (y - s1y);
+            distance = distance;
+            
+            period = 1;
+            jitter = y * size_x - 1;
+            jitter = 0;
+            duration = 200;
+            duration = duration;
+            
+//            if( (x == 19 && y == 1) ){ //  || (x == 10 && y == 19)){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true); 
 //            }
-//            else if (y == 1 && x != 0 && x != 4){
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 50, 4, 1, false); 
+//            else if( (x == 0 && y == 20) ){ //  || (x == 10 && y == 19)){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true); 
 //            }
-//            else if (y == 2 && x != 0){
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 0, 50, 4, 1, false); 
-//            }
-//            
-//            if (x == 4){
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsActive = false;
+//            if( (x == 0 && y == 0) ){ //  || (x == 10 && y == 19)){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->ClusterDataRequest(); 
 //            }
             
+            
+//            if(x == 8 && y == 14){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, true);           
+//            }
+//            else if (x == 4 && y == 18){
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s2x, s2y, true);
+//            }
+            
+            
+//            else{
+//            if (y != 0){ 
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, false);                                          
+//            }            
+            if (y != 0 && x != size_x - 1){ 
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, false);                                          
+            }            
+//            else if (y == 1){ 
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, false);               
+//            }
+            else if(y != 0 && x == size_x - 1){
+//                Simulator::Schedule(t_ns, &XDenseApp::SetFlowGenerator, my_xdense_app_container.Get(n)->GetObject<XDenseApp>(), period, jitter, 1, s1x, s1y, true);
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, true); 
+            }
+//            }
+                
+                
         }
     }
 
@@ -299,25 +345,14 @@ main(int argc, char *argv[]) {
 
     cout << endl << "Simulation started. Please wait..." << endl ;
     
-
     Simulator::Stop(Seconds(1));
     Simulator::Run();
-
-    //************************************************************
-
 
     //**************** Output Printing ***************************
 
     cout << "Simulation complete." << endl ;
-    
-    
-//    file_packets_trace_router.close();
     file_packets_trace_netdevice.close();
-    
-    
     cout << "Log files created at: '" << dir_output << "'" << endl;
-
-//    cout << Simulator::Now().GetSeconds();
 
     Simulator::Destroy();
     return 0;
