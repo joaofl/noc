@@ -11,8 +11,8 @@ def build(bld):
     obj = bld.create_ns3_program('xdense-wc', ['noc'])
     obj.source = 'xdense-wc.cc'
 
-    obj = bld.create_ns3_program('xdense-dimensioning', ['noc'])
-    obj.source = 'xdense-dimensioning.cc'
+    #obj = bld.create_ns3_program('xdense-dimensioning', ['noc'])
+    #obj.source = 'xdense-dimensioning.cc'
 
     obj = bld.create_ns3_program('epiphany-example', ['noc'])
     obj.source = 'epiphany-example.cc'
