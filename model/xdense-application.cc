@@ -94,6 +94,7 @@ namespace ns3 {
             
             if (tslot % period == 0){
                 t_ns = tslot * PacketDuration;
+                t_ns += Time::FromInteger(1, Time::NS); //To prenvent an ns3 bug to happen 
                 Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
             }
         }
