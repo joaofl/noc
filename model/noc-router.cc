@@ -21,8 +21,7 @@
 
 
 #include "noc-router.h"
-#include "ns3/noc-routing-protocols.h"
-#include "ns3/noc-net-device.h"
+#include "src/network/model/packet.h"
 
 
 using namespace std;
@@ -96,7 +95,7 @@ namespace ns3 {
         
         NetDeviceContainer::Iterator nd;
         for (nd = m_netDevices.Begin() ; nd != m_netDevices.End() ; nd++){    
-            (*nd)->GetObject<NOCNetDevice>()->SetReceiveCallback(MakeCallback(&NOCRouter::PacketReceived, this));
+            (*nd)->GetObject<NOCNetDevice>()->SetReceiveCallback(MakeCallback(&NOCRouter::PacketServe, this));
 //            (*nd)->GetObject<NOCNetDevice>()->SetRemoteSignalChangedCallback(MakeCallback(&NOCRouter::RemoteWaitChanged, this));
 //            (*nd)->GetObject<NOCNetDevice>()->SetLocalSignalChangedCallback(MakeCallback(&NOCRouter::LocalWaitChanged, this));
         }
@@ -106,6 +105,8 @@ namespace ns3 {
         rr_w.Start();
         rr_s.Start();       
         
+        m_queueFactory.SetTypeId ("ns3::DropTailQueue");
+        m_queue_app_output = m_queueFactory.Create<Queue> ();
         
     }
 
@@ -123,6 +124,18 @@ namespace ns3 {
     
     void NOCRouter::SetReceiveCallback(ReceiveCallback cb){
         m_receiveCallBack = cb;
+    }
+    
+    void
+    NOCRouter::SetDataRate(DataRate bps) {
+        NS_LOG_FUNCTION_NOARGS();
+        m_bps = bps;
+    }
+    
+    Time
+    NOCRouter::GetTransmissionTime(Ptr<const Packet> pck) {
+        Time t = m_bps.CalculateBitsTxTime(pck->GetSize() * 10);
+        return t;
     }
     
     void
@@ -149,6 +162,12 @@ namespace ns3 {
                 return nd_info.nd_pointer;
             }
         }
+        return NULL; //if the specified node was not found
+    }
+    
+    Ptr<Queue>
+    NOCRouter::GetNetDeviceQueue(uint8_t network, uint8_t direction){
+        
         return NULL; //if the specified node was not found
     }
     
@@ -237,12 +256,10 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        m_routerGxTrace(pck_c, 0); //the router receives a pck from the application
+        m_routerGxTrace(pck_c); //the router receives a pck from the application
         
-        uint8_t out = NOCRouting::Unicast(destination_x, destination_y, m_routing_conf);
-        
-        
-        return Transmit(pck_c, network_id, out, P0);
+        PacketServe(pck_c, NOCRouting::DIRECTION_L);
+        return true; 
     }
     
     bool 
@@ -258,11 +275,10 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        m_routerGxTrace(pck_c, 0); //the router receives a pck from the application
+        m_routerGxTrace(pck_c); //the router receives a pck from the application
         
-        uint8_t out = NOCRouting::UnicastClockwiseOffsetXY(destination_x, destination_y, 0, 0);
-        
-        return Transmit(pck_c, network_id, out, P0);
+        PacketServe(pck_c, NOCRouting::DIRECTION_L);
+        return true; 
     }
 
     bool NOCRouter::PacketMulticastRadius (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops){
@@ -274,12 +290,8 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRouting::MulticastRadius(0,0,n_hops);
-        
-        if (Transmit(pck_c, network_id, out, P0) > 0)
-           return true;
-        
-        return false;    
+        PacketServe(pck_c, NOCRouting::DIRECTION_L);
+        return true; 
     }
 
     bool NOCRouter::PacketMulticastArea(Ptr<const Packet> pck, uint8_t network_id, int32_t x_destination, int32_t y_destination){
@@ -291,12 +303,8 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRouting::MulticastArea(0, 0, x_destination, y_destination);
-        
-        if (Transmit(pck_c, network_id, out, P0) > 0)
-           return true;
-        
-        return false;    
+        PacketServe(pck_c, NOCRouting::DIRECTION_L);
+        return true; 
     }
     
     bool 
@@ -309,13 +317,8 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRouting::MulticastIndividuals(0, 0, x_position, y_position);
-        
-        if (Transmit(pck_c, network_id, out, P0) > 0)
-           return true;
-        
-        return false;    
-
+        PacketServe(pck_c, NOCRouting::DIRECTION_L);
+        return true;
     }
 
 
@@ -328,15 +331,9 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
         
-        uint8_t out = NOCRouting::Broadcast(0,0);
-        
-        if (Transmit(pck_c, network_id, out, P0) > 0)
-           return true;
-        
-        return false;    
+        PacketServe(pck_c, NOCRouting::DIRECTION_L);
+        return true;         
     }
-    
-    
     
     uint8_t
     NOCRouter::Transmit(Ptr<const Packet> pck, uint8_t network_id, uint8_t ports_mask, uint8_t priority){
@@ -373,14 +370,14 @@ namespace ns3 {
             }
         }
         if ( (ports_mask >> NOCRouting::DIRECTION_L) & 1){
-            m_routerCxTrace(pck, 0);
+            m_routerCxTrace(pck);
             Ptr<Packet> pck_c = pck->Copy();
             NOCHeader h;
             pck_c->RemoveHeader(h);
             m_receiveCallBack(pck_c, h.GetProtocol(), h.GetSourceAddressX(), h.GetSourceAddressY(), h.GetDestinationAddressX(), h.GetDestinationAddressY());           
         }
         
-        if (sent > 0) m_routerTxTrace(pck, 0);
+        if (sent > 0) m_routerTxTrace(pck);
         
         return sent;
     }
@@ -411,17 +408,11 @@ namespace ns3 {
 //        return false;
     }
 
-//    void
-//    NOCRouter::PacketTrace(Ptr<const Packet> packet, Ptr<NOCNetDevice> device) {
-//
-//    }
-
-    
     void
     NOCRouter::PacketTrace(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd){
         Ptr<Packet> pck_c = pck->Copy();
         
-        Time packet_duration = nd->GetTransmissionTime(pck); 
+        Time packet_duration = this->GetTransmissionTime(pck); 
         
         NOCHeader h;
         pck_c->RemoveHeader(h);
@@ -436,52 +427,55 @@ namespace ns3 {
     }
     
     void
-    NOCRouter::PacketReceived(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
+//    NOCRouter::PacketServe(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
+    NOCRouter::PacketServe(Ptr<const Packet> pck_rcv, NOCRouting::Directions input) {
+        m_routerRxTrace(pck_rcv);  
         
-//        PacketTrace(pck, nd);
-        m_routerRxTrace(pck, 0);  
+        Ptr<Packet> pck;// = pck->Copy();
         uint8_t out;
         Time t_ns;
+        Ptr<NOCNetDevice> nd;
+        
+        if (input == NOCRouting::DIRECTION_L){ //Generated locally, then queue it
+            this->m_queue_app_output->Enqueue(pck_rcv->Copy());
+        }
         
         switch (ServerPolicy){
             case FIFO:
+                if (input == NOCRouting::DIRECTION_L)
+                    pck = this->m_queue_app_output->Dequeue();
+                else
+                    pck = this->GetNetDevice(0, input)->DequeueReceived();
+                
                 out = NOCRouting::Route(pck, m_routing_conf);
-                Transmit(pck, 0, out, P0);
+                
+                this->Transmit(pck, 0, out, P0);
                 break;
                 
-            case ROUND_ROBIN:
+            case ROUND_ROBIN:               
                 if (m_server_state == IDLE){
 //                    m_server_state = BUSY;
                     t_ns = Time::FromInteger(0, Time::NS);
-                    Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);                 
+                    Simulator::Schedule(t_ns, &NOCRouter::RoundRobin, this);                 
                 }
 
                 break;       
         }
     }
     
-//    void
-//    NOCRouter::ConsumePacket(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
-//        //Debug only
-////        NetDeviceInfo nd_i = GetNetDeviceInfo(nd);
-//                
-////        uint8_t out = NOCRouting::Route(pck, routing_conf);
-//        Transmit(pck, 0, out, P0);
-//    }
-
     void
-    NOCRouter::ServePorts(void) {
+    NOCRouter::RoundRobin(void) {
 
         Time t_ns;
         Time packet_duration;
         
         Ptr<Packet> pck;
-        Ptr<const Packet> pck_e, pck_n, pck_w, pck_s;
+        Ptr<const Packet> pck_e, pck_n, pck_w, pck_s, pck_l;
         Ptr<NOCNetDevice> nd; 
         
-        uint8_t out_from_e, out_from_n, out_from_w, out_from_s;
+        uint8_t out_from_e, out_from_n, out_from_w, out_from_s, out_from_l;
         
-        uint8_t queue_e, queue_n, queue_w, queue_s;
+        uint8_t queue_e, queue_n, queue_w, queue_s, queue_l;
         uint16_t queue_total;
         
         queue_e = 0;
@@ -524,7 +518,18 @@ namespace ns3 {
             }
         }
         
-        queue_total = queue_e + queue_n + queue_s + queue_w;
+        queue_l = 0; 
+            queue_l = m_queue_app_output->GetNPackets();
+            if (queue_l > 0){
+                pck_l = m_queue_app_output->Peek();
+                out_from_l = NOCRouting::Route(pck_l, m_routing_conf);
+            }
+        
+        
+        
+        //The local port should be accounted here
+        
+        queue_total = queue_e + queue_n + queue_s + queue_w + queue_l;
         
         if (queue_total == 0) {
             m_server_state = IDLE;
@@ -559,13 +564,17 @@ namespace ns3 {
                             if (queue_s > 0 && !(out_from_s ^ out_from_e) == 0){ 
                                 pck = nd_s->DequeueReceived();
                                 Transmit(pck, 0, out_from_s, P0);
-                            }                            
+                            }     
+                            if (queue_l > 0 && !(out_from_l ^ out_from_e) == 0){ 
+                                pck = m_queue_app_output->Dequeue();
+                                Transmit(pck, 0, out_from_l, P0);
+                            }
                             
-                            packet_duration = nd->GetTransmissionTime(pck);
-                            Simulator::Schedule(packet_duration, &NOCRouter::ServePorts, this);
+                            packet_duration = this->GetTransmissionTime(pck);
+                            Simulator::Schedule(packet_duration, &NOCRouter::RoundRobin, this);
                         } else {
                             t_ns = Time::FromInteger(0, Time::NS);
-                            Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
+                            Simulator::Schedule(t_ns, &NOCRouter::RoundRobin, this);
                         }
 
                         m_input_ports.NextPort();
@@ -589,12 +598,16 @@ namespace ns3 {
                                 pck = nd_s->DequeueReceived();
                                 Transmit(pck, 0, out_from_s, P0);
                             }
+                            if (queue_l > 0 && !(out_from_l ^ out_from_n) == 0){ 
+                                pck = m_queue_app_output->Dequeue();
+                                Transmit(pck, 0, out_from_l, P0);
+                            }
                             
-                            packet_duration = nd->GetTransmissionTime(pck);
-                            Simulator::Schedule(packet_duration, &NOCRouter::ServePorts, this);
+                            packet_duration = this->GetTransmissionTime(pck);
+                            Simulator::Schedule(packet_duration, &NOCRouter::RoundRobin, this);
                         } else {
                             t_ns = Time::FromInteger(0, Time::NS);
-                            Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
+                            Simulator::Schedule(t_ns, &NOCRouter::RoundRobin, this);
                         }
 
                         m_input_ports.NextPort();
@@ -618,17 +631,22 @@ namespace ns3 {
                                 pck = nd_s->DequeueReceived();
                                 Transmit(pck, 0, out_from_s, P0);
                             }
+                            if (queue_l > 0 && !(out_from_l ^ out_from_w) == 0){ 
+                                pck = m_queue_app_output->Dequeue();
+                                Transmit(pck, 0, out_from_l, P0);
+                            }
                             
-                            packet_duration = nd->GetTransmissionTime(pck);
-                            Simulator::Schedule(packet_duration, &NOCRouter::ServePorts, this);
+                            packet_duration = this->GetTransmissionTime(pck);
+                            Simulator::Schedule(packet_duration, &NOCRouter::RoundRobin, this);
                         } else {
                             t_ns = Time::FromInteger(0, Time::NS);
-                            Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
+                            Simulator::Schedule(t_ns, &NOCRouter::RoundRobin, this);
                         }
 
                         m_input_ports.NextPort();
                         break;
-                        /////////////////////// EAST ////////////////////////////////////////////////
+                        
+                    /////////////////////// EAST ////////////////////////////////////////////////
                     case NOCRouting::DIRECTION_S:
                         if (queue_s > 0) {
                             pck = nd->DequeueReceived();
@@ -647,12 +665,50 @@ namespace ns3 {
                                 pck = nd_n->DequeueReceived();
                                 Transmit(pck, 0, out_from_n, P0);
                             }
+                            if (queue_l > 0 && !(out_from_l ^ out_from_s) == 0){ 
+                                pck = m_queue_app_output->Dequeue();
+                                Transmit(pck, 0, out_from_l, P0);
+                            }
                             
-                            packet_duration = nd->GetTransmissionTime(pck);
-                            Simulator::Schedule(packet_duration, &NOCRouter::ServePorts, this);
+                            packet_duration = this->GetTransmissionTime(pck);
+                            Simulator::Schedule(packet_duration, &NOCRouter::RoundRobin, this);
                         } else {
                             t_ns = Time::FromInteger(0, Time::NS);
-                            Simulator::Schedule(t_ns, &NOCRouter::ServePorts, this);
+                            Simulator::Schedule(t_ns, &NOCRouter::RoundRobin, this);
+                        }
+
+                        m_input_ports.NextPort();
+                        break;
+                        
+                    /////////////////////// LOCAL ////////////////////////////////////////////////
+                    case NOCRouting::DIRECTION_L:
+                        if (queue_l > 0) {
+                            pck = m_queue_app_output->Dequeue();
+                            Transmit(pck, 0, out_from_l, P0);
+                            
+                            //There is no conflict of interest for output ports
+                            if (queue_e > 0 && !(out_from_e ^ out_from_l) == 0){ 
+                                pck = nd_e->DequeueReceived();
+                                Transmit(pck, 0, out_from_e, P0);
+                            }
+                            if (queue_w > 0 && !(out_from_w ^ out_from_l) == 0){ 
+                                pck = nd_w->DequeueReceived();
+                                Transmit(pck, 0, out_from_w, P0);
+                            }
+                            if (queue_n > 0 && !(out_from_n ^ out_from_l) == 0){ 
+                                pck = nd_n->DequeueReceived();
+                                Transmit(pck, 0, out_from_n, P0);
+                            }
+                            if (queue_s > 0 && !(out_from_s ^ out_from_l) == 0){ 
+                                pck = nd_s->DequeueReceived();
+                                Transmit(pck, 0, out_from_s, P0);
+                            }
+                            
+                            packet_duration = this->GetTransmissionTime(pck);
+                            Simulator::Schedule(packet_duration, &NOCRouter::RoundRobin, this);
+                        } else {
+                            t_ns = Time::FromInteger(0, Time::NS);
+                            Simulator::Schedule(t_ns, &NOCRouter::RoundRobin, this);
                         }
 
                         m_input_ports.NextPort();
@@ -671,8 +727,18 @@ namespace ns3 {
     
         
     void
-    RoundRobin::NextPort(void) {
+    RoundRobinState::NextPort(void) {
         switch (m_actual_port) {
+            /////////////////////// LOCAL ////////////////////////////////////////////////
+            case NOCRouting::DIRECTION_L:
+                if (m_LC < m_L){
+                    m_LC++;
+                }
+                else{
+                    m_LC = 0;
+                    m_actual_port = NOCRouting::DIRECTION_E;
+                }
+                break;
             /////////////////////// EAST ////////////////////////////////////////////////
             case NOCRouting::DIRECTION_E:
                 if (m_EC < m_E){
@@ -710,7 +776,7 @@ namespace ns3 {
                 }
                 else{
                     m_SC = 0;
-                    m_actual_port = NOCRouting::DIRECTION_E;
+                    m_actual_port = NOCRouting::DIRECTION_L;
                 }
                 break;
 
@@ -719,17 +785,20 @@ namespace ns3 {
         }
     }
     void 
-    RoundRobin::Start() {
+    RoundRobinState::Start() {
         m_actual_port = NOCRouting::DIRECTION_E;
         
         m_E = 1;
         m_N = 1;
         m_W = 1;
         m_S = 1;
+        m_L = 1;
+        
         m_EC = 0;
         m_NC = 0;
         m_WC = 0;
         m_SC = 0;
+        m_LC = 0;
     }
 
 

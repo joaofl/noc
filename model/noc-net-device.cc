@@ -216,11 +216,11 @@ namespace ns3 {
         NS_LOG_FUNCTION_NOARGS();
         m_tInterframeGap = t;
     }
-    Time 
-    NOCNetDevice::GetTransmissionTime(Ptr<const Packet> p) {
-        Time t = m_bps.CalculateBitsTxTime(p->GetSize() * 10);
-        return t;
-    }
+//    Time 
+//    NOCNetDevice::GetTransmissionTime(Ptr<const Packet> p) {
+//        Time t = m_bps.CalculateBitsTxTime(p->GetSize() * 10);
+//        return t;
+//    }
 
     
     bool
@@ -297,19 +297,22 @@ void
             //
             m_snifferTrace(p1);
             m_promiscSnifferTrace(p1);
-            m_macTxTrace(p1, m_queue_output_p->GetNPackets());
+            m_macTxTrace(p1);
             TransmitStart(p1);
             return;
         }
         Ptr<Packet> p0 = m_queue_output->Dequeue();
-//        uint32_t queue_size = m_queue->GetNPackets();
+        
+        if (m_queue_output->GetNPackets() > 1)
+            std::cout << "QO=" << m_queue_output->GetNPackets() << "\n";
+                
         if (p0 != 0) {
             //
             // There was no packets on the high p, but on the lp queue, send them...
             //
             m_snifferTrace(p0);
             m_promiscSnifferTrace(p0);
-            m_macTxTrace(p0, m_queue_output->GetNPackets());
+            m_macTxTrace(p0);
             TransmitStart(p0);
             return;
         }
@@ -438,7 +441,7 @@ void
             //
             m_phyRxEndTrace(packet);
 
-            m_macRxTrace(packet, m_queue_input->GetNPackets());
+            m_macRxTrace(packet);
 
             NOCHeader h;
             packet->RemoveHeader(h);
@@ -479,7 +482,10 @@ void
             
             m_queue_input->Enqueue(packet);
             
-            m_rxCallback(packet, this);
+            if (m_queue_input->GetNPackets() > 1)
+                std::cout << "QI=" << m_queue_input->GetNPackets() << "\n";
+            
+            m_rxCallback(packet, m_direction);
 
         }
     }
@@ -623,7 +629,7 @@ void
                     
                     m_snifferTrace(packet);
                     m_promiscSnifferTrace(packet);
-                    m_macTxTrace(packet, m_queue_output_p->GetNPackets());
+                    m_macTxTrace(packet);
                     
                     return TransmitStart(packet);
                 } else {
@@ -644,7 +650,10 @@ void
                 
                 m_snifferTrace(packet);
                 m_promiscSnifferTrace(packet);
-                m_macTxTrace(packet, m_queue_output->GetNPackets());
+                m_macTxTrace(packet);
+
+            if (m_queue_output->GetNPackets() > 1)
+                std::cout << "QO=" << m_queue_output->GetNPackets() << "\n";                
                 
                 return TransmitStart(packet);
             } else {

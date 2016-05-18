@@ -24,7 +24,6 @@
 #define NOC_NET_DEVICE_H
 
 #include <cstring>
-#include "ns3/address.h"
 #include "ns3/node.h"
 #include "ns3/net-device.h"
 #include "ns3/callback.h"
@@ -34,18 +33,8 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 #include "ns3/boolean.h"
-
-#include "noc-address.h"
-
-//#include "ns3/log.h"
 #include "ns3/queue.h"
-//#include "ns3/simulator.h"
-//#include "ns3/llc-snap-header.h"
 #include "ns3/error-model.h"
-//#include "ns3/trace-source-accessor.h"
-//#include "ns3/uinteger.h"
-//#include "ns3/double.h"
-//#include "ns3/pointer.h"
 
 #include "noc-address.h"
 #include "noc-net-device.h"
@@ -112,7 +101,7 @@ namespace ns3 {
         
         
         
-        Time GetTransmissionTime(Ptr<const Packet> p);
+//        Time GetTransmissionTime(Ptr<const Packet> p);
 
         /**
          * Set the interframe gap used to separate packets.  The interframe gap
@@ -213,12 +202,12 @@ namespace ns3 {
         virtual void SetReceiveCallback(ReceiveCallback);
         
         
-        typedef Callback< void, Ptr<const Packet>, Ptr<NOCNetDevice> > ReceiveCallback;
+        typedef Callback< void, Ptr<const Packet>, NOCRouting::Directions> ReceiveCallback;
         void SetReceiveCallback(ReceiveCallback);
         
         
-        typedef Callback< void, Ptr<const Packet>, uint16_t > SignalChanged;
-        void SetSignalReadCallback (SignalChanged);
+//        typedef Callback< void, Ptr<const Packet>, uint16_t > SignalChanged;
+//        void SetSignalReadCallback (SignalChanged);
         
 //        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<NOCNetDevice>, uint8_t > RemoteTransmissionStartedCallback;
         
@@ -226,11 +215,11 @@ namespace ns3 {
         
 //        void AddRemoteTransmitStartedCallback(RemoteTransmissionStartedCallback callback);
         
-        typedef Callback< void, uint8_t, Ptr<NOCNetDevice>, bool > SignalChangedCallback;
-        
-        void SetRemoteSignalChangedCallback(SignalChangedCallback);
-        
-        void SetLocalSignalChangedCallback(SignalChangedCallback);
+//        typedef Callback< void, uint8_t, Ptr<NOCNetDevice>, bool > SignalChangedCallback;
+//        
+//        void SetRemoteSignalChangedCallback(SignalChangedCallback);
+//        
+//        void SetLocalSignalChangedCallback(SignalChangedCallback);
         
 
         // The remaining methods are documented in ns3::NetDevice*
@@ -409,7 +398,7 @@ namespace ns3 {
          *
          * \see class CallBackTraceSource
          */
-        TracedCallback<Ptr<const Packet> , uint32_t> m_macTxTrace;
+        TracedCallback<Ptr<const Packet> > m_macTxTrace;
 
         /**
          * The trace source fired when packets coming into the "top" of the device
@@ -437,7 +426,7 @@ namespace ns3 {
          *
          * \see class CallBackTraceSource
          */
-        TracedCallback<Ptr<const Packet>, uint32_t > m_macRxTrace;
+        TracedCallback<Ptr<const Packet> > m_macRxTrace;
 
         /**
          * The trace source fired for packets successfully received by the device

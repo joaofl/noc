@@ -35,6 +35,7 @@
 #include "ns3/ptr.h"
 #include "ns3/net-device-container.h"
 #include "ns3/object.h"
+#include "ns3/queue.h"
 
 #include "noc-header.h"
 #include "xdense-header.h"
@@ -45,12 +46,12 @@
 using namespace std;
 namespace ns3 {
 
-    class RoundRobin {
+    class RoundRobinState {
     public:
         NOCRouting::Directions m_actual_port;
 
-        uint8_t m_E, m_W, m_S, m_N;
-        uint8_t m_EC, m_WC, m_SC, m_NC;
+        uint8_t m_E, m_W, m_S, m_N, m_L;
+        uint8_t m_EC, m_WC, m_SC, m_NC, m_LC;
         
         
 
@@ -95,7 +96,8 @@ namespace ns3 {
         // Basic comm functions//////////////////////
         void PacketTrace(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
         
-        void PacketReceived(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
+//        void PacketServe(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
+        void PacketServe(Ptr<const Packet> packet, NOCRouting::Directions dir);
         
         
         bool PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, int32_t destination_x, 
@@ -119,6 +121,8 @@ namespace ns3 {
         Ptr<NOCNetDevice> GetNetDevice(uint8_t network, uint8_t direction);
         Ptr<NOCNetDevice> GetNetDevice(uint8_t i);
         
+        Ptr<Queue> GetNetDeviceQueue(uint8_t network, uint8_t direction);
+        
         NetDeviceInfo GetNetDeviceInfo(Ptr<NOCNetDevice> nd);
     
         NetDeviceInfo GetNetDeviceInfo(uint8_t network, uint8_t direction);
@@ -127,6 +131,10 @@ namespace ns3 {
         int8_t GetNetDeviceInfoIndex(Ptr<NOCNetDevice> nd);
         
         uint8_t GetNDevices(void);
+        
+        Time GetTransmissionTime(Ptr<const Packet> pck);
+        
+        void SetDataRate(DataRate bps);
      
         
         //            void
@@ -164,18 +172,19 @@ namespace ns3 {
         
     private:
         
-        TracedCallback<Ptr<const Packet>, uint32_t > m_routerRxTrace;
-        TracedCallback<Ptr<const Packet>, uint32_t > m_routerTxTrace;
-        TracedCallback<Ptr<const Packet>, uint32_t > m_routerCxTrace;
-        TracedCallback<Ptr<const Packet>, uint32_t > m_routerGxTrace;
-        TracedCallback<Ptr<const Packet>, uint32_t > m_routerTxDropTrace;
+        TracedCallback<Ptr<const Packet> > m_routerRxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerTxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerCxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerGxTrace;
+        TracedCallback<Ptr<const Packet> > m_routerTxDropTrace;
+        TracedCallback< uint32_t > m_routerTxQueueSize;
         
         virtual void StartApplication(void);
         virtual void StopApplication(void);
         
         void ConsumePacket(Ptr<const Packet> packet, Ptr<NOCNetDevice> device);
 
-        void ServePorts(void);
+        void RoundRobin(void);
         void NextPort(void);
         
 
@@ -198,6 +207,10 @@ namespace ns3 {
         
         NOCRouting::RoutingProtocols m_routing_conf;
         
+        ObjectFactory m_queueFactory;
+        Ptr<Queue> m_queue_app_output;
+        
+        DataRate m_bps;
         
         enum server_state_machine{
             IDLE,
@@ -206,7 +219,7 @@ namespace ns3 {
         
         server_state_machine m_server_state;
         
-        RoundRobin m_input_ports, rr_n, rr_w, rr_s;
+        RoundRobinState m_input_ports, rr_n, rr_w, rr_s;
         
     };
     
