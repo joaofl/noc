@@ -19,7 +19,7 @@ def print_progress(i, n_samples):
 # measurement loop
 n_samples = 100000
 br = 3000000
-context = 'relay-delay-uc-high-uart-irq-fine'
+context = 'relay-delay-uc-parallel'
 measurements = []
 
 
@@ -44,7 +44,7 @@ connect_rigol = True
 
 if connect_rigol == True:
     instr =  serialtmc.instrument() # Rigol DS1052E
-    instr.connect('/dev/ttyUSB0', 9600)
+    instr.connect('/dev/ttyUSB1', 9600)
     inf = instr.ask('*IDN?')
     print('Equipament found: '+ str(inf))
 

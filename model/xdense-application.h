@@ -36,7 +36,7 @@
 
 #include "ns3/xdense-header.h"
 #include "ns3/noc-router.h"
-#include "ns3/noc-routing-protocols.h"
+#include "ns3/noc-routing.h"
 #include "ns3/calc.h"
 #include "ns3/data-io.h"
 #include "ns3/noc-net-device.h"

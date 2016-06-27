@@ -64,7 +64,7 @@ def main ():
     # max_x = 11
     # max_y = 11
 
-    node_x, node_y = 6, 5
+    node_x, node_y = 2, 1
 
     axis_x_transmitted=[]
     axis_y_transmitted=[]

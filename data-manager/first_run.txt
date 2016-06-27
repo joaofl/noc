@@ -1,45 +1,26 @@
 #To run scripts
-sudo apt-get install python3.5-dev
+sudo apt install python3.5-dev build-essentials
 wget https://bootstrap.pypa.io/get-pip.py
 sudo python3.5 get-pip.py
-sudo apt-get install cython3 git
-sudo -H pip3.5 install git+https://github.com/numpy/numpy.git
-sudo apt-get install libfreetype6-dev
+sudo apt install cython3 git
+sudo -H pip3.5 install numpy
+sudo apt install libfreetype6-dev
+sudo apt install python3-pyqt4
 sudo -H pip3.5 install matplotlib
-sudo apt-get install libffi-dev
+sudo apt install libffi-dev
 
 #Optional
 sudo -H pip3.5 install cairocffi
 sudo apt-get install ffmpeg
 sudo -H pip3.5 install pyopengl
 
-#To run the netanim
-#Depends on: sip
-wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.18/sip-4.18.tar.gz
-tar xzf sip-4.17.tar.gz
-cd sip-4.17
-python3.5 configure.py
-make
-sudo make install
-cd ..
-
-#Download PyQt5
-sudo apt-get install qt5-default
-wget http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.5.1/PyQt-gpl-5.5.1.tar.gz
-tar xzf PyQt-gpl-5.5.1.tar.gz
-cd PyQt-gpl-5.5.1
-python3.5 configure.py
-make
-sudo make install
-cd ..
-
 #Instead of both blocks above, try this one
 sudo -H pip3.5 install pyqt5
 
 #Optional for statistics - scipy
-$ sudo apt-get install libatlas-base-dev gfortran
+sudo apt install libatlas-base-dev gfortran
 sudo -H pip3.5 install scipy
 
 #Optional for importing sensors data from image and video files
-sudo apt-get install -y     libavformat-dev libavcodec-dev libavdevice-dev     libavutil-dev libswscale-dev libavresample-dev
+sudo apt install -y libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libavresample-dev
 sudo -H pip3.5 install av

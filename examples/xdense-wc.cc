@@ -110,8 +110,8 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 5;
-    uint32_t size_y = 4;
+    uint32_t size_x = 10;
+    uint32_t size_y = 3;
     uint32_t size_neighborhood = 0; //odd only, so neighborhoods do not overlap eachother
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
@@ -119,7 +119,7 @@ main(int argc, char *argv[]) {
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "WC_ANALYSIS";
+    string context = "_WC_ANALYSIS";
         
     string output_data_dir = homedir + "/noc-data";
     string input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
@@ -143,8 +143,11 @@ main(int argc, char *argv[]) {
     ///////////////////////////////////////////////////////////////
 
     stringstream context_dir;
-    context_dir << "/nw" << size_x << "x" <<size_y << "s" << sinks_n << "n" << size_neighborhood << "c";
-    context_dir << context;
+    context_dir << "/";
+    context_dir << "nw" << size_x << "x" <<size_y;
+//    context_dir << "s" << sinks_n;
+//    context_dir << "n" << size_neighborhood;
+    context_dir << "c" << context;
     context_dir << "/";
     
     string dir_output = output_data_dir + context_dir.str() + "out/";
