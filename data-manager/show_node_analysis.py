@@ -30,6 +30,8 @@ import packet_structure as trace
 import files_io
 from os.path import expanduser
 
+
+
 home = expanduser("~")
 
 # matplotlib.style.use('bmh')
@@ -135,8 +137,9 @@ def main ():
     if len(axis_x_received) != 0:
         x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
 
-        for x in x_bound:
-            y_bound.append(rho * x + sigma)
+        # for x in x_bound:
+            # y_bound.append(rho * x + sigma)
+            #grab from the model here
     else:
         print('The node in analysis received no packets.')
 
