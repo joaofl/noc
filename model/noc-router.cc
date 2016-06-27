@@ -431,19 +431,24 @@ namespace ns3 {
     NOCRouter::PacketServe(Ptr<const Packet> pck_rcv, NOCRouting::Directions input) {
         m_routerRxTrace(pck_rcv);  
         
+        Ptr<QueueItem> item;
         Ptr<Packet> pck;// = pck->Copy();
         uint8_t out;
         Time t_ns;
         Ptr<NOCNetDevice> nd;
         
+        
         if (input == NOCRouting::DIRECTION_L){ //Generated locally, then queue it
-            this->m_queue_app_output->Enqueue(pck_rcv->Copy());
+            this->m_queue_app_output->Enqueue(Create<QueueItem> (pck_rcv->Copy()));
         }
         
         switch (ServerPolicy){
             case FIFO:
-                if (input == NOCRouting::DIRECTION_L)
-                    pck = this->m_queue_app_output->Dequeue();
+                if (input == NOCRouting::DIRECTION_L){
+//                    pck = this->m_queue_app_output->Dequeue();
+                    item = m_queue_app_output->Dequeue();
+                    pck = item->GetPacket();
+                }
                 else
                     pck = this->GetNetDevice(0, input)->DequeueReceived();
                 
@@ -521,7 +526,11 @@ namespace ns3 {
         queue_l = 0; 
             queue_l = m_queue_app_output->GetNPackets();
             if (queue_l > 0){
-                pck_l = m_queue_app_output->Peek();
+//                pck_l = m_queue_app_output->Peek();
+                
+                Ptr<const QueueItem> item = m_queue_app_output->Peek();
+                pck_l = item->GetPacket();
+                
                 out_from_l = NOCRouting::Route(pck_l, m_routing_conf);
             }
         
@@ -566,7 +575,8 @@ namespace ns3 {
                                 Transmit(pck, 0, out_from_s, P0);
                             }     
                             if (queue_l > 0 && !(out_from_l ^ out_from_e) == 0){ 
-                                pck = m_queue_app_output->Dequeue();
+                                Ptr<QueueItem> item = m_queue_app_output->Dequeue();
+                                pck = item->GetPacket();
                                 Transmit(pck, 0, out_from_l, P0);
                             }
                             
@@ -599,7 +609,8 @@ namespace ns3 {
                                 Transmit(pck, 0, out_from_s, P0);
                             }
                             if (queue_l > 0 && !(out_from_l ^ out_from_n) == 0){ 
-                                pck = m_queue_app_output->Dequeue();
+                                Ptr<QueueItem> item = m_queue_app_output->Dequeue();
+                                pck = item->GetPacket();
                                 Transmit(pck, 0, out_from_l, P0);
                             }
                             
@@ -631,8 +642,9 @@ namespace ns3 {
                                 pck = nd_s->DequeueReceived();
                                 Transmit(pck, 0, out_from_s, P0);
                             }
-                            if (queue_l > 0 && !(out_from_l ^ out_from_w) == 0){ 
-                                pck = m_queue_app_output->Dequeue();
+                            if (queue_l > 0 && !(out_from_l ^ out_from_w) == 0){
+                                Ptr<QueueItem> item = m_queue_app_output->Dequeue();
+                                pck = item->GetPacket();
                                 Transmit(pck, 0, out_from_l, P0);
                             }
                             
@@ -666,7 +678,8 @@ namespace ns3 {
                                 Transmit(pck, 0, out_from_n, P0);
                             }
                             if (queue_l > 0 && !(out_from_l ^ out_from_s) == 0){ 
-                                pck = m_queue_app_output->Dequeue();
+                                Ptr<QueueItem> item = m_queue_app_output->Dequeue();
+                                pck = item->GetPacket();
                                 Transmit(pck, 0, out_from_l, P0);
                             }
                             
@@ -683,7 +696,9 @@ namespace ns3 {
                     /////////////////////// LOCAL ////////////////////////////////////////////////
                     case NOCRouting::DIRECTION_L:
                         if (queue_l > 0) {
-                            pck = m_queue_app_output->Dequeue();
+                            Ptr<QueueItem> item = m_queue_app_output->Dequeue();
+                            pck = item->GetPacket();
+                            
                             Transmit(pck, 0, out_from_l, P0);
                             
                             //There is no conflict of interest for output ports

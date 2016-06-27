@@ -288,10 +288,11 @@ void
         m_phyTxEndTrace(m_currentPkt);
         m_currentPkt = 0;
 
-
-        Ptr<Packet> p1 = m_queue_output_p->Dequeue();
-//        uint32_t queue_size_prioritized = m_queue_prioritized->GetNPackets();
-        if (p1 != 0) {
+        Ptr<QueueItem> item;
+        Ptr<Packet> p1;
+        if (m_queue_output_p->IsEmpty() == false){
+            item = m_queue_output_p->Dequeue();
+            p1 = item->GetPacket ();
             //
             // There was packets on the high p queue, send them...
             //
@@ -301,12 +302,11 @@ void
             TransmitStart(p1);
             return;
         }
-        Ptr<Packet> p0 = m_queue_output->Dequeue();
         
-        if (m_queue_output->GetNPackets() > 1)
-            std::cout << "QO=" << m_queue_output->GetNPackets() << "\n";
-                
-        if (p0 != 0) {
+        Ptr<Packet> p0;
+        if (m_queue_output->IsEmpty() == false){
+            item = m_queue_output->Dequeue();
+            p0 = item->GetPacket ();
             //
             // There was no packets on the high p, but on the lp queue, send them...
             //
@@ -316,6 +316,9 @@ void
             TransmitStart(p0);
             return;
         }
+        
+//        if (m_queue_output->GetNPackets() > 1)
+//            std::cout << "QO=" << m_queue_output->GetNPackets() << "\n";
     }
 
 //    void 
@@ -412,11 +415,13 @@ void
     
     Ptr<Packet>
     NOCNetDevice::DequeueReceived() {
-        return m_queue_input->Dequeue();
+        Ptr<QueueItem> item = m_queue_input->Dequeue();
+        return item->GetPacket();
     }
     Ptr<const Packet>
     NOCNetDevice::PeekReceived() {
-        return m_queue_input->Peek();
+        Ptr<const QueueItem> item = m_queue_input->Peek();
+        return item->GetPacket();
     }
     uint32_t
     NOCNetDevice::GetInputQueueSize() {
@@ -480,10 +485,12 @@ void
 
             packet->AddHeader(h);
             
-            m_queue_input->Enqueue(packet);
+            if (m_queue_input->Enqueue(Create<QueueItem> (packet)) == false) {
+                std::cout << "Packet dropped\n";
+            }
             
             if (m_queue_input->GetNPackets() > 1)
-                std::cout << "QI=" << m_queue_input->GetNPackets() << "\n";
+//                std::cout << "QI=" << m_queue_input->GetNPackets() << "\n";
             
             m_rxCallback(packet, m_direction);
 
@@ -623,9 +630,10 @@ void
             //TODO: change queue to an array of queue, so multiple priorities
             //can be utilized
             if (priority > 0) {
-                if (m_queue_output_p->Enqueue(packet) == true) {
+                if (m_queue_output_p->Enqueue( Create<QueueItem> (packet) ) == true) {
 //                    uint32_t queue_size_prioritized = m_queue_prioritized->GetNPackets();
-                    packet = m_queue_output_p->Dequeue();
+                    Ptr<QueueItem> item = m_queue_output_p->Dequeue();
+                    packet = item->GetPacket ();
                     
                     m_snifferTrace(packet);
                     m_promiscSnifferTrace(packet);
@@ -644,9 +652,11 @@ void
             // Even if the transmitter is immediately available, we still enqueue and
             // dequeue the packet to hit the tracing hooks.
             //
-            if (m_queue_output->Enqueue(packet) == true) {
+            if (m_queue_output->Enqueue(Create<QueueItem> (packet) ) == true) {
 //                uint32_t queue_size = m_queue->GetNPackets();
-                packet = m_queue_output->Dequeue();
+                
+                Ptr<QueueItem> item = m_queue_output->Dequeue();
+                packet = item->GetPacket ();
                 
                 m_snifferTrace(packet);
                 m_promiscSnifferTrace(packet);
@@ -666,12 +676,12 @@ void
         else //m_txMachineState != READY
         {
             if (priority > 0){
-                bool r = m_queue_output_p->Enqueue(packet);
+                bool r = m_queue_output_p->Enqueue(Create<QueueItem> (packet) );
 //                uint32_t queue_size_prioritized = m_queue_prioritized->GetNPackets();
                 return r;
             }
             else{
-                bool r = m_queue_output->Enqueue(packet);
+                bool r = m_queue_output->Enqueue(Create<QueueItem> (packet) );
 //                uint32_t queue_size = m_queue->GetNPackets();
                 return r;
             }
