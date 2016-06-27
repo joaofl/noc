@@ -30,7 +30,7 @@ import packet_structure as trace
 import files_io
 from os.path import expanduser
 
-
+import others.analysis_wc
 
 home = expanduser("~")
 
