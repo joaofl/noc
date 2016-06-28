@@ -78,13 +78,13 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetFlowGenerator(uint32_t start, uint32_t period, uint32_t jitter, uint32_t duration, uint32_t dest_x, uint32_t dest_y, bool trace) {
+    XDenseApp::SetFlowGenerator(uint32_t start, uint32_t period, uint32_t jitter, uint32_t burst, uint32_t dest_x, uint32_t dest_y, bool trace) {
         if (period == 0 || IsActive == false) return;
         
         
         Time t_ns;
         
-        for (uint32_t tslot = 0; tslot < duration + jitter; tslot++) {
+        for (uint32_t tslot = 0; tslot < burst + jitter; tslot++) {
             if (tslot < jitter) continue;
             
             Ptr<Packet> pck = Create<Packet>();

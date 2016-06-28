@@ -8,9 +8,8 @@ def b(cfi, bs):
     else:
         return 0
 
-def queue(t, sw):
-    capacity = 1
-    produced = []
+def received(t, sw):
+    received = []
     for f in sw: # do it fow all the flows getting into that switch
         period = f[0]
         jitter = f[1]
@@ -20,28 +19,46 @@ def queue(t, sw):
         if tw < 0:
             tw = 0
 
-        cf = math.floor((1 / period) * tw)
-        bf = b(cf, bsize)
+        cf = math.floor((1 / period)) * tw #how many packets a flow have produced
+
+        bf = b(cf, bsize) #due to the burst size
+        # bf = 0
         prod = cf + bf
-        produced.append(prod)
+        received.append(prod)
 
-    # consumed = capacity * t - 1
-    # if consumed < 0:
-    consumed = 0
+    treceived = numpy.sum(received)
 
-    tqueue = numpy.sum(produced) - consumed
+    return treceived
 
-    if tqueue < 0:
-        tqueue = 0
 
-    return tqueue
+def sent(t, sw):
+    sent = []
+    for f in sw: # do it fow all the flows getting into that switch
+        period = f[0]
+        jitter = f[1]
+        bsize = f[2]
+
+        tw = (t-jitter)
+        if tw < 0:
+            tw = 0
+
+        cf = math.ceil((1 / period)) * tw #how many packets a flow have produced
+
+        bf = b(cf, bsize) #due to the burst size
+        bf = 0
+        prod = cf + bf
+        sent.append(prod)
+
+    tproduced = numpy.sum(sent)
+
+    return tproduced
 
 
 def calculate_node(t_range):
 
-    fa = [1, 1, 10]  # whereas the flows comming from neighbors take one time cycle more
-    fb = [1, 1, 10]
-    fc = [1, 1, 10]
+    fa = [2, 1, 10]  # whereas the flows comming from neighbors take one time cycle more
+    fb = [2, 1, 10]
+    fc = [2, 1, 10]
 
     sw0 = [fa, fb, fc]
 
@@ -49,7 +66,7 @@ def calculate_node(t_range):
     t_profile = []
 
     for t in range(1, t_range + 1):
-        tnext = queue(t, sw0)
+        tnext = received(t, sw0)
 
         t_profile.append(tnext)
 
@@ -94,7 +111,7 @@ def calculate():
 
     tactual = 1
     for sw in route:
-        tnext = queue(tactual, sw)
+        tnext = received(tactual, sw)
         tactual = tnext
 
         tt_queue += tnext
