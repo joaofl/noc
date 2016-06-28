@@ -78,9 +78,9 @@ namespace ns3 {
          */
 //        void SetProtocol(uint16_t protocol);
 
-        void SetData(uint8_t *);
+        void SetData(uint64_t);
         
-        void GetData(uint8_t *);
+        uint64_t GetData(void);
         
         /**
          * \brief Set the protocol type carried by this PPP packet
@@ -98,7 +98,7 @@ namespace ns3 {
          *
          * \return the protocol type being carried
          */
-        uint16_t GetXdenseProtocol(void);
+        uint8_t GetXdenseProtocol(void);
 
 
     private:
@@ -107,7 +107,8 @@ namespace ns3 {
          * \brief The PPP protocol type of the payload packet
          */
         uint8_t m_protocol;
-        uint8_t m_data[PAYLOAD_SIZE - 1];
+//        uint8_t m_data[PAYLOAD_SIZE - 1];
+        uint64_t m_data;
     };
 
 } // namespace ns3

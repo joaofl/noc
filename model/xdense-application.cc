@@ -78,23 +78,28 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetFlowGenerator(uint32_t period, uint32_t jitter, uint32_t duration, uint32_t dest_x, uint32_t dest_y, bool trace) {
+    XDenseApp::SetFlowGenerator(uint32_t start, uint32_t period, uint32_t jitter, uint32_t duration, uint32_t dest_x, uint32_t dest_y, bool trace) {
         if (period == 0 || IsActive == false) return;
         
-        Ptr<Packet> pck = Create<Packet>();
-        XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
-        if (trace) hd.SetXdenseProtocol(XDenseHeader::TRACE);
-        pck->AddHeader(hd);
         
         Time t_ns;
         
         for (uint32_t tslot = 0; tslot < duration + jitter; tslot++) {
             if (tslot < jitter) continue;
             
+            Ptr<Packet> pck = Create<Packet>();
+            XDenseHeader hd;
+            hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+            if (trace){
+                hd.SetXdenseProtocol(XDenseHeader::TRACE);
+                hd.SetData(tslot + start);
+            }
+            pck->AddHeader(hd);
+
+            
             if (tslot % period == 0){
-                t_ns = tslot * PacketDuration;
-                t_ns += Time::FromInteger(1, Time::NS); //To prenvent an ns3 bug to happen 
+                t_ns = (tslot + start) * PacketDuration;
+//                t_ns += start; //To prenvent an ns3 bug to happen 
                 Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
             }
         }
@@ -158,6 +163,9 @@ namespace ns3 {
         XDenseHeader h;
         pck_c->RemoveHeader(h);
         
+        uint64_t tts_pck;
+        int64x64_t tts_now, tts_total;
+        
         switch (h.GetXdenseProtocol()){
             case XDenseHeader::DATA_ANNOUCEMENT:
                 DataAnnoucementReceived(pck, origin_x, origin_y);
@@ -171,7 +179,10 @@ namespace ns3 {
             case XDenseHeader::NETWORK_SETUP:
 //                NetworkSetupReceived(pck, origin_x, origin_y);                
             case XDenseHeader::TRACE:
-                cout << "Received at the app layer:" << Simulator::Now().GetNanoSeconds() << " tts:" << Simulator::Now().GetNanoSeconds() / PacketDuration << "\n";            
+                tts_now = Simulator::Now().GetNanoSeconds() / PacketDuration;
+                tts_pck = h.GetData();
+                tts_total = tts_now - tts_pck;
+                cout << "Received at the app layer:" << Simulator::Now().GetNanoSeconds() << " tts:" << tts_total << "\n";            
                 break;
             
         }

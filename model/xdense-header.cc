@@ -35,6 +35,7 @@ namespace ns3 {
     ;
 
     XDenseHeader::XDenseHeader() {
+        
     }
 
     XDenseHeader::~XDenseHeader() {
@@ -71,7 +72,8 @@ namespace ns3 {
     XDenseHeader::Serialize(Buffer::Iterator start) const {
 
         start.WriteU8(m_protocol);
-        start.WriteU8(m_data[0], PAYLOAD_SIZE - 1);
+        start.WriteU64(m_data);
+//        start.Write(m_data, PAYLOAD_SIZE - 1);
         
     }
 
@@ -79,11 +81,12 @@ namespace ns3 {
     XDenseHeader::Deserialize(Buffer::Iterator start) {
         
         (m_protocol) = start.ReadU8();
+        (m_data) = start.ReadU64();
 //        
 //        for (uint8_t i = 0 ; i < PAYLOAD_SIZE ; i++)
 //        {
 //            m_data[i] = start.ReadU8();
-        start.Read(m_data, PAYLOAD_SIZE - 1);
+//        start.Read(m_data, PAYLOAD_SIZE - 1);
 //        }
 //            default:
 //                std::cout << "Error while deserializing data into the buffer. No known protocol defined in the header.\n";
@@ -97,9 +100,41 @@ namespace ns3 {
         m_protocol = protocol;
     }
 
-    uint16_t
+    uint8_t
     XDenseHeader::GetXdenseProtocol(void) {
         return m_protocol;
     }
+
+    uint64_t
+    XDenseHeader::GetData(void) {
+//        uint64_t data = 0;
+        
+//        data = m_data[7]
+//        for (uint8_t i = 0 ; i < 8 ; i++){
+//            data &= m_data[i] << (i * 8);
+//        }
+                
+        return m_data;
+    }
+    void
+    XDenseHeader::SetData(uint64_t data) {
+        
+        m_data = data;
+        
+//        for (uint8_t i = 0 ; i < 8 ; i++){
+//            m_data[i] = data >> (i * 8);
+//        }
+        
+//        m_data[0] = data >> 0;
+//        m_data[1] = data >> 8;
+//        m_data[2] = data >> 16;
+//        m_data[3] = data >> 24;
+//        m_data[4] = data >> 32;
+//        m_data[5] = data >> 40;
+//        m_data[6] = data >> 48;
+//        m_data[7] = data >> 56;
+    }
+
+
 
 } // namespace ns3
