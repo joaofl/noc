@@ -204,10 +204,14 @@ class Node(QGraphicsItem):
 
         qp.setBrush(QColor("white"))
 
+
+
+        qp.setBrush( self.__led_off_brush)
+        # qp.setPen(QColor("white"))
         if (self.__led == 1):
             qp.setBrush( self.__led_on_brush)
-            qp.setPen(QColor("green"))
-            qp.drawEllipse(x + 3.3 * c, self.__y + 3.3 * c, 1.3 * c, 1.3 * c)  # draw the node
+            # qp.setPen(QColor("green"))
+        qp.drawEllipse(x + 3.3 * c, self.__y + 3.3 * c, 1.3 * c, 1.3 * c)  # draw the node
         # if (self.__led == 0):
         #     qp.setBrush( self.__led_off_brush)
 
@@ -437,6 +441,8 @@ class NOCAnim(QWidget):
 
                 if current_trans[trace.protocol_app] == '6':
                     node.setProperty(led = 1)
+                # else:
+                #     node.setProperty(led = 0)
 
                 if current_trans[trace.operation] == 'c':
                     node.setProperty(core_rx = 1)

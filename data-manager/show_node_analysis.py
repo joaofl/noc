@@ -30,6 +30,8 @@ import packet_structure as trace
 import files_io
 from os.path import expanduser
 
+import others.analysis_wc as wca
+
 import others.analysis_wc
 
 home = expanduser("~")
@@ -44,11 +46,9 @@ def main ():
     global options, args
 
     if options.inputfile == None:
-        options.inputfile = home + '/noc-data/tests/out/packets-trace-netdevice.csv'
-    if options.inputconfigfile == None:
-        options.inputconfigfile = home + '/noc-data/config/input-config.c.csv'
+        options.inputfile = home + '/noc-data/nw3x3cWC_ANALYSIS/out/packets-trace-netdevice.csv'
     if options.outputdir == None:
-        options.outputdir = home + '/noc-data/tests/plots/'
+        options.outputdir = home + '/noc-data/plots/'
 
     if not os.path.exists(options.outputdir):
         os.makedirs(options.outputdir)
@@ -63,10 +63,7 @@ def main ():
     max_x = max( data[:,trace.x_absolute].astype(int) )
     max_y = max( data[:,trace.y_absolute].astype(int) )
 
-    # max_x = 11
-    # max_y = 11
-
-    node_x, node_y = 2, 1
+    node_x, node_y = 1, 1
 
     axis_x_transmitted=[]
     axis_y_transmitted=[]
@@ -82,10 +79,7 @@ def main ():
     log_received = []
     log_transmitted = []
 
-    imgs = []
-    imgs_transmitted = []
-
-    pck_duration = ( float(options.baudrate) / float(options.packet_size))
+    pck_duration = ( float(options.packet_size) / float(options.baudrate) ) * 1e9
 
     t, t_a = 0, 0
 
@@ -96,7 +90,7 @@ def main ():
 
         time_slot = int(line[trace.time]) / pck_duration
 
-        t = int ( time_slot )
+        t = int (round(time_slot,0)) - 1
 
         #Get the full picture
         if line[trace.operation] == 'r' or line[trace.operation] == 'g':
@@ -114,10 +108,10 @@ def main ():
                 transmitted_s = numpy.zeros([max_y + 1, max_x + 1])
 
         if abs_x == node_x and abs_y == node_y:
-            axis_x_transmitted.append(time_slot)
+            axis_x_transmitted.append(t)
             axis_y_transmitted.append(transmitted[node_y, node_x])
 
-            axis_x_received.append(time_slot)
+            axis_x_received.append(t)
             axis_y_received.append(received[node_y, node_x])
 
 
@@ -138,8 +132,8 @@ def main ():
         x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
 
         # for x in x_bound:
-            # y_bound.append(rho * x + sigma)
-            #grab from the model here
+        y_bound = wca.calculate_node(len(x_bound))
+            # grab from the model here
     else:
         print('The node in analysis received no packets.')
 
@@ -153,8 +147,6 @@ def main ():
     plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_bound, y_bound)
     plotMatrix(received)
     # plt.show()
-
-
 
     # received = numpy.flipud(received)
     # transmitted = numpy.flipud(transmitted)
@@ -260,16 +252,16 @@ if __name__ == '__main__':
         parser = optparse.OptionParser(formatter=optparse.TitledHelpFormatter(), usage=globals()['__doc__'], version='$Id$')
 
         parser.add_option ('-v', '--verbose', action='store_true', default=False, help='verbose output')
-        parser.add_option ('-i', '--inputfile', help='input file containing the packet trace')
-        parser.add_option ('-c', '--inputconfigfile', help='config file containing the simulation parameters')
+        parser.add_option ('-i', '--inputfile', help='input file containing the packet trace', default=None)
+        # parser.add_option ('-c', '--inputconfigfile', help='config file containing the simulation parameters')
         parser.add_option ('-o', '--outputdir', help='', default=None)
 
         parser.add_option ('-t', '--timeslotsize', help='time between two refreshes of the animator')
-        parser.add_option ('-x', '--size_x', help='network size', default=0)
-        parser.add_option ('-y', '--size_y', help='network size', default=0)
+        parser.add_option ('-x', '--size_x', help='network size', default=3)
+        parser.add_option ('-y', '--size_y', help='network size', default=3)
         parser.add_option ('-s', '--sinks_n', help='number of sinks', default=1)
-        parser.add_option ('-b', '--baudrate', help='baudrate utilized', default=1500000)
-        parser.add_option ('-p', '--packet_size', help='packet_size in bits', default=16*8)
+        parser.add_option ('-b', '--baudrate', help='baudrate utilized', default=3000000)
+        parser.add_option ('-p', '--packet_size', help='packet_size in bits', default=16*10)
         parser.add_option ('-n', '--size_neighborhood', help='neighborhood size', default=0)
 
 
