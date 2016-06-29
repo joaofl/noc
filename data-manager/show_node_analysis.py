@@ -45,10 +45,12 @@ def main ():
 
     global options, args
 
+    dir = '/noc-data/nw3x3cWC_ANALYSIS_F724/out/'
+
     if options.inputfile == None:
-        options.inputfile = home + '/noc-data/nw3x3cWC_ANALYSIS_F724/out/packets-trace-netdevice.csv'
+        options.inputfile = home + dir + 'packets-trace-netdevice.csv'
     if options.outputdir == None:
-        options.outputdir = home + '/noc-data/plots/'
+        options.outputdir = home + dir
 
     if not os.path.exists(options.outputdir):
         os.makedirs(options.outputdir)
@@ -194,7 +196,9 @@ def plotMatrix(data):
 
 def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None):
 
-    filename=None
+    global options
+
+    filename = options.outputdir + 'cumulative_ad.eps'
     show=True
     x_size = 6.5
     y_size = 3.1

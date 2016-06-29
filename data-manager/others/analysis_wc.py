@@ -52,6 +52,8 @@ def sent(sw):
 
     bb = numpy.sum(b)
 
+    pp = 0.4
+
     return [1/pp,jj,bb]
 
 
@@ -75,7 +77,7 @@ def calculate_node(t_range):
 
     transmited_profile = []
 
-    for t in range(1, len(received_profile) + 1):
+    for t in range(1, t_range + 1):
         transmited_profile.append(received(t,sw_out))
 
     return [received_profile, transmited_profile]
