@@ -46,7 +46,7 @@ def main ():
     global options, args
 
     if options.inputfile == None:
-        options.inputfile = home + '/noc-data/nw3x3cWC_ANALYSIS/out/packets-trace-netdevice.csv'
+        options.inputfile = home + '/noc-data/nw3x3cWC_ANALYSIS_F724/out/packets-trace-netdevice.csv'
     if options.outputdir == None:
         options.outputdir = home + '/noc-data/plots/'
 
@@ -132,7 +132,8 @@ def main ():
         x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
 
         # for x in x_bound:
-        y_bound = wca.calculate_node(len(x_bound))
+        [y_bound_received, y_bound_transmited] = wca.calculate_node(len(x_bound))
+
             # grab from the model here
     else:
         print('The node in analysis received no packets.')
@@ -144,7 +145,7 @@ def main ():
     # plt.ion()
 
 
-    plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_bound, y_bound)
+    plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_bound, y_bound_received, x_bound, y_bound_transmited)
     plotMatrix(received)
     # plt.show()
 
@@ -191,7 +192,7 @@ def plotMatrix(data):
         # plt.pause(0.001)
         # plt.draw()
 
-def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None):
+def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None):
 
     filename=None
     show=True
@@ -201,20 +202,25 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None):
     y_lim = None
 
 
-    lines = ["-","-","--","-.",":"]
+    lines = ["-","-","--",":","-."]
+    colours = ['lightgreen', 'yellow', 'black', 'black']
     linecycler = cycle(lines)
-
+    colourcycler = cycle(colours)
 
     fig, ax1 = plt.subplots(figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
-    ax1.step(x1, y1, '-', linestyle=next(linecycler), label='Received', where='post')
+    ax1.step(x1, y1, '-', linestyle=next(linecycler), label='Received', where='post', color=next(colourcycler))
 
     ax2 = ax1
     # s2 = np.sin(2*np.pi*t)
-    ax2.step(x2, y2, '-', linestyle=next(linecycler), label='Transmitted', where='post')
+    ax2.step(x2, y2, '-', linestyle=next(linecycler), label='Transmitted', where='post', color=next(colourcycler))
 
     if x3 is not None and y3 is not None:
         ax3 = ax1
-        ax3.step(x3, y3, '-', linestyle=next(linecycler), label='Upper bound', where='post')
+        ax3.step(x3, y3, '-', linestyle=next(linecycler), label='Upper bound', where='post', color=next(colourcycler))
+
+    if x4 is not None and y4 is not None:
+        ax4 = ax1
+        ax4.step(x4, y4, '-', linestyle=next(linecycler), label='Lower bound', where='post', color=next(colourcycler))
 
     ax1.set_xlabel("Transmission time slot (TTS)")
     ax1.set_ylabel("Cumulative packet count")
@@ -225,7 +231,7 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None):
 
 
     plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-    plt.legend(loc=2, fontsize=11)
+    plt.legend(loc=0, fontsize=11)
     plt.grid(True)
 
     # ax = plt.gca()

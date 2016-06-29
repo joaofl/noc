@@ -83,9 +83,16 @@ namespace ns3 {
         
         
         Time t_ns;
+        uint8_t count = 0;
+        uint32_t tslot = 0;
         
-        for (uint32_t tslot = 0; tslot < burst + jitter; tslot++) {
-            if (tslot < jitter) continue;
+//        for (uint32_t tslot = 0; tslot < burst + jitter; tslot++) {
+        while (count < burst) {
+            
+            if (tslot < jitter){
+                tslot++;
+                continue;
+            }
             
             Ptr<Packet> pck = Create<Packet>();
             XDenseHeader hd;
@@ -100,8 +107,10 @@ namespace ns3 {
             if (tslot % period == 0){
                 t_ns = (tslot + start) * PacketDuration;
 //                t_ns += start; //To prenvent an ns3 bug to happen 
+                count++;
                 Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
             }
+            tslot++;
         }
     }
 

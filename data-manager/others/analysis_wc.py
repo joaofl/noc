@@ -11,7 +11,7 @@ def b(cfi, bs):
 def received(t, sw):
     received = []
     for f in sw: # do it fow all the flows getting into that switch
-        period = f[0]
+        freq = f[0]
         jitter = f[1]
         bsize = f[2]
 
@@ -19,59 +19,66 @@ def received(t, sw):
         if tw < 0:
             tw = 0
 
-        cf = math.floor((1 / period)) * tw #how many packets a flow have produced
+        cf = math.ceil((1 / freq) * tw) #how many packets a flow have produced
 
         bf = b(cf, bsize) #due to the burst size
-        # bf = 0
-        prod = cf + bf
-        received.append(prod)
+
+        received.append(cf + bf)
 
     treceived = numpy.sum(received)
 
     return treceived
 
 
-def sent(t, sw):
-    sent = []
+def sent(sw):
+    p = []
+    j = []
+    b = []
     for f in sw: # do it fow all the flows getting into that switch
-        period = f[0]
+        freq = f[0]
         jitter = f[1]
-        bsize = f[2]
+        bursts = f[2]
 
-        tw = (t-jitter)
-        if tw < 0:
-            tw = 0
+        p.append(1/freq)
+        j.append(jitter)
+        b.append(bursts)
 
-        cf = math.ceil((1 / period)) * tw #how many packets a flow have produced
+    if numpy.sum(p) > 1:
+        pp = 1
+    else:
+        pp = numpy.sum(p)
 
-        bf = b(cf, bsize) #due to the burst size
-        bf = 0
-        prod = cf + bf
-        sent.append(prod)
+    jj = numpy.min(j) + 1
 
-    tproduced = numpy.sum(sent)
+    bb = numpy.sum(b)
 
-    return tproduced
+    return [1/pp,jj,bb]
 
 
 def calculate_node(t_range):
 
-    fa = [2, 1, 10]  # whereas the flows comming from neighbors take one time cycle more
-    fb = [2, 1, 10]
-    fc = [2, 1, 10]
+    fa = [7, 3, 10]  # whereas the flows comming from neighbors take one time cycle more
+    fb = [2, 3, 10]
+    fc = [4, 3, 10]
 
-    sw0 = [fa, fb, fc]
+    sw_in = [fa, fb, fc]
+
+    fo = sent(sw_in)
+
+    sw_out = [fo]
 
     ############# Exponential component ##############
-    t_profile = []
+    received_profile = []
 
     for t in range(1, t_range + 1):
-        tnext = received(t, sw0)
+        received_profile.append(received(t, sw_in))
 
-        t_profile.append(tnext)
+    transmited_profile = []
 
+    for t in range(1, len(received_profile) + 1):
+        transmited_profile.append(received(t,sw_out))
 
-    return t_profile
+    return [received_profile, transmited_profile]
 
 
 def calculate():
