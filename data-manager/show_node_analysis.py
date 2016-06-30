@@ -45,7 +45,9 @@ def main ():
 
     global options, args
 
-    dir = '/noc-data/nw3x3cWC_ANALYSIS_F724/out/'
+    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F724/out/'
+    dir = '/noc-data/nw3x3cWC_ANALYSIS_F123/out/'
+    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F222/out/'
 
     if options.inputfile == None:
         options.inputfile = home + dir + 'packets-trace-netdevice.csv'
@@ -148,7 +150,7 @@ def main ():
 
 
     plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_bound, y_bound_received, x_bound, y_bound_transmited)
-    plotMatrix(received)
+    # plotMatrix(received)
     # plt.show()
 
     # received = numpy.flipud(received)
@@ -198,7 +200,7 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None):
 
     global options
 
-    filename = options.outputdir + 'cumulative_ad.eps'
+    filename = options.outputdir + 'cumulative_ad.pdf'
     show=True
     x_size = 6.5
     y_size = 3.1
