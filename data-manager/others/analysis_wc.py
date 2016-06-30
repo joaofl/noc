@@ -55,31 +55,26 @@ def sent(sw, tf):
     bb = numpy.sum(b)
 
     #y = ax + b
-    # 0 =  a * 0 + b
-    # bb = a * tf + b    =>
-
-    # b = 0
+    # 0 =  a * 0 + b  => b = 0
+    # bb = a * tf + b
 
     # bb = a * tf
+
     a = bb / tf
 
-    b = 0
-
-    # m = (bb - 0) / (tf - jj)
-
-    # y = m * (x - jj)
-
-
     pp = a
+
+    if pp > 1:
+        pp = 1
 
     return [1/pp,jj,bb]
 
 
-def calculate_node(t_range):
+def calculate_node(t_range, freq_a = 2, freq_b = 2, freq_c = 2 ):
 
-    fa = [1, 3, 10]  # whereas the flows comming from neighbors take one time cycle more
-    fb = [2, 3, 10]
-    fc = [3, 3, 10]
+    fa = [freq_a, 3, 10]  # whereas the flows comming from neighbors take one time cycle more
+    fb = [freq_b, 3, 10]
+    fc = [freq_c, 3, 10]
 
     sw_in = [fa, fb, fc]
 

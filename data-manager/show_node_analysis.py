@@ -46,8 +46,8 @@ def main ():
     global options, args
 
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F724/out/'
-    dir = '/noc-data/nw3x3cWC_ANALYSIS_F123/out/'
-    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F222/out/'
+    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F123/out/'
+    dir = '/noc-data/nw3x3cWC_ANALYSIS_F222/out/'
 
     if options.inputfile == None:
         options.inputfile = home + dir + 'packets-trace-netdevice.csv'
@@ -78,14 +78,14 @@ def main ():
     received = numpy.zeros([max_y + 1, max_x + 1])
 
     transmitted = numpy.zeros([max_y + 1, max_x + 1])
-    transmitted_s = numpy.zeros([max_y + 1, max_x + 1])
 
     log_received = []
     log_transmitted = []
 
     pck_duration = ( float(options.packet_size) / float(options.baudrate) ) * 1e9
 
-    t, t_a = 0, 0
+
+    ################# Extact from the Simulation data log ###################
 
     for line in data:
         abs_x = int( line[trace.x_absolute] )
@@ -96,41 +96,32 @@ def main ():
 
         t = int (round(time_slot,0)) - 1
 
-        #Get the full picture
-        if line[trace.operation] == 'r' or line[trace.operation] == 'g':
+        #Build the matrix for the density map
+        if line[trace.operation] == 'r':
             received[ abs_y, abs_x ] += 1
             log_received.append([abs_y, abs_x])
 
-        if line[trace.operation] == 't':
+            # Build the cumulative arrival/departure curve
+            if abs_x == node_x and abs_y == node_y:
+                axis_x_received.append(t)
+                axis_y_received.append(received[node_y, node_x])
+
+        #Build the matrix for the density map
+        elif line[trace.operation] == 't': # or line[trace.operation] == 'g':
             transmitted[ abs_y, abs_x ] += 1
             log_transmitted.append([abs_y, abs_x])
 
-            transmitted_s [ abs_y, abs_x ] += 1
-
-            if t != t_a:
-                t_a = t
-                transmitted_s = numpy.zeros([max_y + 1, max_x + 1])
-
-        if abs_x == node_x and abs_y == node_y:
-            axis_x_transmitted.append(t)
-            axis_y_transmitted.append(transmitted[node_y, node_x])
-
-            axis_x_received.append(t)
-            axis_y_received.append(received[node_y, node_x])
+            #Build the cumulative arrival/departure curve
+            if abs_x == node_x and abs_y == node_y:
+                axis_x_transmitted.append(t)
+                axis_y_transmitted.append(transmitted[node_y, node_x])
 
 
-    cycles = 1
-    bs = 1 #burst size
-    nad = 9 #nodes adjacent to me which are transmitting
-    nal = 8
-    rho = 1
-    sigma = bs * (1 + nad)
 
-    total_received = bs * (1 + nad + nad * nal)
-    total_transmitted = total_received + bs
+
+    ################# Now the same data but from the model ###################
 
     x_bound = []
-    y_bound = []
 
     if len(axis_x_received) != 0:
         x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
@@ -140,17 +131,12 @@ def main ():
 
             # grab from the model here
     else:
-        print('The node in analysis received no packets.')
+        print('The node selected have received no packets.')
 
-
-
-    print("Backlog = ", sigma)
-    print("Total received/transmitted = ", total_received, "/", total_transmitted)
-    # plt.ion()
 
 
     plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_bound, y_bound_received, x_bound, y_bound_transmited)
-    # plotMatrix(received)
+    plotMatrix(transmitted)
     # plt.show()
 
     # received = numpy.flipud(received)
@@ -254,9 +240,6 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None):
 
     if show == True:
         plt.show()
-
-
-
 
 if __name__ == '__main__':
     try:
