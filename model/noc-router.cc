@@ -427,7 +427,6 @@ namespace ns3 {
     }
     
     void
-//    NOCRouter::PacketServe(Ptr<const Packet> pck, Ptr<NOCNetDevice> nd) {
     NOCRouter::PacketServe(Ptr<const Packet> pck_rcv, NOCRouting::Directions input) {
         m_routerRxTrace(pck_rcv);  
         
@@ -437,7 +436,6 @@ namespace ns3 {
         Time t_ns;
         Ptr<NOCNetDevice> nd;
         
-        
         if (input == NOCRouting::DIRECTION_L){ //Generated locally, then queue it
             this->m_queue_app_output->Enqueue(Create<QueueItem> (pck_rcv->Copy()));
         }
@@ -445,7 +443,6 @@ namespace ns3 {
         switch (ServerPolicy){
             case FIFO:
                 if (input == NOCRouting::DIRECTION_L){
-//                    pck = this->m_queue_app_output->Dequeue();
                     item = m_queue_app_output->Dequeue();
                     pck = item->GetPacket();
                 }
@@ -459,7 +456,7 @@ namespace ns3 {
                 
             case ROUND_ROBIN:               
                 if (m_server_state == IDLE){
-//                    m_server_state = BUSY;
+                    m_server_state = BUSY;
                     t_ns = Time::FromInteger(0, Time::NS);
                     Simulator::Schedule(t_ns, &NOCRouter::RoundRobin, this);                 
                 }
@@ -526,22 +523,17 @@ namespace ns3 {
         queue_l = 0; 
             queue_l = m_queue_app_output->GetNPackets();
             if (queue_l > 0){
-//                pck_l = m_queue_app_output->Peek();
-                
                 Ptr<const QueueItem> item = m_queue_app_output->Peek();
                 pck_l = item->GetPacket();
-                
                 out_from_l = NOCRouting::Route(pck_l, m_routing_conf);
             }
         
-        
-        
         //The local port should be accounted here
-        
         queue_total = queue_e + queue_n + queue_s + queue_w + queue_l;
         
         if (queue_total == 0) {
             m_server_state = IDLE;
+            return;
         }
         else{
             m_server_state = BUSY;
@@ -553,6 +545,10 @@ namespace ns3 {
 //            cout << "Junktion\n";
 
         switch (m_server_state) {
+            
+            case (IDLE):
+                break;
+            
             case (BUSY):
                 switch (m_input_ports.m_actual_port) {
                         /////////////////////// EAST ////////////////////////////////////////////////
@@ -734,9 +730,6 @@ namespace ns3 {
                 }
   
                 break;
-
-            case (IDLE):
-                break;
         }
     }
     
@@ -801,7 +794,7 @@ namespace ns3 {
     }
     void 
     RoundRobinState::Start() {
-        m_actual_port = NOCRouting::DIRECTION_E;
+        m_actual_port = NOCRouting::DIRECTION_L;
         
         m_E = 1;
         m_N = 1;
