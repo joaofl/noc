@@ -715,11 +715,13 @@ void
     NOCNetDevice::SetReceiveCallback(NOCNetDevice::ReceiveCallback cb) {
         m_rxCallback = cb;
     }
+    
+    //TODO: Remove this
     void
     NOCNetDevice::SetReceiveCallback(NetDevice::ReceiveCallback cb) {
         
     }
-
+    //TODO: Remove this
     void
     NOCNetDevice::SetPromiscReceiveCallback(NetDevice::PromiscReceiveCallback cb) {
         m_promiscCallback = cb;
