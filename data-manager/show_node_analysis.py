@@ -127,7 +127,7 @@ def main ():
         x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
 
         # for x in x_bound:
-        [y_bound_received, y_bound_transmited] = wca.calculate_node(len(x_bound))
+        [y_bound_received, y_bound_transmited] = wca.calculate_node(len(x_bound), 7, 2, 4)
 
             # grab from the model here
     else:

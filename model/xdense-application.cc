@@ -86,7 +86,6 @@ namespace ns3 {
         uint8_t count = 0;
         uint32_t tslot = 0;
         
-//        for (uint32_t tslot = 0; tslot < burst + jitter; tslot++) {
         while (count < burst) {
             
             if (tslot < jitter){
@@ -104,7 +103,7 @@ namespace ns3 {
             pck->AddHeader(hd);
 
             
-            if (tslot % period == 0){
+            if ((tslot - jitter) % period == 0){
                 t_ns = (tslot + start) * PacketDuration;
 //                t_ns += start; //To prenvent an ns3 bug to happen 
                 count++;

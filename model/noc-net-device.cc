@@ -489,8 +489,10 @@ void
                 std::cout << "Packet dropped\n";
             }
             
-            if (m_queue_input->GetNPackets() > 1)
-//                std::cout << "QI=" << m_queue_input->GetNPackets() << "\n";
+            if (m_queue_input->GetNPackets() > 1){
+ //                std::cout << "QI=" << m_queue_input->GetNPackets() << "\n";               
+            }
+
             
             m_rxCallback(packet, m_direction);
 

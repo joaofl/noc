@@ -430,8 +430,8 @@ namespace ns3 {
     NOCRouter::PacketServe(Ptr<const Packet> pck_rcv, NOCRouting::Directions input) {
         m_routerRxTrace(pck_rcv);  
         
-        if (this->m_addressX == 1 && this->m_addressY == 1)
-            cout << "Junktion\n";
+//        if (this->m_addressX == 1 && this->m_addressY == 1)
+//            cout << "Junktion\n";
         
         Ptr<QueueItem> item;
         Ptr<Packet> pck;// = pck->Copy();
@@ -459,7 +459,7 @@ namespace ns3 {
                 
             case ROUND_ROBIN:               
                 if (m_server_state == IDLE){
-                    m_server_state = BUSY;
+//                    m_server_state = BUSY;
                     t_ns = Time::FromInteger(0, Time::NS);
                     Simulator::Schedule(t_ns, &NOCRouter::RoundRobin, this);                 
                 }
@@ -543,8 +543,8 @@ namespace ns3 {
         
         nd = GetNetDevice(0, m_input_ports.m_actual_port);
         
-        if (this->m_addressX == 1 && this->m_addressY == 1)
-            cout << "Junktion\n";
+//        if (this->m_addressX == 1 && this->m_addressY == 1)
+//            cout << "Junktion\n";
 
         switch (m_server_state) {
             
