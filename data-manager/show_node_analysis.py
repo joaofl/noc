@@ -45,9 +45,9 @@ def main ():
 
     global options, args
 
-    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F724/out/'
+    dir = '/noc-data/nw3x3cWC_ANALYSIS_F724/out/'
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F123/out/'
-    dir = '/noc-data/nw3x3cWC_ANALYSIS_F222/out/'
+    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F222/out/'
 
     if options.inputfile == None:
         options.inputfile = home + dir + 'packets-trace-netdevice.csv'
@@ -113,7 +113,7 @@ def main ():
 
             #Build the cumulative arrival/departure curve
             if abs_x == node_x and abs_y == node_y:
-                axis_x_transmitted.append(t)
+                axis_x_transmitted.append(t+1)
                 axis_y_transmitted.append(transmitted[node_y, node_x])
 
 
@@ -127,7 +127,7 @@ def main ():
         x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
 
         # for x in x_bound:
-        [y_bound_received, y_bound_transmited] = wca.calculate_node(len(x_bound), 7, 2, 4)
+        [y_bound_received, y_bound_transmited] = wca.calculate_node(axis_x_transmitted[-1] + 1)
 
             # grab from the model here
     else:

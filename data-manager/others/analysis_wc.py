@@ -8,21 +8,18 @@ def b(cfi, bs):
     else:
         return 0
 
-def received(t, sw, ceil=1):
+def produced(t, sw):
     received = []
     for f in sw: # do it fow all the flows getting into that switch
         freq = f[0]
         jitter = f[1]
         bsize = f[2]
 
-        tw = (t-jitter)
+        tw = ((t+1)-jitter)
         if tw < 0:
             tw = 0
 
-        if ceil == 0:
-            cf = math.floor((1 / freq) * tw) #how many packets a flow have produced
-        elif ceil == 1:
-            cf = math.ceil((1 / freq) * tw) #how many packets a flow have produced
+        cf = math.ceil((1 / freq) * tw) #how many packets a flow have produced
 
         bf = b(cf, bsize) #due to the burst size
         received.append(cf + bf)
@@ -32,7 +29,7 @@ def received(t, sw, ceil=1):
     return treceived
 
 
-def sent(sw, tf):
+def resulting_flow(sw, tf):
     p = []
     j = []
     b = []
@@ -45,24 +42,9 @@ def sent(sw, tf):
         j.append(jitter)
         b.append(bursts)
 
-    # if numpy.sum(p) > 1:
-    #     pp = 1
-    # else:
-    #     pp = numpy.sum(p)
-    #
     jj = numpy.min(j) + 1
-    #
     bb = numpy.sum(b)
-
-    #y = ax + b
-    # 0 =  a * 0 + b  => b = 0
-    # bb = a * tf + b
-
-    # bb = a * tf
-
-    a = bb / tf
-
-    pp = a
+    pp = bb / tf
 
     if pp > 1:
         pp = 1
@@ -70,20 +52,18 @@ def sent(sw, tf):
     return [1/pp,jj,bb]
 
 
-def calculate_node(t_range, freq_a = 2, freq_b = 2, freq_c = 2 ):
+def calculate_node(t_range):
 
-    fa = [freq_a, 3, 10]  # whereas the flows comming from neighbors take one time cycle more
-    fb = [freq_b, 3, 10]
-    fc = [freq_c, 3, 10]
+    fa = [1, 1, 5]  # whereas the flows comming from neighbors take one time cycle more
+    fb = [2, 1, 10]
+    fc = [1, 3, 0]
 
     sw_in = [fa, fb, fc]
 
     ############# Input ##############
-    received_profile_c = []
-    received_profile_f = []
-    for t in range(1, t_range + 1):
-        received_profile_c.append(received(t, sw_in, ceil=1))
-        received_profile_f.append(received(t, sw_in, ceil=0))
+    received_profile = []
+    for t in range(0, t_range):
+        received_profile.append(produced(t, sw_in))
 
 
     ############# Output ##############
@@ -91,17 +71,17 @@ def calculate_node(t_range, freq_a = 2, freq_b = 2, freq_c = 2 ):
 
     tf=0
 
-    for tf in range(0, len(received_profile_c)):
-        if received_profile_f[tf] == 30:
+    for tf in range(0, len(received_profile)):
+        if received_profile[tf] == 30:
             break
 
-    fo = sent(sw_in, tf)
+    fo = resulting_flow(sw_in, tf)
     sw_out = [fo]
 
-    for t in range(1, t_range + 1):
-        transmited_profile.append(received(t,sw_out))
+    for t in range(0, t_range):
+        transmited_profile.append(produced(t, sw_out))
 
-    return [received_profile_c, transmited_profile]
+    return [received_profile, transmited_profile]
 
 
 def calculate():
@@ -141,7 +121,7 @@ def calculate():
 
     tactual = 1
     for sw in route:
-        tnext = received(tactual, sw)
+        tnext = produced(tactual, sw)
         tactual = tnext
 
         tt_queue += tnext
