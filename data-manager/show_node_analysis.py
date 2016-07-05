@@ -34,7 +34,7 @@ import others.analysis_wc as wca
 
 import others.analysis_wc
 
-home = expanduser("~")
+
 
 # matplotlib.style.use('bmh')
 # ['ggplot', 'bmh', 'grayscale', 'fivethirtyeight', 'dark_background']
@@ -45,17 +45,21 @@ def main ():
 
     global options, args
 
-    dir = '/noc-data/nw3x3cWC_ANALYSIS_F724/out/'
+    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F724/out/'
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F123/out/'
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F222/out/'
+    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F12/out/'
+    dir = '/noc-data/nw3x3cWC_ANALYSIS_F_02_1.5_2.3/out/'
+
+    home = expanduser("~")
 
     if options.inputfile == None:
         options.inputfile = home + dir + 'packets-trace-netdevice.csv'
     if options.outputdir == None:
         options.outputdir = home + dir
 
-    if not os.path.exists(options.outputdir):
-        os.makedirs(options.outputdir)
+    # if not os.path.exists(options.outputdir):
+        # os.makedirs(options.outputdir)
 
 
     data = files_io.load_list(options.inputfile)
@@ -75,7 +79,7 @@ def main ():
     axis_x_received = []
 
     # print list[:,trace.x_absolute]
-    received = numpy.zeros([max_y + 1, max_x + 1])
+    received_model = numpy.zeros([max_y + 1, max_x + 1])
 
     transmitted = numpy.zeros([max_y + 1, max_x + 1])
 
@@ -94,17 +98,18 @@ def main ():
 
         time_slot = int(line[trace.time]) / pck_duration
 
-        t = int (round(time_slot,0)) - 1
+        # t = int (round(time_slot,0)) - 1
+        t = time_slot
 
         #Build the matrix for the density map
         if line[trace.operation] == 'r':
-            received[ abs_y, abs_x ] += 1
+            received_model[ abs_y, abs_x ] += 1
             log_received.append([abs_y, abs_x])
 
             # Build the cumulative arrival/departure curve
             if abs_x == node_x and abs_y == node_y:
                 axis_x_received.append(t)
-                axis_y_received.append(received[node_y, node_x])
+                axis_y_received.append(received_model[node_y, node_x])
 
         #Build the matrix for the density map
         elif line[trace.operation] == 't': # or line[trace.operation] == 'g':
@@ -124,10 +129,25 @@ def main ():
     x_bound = []
 
     if len(axis_x_received) != 0:
-        x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
+        # x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
 
         # for x in x_bound:
-        [y_bound_received, y_bound_transmited] = wca.calculate_node(axis_x_transmitted[-1] + 1)
+        [received_model, transmitted_model] = wca.calculate_node()
+
+        y_received = []
+        x_received = []
+        for e in received_model:
+            y_received.append(e[1])
+            x_received.append(e[0])
+
+        y_transmitted = []
+        x_transmitted = []
+        for e in transmitted_model:
+            y_transmitted.append(e[1])
+            x_transmitted.append(e[0])
+
+
+        # y_diff = numpy.subtract(y_received, y_transmitted)
 
             # grab from the model here
     else:
@@ -135,8 +155,8 @@ def main ():
 
 
 
-    plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_bound, y_bound_received, x_bound, y_bound_transmited)
-    plotMatrix(transmitted)
+    plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_received, y_received, x_transmitted, y_transmitted)
+    # plotMatrix(transmitted)
     # plt.show()
 
     # received = numpy.flipud(received)
@@ -182,7 +202,7 @@ def plotMatrix(data):
         # plt.pause(0.001)
         # plt.draw()
 
-def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None):
+def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=None, y5=None):
 
     global options
 
@@ -195,7 +215,7 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None):
 
 
     lines = ["-","-","--",":","-."]
-    colours = ['lightgreen', 'yellow', 'black', 'black']
+    colours = ['lightgreen', 'yellow', 'black', 'black', 'blue']
     linecycler = cycle(lines)
     colourcycler = cycle(colours)
 
@@ -213,6 +233,10 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None):
     if x4 is not None and y4 is not None:
         ax4 = ax1
         ax4.step(x4, y4, '-', linestyle=next(linecycler), label='Lower bound', where='post', color=next(colourcycler))
+
+    if x5 is not None and y5 is not None:
+        ax5 = ax1
+        ax5.step(x5, y5, '-', linestyle=next(linecycler), label='Queue size', where='post', color=next(colourcycler))
 
     ax1.set_xlabel("Transmission time slot (TTS)")
     ax1.set_ylabel("Cumulative packet count")

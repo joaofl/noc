@@ -94,6 +94,8 @@ class NOCLauncher(QWidget):
 
         # noc_anim.QApplication.exec()
 
+        self.on_click_load()
+
     def on_select(self):
         """
         an item in the listbox has been clicked/selected
@@ -101,6 +103,7 @@ class NOCLauncher(QWidget):
         # self.selected = self.listbox.currentItem().text()
         i = self.listbox.currentRow()
         self.selected_log = self.list_fnames[i]
+        self.selected_dir = self.list_dir_names[i]
 
         self.label_result.setText(self.list_vnames[i] + ' selected')
 
@@ -168,7 +171,7 @@ class NOCLauncher(QWidget):
     def on_click_run(self):
         # scriptname = 'noc_flow_analysis'
 
-        args = ' --inputfile=' + self.selected_log + ' ' + self.textbox_args.text()
+        args = ' --inputfile=' + self.selected_log + ' --outputdir=' + self.selected_dir + ' ' + self.textbox_args.text()
 
         cmd = 'python3.5 ' + self.selected_script + args
         print('Command executed: ' + cmd)

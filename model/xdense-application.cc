@@ -20,6 +20,7 @@
 
 #include "xdense-application.h"
 #include "xdense-header.h"
+#include "src/core/model/simulator.h"
 
 
 using namespace std;
@@ -78,39 +79,51 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetFlowGenerator(uint32_t start, uint32_t period, uint32_t jitter, uint32_t burst, uint32_t dest_x, uint32_t dest_y, bool trace) {
-        if (period == 0 || IsActive == false) return;
+    XDenseApp::SetFlowGenerator(float utilization, uint32_t jitter, uint32_t burst, uint32_t dest_x, uint32_t dest_y, bool trace) {
+        if (utilization == 0 || IsActive == false)
+            return;        
         
         
-        Time t_ns;
-        uint8_t count = 0;
-        uint32_t tslot = 0;
-        
-        while (count < burst) {
-            
-            if (tslot < jitter){
-                tslot++;
-                continue;
-            }
-            
-            Ptr<Packet> pck = Create<Packet>();
-            XDenseHeader hd;
-            hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
-            if (trace){
-                hd.SetXdenseProtocol(XDenseHeader::TRACE);
-                hd.SetData(tslot + start);
-            }
-            pck->AddHeader(hd);
-
-            
-            if ((tslot - jitter) % period == 0){
-                t_ns = (tslot + start) * PacketDuration;
-//                t_ns += start; //To prenvent an ns3 bug to happen 
-                count++;
-                Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
-            }
-            tslot++;
+        Ptr<Packet> pck = Create<Packet>();
+        XDenseHeader hd;
+        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+        if (trace){
+            hd.SetXdenseProtocol(XDenseHeader::TRACE);
+            hd.SetData(0 + jitter);
         }
+        pck->AddHeader(hd);
+
+        Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / utilization, Time::NS);
+        Time t_jitter = Time::FromInteger(PacketDuration.GetNanoSeconds() * jitter, Time::NS);
+        
+        Time t_ns = t_jitter;
+        
+//        uint8_t count = 0;
+//        uint32_t tslot = 0;
+        
+        for (uint16_t i = 0 ; i < burst ; i++ ){
+            Simulator::Schedule(t_ns + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
+//            t_ns += t_step;
+        }
+        
+        
+//        while (count < burst) {
+//            
+//            if (tslot < jitter){
+//                tslot++;
+//                continue;
+//            }
+//            
+//
+//            
+//            if ((tslot - jitter) % utilization == 0){
+//                t_ns = (tslot + start) * PacketDuration;
+////                t_ns += start; //To prenvent an ns3 bug to happen 
+//                count++;
+//                Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
+//            }
+//            tslot++;
+//        }
     }
 
     

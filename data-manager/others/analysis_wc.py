@@ -11,15 +11,16 @@ def b(cfi, bs):
 def produced(t, sw):
     received = []
     for f in sw: # do it fow all the flows getting into that switch
-        freq = f[0]
+        utilization = f[0]
         jitter = f[1]
         bsize = f[2]
 
-        tw = ((t+1)-jitter)
+        tw = (t-jitter)
         if tw < 0:
             tw = 0
 
-        cf = math.ceil((1 / freq) * tw) #how many packets a flow have produced
+        cf = math.ceil((utilization) * tw) #how many packets a flow have produced
+        # cf = (1 / freq) * tw
 
         bf = b(cf, bsize) #due to the burst size
         received.append(cf + bf)
@@ -30,15 +31,15 @@ def produced(t, sw):
 
 
 def resulting_flow(sw, tf):
-    p = []
+    u = []
     j = []
     b = []
     for f in sw: # do it fow all the flows getting into that switch
-        freq = f[0]
+        utilization = f[0]
         jitter = f[1]
         bursts = f[2]
 
-        p.append(1/freq)
+        u.append(utilization)
         j.append(jitter)
         b.append(bursts)
 
@@ -49,37 +50,53 @@ def resulting_flow(sw, tf):
     if pp > 1:
         pp = 1
 
-    return [1/pp,jj,bb]
+    return [pp, jj, bb]
 
 
-def calculate_node(t_range):
+def calculate_node():
 
-    fa = [1, 1, 5]  # whereas the flows comming from neighbors take one time cycle more
-    fb = [2, 1, 10]
-    fc = [1, 3, 0]
+    fa = [0.5, 2, 20]  # whereas the flows comming from neighbors take one time cycle more
+    fb = [0.8, 2, 15]
+    fc = [0.3, 2, 25]
+
+    step = 0.01
 
     sw_in = [fa, fb, fc]
-
+    # sw_in = [fa]
     ############# Input ##############
     received_profile = []
-    for t in range(0, t_range):
-        received_profile.append(produced(t, sw_in))
+    # for t in range(0, t_range * 10):
+
+    burst = 0
+
+    for f in sw_in:
+        burst += f[2]
+
+    count = 0
+    t = 0
+
+    while(count < burst):
+        count = produced(t, sw_in)
+        received_profile.append([t, count])
+        t += step
 
 
     ############# Output ##############
     transmited_profile = []
 
-    tf=0
-
-    for tf in range(0, len(received_profile)):
-        if received_profile[tf] == 30:
-            break
-
-    fo = resulting_flow(sw_in, tf)
+    fo = resulting_flow(sw_in, t)
     sw_out = [fo]
 
-    for t in range(0, t_range):
-        transmited_profile.append(produced(t, sw_out))
+    # for t in range(0, t_range):
+    #     transmited_profile.append(produced(t, sw_out))
+
+    count = 0
+    t = 0
+
+    while(count < burst):
+        count = produced(t, sw_out)
+        transmited_profile.append([t, count])
+        t += step
 
     return [received_profile, transmited_profile]
 
