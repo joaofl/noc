@@ -45,7 +45,7 @@ def resulting_flow(sw, tf):
 
     jj = numpy.min(j) + 1
     bb = numpy.sum(b)
-    pp = bb / tf
+    pp = bb / (tf - 1)
 
     if pp > 1:
         pp = 1
@@ -53,16 +53,10 @@ def resulting_flow(sw, tf):
     return [pp, jj, bb]
 
 
-def calculate_node():
-
-    fa = [0.5, 2, 20]  # whereas the flows comming from neighbors take one time cycle more
-    fb = [0.8, 2, 15]
-    fc = [0.3, 2, 25]
+def calculate_node(sw_in):
 
     step = 0.01
 
-    sw_in = [fa, fb, fc]
-    # sw_in = [fa]
     ############# Input ##############
     received_profile = []
     # for t in range(0, t_range * 10):
@@ -87,9 +81,6 @@ def calculate_node():
     fo = resulting_flow(sw_in, t)
     sw_out = [fo]
 
-    # for t in range(0, t_range):
-    #     transmited_profile.append(produced(t, sw_out))
-
     count = 0
     t = 0
 
@@ -98,7 +89,7 @@ def calculate_node():
         transmited_profile.append([t, count])
         t += step
 
-    return [received_profile, transmited_profile]
+    return [received_profile, transmited_profile, fo]
 
 
 def calculate():

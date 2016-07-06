@@ -49,7 +49,10 @@ def main ():
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F123/out/'
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F222/out/'
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F12/out/'
-    dir = '/noc-data/nw3x3cWC_ANALYSIS_F_02_1.5_2.3/out/'
+    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F_02_1.5_2.3/out/'
+    dir = '/noc-data/nw6x2cWC_ANALYSIS_F1x5/out/'
+
+    node_x, node_y = 1, 0
 
     home = expanduser("~")
 
@@ -67,11 +70,11 @@ def main ():
         print('Log file is empty')
         exit(1)
 
-    #Could get it from the config file
-    max_x = max( data[:,trace.x_absolute].astype(int) )
-    max_y = max( data[:,trace.y_absolute].astype(int) )
+    # Could get it from the config file
+    max_x = max( data[:,trace.x_absolute].astype(int) ) +1
+    max_y = max( data[:,trace.y_absolute].astype(int) ) +1
+    #
 
-    node_x, node_y = 1, 1
 
     axis_x_transmitted=[]
     axis_y_transmitted=[]
@@ -79,12 +82,13 @@ def main ():
     axis_x_received = []
 
     # print list[:,trace.x_absolute]
-    received_model = numpy.zeros([max_y + 1, max_x + 1])
+    # received_simul = numpy.zeros([int(options.size_y), int(options.size_x)])
+    # transmitted_simul = numpy.zeros([int(options.size_y), int(options.size_x)])
+    received_simul = numpy.zeros([max_y, max_x])
+    transmitted_simul = numpy.zeros([max_y, max_x])
 
-    transmitted = numpy.zeros([max_y + 1, max_x + 1])
-
-    log_received = []
-    log_transmitted = []
+    # log_received = []
+    # log_transmitted = []
 
     pck_duration = ( float(options.packet_size) / float(options.baudrate) ) * 1e9
 
@@ -103,23 +107,23 @@ def main ():
 
         #Build the matrix for the density map
         if line[trace.operation] == 'r':
-            received_model[ abs_y, abs_x ] += 1
-            log_received.append([abs_y, abs_x])
+            received_simul[ abs_y, abs_x ] += 1
+            # log_received.append([abs_y, abs_x])
 
             # Build the cumulative arrival/departure curve
             if abs_x == node_x and abs_y == node_y:
                 axis_x_received.append(t)
-                axis_y_received.append(received_model[node_y, node_x])
+                axis_y_received.append(received_simul[node_y, node_x])
 
         #Build the matrix for the density map
         elif line[trace.operation] == 't': # or line[trace.operation] == 'g':
-            transmitted[ abs_y, abs_x ] += 1
-            log_transmitted.append([abs_y, abs_x])
+            transmitted_simul[ abs_y, abs_x ] += 1
+            # log_transmitted.append([abs_y, abs_x])
 
             #Build the cumulative arrival/departure curve
             if abs_x == node_x and abs_y == node_y:
                 axis_x_transmitted.append(t+1)
-                axis_y_transmitted.append(transmitted[node_y, node_x])
+                axis_y_transmitted.append(transmitted_simul[node_y, node_x])
 
 
 
@@ -129,10 +133,18 @@ def main ():
     x_bound = []
 
     if len(axis_x_received) != 0:
-        # x_bound = numpy.linspace(0, axis_x_transmitted[-1], num=axis_x_transmitted[-1] + 1)
 
-        # for x in x_bound:
-        [received_model, transmitted_model] = wca.calculate_node()
+        fa = [1, 2, 10]  # whereas the flows comming from neighbors take one time cycle more
+        fb = [1, 3, 40]
+
+        # sw_in = [fa]
+        sw_in = [fa, fb]
+
+        fout = []
+
+        [received_model, transmitted_model, fout] = wca.calculate_node(sw_in)
+
+        print(fout)
 
         y_received = []
         x_received = []
@@ -147,7 +159,13 @@ def main ():
             x_transmitted.append(e[0])
 
 
-        # y_diff = numpy.subtract(y_received, y_transmitted)
+        for i in range(0, len(y_transmitted) - len(y_received)):
+            y_received.append(y_received[-1])
+
+        x_received = x_transmitted
+        y_diff = numpy.subtract(y_received, y_transmitted).tolist()
+        x_diff = x_transmitted
+
 
             # grab from the model here
     else:
@@ -155,17 +173,13 @@ def main ():
 
 
 
-    plotCumulativeInOut(axis_x_received, axis_y_received, axis_x_transmitted, axis_y_transmitted, x_received, y_received, x_transmitted, y_transmitted)
+    plotCumulativeInOut(axis_x_received, axis_y_received,
+                        axis_x_transmitted, axis_y_transmitted,
+                        x_received, y_received,
+                        x_transmitted, y_transmitted,
+                        x_diff, y_diff
+                        )
     # plotMatrix(transmitted)
-    # plt.show()
-
-    # received = numpy.flipud(received)
-    # transmitted = numpy.flipud(transmitted)
-
-    # print(received)
-    # print('\n')
-    # print(transmitted)
-
 
 def plotMatrix(data):
 
@@ -276,8 +290,8 @@ if __name__ == '__main__':
         parser.add_option ('-o', '--outputdir', help='', default=None)
 
         parser.add_option ('-t', '--timeslotsize', help='time between two refreshes of the animator')
-        parser.add_option ('-x', '--size_x', help='network size', default=3)
-        parser.add_option ('-y', '--size_y', help='network size', default=3)
+        parser.add_option ('-x', '--size_x', help='network size', default=1)
+        parser.add_option ('-y', '--size_y', help='network size', default=0)
         parser.add_option ('-s', '--sinks_n', help='number of sinks', default=1)
         parser.add_option ('-b', '--baudrate', help='baudrate utilized', default=3000000)
         parser.add_option ('-p', '--packet_size', help='packet_size in bits', default=16*10)
