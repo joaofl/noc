@@ -54,6 +54,14 @@ def main ():
 
     node_x, node_y = 1, 0
 
+    fa = [1, 2, 10]  # whereas the flows comming from neighbors take one time cycle more
+    fb = [1, 3, 40]
+    # fb = [1, 3, 40]
+
+    # sw_in = [fa]
+    sw_in = [fa, fb]
+
+
     home = expanduser("~")
 
     if options.inputfile == None:
@@ -134,13 +142,7 @@ def main ():
 
     if len(axis_x_received) != 0:
 
-        fa = [1, 2, 10]  # whereas the flows comming from neighbors take one time cycle more
-        fb = [1, 3, 40]
-
-        # sw_in = [fa]
-        sw_in = [fa, fb]
-
-        [received_model, transmitted_model, fout, received_equivalent] = wca.calculate_node(sw_in)
+        [received_model, transmitted_model, received_equivalent, transmitted_equivalent] = wca.calculate_node(sw_in)
 
         # print(fout)
 
@@ -162,6 +164,12 @@ def main ():
             y_received_eq.append(e[1])
             x_received_eq.append(e[0])
 
+        y_trasmitted_eq = []
+        x_trasmitted_eq = []
+        for e in transmitted_equivalent:
+            y_trasmitted_eq.append(e[1])
+            x_trasmitted_eq.append(e[0])
+
 
         for i in range(0, len(y_transmitted) - len(y_received)):
             y_received.append(y_received[-1])
@@ -171,20 +179,22 @@ def main ():
         x_diff = x_transmitted
 
 
-            # grab from the model here
+        # grab from the model here
+        plots = [
+                axis_x_received, axis_y_received,
+                axis_x_transmitted, axis_y_transmitted,
+                x_received, y_received,
+                x_transmitted, y_transmitted,
+                x_diff, y_diff,
+                x_received_eq, y_received_eq,
+                x_trasmitted_eq, y_trasmitted_eq,
+                ]
+
+        plotCumulativeInOut(plots)
+        # plotMatrix(transmitted)
+
     else:
         print('The node selected have received no packets.')
-
-
-
-    plotCumulativeInOut(axis_x_received, axis_y_received,
-                        axis_x_transmitted, axis_y_transmitted,
-                        x_received, y_received,
-                        x_transmitted, y_transmitted,
-                        x_diff, y_diff,
-                        x_received_eq, y_received_eq
-                        )
-    # plotMatrix(transmitted)
 
 def plotMatrix(data):
 
@@ -221,7 +231,8 @@ def plotMatrix(data):
         # plt.pause(0.001)
         # plt.draw()
 
-def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=None, y5=None, x6=None, y6=None):
+# def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=None, y5=None, x6=None, y6=None):
+def plotCumulativeInOut(axis):
 
     global options
 
@@ -232,37 +243,23 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=N
     x_lim = None
     y_lim = None
 
-
     lines = ["-","-","--",":","-."]
     colours = ['lightgreen', 'yellow', 'black', 'black', 'blue', 'red']
-    labels = ['Received', 'Transmitted', 'Upper bound', 'Lower bound', 'Queue size']
+    labels = ['Received', 'Transmitted', 'Upper bound', 'Lower bound', 'Queue size', 'f(y)']
+
     linecycler = cycle(lines)
     colourcycler = cycle(colours)
+    labelcycler = cycle(labels)
 
-    fig, ax1 = plt.subplots(figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
-    ax1.step(x1, y1, '-', linestyle=next(linecycler), label='Received', where='post', color=next(colourcycler))
 
-    ax2 = ax1
-    ax2.step(x2, y2, '-', linestyle=next(linecycler), label='Transmitted', where='post', color=next(colourcycler))
+    fig, ax_main = plt.subplots(figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
 
-    if x3 is not None and y3 is not None:
-        ax3 = ax1
-        ax3.step(x3, y3, '-', linestyle=next(linecycler), label='Upper bound', where='post', color=next(colourcycler))
+    for i in range(0, len(axis), 2):
+        ax_i = ax_main
+        ax_i.step(axis[i], axis[i+1], '-', linestyle=next(linecycler), label=next(labelcycler), where='post', color=next(colourcycler))
 
-    if x4 is not None and y4 is not None:
-        ax4 = ax1
-        ax4.step(x4, y4, '-', linestyle=next(linecycler), label='Lower bound', where='post', color=next(colourcycler))
-
-    if x5 is not None and y5 is not None:
-        ax5 = ax1
-        ax5.step(x5, y5, '-', linestyle=next(linecycler), label='Queue size', where='post', color=next(colourcycler))
-
-    if x6 is not None and y6 is not None:
-        ax6 = ax1
-        ax6.step(x6, y6, '-', linestyle=next(linecycler), label='Queue size', where='post', color=next(colourcycler))
-
-    ax1.set_xlabel("Transmission time slot (TTS)")
-    ax1.set_ylabel("Cumulative packet count")
+    ax_main.set_xlabel("Transmission time slot (TTS)")
+    ax_main.set_ylabel("Cumulative packet count")
 
     if x_lim is not None: plt.xlim(x_lim)
     if y_lim is not None: plt.ylim(y_lim)
