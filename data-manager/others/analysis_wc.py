@@ -2,11 +2,11 @@ import math
 import numpy
 # Testing the results (Time in TTS)
 
-def b(cfi, bs):
-    if (cfi >= bs):
-        return bs - cfi
-    else:
-        return 0
+# def b(cfi, bs):
+#     if (cfi >= bs):
+#         return bs - cfi
+#     else:
+#         return 0
 
 def produced(t, sw):
     received = []
@@ -19,47 +19,76 @@ def produced(t, sw):
         if tw < 0:
             tw = 0
 
-        cf = math.ceil((utilization) * tw) #how many packets a flow have produced
-        # cf = (1 / freq) * tw
+        produced = math.ceil((utilization) * tw) #how many packets a flow have produced
 
-        bf = b(cf, bsize) #due to the burst size
-        received.append(cf + bf)
+        if (produced >= bsize):
+            produced = bsize
 
-    treceived = numpy.sum(received)
+        received.append(produced)
 
-    return treceived
+    total_produced = numpy.sum(received)
+
+    return total_produced
+
+def time_taken(n, sw):
+    utilization_list = []
+    jitter_list = []
+    burst_list = []
+    t = 0
+
+    for f in sw:  # do it fow all the flows getting into that switch
+        utilization = f[0]
+        jitter = f[1]
+        burst = f[2]
+
+        jitter_list.append(jitter)
+        utilization_list.append(utilization)
+        burst_list.append(burst)
+
+    jitter_min = numpy.min(jitter_list)
+
+    utilization_equivalent = 0
+    for b in burst_list:
+        utilization_equivalent += b / max(burst_list)
+
+    t = ((n) / utilization_equivalent) + jitter_min
+
+    return t
 
 
-def resulting_flow(sw, tf):
+def resulting_flow(sw, t):
     u = []
     j = []
     b = []
     for f in sw: # do it fow all the flows getting into that switch
         utilization = f[0]
         jitter = f[1]
-        bursts = f[2]
+        bsize = f[2]
 
         u.append(utilization)
         j.append(jitter)
-        b.append(bursts)
+        b.append(bsize)
 
-    jj = numpy.min(j) + 1
-    bb = numpy.sum(b)
-    pp = bb / (tf - 1)
+    j_out = numpy.min(j) + 1
+    b_out = numpy.sum(b)
+    u_out = b_out / (t - 1)
 
-    if pp > 1:
-        pp = 1
+    if u_out > 1:
+        u_out = 1
 
-    return [pp, jj, bb]
+    return [u_out, j_out, b_out]
 
 
 def calculate_node(sw_in):
 
     step = 0.01
 
+    print(sw_in)
+
     ############# Input ##############
     received_profile = []
-    # for t in range(0, t_range * 10):
+    received_equivalent = []
+    transmitted_equivalent = []
 
     burst = 0
 
@@ -73,13 +102,24 @@ def calculate_node(sw_in):
         count = produced(t, sw_in)
         received_profile.append([t, count])
         t += step
+    t -= step #removed from last iteration not done
+    print(t)
 
+    for n in range(burst):
+        received_equivalent.append([time_taken(n, sw_in), n])
+
+    t_taken = time_taken(burst, sw_in)
+    print(t_taken)
+
+    # print(t_taken_total)
 
     ############# Output ##############
     transmited_profile = []
 
     fo = resulting_flow(sw_in, t)
     sw_out = [fo]
+
+    print(sw_out)
 
     count = 0
     t = 0
@@ -88,8 +128,19 @@ def calculate_node(sw_in):
         count = produced(t, sw_out)
         transmited_profile.append([t, count])
         t += step
+    t -= step #removed from last iteration not done
 
-    return [received_profile, transmited_profile, fo]
+    print(t)
+
+    t_taken = time_taken(burst, sw_out)
+
+    print(t_taken)
+
+    for n in range(burst):
+        transmitted_equivalent.append([time_taken(n, sw_out), n])
+
+    # return [received_profile, transmited_profile, fo, transmitted_equivalent]
+    return [received_profile, transmited_profile, fo, received_equivalent]
 
 
 def calculate():

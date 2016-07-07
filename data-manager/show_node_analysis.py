@@ -140,11 +140,9 @@ def main ():
         # sw_in = [fa]
         sw_in = [fa, fb]
 
-        fout = []
+        [received_model, transmitted_model, fout, received_equivalent] = wca.calculate_node(sw_in)
 
-        [received_model, transmitted_model, fout] = wca.calculate_node(sw_in)
-
-        print(fout)
+        # print(fout)
 
         y_received = []
         x_received = []
@@ -157,6 +155,12 @@ def main ():
         for e in transmitted_model:
             y_transmitted.append(e[1])
             x_transmitted.append(e[0])
+
+        y_received_eq = []
+        x_received_eq = []
+        for e in received_equivalent:
+            y_received_eq.append(e[1])
+            x_received_eq.append(e[0])
 
 
         for i in range(0, len(y_transmitted) - len(y_received)):
@@ -177,7 +181,8 @@ def main ():
                         axis_x_transmitted, axis_y_transmitted,
                         x_received, y_received,
                         x_transmitted, y_transmitted,
-                        x_diff, y_diff
+                        x_diff, y_diff,
+                        x_received_eq, y_received_eq
                         )
     # plotMatrix(transmitted)
 
@@ -216,7 +221,7 @@ def plotMatrix(data):
         # plt.pause(0.001)
         # plt.draw()
 
-def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=None, y5=None):
+def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=None, y5=None, x6=None, y6=None):
 
     global options
 
@@ -229,7 +234,8 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=N
 
 
     lines = ["-","-","--",":","-."]
-    colours = ['lightgreen', 'yellow', 'black', 'black', 'blue']
+    colours = ['lightgreen', 'yellow', 'black', 'black', 'blue', 'red']
+    labels = ['Received', 'Transmitted', 'Upper bound', 'Lower bound', 'Queue size']
     linecycler = cycle(lines)
     colourcycler = cycle(colours)
 
@@ -237,7 +243,6 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=N
     ax1.step(x1, y1, '-', linestyle=next(linecycler), label='Received', where='post', color=next(colourcycler))
 
     ax2 = ax1
-    # s2 = np.sin(2*np.pi*t)
     ax2.step(x2, y2, '-', linestyle=next(linecycler), label='Transmitted', where='post', color=next(colourcycler))
 
     if x3 is not None and y3 is not None:
@@ -251,6 +256,10 @@ def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=N
     if x5 is not None and y5 is not None:
         ax5 = ax1
         ax5.step(x5, y5, '-', linestyle=next(linecycler), label='Queue size', where='post', color=next(colourcycler))
+
+    if x6 is not None and y6 is not None:
+        ax6 = ax1
+        ax6.step(x6, y6, '-', linestyle=next(linecycler), label='Queue size', where='post', color=next(colourcycler))
 
     ax1.set_xlabel("Transmission time slot (TTS)")
     ax1.set_ylabel("Cumulative packet count")
