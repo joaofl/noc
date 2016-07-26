@@ -50,17 +50,8 @@ def main ():
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F222/out/'
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F12/out/'
     # dir = '/noc-data/nw3x3cWC_ANALYSIS_F_02_1.5_2.3/out/'
-    dir = '/noc-data/nw6x2cWC_ANALYSIS_F1x5/out/'
-
-    node_x, node_y = 1, 0
-
-    fa = [1, 2, 10]  # whereas the flows comming from neighbors take one time cycle more
-    fb = [1, 3, 40]
-    # fb = [1, 3, 40]
-
-    # sw_in = [fa]
-    sw_in = [fa, fb]
-
+    #dir = '/noc-data/nw6x2cWC_ANALYSIS_F1x5/out/'
+    dir = '/noc-data/nw5x4cWC_ANALYSIS_ALL_TO_ONE/out/'
 
     home = expanduser("~")
 
@@ -103,6 +94,15 @@ def main ():
 
     ################# Extact from the Simulation data log ###################
 
+    node_x, node_y = 1, 0
+
+    fa = [1, 2, 3]  # whereas the flows comming from neighbors take one time cycle more
+    fb = [1, 2, 12]
+    fc = [1, 1, 1]
+
+    # sw_in = [fa]
+    sw_in = [fa, fb, fc]
+
     for line in data:
         abs_x = int( line[trace.x_absolute] )
         abs_y = int( line[trace.y_absolute] )
@@ -114,7 +114,7 @@ def main ():
         t = time_slot
 
         #Build the matrix for the density map
-        if line[trace.operation] == 'r':
+        if line[trace.operation] == 'r' or line[trace.operation] == 'g':
             received_simul[ abs_y, abs_x ] += 1
             # log_received.append([abs_y, abs_x])
 
@@ -134,11 +134,7 @@ def main ():
                 axis_y_transmitted.append(transmitted_simul[node_y, node_x])
 
 
-
-
     ################# Now the same data but from the model ###################
-
-    x_bound = []
 
     if len(axis_x_received) != 0:
 
@@ -190,11 +186,51 @@ def main ():
                 x_trasmitted_eq, y_trasmitted_eq,
                 ]
 
-        plotCumulativeInOut(plots)
+        # plotCumulativeInOut(plots)
+
         # plotMatrix(transmitted)
+
+        calculateWorstCase()
 
     else:
         print('The node selected have received no packets.')
+
+
+def calculateWorstCase():
+    routing = 'yx'
+
+    size = [5,4]
+
+    orig = [0,0]
+    dest = [4,3]
+
+    f = [1, 0, 1] #flow each node generate
+
+    #network mapping
+    network = [ size[0]*[f] for i in range(size[1]) ]
+
+    fo = [0,0,0]
+    if routing == 'yx':
+        for i in range(len(network)): #iterate over Y
+            fi = network[0][i]
+            swi = [fo, fi]
+            ti = wca.time_taken(swi, direction='in')
+
+            fo = wca.resulting_flow(swi)
+            swo = [fo]
+            to = wca.time_taken(swo, direction='out')
+
+            delay = to - ti
+
+            print('ti = ' + str(ti) + ' to = ' + str(to) + ' d= ' + str(delay))
+
+
+        # for j in range(len(network[0])): #iterate over X
+        #     print(i)
+
+
+
+
 
 def plotMatrix(data):
 
@@ -244,19 +280,21 @@ def plotCumulativeInOut(axis):
     y_lim = None
 
     lines = ["-","-","--",":","-."]
-    colours = ['lightgreen', 'yellow', 'black', 'black', 'blue', 'red']
-    labels = ['Received', 'Transmitted', 'Upper bound', 'Lower bound', 'Queue size', 'f(y)']
+    markers = ["","","","","","D","D"]
+    colours = ['lightgreen', 'yellow', 'black', 'black', 'blue', 'red', 'purple']
+    labels = ['Arrivals', 'Departures', 'Arrivals model', 'Departures model', 'Queue size', 'WC Arrival', 'WC Departure']
 
     linecycler = cycle(lines)
     colourcycler = cycle(colours)
     labelcycler = cycle(labels)
+    markercycler = cycle(markers)
 
 
     fig, ax_main = plt.subplots(figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
 
     for i in range(0, len(axis), 2):
         ax_i = ax_main
-        ax_i.step(axis[i], axis[i+1], '-', linestyle=next(linecycler), label=next(labelcycler), where='post', color=next(colourcycler))
+        ax_i.step(axis[i], axis[i+1], '-', linestyle=next(linecycler), label=next(labelcycler), where='post', color=next(colourcycler), marker=next(markercycler))
 
     ax_main.set_xlabel("Transmission time slot (TTS)")
     ax_main.set_ylabel("Cumulative packet count")

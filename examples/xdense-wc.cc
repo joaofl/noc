@@ -110,8 +110,8 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 6;
-    uint32_t size_y = 2;
+    uint32_t size_x = 5;
+    uint32_t size_y = 4;
     uint32_t size_neighborhood = 0; //odd only, so neighborhoods do not overlap eachother
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
@@ -119,7 +119,7 @@ main(int argc, char *argv[]) {
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "WC_ANALYSIS_F1x5";
+    string context = "WC_ANALYSIS_ALL_TO_ONE";
         
     string output_data_dir = homedir + "/noc-data";
     
@@ -288,6 +288,8 @@ main(int argc, char *argv[]) {
             
 //            jitter = y * size_x - 1;
             jitter = 1;
+            jitter = jitter;
+            
             burst = 10;
             burst = burst;
 //            uint32_t start;
@@ -312,15 +314,15 @@ main(int argc, char *argv[]) {
 //                if (y == 0 && x == 1){ 
 //                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(0.30, jitter, 25, s1x, s1y, true);                                          
 //                }            
-                if (y == 1 && x > 0){// 0 &&x <= size_x - 6){ 
-                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, jitter, burst, s1x, s1y, false);                                          
-                }            
+//                if (y == 1 && x > 0){// 0 &&x <= size_x - 6){ 
+//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, jitter, burst, s1x, s1y, false);                                          
+//                }            
 //                if (y == 2 && x > 0 && x <= distance){ 
 //                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(start, period, jitter, burst, s1x, s1y, false);                                          
 //                }            
-    //            else if (y == 1){ 
-    //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, false);               
-    //            }
+                if (x != 0){ 
+                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 1, 1, s1x, s1y, false);               
+                }
     //            else if(y != 0 && x == size_x - 1){
     ////                Simulator::Schedule(t_ns, &XDenseApp::SetFlowGenerator, my_xdense_app_container.Get(n)->GetObject<XDenseApp>(), period, jitter, 1, s1x, s1y, true);
     //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, true); 

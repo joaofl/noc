@@ -19,14 +19,10 @@
 
 __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
-# from PyQt5.QtCore import *
-# from PyQt5.QtGui import *
-from PyQt5.QtWidgets import * #QWidget, QApplication
+from PyQt5.QtWidgets import *
 from os.path import expanduser
 import files_io
-# import noc_
 import os
-import glob
 import _thread
 
 

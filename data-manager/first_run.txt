@@ -1,16 +1,15 @@
 #To run scripts
-sudo apt install python3.5-dev build-essentials
+sudo apt install python3.5-dev build-essential
 wget https://bootstrap.pypa.io/get-pip.py
 sudo python3.5 get-pip.py
 sudo apt install cython3 git
 sudo -H pip3.5 install numpy
 sudo apt install libfreetype6-dev
-sudo apt install python3-pyqt4
 sudo -H pip3.5 install matplotlib
 sudo apt install libffi-dev
+sudo -H pip3.5 install cairocffi
 
 #Optional
-sudo -H pip3.5 install cairocffi
 sudo apt-get install ffmpeg
 sudo -H pip3.5 install pyopengl
 
