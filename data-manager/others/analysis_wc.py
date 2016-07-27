@@ -30,7 +30,7 @@ def produced(t, sw):
 
     return total_produced
 
-def time_taken(sw, direction='out'):
+def time_taken(sw, n, direction='out'):
     utilization_list = []
     jitter_list = []
     burst_list = []
@@ -51,7 +51,8 @@ def time_taken(sw, direction='out'):
     for b in burst_list:
         utilization_equivalent += b / max(burst_list)
 
-    n = numpy.sum(burst_list)
+    if n=='all':
+        n = numpy.sum(burst_list)
 
     if (direction == 0 or direction == 'out'):
         t = ((n-1) / utilization_equivalent) + jitter_min + 1
@@ -76,7 +77,6 @@ def resulting_flow(sw):
 
     j_out = numpy.min(j) + 1
     b_out = numpy.sum(b)
-    # u_out = b_out / (t - 1)
 
     u_out = 0
     for v in b:
@@ -115,8 +115,8 @@ def calculate_node(sw_in):
     print(t)
 
 
-
-    t_taken = time_taken(sw_in, direction='in')
+    burst = 4
+    t_taken = time_taken(sw_in, burst, direction='in')
     print('t_in = ' + str(t_taken))
 
     received_equivalent.append([t_taken, burst])
@@ -140,7 +140,7 @@ def calculate_node(sw_in):
 
     print(t)
 
-    t_taken = time_taken(sw_out, direction='out')
+    t_taken = time_taken(sw_out, burst, direction='out')
     print('t_out = ' + str(t_taken))
 
     transmitted_equivalent.append([t_taken, burst])

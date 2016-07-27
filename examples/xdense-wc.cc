@@ -69,11 +69,13 @@ using namespace ns3;
 ofstream file_packets_trace_netdevice;
 ofstream file_simulation_info;
 
+Time start_offset, packet_duration;
 
 void
 log_netdevice_packets(string context, Ptr<const Packet> pck_r) 
 {
-    uint64_t now = Simulator::Now().GetNanoSeconds();
+//    uint64_t now = Simulator::Now().GetNanoSeconds();
+    uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
     
     Ptr<Packet> pck = pck_r->Copy();
     
@@ -152,6 +154,9 @@ main(int argc, char *argv[]) {
     context_dir << "c" << context;
     context_dir << "/";
     
+    packet_duration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);
+    start_offset = packet_duration;
+    
     string dir_output = output_data_dir + context_dir.str() + "out/";
     string dir_input = output_data_dir + context_dir.str() + "in/";     
     
@@ -207,7 +212,7 @@ main(int argc, char *argv[]) {
         my_xdense_app->IsSink = false;
         my_xdense_app->IsActive = true;
         //TODO: Believe it should be get from the packet header itself, or ask the router
-        my_xdense_app->PacketDuration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);  //nano seconds
+        my_xdense_app->PacketDuration = packet_duration;  //nano seconds
         my_xdense_app->ClusterSize_x = size_neighborhood;
         my_xdense_app->ClusterSize_y = size_neighborhood;
 
@@ -319,8 +324,11 @@ main(int argc, char *argv[]) {
 //                }            
 //                if (y == 2 && x > 0 && x <= distance){ 
 //                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(start, period, jitter, burst, s1x, s1y, false);                                          
-//                }            
-                if (x != 0){ 
+//                }           
+                if (x == 4 && y == 3){ 
+                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 1, 1, s1x, s1y, true);                                          
+                } 
+                else if (x != 0){ 
                     my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 1, 1, s1x, s1y, false);               
                 }
     //            else if(y != 0 && x == size_x - 1){
