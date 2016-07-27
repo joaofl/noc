@@ -61,6 +61,12 @@ def time_taken(sw, n, direction='out'):
 
     return t
 
+def burst_size(sw):
+    b_out = 0
+    for f in sw:  # do it fow all the flows getting into that switch
+        b_out += f[2]
+
+    return b_out
 
 def resulting_flow(sw):
     u = []
@@ -115,7 +121,7 @@ def calculate_node(sw_in):
     print(t)
 
 
-    burst = 4
+    # burst = 6
     t_taken = time_taken(sw_in, burst, direction='in')
     print('t_in = ' + str(t_taken))
 

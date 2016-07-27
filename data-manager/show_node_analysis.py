@@ -75,26 +75,21 @@ def main ():
     #
 
 
-    axis_x_transmitted=[]
-    axis_y_transmitted=[]
-    axis_y_received = []
-    axis_x_received = []
-
-    # print list[:,trace.x_absolute]
-    # received_simul = numpy.zeros([int(options.size_y), int(options.size_x)])
-    # transmitted_simul = numpy.zeros([int(options.size_y), int(options.size_x)])
-    received_simul = numpy.zeros([max_y, max_x])
-    transmitted_simul = numpy.zeros([max_y, max_x])
-
-    # log_received = []
-    # log_transmitted = []
-
     pck_duration = ( float(options.packet_size) / float(options.baudrate) ) * 1e9
 
 
     ################# Extact from the Simulation data log ###################
 
     def show_hop(node_x, node_y, sw_in):
+
+        axis_x_transmitted = []
+        axis_y_transmitted = []
+        axis_y_received = []
+        axis_x_received = []
+
+        received_simul = numpy.zeros([max_y, max_x])
+        transmitted_simul = numpy.zeros([max_y, max_x])
+
         for line in data:
             abs_x = int( line[trace.x_absolute] )
             abs_y = int( line[trace.y_absolute] )
@@ -110,7 +105,7 @@ def main ():
                 received_simul[ abs_y, abs_x ] += 1
                 # log_received.append([abs_y, abs_x])
 
-                # Build the cumulative arrival/departure curve
+                # Build the cumulative arrival/departure curve4
                 if abs_x == node_x and abs_y == node_y:
                     axis_x_received.append(t)
                     axis_y_received.append(received_simul[node_y, node_x])
@@ -187,6 +182,43 @@ def main ():
         else:
             print('The node selected have received no packets.')
 
+    def calculateWorstCase():
+        routing = 'yx'
+
+        orig = [0, 0]
+        dest = [4, 3]
+
+         # network load mapping
+        size = [5, 4]
+        f = [1, 0, 1]  # flow each node generate
+        network = [size[0] * [f] for i in range(size[1])]
+
+        fo = [0, 0, 0]  # the output from other neighbors (none at t=0)
+
+        if routing == 'yx':
+            for i in range(len(network)):  # iterate over Y
+                fi = network[0][i]
+                swi = [fo, fi]
+
+                fo = wca.resulting_flow(swi)
+                swo = [fo]
+
+                n_pck = wca.burst_size(swi)
+                ti = wca.time_taken(swi, n_pck, direction='in')
+
+                n_pck = wca.burst_size(swo)
+                to = wca.time_taken(swo, n_pck, direction='out')
+
+                delay = to - ti
+
+                print('i = ' + str(i) + ' swi = ' + str(swi) + 'swo = ' + str(swo) + 'ti = ' + str(ti) + ' to = ' + str(
+                    to) + ' d= ' + str(delay))
+
+                show_hop(4, 3 - i, swi)
+
+                # for j in range(len(network[0])): #iterate over X
+                #     print(i)
+
     # node_x, node_y = 4, 0
 
     fa = [1, 0, 1]  # whereas the flows comming from neighbors take one time cycle more
@@ -198,52 +230,12 @@ def main ():
 
     calculateWorstCase()
 
-    show_hop(3,0, sw_in)
+    # show_hop(3,0, sw_in)
 
 
 
 
 
-def calculateWorstCase():
-    routing = 'yx'
-
-    size = [5,4]
-
-    orig = [0,0]
-    dest = [4,3]
-
-    f = [1, 0, 1] #flow each node generate
-
-    #network load mapping
-    network = [ size[0]*[f] for i in range(size[1]) ]
-
-    fo = [0,0,0] #the output from other neighbors (none at t=0)
-    ti = 0
-
-    if routing == 'yx':
-        for i in range(len(network)): #iterate over Y
-            fi = network[0][i]
-            swi = [fo, fi]
-
-            fo = wca.resulting_flow(swi)
-            swo = [fo]
-
-            # if (i == 0):
-            #     ti = wca.time_taken(swi, 'all', direction='in')
-
-            n_pck = wca.produced(ti+1, swi)
-
-            to = wca.time_taken(swo, n_pck, direction='out')
-
-            delay = to - ti
-
-            print('swi = ' + str(swi) + 'swo = ' + str(swo) + 'ti = ' + str(ti) + ' to = ' + str(to) + ' d= ' + str(delay))
-
-            ti = to
-
-
-        # for j in range(len(network[0])): #iterate over X
-        #     print(i)
 
 
 
