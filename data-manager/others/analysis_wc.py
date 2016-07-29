@@ -101,31 +101,31 @@ def calculate_node(sw_in):
     print(sw_in)
 
     ############# Input #############################################
-    received_profile = []
+    arrivals = []
     received_equivalent = []
     transmitted_equivalent = []
 
-    burst = 0
+    msg_size_total = 0
 
     for f in sw_in:
-        burst += f[2]
+        msg_size_total += f[2]
 
     count = 0
     t = 0
 
-    while(count < burst):
+    while(count < msg_size_total):
         count = produced(t, sw_in)
-        received_profile.append([t, count])
+        arrivals.append([t, count])
         t += step
     t -= step #removed from last iteration not done
     print(t)
 
 
     # burst = 6
-    t_taken = time_taken(sw_in, burst, direction='in')
+    t_taken = time_taken(sw_in, msg_size_total, direction='in')
     print('t_in = ' + str(t_taken))
 
-    received_equivalent.append([t_taken, burst])
+    received_equivalent.append([t_taken, msg_size_total])
 
     ############# Output ##########################################
     transmited_profile = []
@@ -133,12 +133,12 @@ def calculate_node(sw_in):
     fo = resulting_flow(sw_in)
     sw_out = [fo]
 
-    print(sw_out)
+    # print(sw_out)
 
     count = 0
     t = 0
 
-    while(count < burst):
+    while(count < msg_size_total):
         count = produced(t, sw_out)
         transmited_profile.append([t, count])
         t += step
@@ -146,13 +146,13 @@ def calculate_node(sw_in):
 
     print(t)
 
-    t_taken = time_taken(sw_out, burst, direction='out')
+    t_taken = time_taken(sw_out, msg_size_total, direction='out')
     print('t_out = ' + str(t_taken))
 
-    transmitted_equivalent.append([t_taken, burst])
+    transmitted_equivalent.append([t_taken, msg_size_total])
 
 
-    return [received_profile, transmited_profile, received_equivalent, transmitted_equivalent]
+    return [arrivals, transmited_profile, received_equivalent, transmitted_equivalent]
     # return [received_profile, transmited_profile, fo, received_equivalent]
 
 

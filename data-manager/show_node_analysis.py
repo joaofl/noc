@@ -82,10 +82,13 @@ def main ():
 
     def show_hop(node_x, node_y, sw_in):
 
-        axis_x_transmitted = []
-        axis_y_transmitted = []
-        axis_y_received = []
-        axis_x_received = []
+        transmitted_x = []
+        transmitted_y = []
+        received_y = []
+        received_x = []
+
+        traced_y = []
+        traced_x = []
 
         received_simul = numpy.zeros([max_y, max_x])
         transmitted_simul = numpy.zeros([max_y, max_x])
@@ -105,10 +108,16 @@ def main ():
                 received_simul[ abs_y, abs_x ] += 1
                 # log_received.append([abs_y, abs_x])
 
-                # Build the cumulative arrival/departure curve4
+                # Build the cumulative arrival/departure for an specific node
                 if abs_x == node_x and abs_y == node_y:
-                    axis_x_received.append(t)
-                    axis_y_received.append(received_simul[node_y, node_x])
+                    received_x.append(t)
+                    received_y.append(received_simul[node_y, node_x])
+
+                    #point there at what time the traced packed passed by
+                    if line[trace.protocol_app] == '6':
+                        traced_x.append(t)
+                        traced_y.append(received_simul[node_y, node_x])
+            ################# Transmitted ####################
 
             #Build the matrix for the density map
             elif line[trace.operation] == 't': # or line[trace.operation] == 'g':
@@ -117,13 +126,18 @@ def main ():
 
                 #Build the cumulative arrival/departure curve
                 if abs_x == node_x and abs_y == node_y:
-                    axis_x_transmitted.append(t+1)
-                    axis_y_transmitted.append(transmitted_simul[node_y, node_x])
+                    transmitted_x.append(t+1)
+                    transmitted_y.append(transmitted_simul[node_y, node_x])
+
+                    # point there at what time the traced packed passed by
+                    if line[trace.protocol_app] == '6':
+                        traced_x.append(t + 1) #Plus one time slot, the time to finish transmitting
+                        traced_y.append(transmitted_simul[node_y, node_x])
 
 
         ################# Now the same data but from the model ###################
 
-        if len(axis_x_received) != 0:
+        if len(received_x) != 0:
 
             [received_model, transmitted_model, received_equivalent, transmitted_equivalent] = wca.calculate_node(sw_in)
 
@@ -164,16 +178,18 @@ def main ():
 
             # grab from the model here
             plots = [
-                    axis_x_received, axis_y_received,
-                    axis_x_transmitted, axis_y_transmitted,
+                    received_x, received_y,
+                    transmitted_x, transmitted_y,
                     x_received, y_received,
                     x_transmitted, y_transmitted,
                     x_diff, y_diff,
-                    x_received_eq, y_received_eq,
-                    x_trasmitted_eq, y_trasmitted_eq,
+                    # x_received_eq, y_received_eq,
+                    # x_trasmitted_eq, y_trasmitted_eq,
+                    traced_x, traced_y
                     ]
 
-            plotCumulativeInOut(plots)
+            fn = options.outputdir + 'cumulative_' + str(node_x) + ',' + str(node_y) + '.pdf'
+            plotCumulativeInOut(plots, filename=fn)
 
             # plotMatrix(transmitted)
 
@@ -185,8 +201,8 @@ def main ():
     def calculateWorstCase():
         routing = 'yx'
 
-        orig = [0, 0]
-        dest = [4, 3]
+        # orig = [0, 0]
+        # dest = [4, 3]
 
          # network load mapping
         size = [5, 4]
@@ -214,7 +230,7 @@ def main ():
                 print('i = ' + str(i) + ' swi = ' + str(swi) + 'swo = ' + str(swo) + 'ti = ' + str(ti) + ' to = ' + str(
                     to) + ' d= ' + str(delay))
 
-                show_hop(4, 3 - i, swi)
+                show_hop(1, 3 - i, swi)
 
                 # for j in range(len(network[0])): #iterate over X
                 #     print(i)
@@ -230,7 +246,7 @@ def main ():
 
     calculateWorstCase()
 
-    # show_hop(3,0, sw_in)
+    # show_hop(1,0, sw_in)
 
 
 
@@ -277,18 +293,18 @@ def plotMatrix(data):
         # plt.draw()
 
 # def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=None, y5=None, x6=None, y6=None):
-def plotCumulativeInOut(axis):
+def plotCumulativeInOut(axis, filename=None):
 
     global options
 
-    filename = options.outputdir + 'cumulative_ad.pdf'
+    # filename = options.outputdir + 'cumulative_ad.pdf'
     show=True
     x_size = 6.5
     y_size = 3.1
     x_lim = None
     y_lim = None
 
-    lines = ["-","-","--",":","-."]
+    lines =   ["-","-","--",":","-.", " ", " "]
     markers = ["","","","","","D","D"]
     colours = ['lightgreen', 'yellow', 'black', 'black', 'blue', 'red', 'purple']
     labels = ['Arrivals', 'Departures', 'Arrivals model', 'Departures model', 'Queue size', 'WC Arrival', 'WC Departure']
