@@ -45,13 +45,9 @@ def main ():
 
     global options, args
 
-    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F724/out/'
-    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F123/out/'
-    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F222/out/'
-    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F12/out/'
-    # dir = '/noc-data/nw3x3cWC_ANALYSIS_F_02_1.5_2.3/out/'
-    #dir = '/noc-data/nw6x2cWC_ANALYSIS_F1x5/out/'
-    dir = '/noc-data/nw5x4cWC_ANALYSIS_ALL_TO_ONE/out/'
+    # dir = '/noc-data/nw5x4cWC_ANALYSIS_ALL_TO_ONE/out/'
+    dir = '/noc-data/nw5x4cWCA_2_TO_1/out/'
+
 
     home = expanduser("~")
 
@@ -82,10 +78,10 @@ def main ():
 
     def show_hop(node_x, node_y, sw_in):
 
-        transmitted_x = []
-        transmitted_y = []
-        received_y = []
-        received_x = []
+        x_transmitted_simul = []
+        y_transmitted_simul = []
+        y_received_simul = []
+        x_received_simul = []
 
         traced_y = []
         traced_x = []
@@ -110,8 +106,8 @@ def main ():
 
                 # Build the cumulative arrival/departure for an specific node
                 if abs_x == node_x and abs_y == node_y:
-                    received_x.append(t)
-                    received_y.append(received_simul[node_y, node_x])
+                    x_received_simul.append(t)
+                    y_received_simul.append(received_simul[node_y, node_x])
 
                     #point there at what time the traced packed passed by
                     if line[trace.protocol_app] == '6':
@@ -126,8 +122,8 @@ def main ():
 
                 #Build the cumulative arrival/departure curve
                 if abs_x == node_x and abs_y == node_y:
-                    transmitted_x.append(t+1)
-                    transmitted_y.append(transmitted_simul[node_y, node_x])
+                    x_transmitted_simul.append(t+1)
+                    y_transmitted_simul.append(transmitted_simul[node_y, node_x])
 
                     # point there at what time the traced packed passed by
                     if line[trace.protocol_app] == '6':
@@ -137,58 +133,48 @@ def main ():
 
         ################# Now the same data but from the model ###################
 
-        if len(received_x) != 0:
+        if len(x_received_simul) != 0:
 
-            [received_model, transmitted_model, received_equivalent, transmitted_equivalent] = wca.calculate_node(sw_in)
+            [received_model, transmitted_model_eted, transmitted_model_queue] = wca.calculate_node(sw_in)
 
             # print(fout)
 
-            y_received = []
-            x_received = []
+            y_received_model = []
+            x_received_model = []
             for e in received_model:
-                y_received.append(e[1])
-                x_received.append(e[0])
+                y_received_model.append(e[1])
+                x_received_model.append(e[0])
 
-            y_transmitted = []
-            x_transmitted = []
-            for e in transmitted_model:
-                y_transmitted.append(e[1])
-                x_transmitted.append(e[0])
+            y_transmitted_model_eted = []
+            x_transmitted_model_eted = []
+            for e in transmitted_model_eted:
+                y_transmitted_model_eted.append(e[1])
+                x_transmitted_model_eted.append(e[0])
 
-            y_received_eq = []
-            x_received_eq = []
-            for e in received_equivalent:
-                y_received_eq.append(e[1])
-                x_received_eq.append(e[0])
-
-            y_trasmitted_eq = []
-            x_trasmitted_eq = []
-            for e in transmitted_equivalent:
-                y_trasmitted_eq.append(e[1])
-                x_trasmitted_eq.append(e[0])
+            y_trasmitted_model_queue = []
+            x_trasmitted_model_queue = []
+            for e in transmitted_model_queue:
+                y_trasmitted_model_queue.append(e[1])
+                x_trasmitted_model_queue.append(e[0])
 
 
-            for i in range(0, len(y_transmitted) - len(y_received)):
-                y_received.append(y_received[-1])
-
-            x_received = x_transmitted
-            y_diff = numpy.subtract(y_received, y_transmitted).tolist()
-            x_diff = x_transmitted
+            # try:
+            #     y_diff = numpy.subtract(y_received, y_transmitted).tolist()
+            #     x_diff = x_transmitted
 
 
             # grab from the model here
             plots = [
-                    received_x, received_y,
-                    transmitted_x, transmitted_y,
-                    x_received, y_received,
-                    x_transmitted, y_transmitted,
-                    x_diff, y_diff,
-                    # x_received_eq, y_received_eq,
-                    # x_trasmitted_eq, y_trasmitted_eq,
-                    traced_x, traced_y
+                    x_received_simul, y_received_simul,
+                    x_transmitted_simul, y_transmitted_simul,
+                    x_received_model, y_received_model,
+                    x_transmitted_model_eted, y_transmitted_model_eted,
+                    # x_diff, y_diff,
+                    x_trasmitted_model_queue, y_trasmitted_model_queue,
+                    # traced_x, traced_y
                     ]
 
-            fn = options.outputdir + 'cumulative_' + str(node_x) + ',' + str(node_y) + '.pdf'
+            fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_in) + '.pdf'
             plotCumulativeInOut(plots, filename=fn)
 
             # plotMatrix(transmitted)
@@ -237,23 +223,17 @@ def main ():
 
     # node_x, node_y = 4, 0
 
-    fa = [1, 0, 1]  # whereas the flows comming from neighbors take one time cycle more
-    fb = [1, 1, 4]
-    fc = [1, 1, 3]
+    n = 1 #number of packets released per node
+    # fa = [1, 0, 1 * n]  #my own flow, whereas the flows comming from neighbors take one time cycle more
+    fb = [0.1, 1, 5] #the ones from top
+    fc = [0.8, 1, 20] #and the remaning, coming from west, thre columns with 4 nodes each
 
-    # sw_in = [fa, fc]
-    sw_in = [fa, fb, fc]
+    # sw_in = [fa, fb]
+    sw_in = [fb, fc]
 
-    calculateWorstCase()
+    # calculateWorstCase()
 
-    # show_hop(1,0, sw_in)
-
-
-
-
-
-
-
+    show_hop(1,0, sw_in)
 
 
 
@@ -304,7 +284,7 @@ def plotCumulativeInOut(axis, filename=None):
     x_lim = None
     y_lim = None
 
-    lines =   ["-","-","--",":","-.", " ", " "]
+    lines =   ["-","-","--",":","-.", ".", ","]
     markers = ["","","","","","D","D"]
     colours = ['lightgreen', 'yellow', 'black', 'black', 'blue', 'red', 'purple']
     labels = ['Arrivals', 'Departures', 'Arrivals model', 'Departures model', 'Queue size', 'WC Arrival', 'WC Departure']

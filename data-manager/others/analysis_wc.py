@@ -8,7 +8,7 @@ import numpy
 #     else:
 #         return 0
 
-def produced(t, sw):
+def produced_until(t, sw):
     received = []
     for f in sw: # do it fow all the flows getting into that switch
         utilization = f[0]
@@ -68,30 +68,35 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw):
-    u = []
-    j = []
-    b = []
+def resulting_flow(sw, analysis):
+    burstiness = []
+    release_delay = []
+    msg_size = []
+    ms_over_b = []
     for f in sw: # do it fow all the flows getting into that switch
-        utilization = f[0]
-        jitter = f[1]
-        bsize = f[2]
+        b = f[0]
+        rd = f[1]
+        ms = f[2]
 
-        u.append(utilization)
-        j.append(jitter)
-        b.append(bsize)
+        burstiness.append(b)
+        release_delay.append(rd)
+        msg_size.append(ms)
+        ms_over_b.append(ms/b)
 
-    j_out = numpy.min(j) + 1
-    b_out = numpy.sum(b)
 
-    u_out = 0
-    for v in b:
-        u_out += v / max(b)
+    msg_size_out = numpy.sum(msg_size)
 
-    if u_out > 1:
-        u_out = 1
+    if analysis == 'eted':
+        burstiness_out = numpy.sum(msg_size) / numpy.max(ms_over_b)
+        release_delay_out = numpy.max(release_delay) + 1
+    elif analysis == 'queue':
+        burstiness_out = numpy.sum(burstiness)
+        release_delay_out = numpy.min(release_delay) + 1
 
-    return [u_out, j_out, b_out]
+    if burstiness_out > 1:
+        burstiness_out = 1
+
+    return [burstiness_out, release_delay_out, msg_size_out]
 
 
 def calculate_node(sw_in):
@@ -114,45 +119,44 @@ def calculate_node(sw_in):
     t = 0
 
     while(count < msg_size_total):
-        count = produced(t, sw_in)
+        count = produced_until(t, sw_in)
         arrivals.append([t, count])
         t += step
     t -= step #removed from last iteration not done
     print(t)
 
 
-    # burst = 6
-    t_taken = time_taken(sw_in, msg_size_total, direction='in')
-    print('t_in = ' + str(t_taken))
-
-    received_equivalent.append([t_taken, msg_size_total])
-
     ############# Output ##########################################
-    transmited_profile = []
+    departures_eted = []
+    departures_queue = []
 
-    fo = resulting_flow(sw_in)
-    sw_out = [fo]
+    fo_eted = resulting_flow(sw_in, analysis='eted')
+    fo_queue = resulting_flow(sw_in, analysis='queue')
 
-    # print(sw_out)
+    sw_out_eted = [fo_eted]
+    sw_out_queue = [fo_queue]
 
     count = 0
     t = 0
 
     while(count < msg_size_total):
-        count = produced(t, sw_out)
-        transmited_profile.append([t, count])
+        count = produced_until(t, sw_out_eted)
+        departures_eted.append([t, count])
         t += step
     t -= step #removed from last iteration not done
 
-    print(t)
+    count = 0
+    t = 0
 
-    t_taken = time_taken(sw_out, msg_size_total, direction='out')
-    print('t_out = ' + str(t_taken))
+    while(count < msg_size_total):
+        count = produced_until(t, sw_out_queue)
+        departures_queue.append([t, count])
+        t += step
+    t -= step #removed from last iteration not done
 
-    transmitted_equivalent.append([t_taken, msg_size_total])
 
 
-    return [arrivals, transmited_profile, received_equivalent, transmitted_equivalent]
+    return [arrivals, departures_eted, departures_queue]
     # return [received_profile, transmited_profile, fo, received_equivalent]
 
 
@@ -193,7 +197,7 @@ def calculate():
 
     tactual = 1
     for sw in route:
-        tnext = produced(tactual, sw)
+        tnext = produced_until(tactual, sw)
         tactual = tnext
 
         tt_queue += tnext
