@@ -78,10 +78,11 @@ def resulting_flow(sw, analysis):
         rd = f[1]
         ms = f[2]
 
-        burstiness.append(b)
-        release_delay.append(rd)
-        msg_size.append(ms)
-        ms_over_b.append(ms/b)
+        if ms > 0:
+            burstiness.append(b)
+            release_delay.append(rd)
+            msg_size.append(ms)
+            ms_over_b.append(ms/b)
 
 
     msg_size_out = numpy.sum(msg_size)
@@ -107,8 +108,6 @@ def calculate_node(sw_in):
 
     ############# Input #############################################
     arrivals = []
-    received_equivalent = []
-    transmitted_equivalent = []
 
     msg_size_total = 0
 

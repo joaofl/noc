@@ -46,8 +46,8 @@ def main ():
     global options, args
 
     # dir = '/noc-data/nw5x4cWC_ANALYSIS_ALL_TO_ONE/out/'
-    dir = '/noc-data/nw5x4cWCA_2_TO_1/out/'
-
+    # dir = '/noc-data/nw5x4cWCA_2_TO_1/out/'
+    dir = '/noc-data/nw5x4cWCA_LINE_TO_ONE/out/'
 
     home = expanduser("~")
 
@@ -184,56 +184,30 @@ def main ():
         else:
             print('The node selected have received no packets.')
 
-    def calculateWorstCase():
-        routing = 'yx'
-
-        # orig = [0, 0]
-        # dest = [4, 3]
-
-         # network load mapping
-        size = [5, 4]
-        f = [1, 0, 1]  # flow each node generate
-        network = [size[0] * [f] for i in range(size[1])]
+    def calculateWorstCase(flow, distance):
 
         fo = [0, 0, 0]  # the output from other neighbors (none at t=0)
 
-        if routing == 'yx':
-            for i in range(len(network)):  # iterate over Y
-                fi = network[0][i]
-                swi = [fo, fi]
+        for i in range(distance):  # iterate over X
+            fi = flow
+            swi = [fo, fi]
 
-                fo = wca.resulting_flow(swi)
-                swo = [fo]
+            fo = wca.resulting_flow(swi, analysis='queue')
+            show_hop(4 - i, 0, swi)
 
-                n_pck = wca.burst_size(swi)
-                ti = wca.time_taken(swi, n_pck, direction='in')
-
-                n_pck = wca.burst_size(swo)
-                to = wca.time_taken(swo, n_pck, direction='out')
-
-                delay = to - ti
-
-                print('i = ' + str(i) + ' swi = ' + str(swi) + 'swo = ' + str(swo) + 'ti = ' + str(ti) + ' to = ' + str(
-                    to) + ' d= ' + str(delay))
-
-                show_hop(1, 3 - i, swi)
-
-                # for j in range(len(network[0])): #iterate over X
-                #     print(i)
-
-    # node_x, node_y = 4, 0
 
     n = 1 #number of packets released per node
-    # fa = [1, 0, 1 * n]  #my own flow, whereas the flows comming from neighbors take one time cycle more
-    fb = [0.1, 1, 5] #the ones from top
-    fc = [0.8, 1, 20] #and the remaning, coming from west, thre columns with 4 nodes each
+    fa = [0.7, 0, 4]  #my own flow, whereas the flows comming from neighbors take one time cycle more
+    # fb = [0.1, 1, 5] #the ones from top
+    # fc = [0.8, 1, 20] #and the remaning, coming from west, thre columns with 4 nodes each
 
     # sw_in = [fa, fb]
-    sw_in = [fb, fc]
+    # sw_in = [fa]
+    # path = [[5,0], [0,5]]
 
-    # calculateWorstCase()
+    calculateWorstCase(fa, 4)
 
-    show_hop(1,0, sw_in)
+    # show_hop(1,0, sw_in)
 
 
 
