@@ -167,10 +167,10 @@ def main ():
             plots = [
                     x_received_simul, y_received_simul,
                     x_transmitted_simul, y_transmitted_simul,
-                    x_received_model, y_received_model,
-                    x_transmitted_model_eted, y_transmitted_model_eted,
+                    # x_received_model, y_received_model,
+                    # x_transmitted_model_eted, y_transmitted_model_eted,
                     # x_diff, y_diff,
-                    x_trasmitted_model_queue, y_trasmitted_model_queue,
+                    # x_trasmitted_model_queue, y_trasmitted_model_queue,
                     # traced_x, traced_y
                     ]
 
@@ -197,17 +197,17 @@ def main ():
 
 
     n = 1 #number of packets released per node
-    fa = [0.7, 0, 4]  #my own flow, whereas the flows comming from neighbors take one time cycle more
-    # fb = [0.1, 1, 5] #the ones from top
-    # fc = [0.8, 1, 20] #and the remaning, coming from west, thre columns with 4 nodes each
+    fa = [1, 0, 10]  #my own flow, whereas the flows comming from neighbors take one time cycle more
+    fb = [0.8, 1, 5] #the ones from top
+    fc = [0.8, 1, 20] #and the remaning, coming from west, thre columns with 4 nodes each
 
     # sw_in = [fa, fb]
-    # sw_in = [fa]
+    sw_in = [fa]
     # path = [[5,0], [0,5]]
 
-    calculateWorstCase(fa, 4)
+    # calculateWorstCase(fa, 4)
 
-    # show_hop(1,0, sw_in)
+    show_hop(1,0, sw_in)
 
 
 

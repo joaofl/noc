@@ -233,6 +233,8 @@ namespace ns3 {
         
         void SetDirection(NOCRouting::Directions direction);
         
+        void SetBurstness(double_t);
+        
         virtual Address GetAddress(void) const;
 
         virtual bool SetMtu(const uint16_t mtu);
@@ -533,8 +535,9 @@ namespace ns3 {
         NetDevice::PromiscReceiveCallback m_promiscCallback;
         bool m_serialComm;
         
-        double_t m_clockSkew;
         
+        double_t m_clockSkew;
+        double_t m_burstness;
         uint32_t m_ifIndex;
         bool m_linkUp;
         

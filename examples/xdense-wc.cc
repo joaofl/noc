@@ -307,9 +307,9 @@ main(int argc, char *argv[]) {
     //            if (y != 0 && x != size_x - 1){ 
     //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, false);                                          
     //            }            
-                if (y == 0 && x > 0 && x <= distance){ 
-                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(0.7, 1, 4, s1x, s1y, false);                                       
-                }            
+//                if (y == 0 && x > 0 && x <= distance){ 
+//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(0.7, 1, 4, s1x, s1y, false);                                       
+//                }            
 //                if (y == 1 && x == 2){ 
 //                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(0.50, jitter, 20, s1x, s1y, true);                                          
 //                }            

@@ -189,6 +189,7 @@ namespace ns3 {
         NS_LOG_FUNCTION(this);
 //        queue_size_prioritized = 0;
 //        queue_size = 0;
+        m_burstness = 0.5;
     }
 
     NOCNetDevice::~NOCNetDevice() {
@@ -239,7 +240,7 @@ namespace ns3 {
         m_phyTxBeginTrace(m_currentPkt);
 
         //the time required to send a single bit
-        Time oneBitTransmissionTime = Seconds(m_bps.CalculateBitsTxTime(1));
+        Time oneBitTransmissionTime;
         Time txTime;
         
         if (m_serialComm == true){
@@ -252,13 +253,15 @@ namespace ns3 {
 //            txTime += oneBitTransmissionTime * m_clockSkew;
         }
         else{
+            oneBitTransmissionTime = Seconds(m_bps.CalculateBitsTxTime(1));
 //            in parallel, one packet takes one cycle to be transmitted, considering
 //            that port and packet has both the same width.
             txTime = PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() + 
                     oneBitTransmissionTime.GetPicoSeconds() * m_clockSkew); 
         }
         
-        Time txCompleteTime = txTime + m_tInterframeGap;
+        Time delay = PicoSeconds(txTime.GetPicoSeconds() / m_burstness);
+        Time txCompleteTime = delay;
         
         NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
         Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitComplete, this);
@@ -320,58 +323,7 @@ void
 //        if (m_queue_output->GetNPackets() > 1)
 //            std::cout << "QO=" << m_queue_output->GetNPackets() << "\n";
     }
-
-//    void 
-//    NOCNetDevice::SetRemoteSignalChangedCallback(SignalChangedCallback cb){
-//        m_remoteWaitChanged = cb;
-//    }
-//
-//    void 
-//    NOCNetDevice::SetLocalSignalChangedCallback(SignalChangedCallback cb){
-//        m_localWaitChanged = cb;
-//    }
-//    
-//    void 
-//    NOCNetDevice::RemoteSignalChanged(uint8_t signalName, bool signal){
-//        if (signalName == NOCChannel::REMOTE_TRANSMISSION_STARTED){
-//            /* 
-//            * On the rising edge of the first bits being transmitted to this node,
-//            * the wait signal is rised up to ensure no other packet is sent until
-//            * the received packet is dispatched from the input buffer.
-//            */
-//            SetLocalWait(signal);
-//        }
-//        else if(signalName == NOCChannel::WAIT){
-//            m_remoteWait = signal;
-//            m_remoteWaitChanged(NOCChannel::WAIT, this, m_remoteWait);            
-//        }
-//    }
-//    
-//    bool
-//    NOCNetDevice::GetRemoteWait(void){
-//        return m_remoteWait;
-//    }
-//    
-//    bool
-//    NOCNetDevice::GetLocalWait(void) {
-//        return m_wait;
-//    }
-//    
-//    void
-//    NOCNetDevice::SetLocalWait(bool wait) {
-//        if (m_wait != wait){
-//            m_wait = wait;
-//            //This simulate a pin being risen in one device, causing an interruption
-//            //in the device connected to it
-//            m_channel->PropagateSignal(NOCChannel::WAIT, m_wait, this, PicoSeconds(0));
-//            
-//            //Callback to upper layers to announce the local change
-//            m_localWaitChanged(NOCChannel::WAIT, this, m_wait);
-//        }
-//    }
     
-    
-
     bool
     NOCNetDevice::Attach(Ptr<NOCChannel> ch) {
         NS_LOG_FUNCTION(this << &ch);
@@ -538,6 +490,10 @@ void
         m_direction = direction;
     }
 
+    void 
+    NOCNetDevice::SetBurstness(double_t burstness) {
+        m_burstness = burstness;
+    }
     
     Address
     NOCNetDevice::GetAddress(void) const {
