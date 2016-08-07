@@ -189,7 +189,7 @@ namespace ns3 {
         NS_LOG_FUNCTION(this);
 //        queue_size_prioritized = 0;
 //        queue_size = 0;
-        m_burstness = 0.5;
+        m_burstiness = 1;
     }
 
     NOCNetDevice::~NOCNetDevice() {
@@ -260,7 +260,7 @@ namespace ns3 {
                     oneBitTransmissionTime.GetPicoSeconds() * m_clockSkew); 
         }
         
-        Time delay = PicoSeconds(txTime.GetPicoSeconds() / m_burstness);
+        Time delay = PicoSeconds(txTime.GetPicoSeconds() / m_burstiness);
         Time txCompleteTime = delay;
         
         NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
@@ -491,8 +491,8 @@ void
     }
 
     void 
-    NOCNetDevice::SetBurstness(double_t burstness) {
-        m_burstness = burstness;
+    NOCNetDevice::SetBurstiness(double_t b) {
+        m_burstiness = b;
     }
     
     Address

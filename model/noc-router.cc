@@ -131,6 +131,21 @@ namespace ns3 {
         NS_LOG_FUNCTION_NOARGS();
         m_bps = bps;
     }
+
+    void 
+    NOCRouter::SetBurstiness(double_t b) {
+        
+        uint8_t n = m_netDevices.GetN();
+////        uint8_t n = m_netDeviceInfoArray.size(); 
+//          uint8_t n = 4; 
+//
+        for (uint8_t i = 0; i < n ; i++){
+            GetNetDevice(i)->SetBurstiness(b);
+        }
+                
+//        m_burstiness = b;
+    }
+
     
     Time
     NOCRouter::GetTransmissionTime(Ptr<const Packet> pck) {

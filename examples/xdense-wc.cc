@@ -121,7 +121,7 @@ main(int argc, char *argv[]) {
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "WCA_LINE_TO_ONE";
+    string context = "WCA_ALL_TO_ONE";
         
     string output_data_dir = homedir + "/noc-data";
     
@@ -327,12 +327,14 @@ main(int argc, char *argv[]) {
 //                } 
                 
 //                All to one
-//                if (x == 1 && y == 3){ 
-//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 1, 2, s1x, s1y, true);                                          
-//                } 
-//                else if (x != 0){ 
-//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 1, 2, s1x, s1y, false);               
-//                }
+                if (x == 1 && y == 3){ 
+                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(0.9);                                          
+                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 1, 2, s1x, s1y, true);                                          
+                } 
+                else if (x != 0){ 
+                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(0.9);  
+                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 1, 2, s1x, s1y, false);               
+                }
                 
     //            else if(y != 0 && x == size_x - 1){
     ////                Simulator::Schedule(t_ns, &XDenseApp::SetFlowGenerator, my_xdense_app_container.Get(n)->GetObject<XDenseApp>(), period, jitter, 1, s1x, s1y, true);

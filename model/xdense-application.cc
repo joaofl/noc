@@ -79,6 +79,12 @@ namespace ns3 {
     }
     
     void 
+    XDenseApp::SetBurstiness(double_t b) {
+                
+        m_router->SetBurstiness(b);
+    }
+    
+    void 
     XDenseApp::SetFlowGenerator(float utilization, uint32_t jitter, uint32_t burst, uint32_t dest_x, uint32_t dest_y, bool trace) {
         if (utilization == 0 || IsActive == false)
             return;        

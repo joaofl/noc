@@ -135,6 +135,8 @@ namespace ns3 {
         Time GetTransmissionTime(Ptr<const Packet> pck);
         
         void SetDataRate(DataRate bps);
+        
+        void SetBurstiness(double_t b);
      
         
         //            void
@@ -211,6 +213,8 @@ namespace ns3 {
         Ptr<Queue> m_queue_app_output;
         
         DataRate m_bps;
+        
+        double_t m_burstiness;
         
         enum server_state_machine{
             IDLE,

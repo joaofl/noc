@@ -207,7 +207,7 @@ def main ():
 
     # calculateWorstCase(fa, 4)
 
-    show_hop(1,0, sw_in)
+    show_hop(2,0, sw_in)
 
 
 

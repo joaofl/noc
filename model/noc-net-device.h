@@ -233,7 +233,7 @@ namespace ns3 {
         
         void SetDirection(NOCRouting::Directions direction);
         
-        void SetBurstness(double_t);
+        void SetBurstiness(double_t);
         
         virtual Address GetAddress(void) const;
 
@@ -537,7 +537,7 @@ namespace ns3 {
         
         
         double_t m_clockSkew;
-        double_t m_burstness;
+        double_t m_burstiness;
         uint32_t m_ifIndex;
         bool m_linkUp;
         
