@@ -136,7 +136,7 @@ namespace ns3 {
         
         void SetDataRate(DataRate bps);
         
-        void SetBurstiness(double_t b);
+        void SetBurstiness(double_t b, uint8_t rd);
      
         
         //            void

@@ -263,91 +263,71 @@ main(int argc, char *argv[]) {
         my_xdense_app->AddRouter(my_noc_router);
     }
 
-    uint32_t s1x, s1y, s2x, s2y, s3x, s3y, s4x, s4y;
     
+    //////////////////// From here, initialize the application at the nodes ///////////////// 
+    
+//    uint32_t s1x, s1y, s2x, s2y, s3x, s3y, s4x, s4y;
+//    
+    uint32_t s1x, s1y; //Sync 1 location
     s1x = 0; s1y = 0;
-    s2x = 19; s2y = 0;
-    s3x = 10; s3y = 0;
-    s4x = 15; s4y = 0;
     
-    //Tweak the compiler if not in use
-    s1x = s1x; s1y = s1y; 
-    s2x = s2x; s2y = s2y; 
-    s3x = s3x; s3y = s3y; 
-    s4x = s4x; s4y = s4y;    
+//    s2x = 19; s2y = 0;
+//    s3x = 10; s3y = 0;
+//    s4x = 15; s4y = 0;
+//    
+//    //Tweak the compiler if not in use
+//    s1x = s1x; s1y = s1y; 
+//    s2x = s2x; s2y = s2y; 
+//    s3x = s3x; s3y = s3y; 
+//    s4x = s4x; s4y = s4y;    
     
-    uint32_t jitter, burst, distance;
-    
-//    Time t_ns = Time::FromInteger(0, Time::NS);
-    
+
+    bool use_traffic_shapper = false;
+    double_t b, shaper_b;
+    uint32_t rd; 
+    uint32_t ms;
+//    uint32_t distance;
+      
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
             uint32_t n = GetN(size_x, size_y, x, y);
             //One have to make sure to not schedule 2 flows to the same node
-            //neither send packets to itsel
+            //neither send packets to itself
             
+            rd = 1;
+            b = 0.1;
+            ms = 10;
             
-            distance = (x - s1x) + (y - s1y);
-            distance = 5;
-            distance = distance;
-            
-//            jitter = y * size_x - 1;
-            jitter = 1;
-            jitter = jitter;
-            
-            burst = 2;
-            burst = burst;
-//            uint32_t start;
-           
-            for (uint8_t ss = 0 ; ss < 1 ; ss++){
-                
-//                start = ss * 1000 + 1;
-//                start = 1;
-            
-    //            if (y != 0 && x != size_x - 1){ 
-    //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, duration, s1x, s1y, false);                                          
-    //            }            
-//                if (y == 0 && x > 0 && x <= distance){ 
-//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(0.7, 1, 4, s1x, s1y, false);                                       
-//                }            
-//                if (y == 1 && x == 2){ 
-//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(0.50, jitter, 20, s1x, s1y, true);                                          
-//                }            
-//                if (x == 1 && y == 1){ 
-//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(0.1, 1, 5, s1x, s1y, false);                                          
-//                }            
-//                if (x == 2 && y == 0){ 
-//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(0.8, 1, 20, s1x, s1y, false);                                          
-//                }            
-//                if (y == 1 && x > 0){// 0 &&x <= size_x - 6){ 
-//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, jitter, burst, s1x, s1y, false);                                          
-//                }            
-//                if (y == 2 && x > 0 && x <= distance){ 
-//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(start, period, jitter, burst, s1x, s1y, false);                                          
-//                } 
-                
-//                All to one
-                if (x == 1 && y == 3){ 
-                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(0.9);                                          
-                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 1, 2, s1x, s1y, true);                                          
-                } 
-                else if (x != 0){ 
-                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(0.9);  
-                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(1, 1, 2, s1x, s1y, false);               
-                }
-                
-    //            else if(y != 0 && x == size_x - 1){
-    ////                Simulator::Schedule(t_ns, &XDenseApp::SetFlowGenerator, my_xdense_app_container.Get(n)->GetObject<XDenseApp>(), period, jitter, 1, s1x, s1y, true);
-    //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(period, jitter, 1, s1x, s1y, true); 
-    //            }
-//                else if(y == 1 && x == distance + 1){
-//    //                Simulator::Schedule(t_ns, &XDenseApp::SetFlowGenerator, my_xdense_app_container.Get(n)->GetObject<XDenseApp>(), period, jitter, 1, s1x, s1y, true);
-//                    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(start, 1, jitter, 1, s1x, s1y, true); 
-//                }
+            uint8_t shaper_rd = (size_y - y) - rd;
+//            double_t shapper_b = 1 / ((size_y)*(size_x-1));
+            uint8_t total_ms = (size_y - y) * ms;
+            double_t max_ms_over_b = (total_ms) / (b * (size_y - y));
+
+            if (y == 0 && x > 0){
+                shaper_rd = shaper_rd + (size_x - x) - rd;
+                total_ms = total_ms + ((total_ms) * (size_x - x - 1));
+                max_ms_over_b = (total_ms) / (b * (size_y - y) * (size_x - x));
             }
-//            }
-                
-                
+
+//                shaper_rd -= rd;
+            shaper_b = total_ms / max_ms_over_b;
+            if (shaper_b > 1) shaper_b = 1;
+
+             if (use_traffic_shapper == false){
+                 shaper_b = 1;
+                 shaper_rd = 0;
+             }
+            
+
+//              All to one
+            if (x == 1 && y == 3){ //The one to trace
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(shaper_b, shaper_rd);                                          
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, s1x, s1y, true);                                          
+            } 
+            else if (x > 0){ 
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(shaper_b, shaper_rd);  
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, s1x, s1y, false);               
+            }   
         }
     }
 

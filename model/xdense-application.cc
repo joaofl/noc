@@ -79,14 +79,14 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetBurstiness(double_t b) {
+    XDenseApp::SetBurstiness(double_t b, uint8_t rd) {
                 
-        m_router->SetBurstiness(b);
+        m_router->SetBurstiness(b, rd);
     }
     
     void 
-    XDenseApp::SetFlowGenerator(float utilization, uint32_t jitter, uint32_t burst, uint32_t dest_x, uint32_t dest_y, bool trace) {
-        if (utilization == 0 || IsActive == false)
+    XDenseApp::SetFlowGenerator(double_t burstiness, uint32_t release_delay, uint32_t msg_size, uint32_t dest_x, uint32_t dest_y, bool trace) {
+        if (burstiness == 0 || IsActive == false)
             return;        
         
         
@@ -95,19 +95,19 @@ namespace ns3 {
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
         if (trace){
             hd.SetXdenseProtocol(XDenseHeader::TRACE);
-            hd.SetData(0 + jitter);
+            hd.SetData(0 + release_delay);
         }
         pck->AddHeader(hd);
 
-        Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / utilization, Time::NS);
-        Time t_jitter = Time::FromInteger(PacketDuration.GetNanoSeconds() * jitter, Time::NS);
+        Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
+        Time t_jitter = Time::FromInteger(PacketDuration.GetNanoSeconds() * release_delay, Time::NS);
         
         Time t_ns = t_jitter;
         
 //        uint8_t count = 0;
 //        uint32_t tslot = 0;
         
-        for (uint16_t i = 0 ; i < burst ; i++ ){
+        for (uint16_t i = 0 ; i < msg_size ; i++ ){
             Simulator::Schedule(t_ns + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
 //            t_ns += t_step;
         }

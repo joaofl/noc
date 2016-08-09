@@ -190,6 +190,8 @@ namespace ns3 {
 //        queue_size_prioritized = 0;
 //        queue_size = 0;
         m_burstiness = 1;
+        m_first_run = true;
+        m_release_delay = 0;
     }
 
     NOCNetDevice::~NOCNetDevice() {
@@ -261,7 +263,16 @@ namespace ns3 {
         }
         
         Time delay = PicoSeconds(txTime.GetPicoSeconds() / m_burstiness);
-        Time txCompleteTime = delay;
+        Time txCompleteTime;
+        
+        if (m_first_run){
+           txCompleteTime = (m_release_delay * txTime) + delay;        
+           m_first_run = false;
+        }
+        else{
+            txCompleteTime = delay;
+        }
+
         
         NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
         Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitComplete, this);
@@ -491,8 +502,9 @@ void
     }
 
     void 
-    NOCNetDevice::SetBurstiness(double_t b) {
+    NOCNetDevice::SetBurstiness(double_t b, uint8_t rd) {
         m_burstiness = b;
+        m_release_delay = rd;
     }
     
     Address

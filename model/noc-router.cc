@@ -133,14 +133,14 @@ namespace ns3 {
     }
 
     void 
-    NOCRouter::SetBurstiness(double_t b) {
+    NOCRouter::SetBurstiness(double_t b, uint8_t rd) {
         
         uint8_t n = m_netDevices.GetN();
 ////        uint8_t n = m_netDeviceInfoArray.size(); 
 //          uint8_t n = 4; 
 //
         for (uint8_t i = 0; i < n ; i++){
-            GetNetDevice(i)->SetBurstiness(b);
+            GetNetDevice(i)->SetBurstiness(b, rd);
         }
                 
 //        m_burstiness = b;

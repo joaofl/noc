@@ -233,7 +233,7 @@ namespace ns3 {
         
         void SetDirection(NOCRouting::Directions direction);
         
-        void SetBurstiness(double_t);
+        void SetBurstiness(double_t, uint8_t rd);
         
         virtual Address GetAddress(void) const;
 
@@ -538,10 +538,13 @@ namespace ns3 {
         
         double_t m_clockSkew;
         double_t m_burstiness;
+        uint8_t m_release_delay;
+        bool m_first_run;
         uint32_t m_ifIndex;
         bool m_linkUp;
         
         bool m_wait, m_remoteWait;
+        
         
 //        
 //        RemoteTransmissionStartedCallback m_transmissionStartedCallback;

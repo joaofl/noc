@@ -73,9 +73,9 @@ namespace ns3 {
         
         void Tests(void);
 
-        void SetBurstiness(double_t b);
+        void SetBurstiness(double_t b, uint8_t rd);
             
-        void SetFlowGenerator(float utilization, uint32_t jitter, uint32_t duration, uint32_t dest_x, uint32_t dest_y, bool trace);
+        void SetFlowGenerator(double_t, uint32_t, uint32_t, uint32_t dest_x, uint32_t dest_y, bool trace);
         
         void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         

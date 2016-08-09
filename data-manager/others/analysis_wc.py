@@ -88,7 +88,7 @@ def resulting_flow(sw, analysis):
     msg_size_out = numpy.sum(msg_size)
 
     if analysis == 'eted':
-        burstiness_out = numpy.sum(msg_size) / numpy.max(ms_over_b)
+        burstiness_out = msg_size_out / numpy.max(ms_over_b)
         release_delay_out = numpy.max(release_delay) + 1
     elif analysis == 'queue':
         burstiness_out = numpy.sum(burstiness)
@@ -104,7 +104,7 @@ def calculate_node(sw_in):
 
     step = 0.01
 
-    print(sw_in)
+    # print(sw_in)
 
     ############# Input #############################################
     arrivals = []
@@ -122,7 +122,7 @@ def calculate_node(sw_in):
         arrivals.append([t, count])
         t += step
     t -= step #removed from last iteration not done
-    print(t)
+    # print(t)
 
 
     ############# Output ##########################################
