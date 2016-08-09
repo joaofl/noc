@@ -282,8 +282,8 @@ main(int argc, char *argv[]) {
 //    s4x = s4x; s4y = s4y;    
     
 
-    bool use_traffic_shapper = false;
-    double_t b, shaper_b;
+    bool use_traffic_shapper = true;
+    double_t b;
     uint32_t rd; 
     uint32_t ms;
 //    uint32_t distance;
@@ -294,23 +294,23 @@ main(int argc, char *argv[]) {
             //One have to make sure to not schedule 2 flows to the same node
             //neither send packets to itself
             
-            rd = 1;
-            b = 0.1;
-            ms = 10;
+            rd = 10;
+            b = 0.07; //1 / ((size_y)*(size_x-1));
+            ms = 5;
             
-            uint8_t shaper_rd = (size_y - y) - rd;
-//            double_t shapper_b = 1 / ((size_y)*(size_x-1));
-            uint8_t total_ms = (size_y - y) * ms;
+            
+            uint32_t shaper_rd = (size_y - y - 1);
+            uint32_t total_ms = (size_y - y) * ms;
             double_t max_ms_over_b = (total_ms) / (b * (size_y - y));
 
             if (y == 0 && x > 0){
-                shaper_rd = shaper_rd + (size_x - x) - rd;
+                shaper_rd = shaper_rd + (size_x - x - 1);
                 total_ms = total_ms + ((total_ms) * (size_x - x - 1));
                 max_ms_over_b = (total_ms) / (b * (size_y - y) * (size_x - x));
             }
 
 //                shaper_rd -= rd;
-            shaper_b = total_ms / max_ms_over_b;
+            double_t shaper_b = total_ms / max_ms_over_b;
             if (shaper_b > 1) shaper_b = 1;
 
              if (use_traffic_shapper == false){
@@ -318,6 +318,9 @@ main(int argc, char *argv[]) {
                  shaper_rd = 0;
              }
             
+            
+            Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
+            rd = r->GetInteger (1, rd);
 
 //              All to one
             if (x == 1 && y == 3){ //The one to trace

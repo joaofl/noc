@@ -211,11 +211,11 @@ def main ():
             show_hop(x, distance_y[1], swi)
 
     n = 1 #number of packets released per node
-    fa = [0.0625, 0, 10]  #my own flow, whereas the flows comming from neighbors take one time cycle more
+    fa = [0.07, 9, 5]  #my own flow, whereas the flows comming from neighbors take one time cycle more
     fb = [1, 1, 10 * 4] #the ones from top
     fc = [0.8, 1, 20] #and the remaning, coming from west, thre columns with 4 nodes each
 
-    sw_in = [fa, fb]
+    # sw_in = [fa, fb]
     # sw_in = [fa]
     # path = [[5,0], [0,5]]
 
