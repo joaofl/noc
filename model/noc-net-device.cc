@@ -104,6 +104,16 @@ namespace ns3 {
                 // Trace sources at the "top" of the net device, where packets transition
                 // to/from higher layers.
                 //
+        
+                .AddTraceSource("MacTxQueue",
+                "Trace source indicating the output queue size of this device",
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macTxQueueTrace),
+                "ns3::NOCNetDevice::MacTxQueue")                
+                .AddTraceSource("MacRxQueue",
+                "Trace source indicating the input queue size of this device",
+                MakeTraceSourceAccessor(&NOCNetDevice::m_macRxQueueTrace),
+                "ns3::NOCNetDevice::MacRxQueue")                
+        
                 .AddTraceSource("MacTx",
                 "Trace source indicating a packet has arrived for transmission by this device",
                 MakeTraceSourceAccessor(&NOCNetDevice::m_macTxTrace),
@@ -311,22 +321,8 @@ void
 
         m_phyTxEndTrace(m_currentPkt);
         m_currentPkt = 0;
-
-        Ptr<QueueItem> item;
-        Ptr<Packet> p1;
-        if (m_queue_output_p->IsEmpty() == false){
-            item = m_queue_output_p->Dequeue();
-            p1 = item->GetPacket ();
-            //
-            // There was packets on the high p queue, send them...
-            //
-            m_snifferTrace(p1);
-            m_promiscSnifferTrace(p1);
-            m_macTxTrace(p1);
-            TransmitStart(p1);
-            return;
-        }
         
+        Ptr<QueueItem> item;
         Ptr<Packet> p0;
         if (m_queue_output->IsEmpty() == false){
             item = m_queue_output->Dequeue();
@@ -363,15 +359,12 @@ void
     }
 
     void
-    NOCNetDevice::SetQueue(Ptr<Queue> qi, Ptr<Queue> qip, Ptr<Queue> qo, Ptr<Queue> qop) {
+    NOCNetDevice::SetQueue(Ptr<Queue> qi, Ptr<Queue> qo) {
         NS_LOG_FUNCTION(this << qo);
-        NS_LOG_FUNCTION(this << qop);
+        NS_LOG_FUNCTION(this << qi);
         
         m_queue_output = qo;
-        m_queue_output_p = qop;
-        
         m_queue_input = qi;
-        m_queue_input = qip;
     }
     
     Ptr<Queue>
@@ -609,25 +602,6 @@ void
 
             //TODO: change queue to an array of queue, so multiple priorities
             //can be utilized
-            if (priority > 0) {
-                if (m_queue_output_p->Enqueue( Create<QueueItem> (packet) ) == true) {
-//                    uint32_t queue_size_prioritized = m_queue_prioritized->GetNPackets();
-                    Ptr<QueueItem> item = m_queue_output_p->Dequeue();
-                    packet = item->GetPacket ();
-                    
-                    m_snifferTrace(packet);
-                    m_promiscSnifferTrace(packet);
-                    m_macTxTrace(packet);
-                    
-                    return TransmitStart(packet);
-                } else {
-                    // Enqueue may fail (overflow)
-                    m_macTxDropTrace(packet);
-                    return false;
-                }
-            }
-
-
             // 
             // Even if the transmitter is immediately available, we still enqueue and
             // dequeue the packet to hit the tracing hooks.
@@ -655,16 +629,10 @@ void
         
         else //m_txMachineState != READY
         {
-            if (priority > 0){
-                bool r = m_queue_output_p->Enqueue(Create<QueueItem> (packet) );
-//                uint32_t queue_size_prioritized = m_queue_prioritized->GetNPackets();
-                return r;
-            }
-            else{
-                bool r = m_queue_output->Enqueue(Create<QueueItem> (packet) );
+
+            bool r = m_queue_output->Enqueue(Create<QueueItem> (packet) );
 //                uint32_t queue_size = m_queue->GetNPackets();
-                return r;
-            }
+            return r;
         }
     }
 

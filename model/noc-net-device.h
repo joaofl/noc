@@ -128,7 +128,7 @@ namespace ns3 {
          * @see DropTailQueue
          * @param queue Ptr to the new queues. With low and high priorities.
          */
-        void SetQueue(Ptr<Queue> qi, Ptr<Queue> qip, Ptr<Queue> qo, Ptr<Queue> qop);
+        void SetQueue(Ptr<Queue> qi, Ptr<Queue> qo);
 
         /**
          * Get a copy of the attached Queue.
@@ -381,13 +381,13 @@ namespace ns3 {
          */
         Ptr<Queue> m_queue_output;
         
-        Ptr<Queue> m_queue_output_p;
+//        Ptr<Queue> m_queue_output_p;
 
         Ptr<Queue> m_queue_input;
         
-        Ptr<Queue> m_queue_input_p;
+//        Ptr<Queue> m_queue_input_p;
         
-        Ptr<Queue> m_signal_queue;
+//        Ptr<Queue> m_signal_queue;
 
         /**
          * Error model for receive packet events
@@ -527,6 +527,9 @@ namespace ns3 {
          * \see class CallBackTraceSource
          */
         TracedCallback<Ptr<const Packet> > m_promiscSnifferTrace;
+
+        TracedCallback< uint16_t > m_macRxQueueTrace;
+        TracedCallback< uint16_t > m_macTxQueueTrace;
 
         Ptr<Node> m_node;
         NOCAddress m_address;
