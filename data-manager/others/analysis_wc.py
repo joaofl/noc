@@ -84,15 +84,21 @@ def resulting_flow(sw, analysis):
             msg_size.append(ms)
             ms_over_b.append(ms/b)
 
-
     msg_size_out = numpy.sum(msg_size)
+
+    burstiness_out = 0
+    release_delay_out = 0
 
     if analysis == 'eted':
         burstiness_out = msg_size_out / numpy.max(ms_over_b)
         release_delay_out = numpy.max(release_delay) + 1
-    elif analysis == 'queue':
-        burstiness_out = numpy.sum(burstiness)
-        release_delay_out = numpy.min(release_delay) + 1
+    # elif analysis == 'eted_lb':
+    #     burstiness_out = numpy.sum(burstiness)
+    #     release_delay_out = numpy.min(release_delay) + 1
+    else:
+        print('Invalid model option ' + analysis)
+        exit(1)
+
 
     if burstiness_out > 1:
         burstiness_out = 1
@@ -130,10 +136,10 @@ def calculate_node(sw_in):
     departures_queue = []
 
     fo_eted = resulting_flow(sw_in, analysis='eted')
-    fo_queue = resulting_flow(sw_in, analysis='queue')
+    # fo_queue = resulting_flow(sw_in, analysis='etedmin')
 
     sw_out_eted = [fo_eted]
-    sw_out_queue = [fo_queue]
+    # sw_out_queue = [fo_queue]
 
     count = 0
     t = 0
@@ -144,18 +150,18 @@ def calculate_node(sw_in):
         t += step
     t -= step #removed from last iteration not done
 
-    count = 0
-    t = 0
+    # count = 0
+    # t = 0
 
-    while(count < msg_size_total):
-        count = produced_until(t, sw_out_queue)
-        departures_queue.append([t, count])
-        t += step
-    t -= step #removed from last iteration not done
+    # while(count < msg_size_total):
+    #     count = produced_until(t, sw_out_queue)
+    #     departures_queue.append([t, count])
+    #     t += step
+    # t -= step #removed from last iteration not done
 
 
 
-    return [arrivals, departures_eted, departures_queue]
+    return [arrivals, departures_eted]
     # return [received_profile, transmited_profile, fo, received_equivalent]
 
 

@@ -76,7 +76,7 @@ def main ():
 
     ################# Extact from the Simulation data log ###################
 
-    def show_hop(node_x, node_y, sw_in):
+    def show_hop(node_x, node_y, sw_lb, sw_ub):
 
         x_transmitted_simul = []
         y_transmitted_simul = []
@@ -135,28 +135,26 @@ def main ():
 
         if len(x_received_simul) != 0:
 
-            [received_model, transmitted_model_eted, transmitted_model_queue] = wca.calculate_node(sw_in)
+            [model_r_lb, model_t_lb] = wca.calculate_node(sw_lb)
+            [model_r_ub, model_t_ub] = wca.calculate_node(sw_ub)
 
             # print(fout)
 
-            y_received_model = []
-            x_received_model = []
-            for e in received_model:
-                y_received_model.append(e[1])
-                x_received_model.append(e[0])
+            #######
+            def transform(data):
+                x = []
+                y = []
+                for e in data:
+                    y.append(e[1])
+                    x.append(e[0])
+                return [x, y]
+            #######
 
-            y_transmitted_model_eted = []
-            x_transmitted_model_eted = []
-            for e in transmitted_model_eted:
-                y_transmitted_model_eted.append(e[1])
-                x_transmitted_model_eted.append(e[0])
+            [model_r_lb_x, model_r_lb_y] = transform(model_r_lb)
+            [model_t_lb_x, model_t_lb_y] = transform(model_t_lb)
 
-            y_trasmitted_model_queue = []
-            x_trasmitted_model_queue = []
-            for e in transmitted_model_queue:
-                y_trasmitted_model_queue.append(e[1])
-                x_trasmitted_model_queue.append(e[0])
-
+            [model_r_ub_x, model_r_ub_y] = transform(model_r_ub)
+            [model_t_ub_x, model_t_ub_y] = transform(model_t_ub)
 
             # try:
             #     y_diff = numpy.subtract(y_received, y_transmitted).tolist()
@@ -167,14 +165,16 @@ def main ():
             plots = [
                     x_received_simul, y_received_simul,
                     x_transmitted_simul, y_transmitted_simul,
-                    x_received_model, y_received_model,
-                    x_transmitted_model_eted, y_transmitted_model_eted,
+                    model_r_ub_x, model_r_ub_y,
+                    # model_t_ub_x, model_t_ub_y,
+                    # model_r_lb_x, model_r_lb_y,
+                    model_t_lb_x, model_t_lb_y,
                     # x_diff, y_diff,
                     # x_trasmitted_model_queue, y_trasmitted_model_queue,
                     # traced_x, traced_y
                     ]
 
-            fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_in) + '.pdf'
+            fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_lb) + '.pdf'
             plotCumulativeInOut(plots, filename=fn)
 
             # plotMatrix(transmitted)
@@ -184,46 +184,51 @@ def main ():
         else:
             print('The node selected have received no packets.')
 
-    def calculateWorstCase(flow, distance_x, distance_y):
+    def calculateWorstCase(flow_lb, flow_ub, distance_x, distance_y):
 
-        fo = [0, 0, 0]  # the output from other neighbors (none at t=0)
+        fo_lb = [0, 0, 0]  # the output from other neighbors (none at t=0)
+        fo_ub = [0, 0, 0]  # the output from other neighbors (none at t=0)
+
 
         for y in range(distance_y[0], distance_y[1] -1, -1):  # iterate over X
-            fi = flow
+            fi_lb = flow_lb
+            fi_ub = flow_ub #Change the release delay to the worst
 
-            swi = [fo, fi]
+            swi_lb = [fo_lb, fi_lb]
+            swi_ub = [fo_ub, fi_ub]
 
-            fcolumn = fo
 
-            fo = wca.resulting_flow(swi, analysis='eted')
+            fcolumn_lb = fo_lb
+            fcolumn_ub = fo_ub
 
-            print(str(swi) + " " + str(fo))
-            show_hop(distance_x[0], y, swi)
+            fo_lb = wca.resulting_flow(swi_lb, analysis='eted')
+            fo_ub = wca.resulting_flow(swi_ub, analysis='eted')
+
+            print(str(swi_lb) + " " + str(fo_lb))
+
+            show_hop(distance_x[0], y, swi_lb, swi_ub)
 
 
 
         for x in range(distance_x[0] - 1, distance_x[1] - 1, -1):  # iterate over X
-            swi = [fo, fcolumn, fi] #it already includes its own input flow
+            swi_lb = [fo_lb, fcolumn_lb, fi_lb] #it already includes its own input flow
+            swi_ub = [fo_ub, fcolumn_ub, fi_ub] #it already includes its own input flow
 
-            fo = wca.resulting_flow(swi, analysis='eted')
+            fo_lb = wca.resulting_flow(swi_lb, analysis='eted')
+            fo_ub = wca.resulting_flow(swi_ub, analysis='eted')
 
-            print(str(swi) + " " + str(fo))
-            show_hop(x, distance_y[1], swi)
+            print(str(swi_lb) + " " + str(fo_lb))
+
+            show_hop(x, distance_y[1], swi_lb, swi_ub)
 
     n = 1 #number of packets released per node
-    fa = [0.07, 9, 5]  #my own flow, whereas the flows comming from neighbors take one time cycle more
-    fb = [1, 1, 10 * 4] #the ones from top
+    f_lb = [0.04, 0.2, 5]  #my own flow, whereas the flows comming from neighbors take one time cycle more
+    f_ub = [0.04, 0, 5] #the ones from top
     fc = [0.8, 1, 20] #and the remaning, coming from west, thre columns with 4 nodes each
 
-    # sw_in = [fa, fb]
-    # sw_in = [fa]
-    # path = [[5,0], [0,5]]
-
-    calculateWorstCase(fa, [4,1], [3,0])
+    calculateWorstCase(f_lb,f_ub, [4,1], [3,0])
 
     # show_hop(1,1, sw_in)
-
-
 
 def plotMatrix(data):
 
@@ -272,10 +277,18 @@ def plotCumulativeInOut(axis, filename=None):
     x_lim = None
     y_lim = None
 
-    lines =   ["-","-","--",":","-.", ".", ","]
-    markers = ["","","","","","D","D"]
-    colours = ['lightgreen', 'yellow', 'black', 'black', 'blue', 'red', 'purple']
-    labels = ['Arrivals', 'Departures', 'Arrivals model', 'Departures model', 'Queue size', 'WC Arrival', 'WC Departure']
+    lines =   ["-","-",":","--",":","--"]
+    markers = ["","","","","","","D","D"]
+    colours = ['lightgreen', 'yellow', 'black', 'black', 'darkgrey', 'darkgrey', 'purple']
+    labels = [
+        'Arrivals',
+        'Departures',
+        'Arrivals UB',
+        # 'Departures UP',
+        # 'Arrivals LB',
+        'Departures LB',
+        'WC Departure'
+    ]
 
     linecycler = cycle(lines)
     colourcycler = cycle(colours)

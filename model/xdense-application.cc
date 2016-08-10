@@ -85,7 +85,7 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetFlowGenerator(double_t burstiness, uint32_t release_delay, uint32_t msg_size, uint32_t dest_x, uint32_t dest_y, bool trace) {
+    XDenseApp::SetFlowGenerator(double_t burstiness, double_t release_delay, uint32_t msg_size, uint32_t dest_x, uint32_t dest_y, bool trace) {
         if (burstiness == 0 || IsActive == false)
             return;        
         
