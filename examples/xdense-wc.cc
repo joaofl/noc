@@ -266,35 +266,22 @@ main(int argc, char *argv[]) {
     
     //////////////////// From here, initialize the application at the nodes ///////////////// 
     
-//    uint32_t s1x, s1y, s2x, s2y, s3x, s3y, s4x, s4y;
 //    
     uint32_t s1x, s1y; //Sync 1 location
     s1x = 0; s1y = 0;
     
-//    s2x = 19; s2y = 0;
-//    s3x = 10; s3y = 0;
-//    s4x = 15; s4y = 0;
-//    
-//    //Tweak the compiler if not in use
-//    s1x = s1x; s1y = s1y; 
-//    s2x = s2x; s2y = s2y; 
-//    s3x = s3x; s3y = s3y; 
-//    s4x = s4x; s4y = s4y;    
-    
-
     bool use_traffic_shapper = true;
-    double_t b;
+    double_t b      = 0.0625;
+    double_t bmax   = 0.07;
+    double_t bmin   = 0.06;
+    
     double_t rd; 
-    double_t rd_max; 
-    double_t rd_min; 
-    uint32_t ms;
+    double_t rd_max = 1.2; 
+    double_t rd_min = 1.0; 
+    
+    uint32_t ms     = 5;
+    
     Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
-
-    rd = 10;
-    rd_max = 1.2;
-    rd_min = 1;
-    b = 0.04; //1 / ((size_y)*(size_x-1));
-    ms = 5;
       
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
@@ -321,6 +308,8 @@ main(int argc, char *argv[]) {
                  shaper_rd = 0;
              }
             
+            //Simulate the assyncronism by applying random burstiness and rd to nodes
+            b = r->GetValue(bmin, bmax);
             rd = r->GetValue(rd_min, rd_max);
 
 //              All to one
