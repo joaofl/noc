@@ -284,20 +284,23 @@ main(int argc, char *argv[]) {
 
     bool use_traffic_shapper = true;
     double_t b;
-    uint32_t rd; 
+    double_t rd; 
+    double_t rd_max; 
+    double_t rd_min; 
     uint32_t ms;
-//    uint32_t distance;
+    Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
+
+    rd = 10;
+    rd_max = 1.2;
+    rd_min = 1;
+    b = 0.04; //1 / ((size_y)*(size_x-1));
+    ms = 5;
       
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
             uint32_t n = GetN(size_x, size_y, x, y);
             //One have to make sure to not schedule 2 flows to the same node
             //neither send packets to itself
-            
-            rd = 10;
-            b = 0.07; //1 / ((size_y)*(size_x-1));
-            ms = 5;
-            
             
             uint32_t shaper_rd = (size_y - y - 1);
             uint32_t total_ms = (size_y - y) * ms;
@@ -318,9 +321,7 @@ main(int argc, char *argv[]) {
                  shaper_rd = 0;
              }
             
-            
-            Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
-            rd = r->GetInteger (1, rd);
+            rd = r->GetValue(rd_min, rd_max);
 
 //              All to one
             if (x == 1 && y == 3){ //The one to trace

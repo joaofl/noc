@@ -191,6 +191,7 @@ namespace ns3 {
 //        queue_size = 0;
         m_burstiness = 1;
         m_first_run = true;
+        m_second_run = false;
         m_release_delay = 0;
     }
 
@@ -236,10 +237,7 @@ namespace ns3 {
         // We need to tell the channel that we've started wiggling the wire and
         // schedule an event that will be executed when the transmission is complete.
         //
-        NS_ASSERT_MSG(m_txMachineState == READY, "Must be READY to transmit");
-        m_txMachineState = BUSY;
-        m_currentPkt = p;
-        m_phyTxBeginTrace(m_currentPkt);
+
 
         //the time required to send a single bit
         Time oneBitTransmissionTime;
@@ -248,11 +246,8 @@ namespace ns3 {
         if (m_serialComm == true){
             uint16_t s = p->GetSize();
             txTime =  m_bps.CalculateBitsTxTime(s * 10);
-//            txTime += m_bps.CalculateBitsTxTime(2) * s;
-            
             //since it simulates a UART port, it has to account for 2 extra bits
             //per byte: Start and Stop bits.
-//            txTime += oneBitTransmissionTime * m_clockSkew;
         }
         else{
             oneBitTransmissionTime = Seconds(m_bps.CalculateBitsTxTime(1));
@@ -266,13 +261,28 @@ namespace ns3 {
         Time txCompleteTime;
         
         if (m_first_run){
-           txCompleteTime = (m_release_delay * txTime) + delay;        
-           m_first_run = false;
+            m_first_run = false;
+            m_second_run = true;            
+            m_txMachineState = BUSY;
+            
+           txCompleteTime = (m_release_delay * txTime);        
+           Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitStart, this, p);
+           return 0;
         }
-        else{
-            txCompleteTime = delay;
+        else if (m_second_run == true){
+            m_second_run = false;
+            m_txMachineState = READY;
         }
 
+        txCompleteTime = delay;
+        
+        //Efectively transmit the data
+        
+        NS_ASSERT_MSG(m_txMachineState == READY, "Must be READY to transmit");
+        m_txMachineState = BUSY;
+
+        m_currentPkt = p;
+        m_phyTxBeginTrace(m_currentPkt);        
         
         NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
         Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitComplete, this);
