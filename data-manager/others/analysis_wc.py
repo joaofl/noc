@@ -150,17 +150,6 @@ def calculate_node(sw_in):
         t += step
     t -= step #removed from last iteration not done
 
-    # count = 0
-    # t = 0
-
-    # while(count < msg_size_total):
-    #     count = produced_until(t, sw_out_queue)
-    #     departures_queue.append([t, count])
-    #     t += step
-    # t -= step #removed from last iteration not done
-
-
-
     return [arrivals, departures_eted]
     # return [received_profile, transmited_profile, fo, received_equivalent]
 

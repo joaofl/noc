@@ -368,7 +368,7 @@ main(int argc, char *argv[]) {
 //            rd = r->GetValue(rd_min, rd_max);
 
 //              All to one
-            if (x == 1 && y == 3){ //The one to trace
+            if (x == 4 && y == 3){ //The one to trace
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(shaper_b, shaper_rd);                                          
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, s1x, s1y, true);                                          
             } 

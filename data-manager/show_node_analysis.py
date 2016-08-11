@@ -25,6 +25,7 @@ import time
 import numpy
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import copy
 from itertools import cycle
 import packet_structure as HEADER
 import files_io
@@ -43,6 +44,8 @@ import others.analysis_wc
 
 def main ():
 
+
+    ############################# Initial settings #######################
     global options, args
 
     dir = '/noc-data/nw5x4cWCA_ALL_TO_ONE/out/'
@@ -51,17 +54,16 @@ def main ():
 
     home = expanduser("~")
 
-    if options.inputfile == None:
-        options.inputfile = home + dir + 'packets-trace-netdevice.csv'
     if options.outputdir == None:
         options.outputdir = home + dir + 'post/'
+    if options.inputfile == None:
+        options.inputfile = home + dir + 'packets-trace-netdevice.csv'
 
     inputfile_queue_size = home + dir + 'queue-size-trace.csv'
     inputfile_flows = home + dir + 'flows-trace.csv'
 
     # if not os.path.exists(options.outputdir):
         # os.makedirs(options.outputdir)
-
 
     trace_packets = files_io.load_list(options.inputfile)
     if (len(trace_packets)) == 0:
@@ -81,10 +83,10 @@ def main ():
     # Could get it from the config file
     max_x = max(trace_packets[:, HEADER.x_absolute].astype(int)) + 1
     max_y = max(trace_packets[:, HEADER.y_absolute].astype(int)) + 1
-    #
-
 
     pck_duration = ( float(options.packet_size) / float(options.baudrate) ) * 1e9
+
+    ################################## FUNCTIONS ###############################
 
     def distance(x1,y1,x2,y2):
         if x1 > x2:
@@ -98,8 +100,7 @@ def main ():
 
         return dx + dy
 
-
-    def show_flows():
+    def show_simul_flows():
 
         flows_list = []
         simul_eted_min = numpy.zeros([max_y, max_x])
@@ -137,8 +138,9 @@ def main ():
         plotMatrix(simul_eted_max)
         plotMatrix(simul_eted_min)
 
+    def show_simul_stats():
 
-    def show_network():
+        ################# Get trace_packets from simulation logs ##################
 
         simul_q_max = numpy.zeros([max_y, max_x])
 
@@ -155,9 +157,13 @@ def main ():
             elif line[HEADER.operation] == 't':# or line[HEADER.operation] == 'c':
                 simul_t_count[abs_y, abs_x] += 1
 
-                # Log the maximum queue size
-                if (int(line[HEADER.queue_size]) > simul_q_max[abs_y, abs_x]):
-                    simul_q_max[abs_y, abs_x] = line[HEADER.queue_size]
+            # Log the maximum queue size
+            if (int(line[HEADER.queue_size]) > simul_q_max[abs_y, abs_x]):
+                simul_q_max[abs_y, abs_x] = line[HEADER.queue_size]
+
+        ################# Now the same trace_packets but from the model ###################
+
+
 
         plotMatrix(simul_q_max)
         plotMatrix(simul_r_count)
@@ -260,152 +266,154 @@ def main ():
         else:
             print('The node selected have received no packets.')
 
-    def calculateWorstCase(flow_lb, flow_ub, distance_x, distance_y):
+    def model_incoming_flows(nodes_flows):
+        # resulting_flows = copy.deepcopy(nodes_flows)
+        outgoing_flows = [[0 for _ in range(max_x)] for _ in range(max_y)]
+        incoming_flows = [[0 for _ in range(max_x)] for _ in range(max_y)] #without mine
 
-        fo_lb = [0, 0, 0]  # the output from other neighbors (none at t=0)
-        fo_ub = [0, 0, 0]  # the output from other neighbors (none at t=0)
+        #Considering routing is y first, which holds for +x+y quadrant if using clockwise routing
+        for x in range(len(nodes_flows[0]) -1, -1, -1):
+            for y in range(len(nodes_flows) -1, -1, -1):
 
+                if (y == len(nodes_flows) -1): #node on the top edge. Only its own flow
+                    sw_in = [[0,0,0]]
+                elif (y < len(nodes_flows) -1 and y > 0): #myself and the node before myself
+                    sw_in = [outgoing_flows[y+1][x]]
+                elif (y == 0): #nodes in the sink's line. Get from right and top
+                    if (x == len(nodes_flows[0])-1): #if on the right edge, it only gets from top
+                        sw_in = [outgoing_flows[y + 1][x]]
+                    elif (x < len(nodes_flows[0])-1):
+                        sw_in = [outgoing_flows[y + 1][x], outgoing_flows[y][x+1]]
 
-        for y in range(distance_y[0], distance_y[1] -1, -1):  # iterate over X
-            fi_lb = flow_lb
-            fi_ub = flow_ub #Change the release delay to the worst
+                incoming_flows[y][x] = copy.deepcopy(sw_in)
+                sw_in.append(nodes_flows[y][x]) #add my own flow to calculate the output
+                outgoing_flows[y][x] = wca.resulting_flow(sw_in, analysis='eted')
 
-            swi_lb = [fo_lb, fi_lb]
-            swi_ub = [fo_ub, fi_ub]
-
-
-            fcolumn_lb = fo_lb
-            fcolumn_ub = fo_ub
-
-            fo_lb = wca.resulting_flow(swi_lb, analysis='eted')
-            fo_ub = wca.resulting_flow(swi_ub, analysis='eted')
-
-            print(str(swi_lb) + " " + str(fo_lb))
-
-            show_node(distance_x[0], y, swi_lb, swi_ub)
-
-
-
-        for x in range(distance_x[0] - 1, distance_x[1] - 1, -1):  # iterate over X
-            swi_lb = [fo_lb, fcolumn_lb, fi_lb] #it already includes its own input flow
-            swi_ub = [fo_ub, fcolumn_ub, fi_ub] #it already includes its own input flow
-
-            fo_lb = wca.resulting_flow(swi_lb, analysis='eted')
-            fo_ub = wca.resulting_flow(swi_ub, analysis='eted')
-
-            print(str(swi_lb) + " " + str(fo_lb))
-
-            show_node(x, distance_y[1], swi_lb, swi_ub)
-
-    f_lb = [0.06, 0.2, 5]  #my own flow, whereas the flows comming from neighbors take one time cycle more
-    f_ub = [0.07, 0, 5] #the ones from top
-
-    # calculateWorstCase(f_lb,f_ub, [4,1], [3,0])
-
-    # show_network()
-
-    show_flows()
-
-    # show_node(1,1, sw_in)
-
-def plotMatrix(data):
-
-    filename=None; show=True; title = ""; lable_x = ""; lable_y = ""; x_size = 8; y_size = 8;
-
-    plt.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
-    plt.imshow(data, cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')
-
-    # plt.colorbar()
-
-    plt.xlabel(lable_x)
-    plt.ylabel(lable_y)
-
-    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-
-    for y in range(data.shape[0]):
-        for x in range(data.shape[1]):
-            plt.text(x, y, '%d' % data[y, x],
-                 horizontalalignment='center',
-                 verticalalignment='center',
-                 )
-
-    if filename!=None:
-        dir = filename[:filename.rfind("/")]
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        plt.savefig(filename)
-
-    # plt.ion()
-    # plt.show()
-
-    elif show==True:
-        plt.show()
-        # plt.pause(0.001)
-        # plt.draw()
-
-# def plotCumulativeInOut(x1, y1, x2, y2, x3=None, y3=None, x4=None, y4=None, x5=None, y5=None, x6=None, y6=None):
-def plotCumulativeInOut(axis, filename=None):
-
-    global options
-
-    # filename = options.outputdir + 'cumulative_ad.pdf'
-    show=True
-    x_size = 6.5
-    y_size = 3.1
-    x_lim = None
-    y_lim = None
-
-    lines =   ["-","-",":","--",":","--"]
-    markers = ["","","","","","","D","D"]
-    colours = ['lightgreen', 'yellow', 'black', 'black', 'darkgrey', 'darkgrey', 'purple']
-    labels = [
-        'Arrivals',
-        'Departures',
-        'Arrivals UB',
-        # 'Departures UP',
-        # 'Arrivals LB',
-        'Departures LB',
-        'WC Departure'
-    ]
-
-    linecycler = cycle(lines)
-    colourcycler = cycle(colours)
-    labelcycler = cycle(labels)
-    markercycler = cycle(markers)
+        return incoming_flows
 
 
-    fig, ax_main = plt.subplots(figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
+    def plotMatrix(data):
 
-    for i in range(0, len(axis), 2):
-        ax_i = ax_main
-        ax_i.step(axis[i], axis[i+1], '-', linestyle=next(linecycler), label=next(labelcycler), where='post', color=next(colourcycler), marker=next(markercycler))
+        filename = None;
+        show = True;
+        title = "";
+        lable_x = "";
+        lable_y = "";
+        x_size = 8;
+        y_size = 8;
 
-    ax_main.set_xlabel("Transmission time slot (TTS)")
-    ax_main.set_ylabel("Cumulative packet count")
+        plt.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
+        plt.imshow(data, cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')
 
-    if x_lim is not None: plt.xlim(x_lim)
-    if y_lim is not None: plt.ylim(y_lim)
+        # plt.colorbar()
+
+        plt.xlabel(lable_x)
+        plt.ylabel(lable_y)
+
+        plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+
+        for y in range(data.shape[0]):
+            for x in range(data.shape[1]):
+                plt.text(x, y, '%d' % data[y, x],
+                         horizontalalignment='center',
+                         verticalalignment='center',
+                         )
+
+        if filename != None:
+            dir = filename[:filename.rfind("/")]
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            plt.savefig(filename)
+
+        # plt.ion()
+        # plt.show()
+
+        elif show == True:
+            plt.show()
+            # plt.pause(0.001)
+            # plt.draw()
+
+    def plotCumulativeInOut(axis, filename=None):
+
+        global options
+
+        # filename = options.outputdir + 'cumulative_ad.pdf'
+        show = True
+        x_size = 6.5
+        y_size = 3.1
+        x_lim = None
+        y_lim = None
+
+        lines = ["-", "-", ":", "--", ":", "--"]
+        markers = ["", "", "", "", "", "", "D", "D"]
+        colours = ['lightgreen', 'yellow', 'black', 'black', 'darkgrey', 'darkgrey', 'purple']
+        labels = [
+            'Arrivals',
+            'Departures',
+            'Arrivals UB',
+            # 'Departures UP',
+            # 'Arrivals LB',
+            'Departures LB',
+            'WC Departure'
+        ]
+
+        linecycler = cycle(lines)
+        colourcycler = cycle(colours)
+        labelcycler = cycle(labels)
+        markercycler = cycle(markers)
+
+        fig, ax_main = plt.subplots(figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
+
+        for i in range(0, len(axis), 2):
+            ax_i = ax_main
+            ax_i.step(axis[i], axis[i + 1], '-', linestyle=next(linecycler), label=next(labelcycler), where='post',
+                      color=next(colourcycler), marker=next(markercycler))
+
+        ax_main.set_xlabel("Transmission time slot (TTS)")
+        ax_main.set_ylabel("Cumulative packet count")
+
+        if x_lim is not None: plt.xlim(x_lim)
+        if y_lim is not None: plt.ylim(y_lim)
+
+        plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+        plt.legend(loc=0, fontsize=11)
+        plt.grid(True)
+
+        # ax = plt.gca()
+        # ax.set_xticklabels(x)
+
+        # plt.locator_params(axis='x', nbins=len(x))
+
+        if filename is not None:
+            dir = filename[:filename.rfind("/")]
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            plt.savefig(filename)
+            print("Plot saved in " + filename)
+
+        if show == True:
+            plt.show()
+
+
+    ################################# Running ####################################
+
+    f_lb = [0.0625, 0, 5]  #my own flow, whereas the flows comming from neighbors take one time cycle more
+
+    nodes_flows_lb = [[f_lb for _ in range(max_x)] for _ in range(max_y)]
+
+    # nodes_flows_lb[3][4] = [0.0625, 0, 10]
+
+    incomming_flows_lb = model_incoming_flows(nodes_flows_lb)
+
+    x = 4
+    y = 0
+    swi_lb = incomming_flows_lb[y][x] #the incomming
+    swi_lb.append(nodes_flows_lb[y][x]) #plus its own
+
+    show_node(x, y, swi_lb, swi_lb)
 
 
 
-    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-    plt.legend(loc=0, fontsize=11)
-    plt.grid(True)
-
-    # ax = plt.gca()
-    # ax.set_xticklabels(x)
-
-    # plt.locator_params(axis='x', nbins=len(x))
-
-    if filename is not None:
-        dir = filename[:filename.rfind("/")]
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        plt.savefig(filename)
-        print("Plot saved in " + filename)
-
-    if show == True:
-        plt.show()
 
 if __name__ == '__main__':
     try:
