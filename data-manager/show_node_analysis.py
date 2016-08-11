@@ -26,7 +26,7 @@ import numpy
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from itertools import cycle
-import packet_structure as trace
+import packet_structure as HEADER
 import files_io
 from os.path import expanduser
 
@@ -56,28 +56,115 @@ def main ():
     if options.outputdir == None:
         options.outputdir = home + dir + 'post/'
 
+    inputfile_queue_size = home + dir + 'queue-size-trace.csv'
+    inputfile_flows = home + dir + 'flows-trace.csv'
+
     # if not os.path.exists(options.outputdir):
         # os.makedirs(options.outputdir)
 
 
-    data = files_io.load_list(options.inputfile)
-    if (len(data)) == 0:
+    trace_packets = files_io.load_list(options.inputfile)
+    if (len(trace_packets)) == 0:
         print('Log file is empty')
         exit(1)
 
+    trace_queue_size = files_io.load_list(inputfile_queue_size)
+    if (len(trace_queue_size)) == 0:
+        print('Queue size trace is empty or not found.')
+        # exit(1)
+
+    trace_flows = files_io.load_list(inputfile_flows)
+    if (len(trace_flows)) == 0:
+        print('Flows trace is empty or not found.')
+        # exit(1)
+
     # Could get it from the config file
-    max_x = max( data[:,trace.x_absolute].astype(int) ) +1
-    max_y = max( data[:,trace.y_absolute].astype(int) ) +1
+    max_x = max(trace_packets[:, HEADER.x_absolute].astype(int)) + 1
+    max_y = max(trace_packets[:, HEADER.y_absolute].astype(int)) + 1
     #
 
 
     pck_duration = ( float(options.packet_size) / float(options.baudrate) ) * 1e9
 
+    def distance(x1,y1,x2,y2):
+        if x1 > x2:
+            dx = abs(x1 - x2)
+        else:
+            dx = abs(x2 - x1)
+        if y1 > y2:
+            dy = abs(y1 - y2)
+        else:
+            dy = abs(y2 - y1)
+
+        return dx + dy
 
 
-    def show_hop(node_x, node_y, sw_lb, sw_ub):
+    def show_flows():
 
-        ################# Get data from simulation logs ##################
+        flows_list = []
+        simul_eted_min = numpy.zeros([max_y, max_x])
+        simul_eted_max = numpy.zeros([max_y, max_x])
+
+        i = -1 #to start from zero
+
+        for line in trace_flows:
+            abs_x = int(line[HEADER.x_absolute])
+            abs_y = int(line[HEADER.y_absolute])
+            i += 1
+            if line[HEADER.operation] == 'g':
+                pck_id = line[HEADER.id]
+
+                for j in range(i+1 ,len(trace_flows)):
+
+                    if trace_flows[j][HEADER.id] == pck_id:
+                        eted = float(int(trace_flows[j][HEADER.time]) - int(line[HEADER.time])) / pck_duration
+
+                        dist = distance(abs_x, abs_y,
+                                        int(trace_flows[j][HEADER.x_absolute]), int(trace_flows[j][HEADER.y_absolute]))
+
+                        etedn = round(eted / dist, 2)
+                        eted = round(eted, 2)
+
+                        print('eted=' + str(eted) + ' d=' + str(dist) + ' etedn=' + str(etedn))
+
+                        if etedn > simul_eted_max[abs_y][abs_x]:
+                            simul_eted_max[abs_y][abs_x] = etedn
+
+                        if etedn < simul_eted_min[abs_y][abs_x] or simul_eted_min[abs_y][abs_x] == 0:
+                            simul_eted_min[abs_y][abs_x] = etedn
+
+
+        plotMatrix(simul_eted_max)
+        plotMatrix(simul_eted_min)
+
+
+    def show_network():
+
+        simul_q_max = numpy.zeros([max_y, max_x])
+
+        simul_r_count = numpy.zeros([max_y, max_x])
+        simul_t_count = numpy.zeros([max_y, max_x])
+
+        for line in trace_queue_size:
+            abs_x = int(line[HEADER.x_absolute])
+            abs_y = int(line[HEADER.y_absolute])
+
+            # Build the density map
+            if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
+                simul_r_count[abs_y, abs_x] += 1
+            elif line[HEADER.operation] == 't':# or line[HEADER.operation] == 'c':
+                simul_t_count[abs_y, abs_x] += 1
+
+                # Log the maximum queue size
+                if (int(line[HEADER.queue_size]) > simul_q_max[abs_y, abs_x]):
+                    simul_q_max[abs_y, abs_x] = line[HEADER.queue_size]
+
+        plotMatrix(simul_q_max)
+        plotMatrix(simul_r_count)
+
+    def show_node(node_x, node_y, sw_lb, sw_ub):
+
+        ################# Get trace_packets from simulation logs ##################
 
         simul_t_x = []
         simul_t_y = []
@@ -88,63 +175,46 @@ def main ():
         traced_y = []
         traced_x = []
 
-        simul_r_count = numpy.zeros([max_y, max_x])
-        simul_t_count = numpy.zeros([max_y, max_x])
+        count_r = 0;
+        count_t = 0;
 
-        simul_q_max = numpy.zeros([max_y, max_x])
-        simul_eted = numpy.zeros([max_y, max_x])
+        for line in trace_packets:
+            abs_x = int(line[HEADER.x_absolute])
+            abs_y = int(line[HEADER.y_absolute])
 
-        for line in data:
-            abs_x = int( line[trace.x_absolute] )
-            abs_y = int( line[trace.y_absolute] )
-
-            time_slot = int(line[trace.time]) / pck_duration
+            time_slot = int(line[HEADER.time]) / pck_duration
 
             t = time_slot
 
-            ################# Received ####################
+            if abs_x == node_x and abs_y == node_y:
 
-            #Build the matrix for the density map
-            if line[trace.operation] == 'r' or line[trace.operation] == 'g':
-                simul_r_count[ abs_y, abs_x ] += 1
-
-                # Log the maximum queue size
-                if (int(line[trace.queue_size]) > simul_q_max[ abs_y, abs_x ]):
-                    simul_q_max [ abs_y, abs_x ] = line[trace.queue_size]
-
-                # Build the cumulative arrival/departure for an specific node
-                if abs_x == node_x and abs_y == node_y:
+                ################# Received ####################
+                #Build the matrix for the density map
+                if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
+                    # Build the cumulative arrival/departure for an specific node
+                    count_r += 1
                     simul_r_x.append(t)
-                    simul_r_y.append(simul_r_count[node_y, node_x])
+                    simul_r_y.append(count_r)
 
                     #point there at what time the traced packed passed by
-                    if line[trace.protocol_app] == '6':
+                    if line[HEADER.protocol_app] == '6':
                         traced_x.append(t)
-                        traced_y.append(simul_r_count[node_y, node_x])
+                        traced_y.append(count_r)
 
-            ################# Transmitted ####################
-
-            #Build the matrix for the density map
-            elif line[trace.operation] == 't': # or line[trace.operation] == 'g':
-                simul_t_count[ abs_y, abs_x ] += 1
-                # log_transmitted.append([abs_y, abs_x])
-
-                # Log the maximum queue size
-                if (int(line[trace.queue_size]) > simul_q_max[abs_y, abs_x]):
-                    simul_q_max[abs_y, abs_x] = line[trace.queue_size]
-
-                #Build the cumulative arrival/departure curve
-                if abs_x == node_x and abs_y == node_y:
+                ################# Transmitted ####################
+                elif line[HEADER.operation] == 't': # or line[trace.operation] == 'g':
+                    #Build the cumulative arrival/departure curve
+                    count_t += 1
                     simul_t_x.append(t+1)
-                    simul_t_y.append(simul_t_count[node_y, node_x])
+                    simul_t_y.append(count_t)
 
                     # point there at what time the traced packed passed by
-                    if line[trace.protocol_app] == '6':
+                    if line[HEADER.protocol_app] == '6':
                         traced_x.append(t + 1) #Plus one time slot, the time to finish transmitting
-                        traced_y.append(simul_t_count[node_y, node_x])
+                        traced_y.append(count_t)
 
 
-        ################# Now the same data but from the model ###################
+        ################# Now the same trace_packets but from the model ###################
 
         if len(simul_r_x) != 0:
 
@@ -169,12 +239,9 @@ def main ():
             [model_r_ub_x, model_r_ub_y] = transform(model_r_ub)
             [model_t_ub_x, model_t_ub_y] = transform(model_t_ub)
 
-            # try:
             #     y_diff = numpy.subtract(y_received, y_transmitted).tolist()
             #     x_diff = x_transmitted
 
-
-            # grab from the model here
             plots = [
                     simul_r_x, simul_r_y,
                     simul_t_x, simul_t_y,
@@ -189,10 +256,6 @@ def main ():
 
             fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_lb) + '.pdf'
             plotCumulativeInOut(plots, filename=fn)
-
-            # plotMatrix(simul_q_max)
-
-
 
         else:
             print('The node selected have received no packets.')
@@ -219,7 +282,7 @@ def main ():
 
             print(str(swi_lb) + " " + str(fo_lb))
 
-            show_hop(distance_x[0], y, swi_lb, swi_ub)
+            show_node(distance_x[0], y, swi_lb, swi_ub)
 
 
 
@@ -232,14 +295,18 @@ def main ():
 
             print(str(swi_lb) + " " + str(fo_lb))
 
-            show_hop(x, distance_y[1], swi_lb, swi_ub)
+            show_node(x, distance_y[1], swi_lb, swi_ub)
 
     f_lb = [0.06, 0.2, 5]  #my own flow, whereas the flows comming from neighbors take one time cycle more
     f_ub = [0.07, 0, 5] #the ones from top
 
-    calculateWorstCase(f_lb,f_ub, [4,1], [3,0])
+    # calculateWorstCase(f_lb,f_ub, [4,1], [3,0])
 
-    # show_hop(1,1, sw_in)
+    # show_network()
+
+    show_flows()
+
+    # show_node(1,1, sw_in)
 
 def plotMatrix(data):
 
