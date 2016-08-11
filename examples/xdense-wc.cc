@@ -341,9 +341,10 @@ main(int argc, char *argv[]) {
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
             uint32_t n = GetN(size_x, size_y, x, y);
-            //One have to make sure to not schedule 2 flows to the same node
-            //neither send packets to itself
+
             
+            // The following calculation applies only if all the flows have the
+            //same characteristics
             uint32_t shaper_rd = (size_y - y - 1);
             uint32_t total_ms = (size_y - y) * ms;
             double_t max_ms_over_b = (total_ms) / (b * (size_y - y));
@@ -353,8 +354,6 @@ main(int argc, char *argv[]) {
                 total_ms = total_ms + ((total_ms) * (size_x - x - 1));
                 max_ms_over_b = (total_ms) / (b * (size_y - y) * (size_x - x));
             }
-
-//                shaper_rd -= rd;
             double_t shaper_b = total_ms / max_ms_over_b;
             if (shaper_b > 1) shaper_b = 1;
 
@@ -362,6 +361,8 @@ main(int argc, char *argv[]) {
                  shaper_b = 1;
                  shaper_rd = 0;
              }
+            ////////////////////////////////////////////////////////////////////
+            
             
             //Simulate the assyncronism by applying random burstiness and rd to nodes
 //            b = r->GetValue(bmin, bmax);
