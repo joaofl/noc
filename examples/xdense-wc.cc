@@ -66,7 +66,9 @@ using namespace std;
 using namespace ns3;
 
 //ofstream file_packets_trace_router;
-ofstream file_packets_trace_netdevice;
+ofstream file_packet_trace;
+ofstream file_queue_size_trace;
+ofstream file_flow_trace;
 ofstream file_simulation_info;
 
 Time start_offset, packet_duration;
@@ -85,21 +87,57 @@ log_netdevice_packets(string context, Ptr<const Packet> pck_r)
     XDenseHeader hdxd;
     pck->RemoveHeader(hdxd);
     
-    file_packets_trace_netdevice
+    file_packet_trace
 //  Context info
     << now << ","
     << context << "," //[ i, x, y, port, event ];
     << 0 << ","
 //  Packet info
     << pck->GetUid() << ",";
-    hdnoc.Print(file_packets_trace_netdevice);
-    file_packets_trace_netdevice << ",";
-    hdxd.Print(file_packets_trace_netdevice);
-    file_packets_trace_netdevice << "\n";
+    hdnoc.Print(file_packet_trace);
+    file_packet_trace << ",";
+    hdxd.Print(file_packet_trace);
+    file_packet_trace << "\n";
+}
+
+void
+log_flows(string context, Ptr<const Packet> pck_r){
+    uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
+    
+    Ptr<Packet> pck = pck_r->Copy();
+    
+    NOCHeader hdnoc;
+    pck->RemoveHeader(hdnoc);
+    
+    XDenseHeader hdxd;
+    pck->RemoveHeader(hdxd);
+    
+    file_flow_trace
+//  Context info
+    << now << ","
+    << context << "," //[ i, x, y, port, event ];
+    << 0 << ","
+//  Packet info
+    << pck->GetUid() << ",";
+    hdnoc.Print(file_flow_trace);
+    file_flow_trace << ",";
+    hdxd.Print(file_flow_trace);
+    file_flow_trace << "\n";    
+}
+
+void
+log_queues(string context, uint16_t size){
+    uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
+    //  Context info
+    file_queue_size_trace
+    << now << ","
+    << context << "," //[ i, x, y, port, event ];
+    << size << endl;
 }
 
 
-uint32_t GetN(uint32_t size_x, uint32_t size_y, uint32_t x, uint32_t y){
+uint32_t 
+GetN(uint32_t size_x, uint32_t size_y, uint32_t x, uint32_t y){
     return (size_x * size_y) - ((y + 1) * size_x - x);
 }
 
@@ -202,20 +240,12 @@ main(int argc, char *argv[]) {
     ApplicationContainer my_xdense_data_io_container;
     
     uint32_t n_nodes = my_node_container.GetN();
+    
         
     for (uint32_t i = 0; i < n_nodes; i++) {
         Ptr<XDenseApp> my_xdense_app = CreateObject<XDenseApp> ();
         Ptr<NOCRouterDelayModel> my_router_delay_model = CreateObject<NOCRouterDelayModel> ();
         
-
-        //Setup app
-        my_xdense_app->IsSink = false;
-        my_xdense_app->IsActive = true;
-        //TODO: Believe it should be get from the packet header itself, or ask the router
-        my_xdense_app->PacketDuration = packet_duration;  //nano seconds
-        my_xdense_app->ClusterSize_x = size_neighborhood;
-        my_xdense_app->ClusterSize_y = size_neighborhood;
-
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
         IntegerValue x, y;
@@ -228,15 +258,34 @@ main(int argc, char *argv[]) {
 //        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_XY_CLOCKWISE);
         my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_YFIRST);
 	my_router_delay_model->InputData = &my_input_data;
+
+        //Setup app
+        my_xdense_app->IsSink = false;
+        my_xdense_app->IsActive = true;
+        //TODO: Believe it should be get from the packet header itself, or ask the router
+        my_xdense_app->PacketDuration = packet_duration;  //nano seconds
+        my_xdense_app->ClusterSize_x = size_neighborhood;
+        my_xdense_app->ClusterSize_y = size_neighborhood;      
         
         
-        ostringstream context_router_rx, context_router_tx, context_router_cx, context_router_gx;
+        ostringstream context[4];
         
-        context_router_cx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
-        my_noc_router->TraceConnect("RouterCxTrace", context_router_cx.str(), MakeCallback(&log_netdevice_packets));
+//        context[0] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",r";
+//        my_xdense_app->TraceConnect("FlowRxTrace", context[0].str(), MakeCallback(&log_flows));  
+//        context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",t";
+//        my_xdense_app->TraceConnect("FlowTxTrace", context[1].str(), MakeCallback(&log_flows));  
         
-        context_router_gx << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",g";
-        my_noc_router->TraceConnect("RouterGxTrace", context_router_gx.str(), MakeCallback(&log_netdevice_packets));
+        
+//        ostringstream context_router_cx, context_router_gx;
+        
+        context[0] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
+        my_noc_router->TraceConnect("RouterCxTrace", context[0].str(), MakeCallback(&log_netdevice_packets));
+        my_noc_router->TraceConnect("RouterCxTrace", context[0].str(), MakeCallback(&log_flows));
+        
+        context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",g";
+        my_noc_router->TraceConnect("RouterGxTrace", context[1].str(), MakeCallback(&log_netdevice_packets));
+        my_noc_router->TraceConnect("RouterGxTrace", context[1].str(), MakeCallback(&log_flows));
+        
         
         //Setup NetDevice's Callback
         Ptr<NOCNetDevice> my_net_device;
@@ -246,11 +295,17 @@ main(int argc, char *argv[]) {
             my_net_device = my_noc_router->GetNetDevice(j);
             direction = my_noc_router->GetNetDeviceInfo(my_net_device).direction; 
             
-            ostringstream context_nd_rx, context_nd_tx;
-            context_nd_rx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
-            my_net_device->TraceConnect("MacRx", context_nd_rx.str(), MakeCallback(&log_netdevice_packets));
-            context_nd_tx << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
-            my_net_device->TraceConnect("MacTx", context_nd_tx.str(), MakeCallback(&log_netdevice_packets));            
+            ostringstream context_nd[4];
+               
+            context_nd[0] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
+            my_net_device->TraceConnect("MacRx", context_nd[0].str(), MakeCallback(&log_netdevice_packets));
+            context_nd[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
+            my_net_device->TraceConnect("MacTx", context_nd[1].str(), MakeCallback(&log_netdevice_packets));            
+
+            context_nd[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
+            my_net_device->TraceConnect("MacRxQueue", context_nd[2].str(), MakeCallback(&log_queues));          
+            context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
+            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues));          
         }
 
         //Should be installed in this order!!!
@@ -272,12 +327,12 @@ main(int argc, char *argv[]) {
     
     bool use_traffic_shapper = true;
     double_t b      = 0.0625;
-    double_t bmax   = 0.07;
-    double_t bmin   = 0.06;
+//    double_t bmax   = 0.07;
+//    double_t bmin   = 0.06;
     
-    double_t rd; 
-    double_t rd_max = 1.2; 
-    double_t rd_min = 1.0; 
+    double_t rd     = 1; 
+//    double_t rd_max = 1.2; 
+//    double_t rd_min = 1.0; 
     
     uint32_t ms     = 5;
     
@@ -309,8 +364,8 @@ main(int argc, char *argv[]) {
              }
             
             //Simulate the assyncronism by applying random burstiness and rd to nodes
-            b = r->GetValue(bmin, bmax);
-            rd = r->GetValue(rd_min, rd_max);
+//            b = r->GetValue(bmin, bmax);
+//            rd = r->GetValue(rd_min, rd_max);
 
 //              All to one
             if (x == 1 && y == 3){ //The one to trace
@@ -341,7 +396,13 @@ main(int argc, char *argv[]) {
     file_simulation_info.close();
 
     filename = dir_output + "packets-trace-netdevice.csv";
-    file_packets_trace_netdevice.open(filename.c_str(), ios::out);
+    file_packet_trace.open(filename.c_str(), ios::out);
+
+    filename = dir_output + "queue-size-trace.csv";
+    file_queue_size_trace.open(filename.c_str(), ios::out);
+
+    filename = dir_output + "flows-trace.csv";
+    file_flow_trace.open(filename.c_str(), ios::out);
 
     cout << endl << "Simulation started. Please wait..." << endl ;
     
@@ -351,7 +412,9 @@ main(int argc, char *argv[]) {
     //**************** Output Printing ***************************
 
     cout << "Simulation complete." << endl ;
-    file_packets_trace_netdevice.close();
+    file_packet_trace.close();
+    file_queue_size_trace.close();
+    file_flow_trace.close();
     cout << "Log files created at: '" << dir_output << "'" << endl;
 
     Simulator::Destroy();

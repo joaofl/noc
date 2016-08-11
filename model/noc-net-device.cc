@@ -330,6 +330,8 @@ void
             //
             // There was no packets on the high p, but on the lp queue, send them...
             //
+
+            m_macTxQueueTrace(m_queue_output->GetNPackets());
             m_snifferTrace(p0);
             m_promiscSnifferTrace(p0);
             m_macTxTrace(p0);
@@ -337,8 +339,6 @@ void
             return;
         }
         
-//        if (m_queue_output->GetNPackets() > 1)
-//            std::cout << "QO=" << m_queue_output->GetNPackets() << "\n";
     }
     
     bool
@@ -382,6 +382,7 @@ void
     Ptr<Packet>
     NOCNetDevice::DequeueReceived() {
         Ptr<QueueItem> item = m_queue_input->Dequeue();
+        m_macRxQueueTrace(m_queue_input->GetNPackets());
         return item->GetPacket();
     }
     Ptr<const Packet>
@@ -455,11 +456,8 @@ void
                 std::cout << "Packet dropped\n";
             }
             
-            if (m_queue_input->GetNPackets() > 1){
- //                std::cout << "QI=" << m_queue_input->GetNPackets() << "\n";               
-            }
+            m_macRxQueueTrace(m_queue_input->GetNPackets());               
 
-            
             m_rxCallback(packet, m_direction);
 
         }
@@ -614,10 +612,7 @@ void
                 
                 m_snifferTrace(packet);
                 m_promiscSnifferTrace(packet);
-                m_macTxTrace(packet);
-
-            if (m_queue_output->GetNPackets() > 1)
-                std::cout << "QO=" << m_queue_output->GetNPackets() << "\n";                
+                m_macTxTrace(packet);              
                 
                 return TransmitStart(packet);
             } else {
@@ -630,8 +625,12 @@ void
         else //m_txMachineState != READY
         {
 
-            bool r = m_queue_output->Enqueue(Create<QueueItem> (packet) );
-//                uint32_t queue_size = m_queue->GetNPackets();
+            bool r = m_queue_output->Enqueue(Create<QueueItem> (packet));
+            
+            if (r){
+//                if (m_queue_output->GetNPackets() > 1)  
+                m_macTxQueueTrace(m_queue_output->GetNPackets());
+            }
             return r;
         }
     }

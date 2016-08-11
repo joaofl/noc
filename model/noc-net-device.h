@@ -380,14 +380,9 @@ namespace ns3 {
          * @see class DropTailQueue
          */
         Ptr<Queue> m_queue_output;
-        
-//        Ptr<Queue> m_queue_output_p;
 
         Ptr<Queue> m_queue_input;
         
-//        Ptr<Queue> m_queue_input_p;
-        
-//        Ptr<Queue> m_signal_queue;
 
         /**
          * Error model for receive packet events

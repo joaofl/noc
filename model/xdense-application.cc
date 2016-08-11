@@ -21,6 +21,8 @@
 #include "xdense-application.h"
 #include "xdense-header.h"
 #include "src/core/model/simulator.h"
+#include "src/network/model/packet.h"
+
 
 
 using namespace std;
@@ -88,48 +90,25 @@ namespace ns3 {
     XDenseApp::SetFlowGenerator(double_t burstiness, double_t release_delay, uint32_t msg_size, uint32_t dest_x, uint32_t dest_y, bool trace) {
         if (burstiness == 0 || IsActive == false)
             return;        
-        
-        
-        Ptr<Packet> pck = Create<Packet>();
+
         XDenseHeader hd;
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
         if (trace){
             hd.SetXdenseProtocol(XDenseHeader::TRACE);
             hd.SetData(0 + release_delay);
         }
-        pck->AddHeader(hd);
-
+        
         Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
         Time t_jitter = Time::FromInteger(PacketDuration.GetNanoSeconds() * release_delay, Time::NS);
         
         Time t_ns = t_jitter;
         
-//        uint8_t count = 0;
-//        uint32_t tslot = 0;
-        
         for (uint16_t i = 0 ; i < msg_size ; i++ ){
+            Ptr<Packet> pck = Create<Packet>();
+            pck->AddHeader(hd);
             Simulator::Schedule(t_ns + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
 //            t_ns += t_step;
         }
-        
-        
-//        while (count < burst) {
-//            
-//            if (tslot < jitter){
-//                tslot++;
-//                continue;
-//            }
-//            
-//
-//            
-//            if ((tslot - jitter) % utilization == 0){
-//                t_ns = (tslot + start) * PacketDuration;
-////                t_ns += start; //To prenvent an ns3 bug to happen 
-//                count++;
-//                Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
-//            }
-//            tslot++;
-//        }
     }
 
     

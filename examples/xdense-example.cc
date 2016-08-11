@@ -72,7 +72,7 @@ using namespace ns3;
 
 
 //ofstream file_packets_trace_router;
-ofstream file_packets_trace_netdevice;
+ofstream file_packet_trace;
 ofstream file_simulation_info;
 
 
@@ -85,7 +85,7 @@ log_netdevice_packets(string context, Ptr<const Packet> pck)
     NOCHeader hd;
     pck->PeekHeader(hd);
     
-    file_packets_trace_netdevice
+    file_packet_trace
     << "c,"
     << i << ","
 //    << t_slot() << "," //removed time slot from log
@@ -94,7 +94,7 @@ log_netdevice_packets(string context, Ptr<const Packet> pck)
     << pck->GetUid() << ","
     << context << "," 
     << "p,";
-    hd.Print(file_packets_trace_netdevice);
+    hd.Print(file_packet_trace);
     
     i++;
 }
@@ -301,7 +301,7 @@ main(int argc, char *argv[]) {
     file_simulation_info.close();
 
     filename = dir_output + "packets-trace-netdevice.csv";
-    file_packets_trace_netdevice.open(filename.c_str(), ios::out);
+    file_packet_trace.open(filename.c_str(), ios::out);
 
     cout << endl << "Simulation started. Please wait..." << endl ;
     
@@ -318,7 +318,7 @@ main(int argc, char *argv[]) {
     
     
 //    file_packets_trace_router.close();
-    file_packets_trace_netdevice.close();
+    file_packet_trace.close();
     
     
     cout << "Log files created at: '" << dir_output << "'" << endl;

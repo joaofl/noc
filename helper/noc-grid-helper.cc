@@ -375,7 +375,7 @@ GridHelper::Install (Ptr<Node> a, Ptr<Node> b)
   Ptr<Queue> qoutputpA = m_queueFactory.Create<Queue> ();
   Ptr<Queue> qinputA = m_queueFactory.Create<Queue> ();
   Ptr<Queue> qinputpA = m_queueFactory.Create<Queue> ();
-  devA->SetQueue (qinputA, qinputpA, qoutputA, qoutputpA);
+  devA->SetQueue (qinputA, qoutputA);
   
   Ptr<NOCNetDevice> devB = m_deviceFactory.Create<NOCNetDevice> ();
 //  devB->SetAddress (NOCAddress::Allocate ());
@@ -384,7 +384,7 @@ GridHelper::Install (Ptr<Node> a, Ptr<Node> b)
   Ptr<Queue> qoutputpB = m_queueFactory.Create<Queue> ();
   Ptr<Queue> qinputB = m_queueFactory.Create<Queue> ();
   Ptr<Queue> qinputpB = m_queueFactory.Create<Queue> ();
-  devB->SetQueue (qinputB, qinputpB, qoutputB, qoutputpB);
+  devB->SetQueue (qinputB, qoutputB);
   // If MPI is enabled, we need to see if both nodes have the same system id 
   // (rank), and the rank is the same as this instance.  If both are true, 
   //use a normal p2p channel, otherwise use a remote channel
