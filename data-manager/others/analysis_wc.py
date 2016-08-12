@@ -30,34 +30,19 @@ def produced_until(t, sw):
 
     return total_produced
 
-def time_taken(sw, n, direction='out'):
-    utilization_list = []
-    jitter_list = []
-    burst_list = []
-    t = 0
-
-    for f in sw:  # do it fow all the flows getting into that switch
-        utilization = f[0]
-        jitter = f[1]
-        burst = f[2]
-
-        jitter_list.append(jitter)
-        utilization_list.append(utilization)
-        burst_list.append(burst)
-
-    jitter_min = numpy.min(jitter_list)
-
-    utilization_equivalent = 0
-    for b in burst_list:
-        utilization_equivalent += b / max(burst_list)
+def time_taken(fl, n='all', direction='out'):
+    b = fl[0]
+    rd = fl[1]
+    ms = fl[2]
 
     if n=='all':
-        n = numpy.sum(burst_list)
+        n = ms
 
-    if (direction == 0 or direction == 'out'):
-        t = ((n-1) / utilization_equivalent) + jitter_min + 1
-    if (direction == 1 or direction == 'in'):
-        t = ((n) / utilization_equivalent) + jitter_min
+    # if (direction == 'out'):
+    #     t = (float(n-1) / b) + rd + 1
+    # elif (direction == 'in'):
+
+    t = (float(n-1) / b) + rd
 
     return t
 
@@ -106,12 +91,9 @@ def resulting_flow(sw, analysis):
     return [burstiness_out, release_delay_out, msg_size_out]
 
 
-def calculate_node(sw_in):
+def calculate_node(sw_in, sw_out):
 
     step = 0.01
-
-    # print(sw_in)
-
     ############# Input #############################################
     arrivals = []
 
@@ -128,30 +110,19 @@ def calculate_node(sw_in):
         arrivals.append([t, count])
         t += step
     t -= step #removed from last iteration not done
-    # print(t)
-
 
     ############# Output ##########################################
-    departures_eted = []
-    departures_queue = []
-
-    fo_eted = resulting_flow(sw_in, analysis='eted')
-    # fo_queue = resulting_flow(sw_in, analysis='etedmin')
-
-    sw_out_eted = [fo_eted]
-    # sw_out_queue = [fo_queue]
-
+    departures = []
     count = 0
     t = 0
 
     while(count < msg_size_total):
-        count = produced_until(t, sw_out_eted)
-        departures_eted.append([t, count])
+        count = produced_until(t, sw_out)
+        departures.append([t, count])
         t += step
     t -= step #removed from last iteration not done
 
-    return [arrivals, departures_eted]
-    # return [received_profile, transmited_profile, fo, received_equivalent]
+    return [arrivals, departures]
 
 
 def calculate():

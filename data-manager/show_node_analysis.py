@@ -24,7 +24,7 @@ import sys, os, traceback, optparse
 import time
 import numpy
 import matplotlib.pyplot as plt
-import matplotlib as mpl
+# import matplotlib as mpl
 import copy
 from itertools import cycle
 import packet_structure as HEADER
@@ -100,13 +100,12 @@ def main ():
 
         return dx + dy
 
-    def show_simul_flows():
-
-        flows_list = []
+    def show_simul_flows(x='all', y='all', n='all', plot=False):
         simul_eted_min = numpy.zeros([max_y, max_x])
         simul_eted_max = numpy.zeros([max_y, max_x])
 
         i = -1 #to start from zero
+        t = 0
 
         for line in trace_flows:
             abs_x = int(line[HEADER.x_absolute])
@@ -115,10 +114,15 @@ def main ():
             if line[HEADER.operation] == 'g':
                 pck_id = line[HEADER.id]
 
+                if x == abs_x and y == abs_y:
+                    #get the last packet generated
+                    t = float(line[HEADER.time]) / pck_duration
+
+
                 for j in range(i+1 ,len(trace_flows)):
 
                     if trace_flows[j][HEADER.id] == pck_id:
-                        eted = float(int(trace_flows[j][HEADER.time]) - int(line[HEADER.time])) / pck_duration
+                        eted = float(int(trace_flows[j][HEADER.time]) - float(line[HEADER.time])) / pck_duration
 
                         dist = distance(abs_x, abs_y,
                                         int(trace_flows[j][HEADER.x_absolute]), int(trace_flows[j][HEADER.y_absolute]))
@@ -134,9 +138,11 @@ def main ():
                         if etedn < simul_eted_min[abs_y][abs_x] or simul_eted_min[abs_y][abs_x] == 0:
                             simul_eted_min[abs_y][abs_x] = etedn
 
+        if plot:
+            plotMatrix(simul_eted_max)
+            plotMatrix(simul_eted_min)
 
-        plotMatrix(simul_eted_max)
-        plotMatrix(simul_eted_min)
+        return(t)
 
     def show_simul_stats():
 
@@ -168,7 +174,7 @@ def main ():
         plotMatrix(simul_q_max)
         plotMatrix(simul_r_count)
 
-    def show_node(node_x, node_y, sw_lb, sw_ub):
+    def show_node(node_x, node_y, sw_in, sw_out, n):
 
         ################# Get trace_packets from simulation logs ##################
 
@@ -178,8 +184,11 @@ def main ():
         simul_r_x = []
         simul_r_y = []
 
-        traced_y = []
-        traced_x = []
+        simul_traced_y = []
+        simul_traced_x = []
+
+        model_traced_y = []
+        model_traced_x = []
 
         count_r = 0;
         count_t = 0;
@@ -204,8 +213,8 @@ def main ():
 
                     #point there at what time the traced packed passed by
                     if line[HEADER.protocol_app] == '6':
-                        traced_x.append(t)
-                        traced_y.append(count_r)
+                        simul_traced_x.append(t)
+                        simul_traced_y.append(count_r)
 
                 ################# Transmitted ####################
                 elif line[HEADER.operation] == 't': # or line[trace.operation] == 'g':
@@ -216,18 +225,13 @@ def main ():
 
                     # point there at what time the traced packed passed by
                     if line[HEADER.protocol_app] == '6':
-                        traced_x.append(t + 1) #Plus one time slot, the time to finish transmitting
-                        traced_y.append(count_t)
+                        simul_traced_x.append(t + 1) #Plus one time slot, the time to finish transmitting
+                        simul_traced_y.append(count_t)
 
 
         ################# Now the same trace_packets but from the model ###################
 
         if len(simul_r_x) != 0:
-
-            [model_r_lb, model_t_lb] = wca.calculate_node(sw_lb)
-            [model_r_ub, model_t_ub] = wca.calculate_node(sw_ub)
-
-            # print(fout)
 
             #######
             def transform(data):
@@ -239,34 +243,38 @@ def main ():
                 return [x, y]
             #######
 
-            [model_r_lb_x, model_r_lb_y] = transform(model_r_lb)
-            [model_t_lb_x, model_t_lb_y] = transform(model_t_lb)
+            [model_in, model_out] = wca.calculate_node(sw_in, sw_out)
 
-            [model_r_ub_x, model_r_ub_y] = transform(model_r_ub)
-            [model_t_ub_x, model_t_ub_y] = transform(model_t_ub)
+            [model_in_x, model_in_y] = transform(model_in)
+            [model_out_x, model_out_y] = transform(model_out)
 
-            #     y_diff = numpy.subtract(y_received, y_transmitted).tolist()
-            #     x_diff = x_transmitted
+            t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
+                model_node_bounds(node_flow=nodes_flows_lb[y][x], in_flow=incomming_flows_lb[y][x], out_flow=outgoing_flows_lb[y][x], packet_n=n)
+
+            t_in_ub, t_out_ub, n_in_ub, n_out_ub = \
+                model_node_bounds(node_flow=nodes_flows_ub[y][x], in_flow=incomming_flows_ub[y][x], out_flow=outgoing_flows_ub[y][x], packet_n=n)
+
+            model_traced_x = [t_in_ub, t_out_lb]
+            model_traced_y = [n_in_ub, n_in_lb]
 
             plots = [
                     simul_r_x, simul_r_y,
                     simul_t_x, simul_t_y,
-                    model_r_ub_x, model_r_ub_y,
-                    # model_t_ub_x, model_t_ub_y,
-                    # model_r_lb_x, model_r_lb_y,
-                    model_t_lb_x, model_t_lb_y,
-                    # x_diff, y_diff,
-                    # x_trasmitted_model_queue, y_trasmitted_model_queue,
-                    # traced_x, traced_y
+
+                    model_in_x, model_in_y,
+                    model_out_x, model_out_y,
+
+                    simul_traced_x[(n-1)*2:n*2], simul_traced_y[(n-1)*2:n*2],
+                    model_traced_x, model_traced_y,
                     ]
 
-            fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_lb) + '.pdf'
+            fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_in) + '.pdf'
             plotCumulativeInOut(plots, filename=fn)
 
         else:
             print('The node selected have received no packets.')
 
-    def model_incoming_flows(nodes_flows):
+    def model_flows_io(nodes_flows):
         # resulting_flows = copy.deepcopy(nodes_flows)
         outgoing_flows = [[0 for _ in range(max_x)] for _ in range(max_y)]
         incoming_flows = [[0 for _ in range(max_x)] for _ in range(max_y)] #without mine
@@ -289,8 +297,20 @@ def main ():
                 sw_in.append(nodes_flows[y][x]) #add my own flow to calculate the output
                 outgoing_flows[y][x] = wca.resulting_flow(sw_in, analysis='eted')
 
-        return incoming_flows
+        return incoming_flows, outgoing_flows
 
+    def model_node_bounds(node_flow, in_flow, out_flow, packet_n):
+        swi = in_flow + [node_flow]  # the incomming
+        swo = [out_flow]
+
+        # first iteration get t_in from the packet of interest, after, use t_out from previous iteration
+        t_in = wca.time_taken(node_flow, n=packet_n, direction='in')
+        n_in = wca.produced_until(t_in, swi) + 1  # plus itself
+
+        t_out = wca.time_taken(out_flow, n_in, direction='out')
+        n_out = wca.produced_until(t_in, swo) + 1  # plus itself
+
+        return t_in, t_out, n_in, n_out
 
     def plotMatrix(data):
 
@@ -333,6 +353,7 @@ def main ():
             # plt.pause(0.001)
             # plt.draw()
 
+
     def plotCumulativeInOut(axis, filename=None):
 
         global options
@@ -344,9 +365,9 @@ def main ():
         x_lim = None
         y_lim = None
 
-        lines = ["-", "-", ":", "--", ":", "--"]
-        markers = ["", "", "", "", "", "", "D", "D"]
-        colours = ['lightgreen', 'yellow', 'black', 'black', 'darkgrey', 'darkgrey', 'purple']
+        lines = ["-", "-", ":", "--", " ", " ", " ", " "]
+        markers = ["", "", "", "", "o", "*", "o", "o"]
+        colours = ['lightgreen', 'yellow', 'black', 'black', 'cyan', 'blue', 'purple', 'purple']
         labels = [
             'Arrivals',
             'Departures',
@@ -354,7 +375,8 @@ def main ():
             # 'Departures UP',
             # 'Arrivals LB',
             'Departures LB',
-            'WC Departure'
+            'Traced',
+            'Traced bounds'
         ]
 
         linecycler = cycle(lines)
@@ -397,22 +419,25 @@ def main ():
 
     ################################# Running ####################################
 
-    f_lb = [0.0625, 0, 5]  #my own flow, whereas the flows comming from neighbors take one time cycle more
+    f_lb = [0.060, 1, 5]  #nodes own output flow
+    f_ub = [0.064, 0, 5]  #nodes own output flow
 
     nodes_flows_lb = [[f_lb for _ in range(max_x)] for _ in range(max_y)]
-
+    nodes_flows_ub = [[f_ub for _ in range(max_x)] for _ in range(max_y)]
     # nodes_flows_lb[3][4] = [0.0625, 0, 10]
 
-    incomming_flows_lb = model_incoming_flows(nodes_flows_lb)
+    incomming_flows_lb, outgoing_flows_lb = model_flows_io(nodes_flows_lb)
+    incomming_flows_ub, outgoing_flows_ub = model_flows_io(nodes_flows_ub)
 
     x = 4
     y = 0
-    swi_lb = incomming_flows_lb[y][x] #the incomming
-    swi_lb.append(nodes_flows_lb[y][x]) #plus its own
 
-    show_node(x, y, swi_lb, swi_lb)
+    #Checking the values now
+    # show_simul_flows()
+    swi = incomming_flows_ub[y][x] + [nodes_flows_ub[y][x]]
+    swo = [outgoing_flows_lb[y][x]]
 
-
+    show_node(x, y, swi, swo, 5)
 
 
 if __name__ == '__main__':
