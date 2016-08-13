@@ -174,7 +174,7 @@ def main ():
         plotMatrix(simul_q_max)
         plotMatrix(simul_r_count)
 
-    def show_node(node_x, node_y, sw_in, sw_out, n):
+    def show_node(node_x, node_y, packet_n=0, hop=0):
 
         ################# Get trace_packets from simulation logs ##################
 
@@ -231,6 +231,9 @@ def main ():
 
         ################# Now the same trace_packets but from the model ###################
 
+        sw_in = incomming_flows_ub[node_y][node_x] + [nodes_flows_ub[node_y][node_x]]
+        sw_out = [outgoing_flows_lb[node_y][node_x]]
+
         if len(simul_r_x) != 0:
 
             #######
@@ -248,11 +251,24 @@ def main ():
             [model_in_x, model_in_y] = transform(model_in)
             [model_out_x, model_out_y] = transform(model_out)
 
-            t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
-                model_node_bounds(node_flow=nodes_flows_lb[y][x], in_flow=incomming_flows_lb[y][x], out_flow=outgoing_flows_lb[y][x], packet_n=n)
+            if packet_n > 0:
+                t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
+                    model_node_bounds(node_flow=nodes_flows_lb[node_y][node_x], in_flow=incomming_flows_lb[node_y][node_x],
+                                      out_flow=outgoing_flows_lb[node_y][node_x], packet_n=packet_n, hop=hop)
 
-            t_in_ub, t_out_ub, n_in_ub, n_out_ub = \
-                model_node_bounds(node_flow=nodes_flows_ub[y][x], in_flow=incomming_flows_ub[y][x], out_flow=outgoing_flows_ub[y][x], packet_n=n)
+                t_in_ub, t_out_ub, n_in_ub, n_out_ub = \
+                    model_node_bounds(node_flow=nodes_flows_ub[node_y][node_x], in_flow=incomming_flows_ub[node_y][node_x],
+                                      out_flow=outgoing_flows_ub[node_y][node_x], packet_n=packet_n, hop=hop)
+
+
+            # if t_in > 0:
+            #     t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
+            #         model_node_bounds(node_flow=nodes_flows_lb[node_y][node_x], in_flow=incomming_flows_lb[node_y][node_x],
+            #                           out_flow=outgoing_flows_lb[node_y][node_x], hop=t_in)
+            #
+            #     t_in_ub, t_out_ub, n_in_ub, n_out_ub = \
+            #         model_node_bounds(node_flow=nodes_flows_ub[node_y][node_x], in_flow=incomming_flows_ub[node_y][node_x],
+            #                           out_flow=outgoing_flows_ub[node_y][node_x], t_in=t_in)
 
             model_traced_x = [t_in_ub, t_out_lb]
             model_traced_y = [n_in_ub, n_in_lb]
@@ -264,7 +280,9 @@ def main ():
                     model_in_x, model_in_y,
                     model_out_x, model_out_y,
 
-                    simul_traced_x[(n-1)*2:n*2], simul_traced_y[(n-1)*2:n*2],
+                # simul_traced_x[(packet_n - 1) * 2:packet_n * 2], simul_traced_y[(packet_n - 1) * 2:packet_n * 2],
+                    simul_traced_x, simul_traced_y,
+
                     model_traced_x, model_traced_y,
                     ]
 
@@ -273,6 +291,10 @@ def main ():
 
         else:
             print('The node selected have received no packets.')
+
+        return n_in_ub
+
+
 
     def model_flows_io(nodes_flows):
         # resulting_flows = copy.deepcopy(nodes_flows)
@@ -299,12 +321,21 @@ def main ():
 
         return incoming_flows, outgoing_flows
 
-    def model_node_bounds(node_flow, in_flow, out_flow, packet_n):
+    def model_node_bounds(node_flow, in_flow, out_flow, packet_n=0, hop=0):
         swi = in_flow + [node_flow]  # the incomming
         swo = [out_flow]
 
-        # first iteration get t_in from the packet of interest, after, use t_out from previous iteration
-        t_in = wca.time_taken(node_flow, n=packet_n, direction='in')
+        if hop == 0:
+            # first iteration get t_in from the packet of interest, after, use t_out from previous iteration
+            t_in = wca.time_taken(node_flow, n=packet_n, direction='in')
+
+        if hop > 0:
+            t_in = wca.time_taken(in_flow[1], n=packet_n, direction='in')
+
+        # if t_in == 0:
+        #     print('Time have to be specified')
+        #     return
+
         n_in = wca.produced_until(t_in, swi) + 1  # plus itself
 
         t_out = wca.time_taken(out_flow, n_in, direction='out')
@@ -319,8 +350,8 @@ def main ():
         title = "";
         lable_x = "";
         lable_y = "";
-        x_size = 8;
-        y_size = 8;
+        # x_size = 8;
+        # y_size = 8;
 
         plt.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
         plt.imshow(data, cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')
@@ -376,7 +407,7 @@ def main ():
             # 'Arrivals LB',
             'Departures LB',
             'Traced',
-            'Traced bounds'
+            'Bounds'
         ]
 
         linecycler = cycle(lines)
@@ -419,7 +450,7 @@ def main ():
 
     ################################# Running ####################################
 
-    f_lb = [0.060, 1, 5]  #nodes own output flow
+    f_lb = [0.061, 1, 5]  #nodes own output flow
     f_ub = [0.064, 0, 5]  #nodes own output flow
 
     nodes_flows_lb = [[f_lb for _ in range(max_x)] for _ in range(max_y)]
@@ -434,10 +465,11 @@ def main ():
 
     #Checking the values now
     # show_simul_flows()
-    swi = incomming_flows_ub[y][x] + [nodes_flows_ub[y][x]]
-    swo = [outgoing_flows_lb[y][x]]
 
-    show_node(x, y, swi, swo, 5)
+    n_in = show_node(x, y, packet_n=5, hop=0)
+    n_in = show_node(x-1, y, packet_n=n_in, hop=1)
+    n_in = show_node(x-2, y, packet_n=n_in, hop=1)
+    n_in = show_node(x-3, y, packet_n=n_in, hop=1)
 
 
 if __name__ == '__main__':
