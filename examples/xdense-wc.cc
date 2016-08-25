@@ -326,13 +326,13 @@ main(int argc, char *argv[]) {
     s1x = 0; s1y = 0;
     
     bool use_traffic_shapper = true;
-    double_t b      = 0.0625;
-    double_t bmax   = 0.064;
-    double_t bmin   = 0.061;
+    double_t b      = 0.05;
+//    double_t bmax   = 0.064;
+//    double_t bmin   = 0.061;
     
     double_t rd     = 1; 
-    double_t rd_max = 2.0; 
-    double_t rd_min = 1.0; 
+//    double_t rd_max = 2.0; 
+//    double_t rd_min = 1.0; 
     
     uint32_t ms     = 5;
     
@@ -365,9 +365,9 @@ main(int argc, char *argv[]) {
             
             
             //Simulate the assyncronism by applying random burstiness and rd to nodes
-            b = r->GetValue(bmin, bmax);
-            rd = r->GetValue(rd_min, rd_max);
-            shaper_b *= r->GetValue(0.99, 1.01);
+//            b = r->GetValue(bmin, bmax);
+//            rd = r->GetValue(rd_min, rd_max);
+//            shaper_b *= r->GetValue(0.99, 1.01);
 
 //              All to one
             if (x == 4 && y == 3){ //The one to trace

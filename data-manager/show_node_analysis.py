@@ -319,6 +319,7 @@ def main ():
                         sw_in = [outgoing_flows[y + 1][x], outgoing_flows[y][x+1]]
 
                 sw_in.append(nodes_flows[y][x])
+                sw_in = list(reversed(sw_in)) #tweak for better file names
                 incoming_flows[y][x] = copy.deepcopy(sw_in) #add my own flow to calculate the output
                 outgoing_flows[y][x] = wca.resulting_flow(sw_in, analysis='eted')
 
@@ -327,11 +328,8 @@ def main ():
     def model_node_bounds(traced_flow, in_flows, out_flow, packet_n=0):
         swi = in_flows  # the incomming
         swo = [out_flow]
-
-
         # get t_in from the packet of interest, after, use t_out from previous iteration
         t_in = wca.time_taken(traced_flow, n=packet_n, direction='in')
-
         n_in = wca.produced_until(t_in, swi) + 1  # plus itself
 
         t_out = wca.time_taken(out_flow, n_in, direction='out')
@@ -446,8 +444,8 @@ def main ():
 
     ################################# Running ####################################
 
-    f_lb = [0.061, 1, 5]  #nodes own output flow
-    f_ub = [0.064, 0, 5]  #nodes own output flow
+    f_lb = [0.05, 0, 5]  #nodes own output flow
+    f_ub = [0.05, 0, 5]  #nodes own output flow
 
     nodes_flows_lb = [[f_lb for _ in range(max_x)] for _ in range(max_y)]
     nodes_flows_ub = [[f_ub for _ in range(max_x)] for _ in range(max_y)]
@@ -455,7 +453,7 @@ def main ():
 
     x = 4
     y = 3
-    n_in = 4 #which packet of the message to trace and calculate eted to
+    n_in = 2 #which packet of the message to trace and calculate eted to
 
     incomming_flows_lb, outgoing_flow_lb, traced_flow_lb = model_flows_io(nodes_flows_lb, x, y)
     incomming_flows_ub, outgoing_flow_ub, traced_flow_ub = model_flows_io(nodes_flows_ub, x, y)
@@ -464,10 +462,10 @@ def main ():
     show_simul_flows(plot=True)
 
 
-    # for yi in range(y, 0, -1):
-    #     n_in = show_node(x, yi, packet_n=n_in)
-    # for xi in range(x, 0, -1):
-    #     n_in = show_node(xi, 0, packet_n=n_in)
+    for yi in range(y, 0, -1):
+        n_in = show_node(x, yi, packet_n=n_in)
+    for xi in range(x, 0, -1):
+        n_in = show_node(xi, 0, packet_n=n_in)
 
     # n_in = show_node(x-1, y, packet_n=n_in)
     # n_in = show_node(x-2, y, packet_n=n_in)

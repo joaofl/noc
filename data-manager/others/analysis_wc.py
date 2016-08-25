@@ -38,10 +38,6 @@ def time_taken(fl, n='all', direction='out'):
     if n=='all':
         n = ms
 
-    # if (direction == 'out'):
-    #     t = (float(n-1) / b) + rd + 1
-    # elif (direction == 'in'):
-
     t = (float(n-1) / b) + rd
 
     return t
