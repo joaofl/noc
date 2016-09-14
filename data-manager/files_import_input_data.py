@@ -3,8 +3,52 @@
 from PIL import Image
 import numpy as np
 from numpy.lib.npyio import savetxt
-import av
+# import av
 import matplotlib.pyplot as plt
+import files_io
+import matplotlib.pyplot as plt
+
+from scipy.interpolate import griddata
+
+
+def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/surface_flow_00015.csv', output_dir ='/home/joao/noc-data/input-data'):
+
+    ns_x, ns_y = 300, 500 #network size
+    matrix = np.empty([ns_y, ns_x])
+
+    temp = files_io.load_list(input_file)
+
+    points = []
+    x, y, p = [], [], []
+
+
+    for i in range(1, temp.size - 1):
+        l = temp[i]
+        if float(l[2]) >= 0:
+            points.append([float(l[0]), float(l[1])]) #, float(l[3])]) #x , y, pressure
+            # x.append(float(l[0]))
+            # y.append(float(l[1]))
+            p.append(float(l[3]))
+
+    # xmax = max(x)
+    # xmin = min(x)
+    # ymax = max(y)
+    # ymin = min(y)
+    # pmin = min(p)
+
+    # matrix = [[0 for _ in range(ns_x)] for _ in range(ns_y)]
+
+    # for i in range(len(data)):
+    #     xd = translate(x[i], xmin, xmax, 0, ns_x - 1)
+    #     yd = translate(y[i], ymin, ymax, 0, ns_y - 1)
+    #     matrix[yd][xd] = p[i]
+
+    grid_x, grid_y = np.mgrid[0:ns_x, 0:ns_y]
+    matrix = griddata((x,y), p, (grid_x, grid_y), method='linear')
+
+    # image_show(matrix)
+    plt.imshow(matrix, cmap=plt.get_cmap('jet'), interpolation='nearest', origin='lower') #bicubi,
+    plt.show()
 
 
 def ImportFromImage(input_file ='/home/joao/noc-data/input-data/sources/images/flow.png', output_dir ='/home/joao/noc-data/input-data'):
@@ -172,6 +216,16 @@ def normalize_data_array(data_array, sensor_resolution):
 
     return np.uint16(data_array)
 
+def translate(value, mino, maxo, mind, maxd):
+
+    do = maxo - mino
+    dd = maxd - mind
+
+    v = (dd * value) / do
+
+    return int(v)
+
+
 def image_show(data, filename='', label_x="", label_y="", colormap='hot_r', axis='on', view=True):
     plt.figure(figsize=(3, 3), dpi=120, facecolor='w', edgecolor='w')
     plt.xlabel(label_x, fontsize=30)
@@ -203,6 +257,6 @@ def image_show(data, filename='', label_x="", label_y="", colormap='hot_r', axis
 
 
 
-ImportFromVideo()
+ImportFromCFD()
 
 exit(0)
