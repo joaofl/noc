@@ -7,14 +7,22 @@ from numpy.lib.npyio import savetxt
 import matplotlib.pyplot as plt
 import files_io
 import matplotlib.pyplot as plt
+import math
 
 from scipy.interpolate import griddata
 
 
 def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/surface_flow_00015.csv', output_dir ='/home/joao/noc-data/input-data'):
 
-    ns_x, ns_y = 300, 500 #network size
-    matrix = np.empty([ns_y, ns_x])
+
+    ns_x, ns_y = 20, 50 #number of sensors in each direction
+
+    res_x, res_y = 500, 800 #mesh size
+    crop_y_top = 0.02
+    crop_y_bottom = 0.01
+
+    output = np.empty([ns_y, ns_x])
+
 
     temp = files_io.load_list(input_file)
 
@@ -22,32 +30,80 @@ def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/su
     x, y, p = [], [], []
 
 
-    for i in range(1, temp.size - 1):
+    for i in range(1, len(temp) - 1):
         l = temp[i]
-        if float(l[2]) >= 0:
+        if float(l[2]) >= 0: #get only the upper part of the wing, without overlaping with the data from the bottom surface
             points.append([float(l[0]), float(l[1])]) #, float(l[3])]) #x , y, pressure
-            # x.append(float(l[0]))
-            # y.append(float(l[1]))
+            x.append(float(l[0]))
+            y.append(float(l[1]))
             p.append(float(l[3]))
 
-    # xmax = max(x)
-    # xmin = min(x)
-    # ymax = max(y)
-    # ymin = min(y)
-    # pmin = min(p)
+    xmax = max(x)
+    xmin = min(x)
+    ymax = max(y)
+    ymin = min(y)
 
-    # matrix = [[0 for _ in range(ns_x)] for _ in range(ns_y)]
+    lsx = np.linspace(xmin, xmax, res_x)
+    lsy = np.linspace(ymin, ymax, res_y)
+    grid_x, grid_y = np.meshgrid(lsx, lsy)
 
-    # for i in range(len(data)):
-    #     xd = translate(x[i], xmin, xmax, 0, ns_x - 1)
-    #     yd = translate(y[i], ymin, ymax, 0, ns_y - 1)
-    #     matrix[yd][xd] = p[i]
+    data = griddata(points, p, (grid_x, grid_y), method='linear')
 
-    grid_x, grid_y = np.mgrid[0:ns_x, 0:ns_y]
-    matrix = griddata((x,y), p, (grid_x, grid_y), method='linear')
 
-    # image_show(matrix)
-    plt.imshow(matrix, cmap=plt.get_cmap('jet'), interpolation='nearest', origin='lower') #bicubi,
+    # Find the edges of the wing
+    ytop = int(data.shape[0] * ( 1 - crop_y_top)) #y size
+    ybottom = int(data.shape[0] * crop_y_bottom) #y size
+
+    xtop = [np.NaN, np.NaN]
+    xbottom = [np.NaN, np.NaN]
+
+    for x in range(0, data.shape[1], 1):
+        if math.isnan(data[ytop][x]) == False and math.isnan(xtop[0]) == True:
+            xtop[0] = x
+        if math.isnan(data[ybottom][x]) == False and math.isnan(xbottom[0]) == True:
+            xbottom[0] = x
+
+    for x in range(data.shape[1] - 1, -1, -1):
+        if math.isnan(data[ytop][x]) == False and math.isnan(xtop[1]) == True:
+            xtop[1] = x
+        if math.isnan(data[ybottom][x]) == False and math.isnan(xbottom[1]) == True:
+            xbottom[1] = x
+
+
+    #Now, find each line equation between bottom and top
+    xlinetop = np.linspace(xtop[0] + 5, xtop[1] - 5, ns_x)
+    xlinebottom = np.linspace(xbottom[0] + 5, xbottom[1] - 5, ns_x)
+
+    ycords = np.linspace(ybottom, ytop, ns_y)
+
+    xcordsall = []
+
+    ix, iy = 0,0
+
+    for i in range(len(xlinebottom)):
+        xcords = []
+        a, b = findline(xlinebottom[i], ybottom, xlinetop[i], ytop) #find the line coeffs
+        iy = 0
+        for v in ycords:
+            vy = int(v)
+            vx = int(int((v - b) / a))
+            xcords.append(vx)
+            output[iy][ix] = data[vy][vx]
+            iy += 1
+
+        xcordsall.append(xcords.copy())
+        ix += 1
+
+    plt.subplot(121)
+    plt.imshow(data, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest') #bicubi,
+    plt.scatter(xtop, [ytop, ytop], s=20, color='red')
+    plt.scatter(xbottom, [ybottom, ybottom], s=20, color='red')
+    for i in range(len(xlinebottom)):
+        plt.scatter(xcordsall[i], ycords, s=5, color='grey')
+
+    plt.subplot(122)
+    plt.imshow(output, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest')
+
     plt.show()
 
 
@@ -255,7 +311,10 @@ def image_show(data, filename='', label_x="", label_y="", colormap='hot_r', axis
     plt.close()
 #################################################################
 
-
+def findline(xa, ya, xb, yb):
+    a = float(yb - ya) / float(xb - xa)
+    b = ya - (a * xa)
+    return a,b
 
 ImportFromCFD()
 
