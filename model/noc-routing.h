@@ -91,12 +91,16 @@ namespace ns3 {
         
         
         static uint8_t UnicastClockwiseOffsetXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig);
+
+        static uint8_t UnicastClockwiseOffsetStartXY(int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig);
         
         static uint8_t MulticastRadius(int32_t x_source, int32_t y_source, uint16_t n_size);
         
         static uint8_t MulticastArea(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
         static uint8_t MulticastIndividuals(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
+
+        static uint8_t MulticastIndividualsOffset(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
         static uint8_t Broadcast(int32_t x_source, int32_t y_source);
         

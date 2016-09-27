@@ -76,6 +76,8 @@ namespace ns3 {
         void SetBurstiness(double_t b, uint8_t rd);
             
         void SetFlowGenerator(double_t, double_t, uint32_t, uint32_t dest_x, uint32_t dest_y, bool trace);
+
+        void RunApplicationWCA(bool trace, bool is_sink);
         
         void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         

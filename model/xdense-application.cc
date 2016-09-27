@@ -111,6 +111,17 @@ namespace ns3 {
         }
     }
 
+    void
+    XDenseApp::RunApplicationWCA(bool trace, bool is_sink) {
+        Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds(), Time::NS);
+        
+        if (is_sink){
+            Simulator::Schedule(t_step, &XDenseApp::ClusterDataRequest, this);
+//            ClusterDataRequest();
+        }
+    }
+
+
     
     void
     XDenseApp::Tests() {
@@ -204,8 +215,9 @@ namespace ns3 {
 
         Time t_ns = Time::FromInteger(0,Time::NS);
 
-        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastIndividuals, this->m_router, pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
-        this->ClusterDataRequestReceived(pck, 0, 0, ClusterSize_x, ClusterSize_y);
+//        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastIndividuals, this->m_router, pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
+            this->m_router->PacketMulticastIndividuals(pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
+//        this->ClusterDataRequestReceived(pck, 0, 0, ClusterSize_x, ClusterSize_y);
     }
     
     bool 
@@ -215,14 +227,14 @@ namespace ns3 {
         //then it schedule few local requests, and replies to the global sink,
         //so it can send it back its pre-processed cluster data
         
-        Time tbase = PacketDuration * ClusterSize_x;
+        Time tbase = PacketDuration * (ClusterSize_x * ClusterSize_x - 1);
         Time t;
         
-        for (int i = 1; i < 2; i++) {
+        for (int i = 1; i < 6; i++) {
             t = (i + 0) * tbase;
-            Simulator::Schedule(t, &XDenseApp::DataSharingRequest, this);
+            Simulator::Schedule(t, &XDenseApp::DataSharingRequest, this); // schedule the request
             t = (i + 1) * tbase + PacketDuration;
-            Simulator::Schedule(t, &XDenseApp::ClusterDataResponse, this, origin_x*-1, origin_y*-1);
+            Simulator::Schedule(t, &XDenseApp::ClusterDataResponse, this, origin_x*-1, origin_y*-1); // and response
         }
         
         return true;
@@ -233,7 +245,10 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
 
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA_RESPONSE);
+//        hd.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA_RESPONSE);
+        hd.SetXdenseProtocol(XDenseHeader::TRACE);
+        hd.SetData(0 ); // + release_delay);
+        
         pck->AddHeader(hd);
 
         Time t_ns = Time::FromInteger(0,Time::NS);
