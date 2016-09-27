@@ -69,10 +69,13 @@ def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/su
         if math.isnan(data[ybottom][x]) == False and math.isnan(xbottom[1]) == True:
             xbottom[1] = x
 
+    dx = xbottom[1] - xbottom[0]
+    xtop[1] = xtop[0] + dx
 
     #Now, find each line equation between bottom and top
     xlinetop = np.linspace(xtop[0] + 5, xtop[1] - 5, ns_x)
     xlinebottom = np.linspace(xbottom[0] + 5, xbottom[1] - 5, ns_x)
+    # xlinetop = xlinebottom
 
     ycords = np.linspace(ybottom, ytop, ns_y)
 
@@ -86,9 +89,15 @@ def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/su
         iy = 0
         for v in ycords:
             vy = int(v)
-            vx = int(int((v - b) / a))
+            vx = int((v - b) / a)
+            # vx = xlinebottom[i]
             xcords.append(vx)
-            output[iy][ix] = data[vy][vx]
+            try:
+                output[iy][ix] = data[vy][vx]
+            except:
+                output[iy][ix] = np.NaN
+                print('Error')
+
             iy += 1
 
         xcordsall.append(xcords.copy())
