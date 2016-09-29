@@ -29,24 +29,8 @@ from PyQt5.QtOpenGL import *
 from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPen
 from PyQt5.QtCore import QTimer, Qt, QRectF
 from collections import namedtuple
+import _thread
 
-class MyRect(QGraphicsRectItem):
-
-    # def __init__(self):
-    #     self.setActive(True)
-    def mouseDoubleClickEvent(self, QMouseEvent):
-        print('DClickRect')
-
-class MyQGraphicsView(QGraphicsView):
-    # def mousePressEvent(self, QGraphicsSceneMouseEvent):
-    #     print('Press')
-    # def mouseMoveEvent(self, QGraphicsSceneMouseEvent):
-    #     print('Move')
-    # def mouseReleaseEvent(self, QGraphicsSceneMouseEvent):
-    #     print('Release')
-    def mouseDoubleClickEvent(self, QMouseEvent):
-        print('DClickGraphics')
-    pass
 
 class Node(QGraphicsItem):
 
@@ -75,20 +59,24 @@ class Node(QGraphicsItem):
 
         self.__m = node_size / 10
 
-        self.__x_size, xy_size = nw_size
+        self.__x_pos = position[0]
+        self.__y_pos = position[1]
+        self.__x_size, self.__y_size = nw_size
         self.__x, self.__y = self.translateXY(position)
 
-        # self.boundingRect()
+        self.setPos(self.__x, self.__y)
+
 
     def mouseDoubleClickEvent(self, QMouseEvent):
-        print('DClickNode')
-    def mousePressEvent(self, QGraphicsSceneMouseEvent):
-        print('MM')
+        print('[' + str(self.__x_pos) + ',' + str(self.__y_pos) + ']')
+        lauch_external(self.__x_pos, self.__y_pos)
+    # def mousePressEvent(self, QGraphicsSceneMouseEvent):
+    #     print('MM')
 
 
 
     def boundingRect(self):
-        r = QRectF(0, 0, 5 * self.__m, 5 * self.__m)
+        r = QRectF(self.__m , self.__m, 4 * self.__m, 4 * self.__m) #only inside the core
         # r.adjust(self, 1,1,1,1)
         return r
 
@@ -190,47 +178,43 @@ class Node(QGraphicsItem):
         qp.setPen(QColor("lightgrey"))
 
         c = self.__m
-        x = self.__x
-        y = self.__y
+        # x = 0
+        # y = 0
 
         qp.setBrush(self.__north_tx_brush)
-        qp.drawRect(x + c, y - 2*c, 2*c, 3*c) #draw netdev north rx e tx
+        qp.drawRect(c, -2*c, 2*c, 3*c) #draw netdev north rx e tx
         qp.setBrush(self.__north_rx_brush)
-        qp.drawRect(x + 3*c, y - 2*c, 2*c, 3*c) #draw netdev north rx e tx
+        qp.drawRect(3*c, -2*c, 2*c, 3*c) #draw netdev north rx e tx
 
         qp.setBrush(self.__south_rx_brush)
-        qp.drawRect(x + c, y + 5*c, 2 * c, 3 * c) #draw netdev south rx e tx
+        qp.drawRect(c, 5*c, 2 * c, 3 * c) #draw netdev south rx e tx
         qp.setBrush(self.__south_tx_brush)
-        qp.drawRect(x + 3*c, y + 5*c, 2 * c, 3 * c)
+        qp.drawRect(3*c, 5*c, 2 * c, 3 * c)
 
         qp.setBrush(self.__west_tx_brush)
-        qp.drawRect(x - 2 * c, y + c, 3*c, 2 * c) #draw netdev east rx e tx
+        qp.drawRect(-2 * c, c, 3*c, 2 * c) #draw netdev east rx e tx
         qp.setBrush(self.__west_rx_brush)
-        qp.drawRect(x - 2 * c, y + 3 * c, 3*c, 2 * c)
+        qp.drawRect(-2 * c, 3 * c, 3*c, 2 * c)
 
         qp.setBrush(self.__east_rx_brush)
-        qp.drawRect(x + 5 * c, y + c, 3*c, 2 * c) #draw netdev west rx e tx
+        qp.drawRect(5 * c, c, 3*c, 2 * c) #draw netdev west rx e tx
         qp.setBrush(self.__east_tx_brush)
-        qp.drawRect(x + 5 * c, y + 3 * c, 3*c, 2 * c)
+        qp.drawRect(5 * c, 3 * c, 3*c, 2 * c)
 
 
         qp.setPen(QColor("darkgrey"))
         qp.setBrush(QColor("white"))
 
-        rect = MyRect(x + c, self.__y + c, 4 * c, 4 * c)
-        rect.setActive(True)
-        rect.acceptHoverEvents()
+        # rect = MyRect(x + c, self.__y + c, 4 * c, 4 * c)
+        # rect.setActive(True)
+        # rect.acceptHoverEvents()
 
         if (self.__core_rx == 1):
             qp.setBrush( self.__core_rx_brush)
-            rect.setBrush(self.__core_rx_brush)
         if (self.__core_tx == 1):
             qp.setBrush( self.__core_tx_brush)
-            rect.setBrush(self.__core_tx_brush)
 
-        qp.drawRect(x + c, self.__y + c, 4 * c, 4 * c)
-        # qp.drawRect(rect.rect()) #draw the node
-
+        qp.drawRect(c, c, 4 * c, 4 * c)
 
         qp.setBrush(QColor("white"))
         qp.setBrush( self.__led_off_brush)
@@ -238,13 +222,13 @@ class Node(QGraphicsItem):
         if (self.__led == 1):
             qp.setBrush( self.__led_on_brush)
             # qp.setPen(QColor("green"))
-        qp.drawEllipse(x + 3.3 * c, self.__y + 3.3 * c, 1.3 * c, 1.3 * c)  # draw the node
+        qp.drawEllipse(3.3 * c, 3.3 * c, 1.3 * c, 1.3 * c)  # draw the node
         # if (self.__led == 0):
         #     qp.setBrush( self.__led_off_brush)
 
 
         qp.setPen(QColor("darkgrey"))
-        qp.drawText(x + 1.8 * c, self.__y + 3 * c, self.__text)
+        qp.drawText(1.3 * c, 3 * c, self.__text)
 
 
 class NOCAnim(QWidget):
@@ -342,8 +326,8 @@ class NOCAnim(QWidget):
         vbox.addWidget(self.graphics)
 
         self.setLayout(vbox)
-
         self.setGeometry(800, 100, 900, 900)
+
                 # self.setGeometry(800, 100, self.networkSize[0] * 150 * self.s + 5, self.networkSize[1] * 150 * self.s + 50)
         self.setWindowTitle('NoC Anim')
         self.show()
@@ -418,6 +402,7 @@ class NOCAnim(QWidget):
                 self.scene.addItem(n)
 
         self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]-1) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size * -1))
+
         self.update()
 
     def doChangeRefreshRate(self):
@@ -530,6 +515,21 @@ class NOCAnim(QWidget):
         # self.graphics.update()
         self.scene.update()
         #self.update()
+
+
+def lauch_external(x, y):
+    args = ' --inputfile=' + options.inputfile + ' --outputdir=' + options.outputdir + ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' '
+    script = '/home/joao/Repositorios/ns-3-dev/src/noc/data-manager/show_node_analysis.py'
+
+    cmd = 'python3.5 ' + script + args
+    print('Command executed: ' + cmd)
+
+    launch_thread = True
+
+    if (launch_thread == True):
+        _thread.start_new_thread(os.system, (cmd,))
+    else:
+        os.system(cmd)
 
 
 if __name__ == '__main__':
