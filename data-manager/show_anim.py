@@ -30,6 +30,23 @@ from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPen
 from PyQt5.QtCore import QTimer, Qt, QRectF
 from collections import namedtuple
 
+class MyRect(QGraphicsRectItem):
+
+    # def __init__(self):
+    #     self.setActive(True)
+    def mouseDoubleClickEvent(self, QMouseEvent):
+        print('DClickRect')
+
+class MyQGraphicsView(QGraphicsView):
+    # def mousePressEvent(self, QGraphicsSceneMouseEvent):
+    #     print('Press')
+    # def mouseMoveEvent(self, QGraphicsSceneMouseEvent):
+    #     print('Move')
+    # def mouseReleaseEvent(self, QGraphicsSceneMouseEvent):
+    #     print('Release')
+    def mouseDoubleClickEvent(self, QMouseEvent):
+        print('DClickGraphics')
+    pass
 
 class Node(QGraphicsItem):
 
@@ -61,11 +78,17 @@ class Node(QGraphicsItem):
         self.__x_size, xy_size = nw_size
         self.__x, self.__y = self.translateXY(position)
 
-    # def updateSize(self, size):
-    #     self.__m = size / 10
+        # self.boundingRect()
+
+    def mouseDoubleClickEvent(self, QMouseEvent):
+        print('DClickNode')
+    def mousePressEvent(self, QGraphicsSceneMouseEvent):
+        print('MM')
+
+
 
     def boundingRect(self):
-        r = QRectF(5 * self.__m, 5 * self.__m, 5 * self.__m, 5 * self.__m)
+        r = QRectF(0, 0, 5 * self.__m, 5 * self.__m)
         # r.adjust(self, 1,1,1,1)
         return r
 
@@ -194,18 +217,22 @@ class Node(QGraphicsItem):
         qp.setPen(QColor("darkgrey"))
         qp.setBrush(QColor("white"))
 
+        rect = MyRect(x + c, self.__y + c, 4 * c, 4 * c)
+        rect.setActive(True)
+        rect.acceptHoverEvents()
+
         if (self.__core_rx == 1):
             qp.setBrush( self.__core_rx_brush)
+            rect.setBrush(self.__core_rx_brush)
         if (self.__core_tx == 1):
             qp.setBrush( self.__core_tx_brush)
+            rect.setBrush(self.__core_tx_brush)
 
-        qp.drawRect(x + c, self.__y + c, 4 * c, 4 * c) #draw the node
+        qp.drawRect(x + c, self.__y + c, 4 * c, 4 * c)
+        # qp.drawRect(rect.rect()) #draw the node
 
 
         qp.setBrush(QColor("white"))
-
-
-
         qp.setBrush( self.__led_off_brush)
         # qp.setPen(QColor("white"))
         if (self.__led == 1):
@@ -230,6 +257,7 @@ class NOCAnim(QWidget):
         self.initUI()
         # self.initDataFirstRun()
         self.initData()
+
 
 
     def initUI(self):
@@ -274,16 +302,19 @@ class NOCAnim(QWidget):
         self.refresh_slider.valueChanged.connect(self.doChangeRefreshRate)
 
 
+        self.scene = QGraphicsScene()
+
+        # self.graphics = MyQGraphicsView()
         self.graphics = QGraphicsView()
+        self.graphics.setScene(self.scene)
+        # self.graphics.setInteractive(True)
         # self.graphics.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         # self.graphics.verticalScrollBar().setSingleStep(1)
         # self.graphics.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         # self.graphics.horizontalScrollBar().setSingleStep(1)
-        self.graphics.setViewport(QGLWidget())
-        self.graphics.resize(100,100)
-
-        self.scene = QGraphicsScene()
-        self.graphics.setScene(self.scene)
+        # self.graphics.setViewport(QGLWidget())
+        # self.graphics.resize(100,100)
+        # self.graphics.setMouseTracking(True)
 
 
         hbox_l1 = QHBoxLayout()
@@ -378,6 +409,7 @@ class NOCAnim(QWidget):
         # self.network = [[Node] * self.networkSize[0] for i in range(self.networkSize[1])]
 
         self.scene.clear()
+        # self.graphics
 
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
