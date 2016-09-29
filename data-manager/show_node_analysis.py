@@ -228,6 +228,8 @@ def main ():
 
         ################# Now the same trace_packets but from the model ###################
 
+
+
         sw_in = incomming_flows_ub[node_y][node_x] # + [nodes_flows_ub[node_y][node_x]]
         sw_out = [outgoing_flow_lb[node_y][node_x]]
 
@@ -269,13 +271,12 @@ def main ():
                     simul_r_x, simul_r_y,
                     simul_t_x, simul_t_y,
 
-                    model_in_x, model_in_y,
-                    model_out_x, model_out_y,
+                    # model_in_x, model_in_y,
+                    # model_out_x, model_out_y,
 
                 # simul_traced_x[(packet_n - 1) * 2:packet_n * 2], simul_traced_y[(packet_n - 1) * 2:packet_n * 2],
-                    simul_traced_x, simul_traced_y,
-
-                    model_traced_x, model_traced_y,
+                #     simul_traced_x, simul_traced_y,
+                #     model_traced_x, model_traced_y,
                     ]
 
             fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_in) + '.pdf'
@@ -451,21 +452,23 @@ def main ():
     nodes_flows_ub = [[f_ub for _ in range(max_x)] for _ in range(max_y)]
     # nodes_flows_lb[3][4] = [0.0625, 0, 10]
 
-    x = 4
-    y = 3
-    n_in = 2 #which packet of the message to trace and calculate eted to
+    x = int(options.pos_x)
+    y = int(options.pos_y)
+    # n_in = 2 #which packet of the message to trace and calculate eted to
 
     incomming_flows_lb, outgoing_flow_lb, traced_flow_lb = model_flows_io(nodes_flows_lb, x, y)
     incomming_flows_ub, outgoing_flow_ub, traced_flow_ub = model_flows_io(nodes_flows_ub, x, y)
 
     #Checking the values now
-    show_simul_flows(plot=True)
+    # show_simul_flows(plot=True)
+
+    show_node(x,y)
 
 
-    for yi in range(y, 0, -1):
-        n_in = show_node(x, yi, packet_n=n_in)
-    for xi in range(x, 0, -1):
-        n_in = show_node(xi, 0, packet_n=n_in)
+    # for yi in range(y, 0, -1):
+    #     n_in = show_node(x, yi, packet_n=n_in)
+    # for xi in range(x, 0, -1):
+    #     n_in = show_node(xi, 0, packet_n=n_in)
 
     # n_in = show_node(x-1, y, packet_n=n_in)
     # n_in = show_node(x-2, y, packet_n=n_in)
@@ -482,9 +485,11 @@ if __name__ == '__main__':
         # parser.add_option ('-c', '--inputconfigfile', help='config file containing the simulation parameters')
         parser.add_option ('-o', '--outputdir', help='', default=None)
 
-        parser.add_option ('-t', '--timeslotsize', help='time between two refreshes of the animator')
-        parser.add_option ('-x', '--size_x', help='network size', default=1)
-        parser.add_option ('-y', '--size_y', help='network size', default=0)
+        # parser.add_option ('-t', '--timeslotsize', help='time between two refreshes of the animator')
+        parser.add_option ('-x', '--size_x', help='network size')
+        parser.add_option ('-y', '--size_y', help='network size')
+        parser.add_option ('--pos_x', help='node to analyse', default=0)
+        parser.add_option ('--pos_y', help='node to analyse', default=0)
         parser.add_option ('-s', '--sinks_n', help='number of sinks', default=1)
         parser.add_option ('-b', '--baudrate', help='baudrate utilized', default=3000000)
         parser.add_option ('-p', '--packet_size', help='packet_size in bits', default=16*10)
