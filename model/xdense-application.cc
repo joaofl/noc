@@ -230,7 +230,7 @@ namespace ns3 {
         Time tbase = PacketDuration * (ClusterSize_x * ClusterSize_x - 1);
         Time t;
         
-        for (int i = 1; i < 6; i++) {
+        for (int i = 1; i <= 1; i++) {
             t = (i + 0) * tbase;
             Simulator::Schedule(t, &XDenseApp::DataSharingRequest, this); // schedule the request
             t = (i + 1) * tbase + PacketDuration;
@@ -252,8 +252,13 @@ namespace ns3 {
         pck->AddHeader(hd);
 
         Time t_ns = Time::FromInteger(0,Time::NS);
-
-        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicastOffset, this->m_router, pck, NETWORK_ID_0, x_dest, y_dest);
+        
+        for (uint8_t j = 0 ; j < 10 ; j++)
+        {
+            t_ns = j * PacketDuration;
+            Simulator::Schedule(t_ns, &NOCRouter::PacketUnicastOffset, this->m_router, pck, NETWORK_ID_0, x_dest, y_dest);
+        
+        }
     }
 
     
@@ -274,9 +279,10 @@ namespace ns3 {
         Time t_ns;
         int32_t time_slot = 0;
         
-        for (uint8_t j = 0 ; j < 1 ; j++)
+        for (uint8_t j = 0 ; j < 5 ; j++)
         {
             time_slot = NOCRouting::CalculateTimeSlot(origin_x, origin_y, ClusterSize_x, ClusterSize_y);
+            
             
             if (time_slot >= 0){
                 t_ns = time_slot * PacketDuration;
@@ -284,6 +290,8 @@ namespace ns3 {
             else{
                 t_ns = Time::FromInteger(0, Time::US);
             }
+            
+            t_ns = j * PacketDuration;
             Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x * -1, origin_y * -1);
         }
     }
