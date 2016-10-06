@@ -152,7 +152,7 @@ main(int argc, char *argv[]) {
     
     uint32_t size_x = 35;
     uint32_t size_y = 15;
-    uint32_t size_neighborhood = 7; //odd only, so neighborhoods do not overlap eachother
+    uint32_t size_neighborhood = 7; //odd only, such that cluster heads are centered
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -321,69 +321,12 @@ main(int argc, char *argv[]) {
     
     //////////////////// From here, initialize the application at the nodes ///////////////// 
     
-//    
-//    uint32_t s1x, s1y; //Sync 1 location
-//    s1x = 0; s1y = 0;
-    
-    bool use_traffic_shapper = true;
-//    double_t b      = 0.05;
-    double_t b      = 1 / (size_x * size_y);
-//    double_t bmax   = 0.064;
-//    double_t bmin   = 0.061;
-    
-//    double_t rd     = 1; 
-//    double_t rd_max = 2.0; 
-//    double_t rd_min = 1.0; 
-    
-    uint32_t ms     = 5;
-    
     uint32_t center_x = (size_x - 1) / 2;
     uint32_t center_y = (size_y - 1) / 2;
     
-    Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
-      
-    for (uint32_t x = 0; x < size_x; x++) {
-        for (uint32_t y = 0; y < size_y; y++) {
-            uint32_t n = GetN(size_x, size_y, x, y);
-
-            
-            // The following calculation applies only if all the flows have the
-            //same characteristics
-            uint32_t shaper_rd = (size_y - y - 1);
-            uint32_t total_ms = (size_y - y) * ms;
-            double_t max_ms_over_b = (total_ms) / (b * (size_y - y));
-
-            if (y == 0 && x > 0){
-                shaper_rd = shaper_rd + (size_x - x - 1);
-                total_ms = total_ms + ((total_ms) * (size_x - x - 1));
-                max_ms_over_b = (total_ms) / (b * (size_y - y) * (size_x - x));
-            }
-            double_t shaper_b = total_ms / max_ms_over_b;
-            if (shaper_b > 1) shaper_b = 1;
-
-             if (use_traffic_shapper == false){
-                 shaper_b = 1;
-                 shaper_rd = 0;
-             }
-            ////////////////////////////////////////////////////////////////////
-            
-            
-            //Simulate the assyncronism by applying random burstiness and rd to nodes
-//            b = r->GetValue(bmin, bmax);
-//            rd = r->GetValue(rd_min, rd_max);
-//            shaper_b *= r->GetValue(0.99, 1.01);
-
-//              All to one
-            if (x != center_x || y != center_y){ //if not the sink
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(shaper_b, shaper_rd);                                          
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->RunApplicationWCA(false, false);                                          
-            } 
-            else{ 
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(shaper_b, shaper_rd);  
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->RunApplicationWCA(false, true);
-            }   
-        }
-    }
+    uint32_t n = GetN(size_x, size_y, center_x, center_y);
+                                       
+    my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->RunApplicationWCA(false, true);                                          
 
 
     //**************** Simulation Setup **************************

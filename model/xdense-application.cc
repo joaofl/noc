@@ -22,6 +22,7 @@
 #include "xdense-header.h"
 #include "src/core/model/simulator.h"
 #include "src/network/model/packet.h"
+#include "noc-routing.h"
 
 
 
@@ -81,9 +82,9 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetBurstiness(double_t b, uint8_t rd) {
+    XDenseApp::SetShaper(double_t b, uint8_t rd) {
                 
-        m_router->SetBurstiness(b, rd);
+        m_router->SetShaper(b, rd);
     }
     
     void 
@@ -99,14 +100,14 @@ namespace ns3 {
         }
         
         Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
-        Time t_jitter = Time::FromInteger(PacketDuration.GetNanoSeconds() * release_delay, Time::NS);
+        Time t_offset = Time::FromInteger(PacketDuration.GetNanoSeconds() * release_delay, Time::NS);
         
-        Time t_ns = t_jitter;
+        Time t_ns = t_offset;
         
         for (uint16_t i = 0 ; i < msg_size ; i++ ){
             Ptr<Packet> pck = Create<Packet>();
             pck->AddHeader(hd);
-            Simulator::Schedule(t_ns + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
+            Simulator::Schedule(t_ns + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_RELATIVE_ADDRESS);
 //            t_ns += t_step;
         }
     }
@@ -233,7 +234,7 @@ namespace ns3 {
         for (int i = 1; i <= 1; i++) {
             t = (i + 0) * tbase;
             Simulator::Schedule(t, &XDenseApp::DataSharingRequest, this); // schedule the request
-            t = (i + 1) * tbase + PacketDuration;
+            t = (i + 1) * tbase + PacketDuration; //set the waiting time
             Simulator::Schedule(t, &XDenseApp::ClusterDataResponse, this, origin_x*-1, origin_y*-1); // and response
         }
         
@@ -268,6 +269,7 @@ namespace ns3 {
         
         XDenseHeader hd;
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT_REQUEST);
+        hd.SetData(ClusterSize_x);
         pck->AddHeader(hd);
         
         m_router->PacketMulticastArea(pck, NETWORK_ID_0, ClusterSize_x/2, ClusterSize_y/2);
@@ -275,25 +277,97 @@ namespace ns3 {
     
     void
     XDenseApp::DataSharingRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
-      
-        Time t_ns;
-        int32_t time_slot = 0;
         
-        for (uint8_t j = 0 ; j < 5 ; j++)
-        {
-            time_slot = NOCRouting::CalculateTimeSlot(origin_x, origin_y, ClusterSize_x, ClusterSize_y);
-            
-            
-            if (time_slot >= 0){
-                t_ns = time_slot * PacketDuration;
-            }
-            else{
-                t_ns = Time::FromInteger(0, Time::US);
-            }
-            
-            t_ns = j * PacketDuration;
-            Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x * -1, origin_y * -1);
+        XDenseHeader hd;
+        pck->PeekHeader(hd);
+        
+        uint8_t size_x = hd.GetData();
+        uint8_t size_y = hd.GetData();
+        
+        int32_t dest_x = origin_x * -1;
+        int32_t dest_y = origin_y * -1;
+        
+        int8_t last_long;
+        int8_t last_alt;
+        int8_t delta_long;
+        int8_t delta_alt;
+        int8_t pos_long;
+        int8_t pos_alt;        
+       
+        char quad = NOCRouting::FindQuadrant(origin_x, origin_y);
+         
+        last_long = size_x / 2;
+        last_alt = size_y / 2;
+        
+        switch (quad){
+            case NOCRouting::QUADRANT_PXPY:
+                pos_long = origin_x;
+                pos_alt = origin_y;
+                break;
+            case NOCRouting::QUADRANT_NXPY:
+                pos_long = origin_y;
+                pos_alt = origin_x * -1;
+                break;
+            case NOCRouting::QUADRANT_NXNY:
+                pos_long = origin_x * -1;
+                pos_alt = origin_y * -1;
+                break;
+            case NOCRouting::QUADRANT_PXNY:
+                pos_long = origin_y * -1;
+                pos_alt = origin_x;
+                break;
+                        
         }
+        
+        delta_long = last_long - pos_long;
+        delta_alt = last_alt - pos_alt;
+        
+        uint8_t dist = NOCRouting::Distance(pos_long, pos_alt, last_long, last_alt);
+        
+        double_t b      = double(1) / double(abs(last_long) * (abs(last_alt) + 1));
+        uint32_t ms     = 1;
+        uint8_t rd      = dist + 1; // has to be related to its distance
+        rd = 0;
+        
+        
+        uint32_t shaper_rd = delta_long + 1;
+        uint32_t total_ms = (delta_long + 1) * ms;
+        double_t max_ms_over_b = (total_ms) / (b * (delta_long));
+
+        if (pos_long == 0 && pos_alt > 0){
+            shaper_rd = shaper_rd + (delta_alt - 1);
+            total_ms = total_ms + ((total_ms) * (delta_alt));
+            max_ms_over_b = (total_ms) / (b * (delta_alt) * (delta_long));
+        }
+        
+        double_t shaper_b = total_ms / max_ms_over_b;
+        if (shaper_b > 1) shaper_b = 1;
+
+//         if (true){
+//             shaper_b = 1;
+//             shaper_rd = 0;
+//             
+//         }
+        //////////////////////////////////////////////////////////////////
+        
+        this->SetShaper(shaper_b, shaper_rd);
+        this->SetFlowGenerator(b, rd, ms, dest_x, dest_y, false);
+      
+//        Time t_ns;
+//        int32_t time_slot = 0;
+//        
+//        for (uint8_t j = 0 ; j < 5 ; j++)
+//        {
+//            time_slot = NOCRouting::CalculateTimeSlot(origin_x, origin_y, ClusterSize_x, ClusterSize_y);
+//            if (time_slot >= 0){
+//                t_ns = time_slot * PacketDuration;
+//            }
+//            else{
+//                t_ns = Time::FromInteger(0, Time::US);
+//            }
+//            t_ns = j * PacketDuration;
+//            Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x * -1, origin_y * -1);
+//        }
     }
     
     void

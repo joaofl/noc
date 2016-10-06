@@ -199,9 +199,8 @@ namespace ns3 {
         NS_LOG_FUNCTION(this);
 //        queue_size_prioritized = 0;
 //        queue_size = 0;
+        m_initial_offset = false;
         m_burstiness = 1;
-        m_first_run = true;
-        m_second_run = false;
         m_release_delay = 0;
     }
 
@@ -270,17 +269,17 @@ namespace ns3 {
         Time delay = PicoSeconds(txTime.GetPicoSeconds() / m_burstiness);
         Time txCompleteTime;
         
-        if (m_first_run){
-            m_first_run = false;
-            m_second_run = true;            
+        if (m_initial_offset && m_txMachineState == READY){
+//            m_second_run = true;
             m_txMachineState = BUSY;
             
            txCompleteTime = (m_release_delay * txTime);        
            Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitStart, this, p);
            return 0;
         }
-        else if (m_second_run == true){
-            m_second_run = false;
+        else if (m_initial_offset && m_txMachineState == BUSY){
+//            m_second_run = false;
+            m_initial_offset = false;
             m_txMachineState = READY;
         }
 
@@ -503,9 +502,11 @@ void
     }
 
     void 
-    NOCNetDevice::SetBurstiness(double_t b, uint8_t rd) {
+    NOCNetDevice::SetShaper(double_t b, uint8_t rd) {
         m_burstiness = b;
         m_release_delay = rd;
+        m_initial_offset = true;
+//        m_second_run = false;
     }
     
     Address

@@ -527,6 +527,21 @@ namespace ns3 {
         
         return t_wait;
     }
+
+    uint8_t
+    NOCRouting::Distance(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest) {
+        uint8_t dx, dy;
+        if (x_source > x_dest)
+            dx = x_source - x_dest;
+        else
+            dx = x_dest - x_source;
+        if (y_source > y_dest)
+            dy = y_source - y_dest;
+        else
+            dy = y_dest - y_source;
+        
+        return abs(dx) + abs(dy);
+    }
     
     char 
     NOCRouting::FindQuadrant(int32_t x_dest, int32_t y_dest) {
@@ -542,19 +557,19 @@ namespace ns3 {
 
         //A: [+x +y[
         if (x_dest >= 0 && y_dest > 0){
-            return 'a';
+            return QUADRANT_PXPY;
         }
         //B: ]-x +y]
         else if (x_dest < 0 && y_dest >= 0){
-            return 'b';
+            return QUADRANT_NXPY;
         }
         //C: [-x -y[
         else if (x_dest <= 0 && y_dest < 0){
-            return 'c';
+            return QUADRANT_NXNY;
         }
         //D: ]+x -y]
         else if (x_dest > 0 && y_dest <= 0){
-            return 'd';
+            return QUADRANT_PXNY;
         }
         else if (x_dest == 0 && y_dest == 0){
             return 'l';
