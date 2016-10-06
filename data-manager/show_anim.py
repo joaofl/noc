@@ -326,7 +326,7 @@ class NOCAnim(QWidget):
         vbox.addWidget(self.graphics)
 
         self.setLayout(vbox)
-        self.setGeometry(800, 100, 900, 900)
+        self.setGeometry(200, 100, 1200, 900)
 
                 # self.setGeometry(800, 100, self.networkSize[0] * 150 * self.s + 5, self.networkSize[1] * 150 * self.s + 50)
         self.setWindowTitle('NoC Anim')
@@ -360,15 +360,14 @@ class NOCAnim(QWidget):
         g = self.graphics.geometry().getRect()[2:4]
         sx = g[1] / self.networkSize[0]
         sy = g[0] / self.networkSize[1]
-        if sx < sy: self.nodes_size = round(sx*0.98, 0)
-        else:       self.nodes_size = round(sy*0.98, 0)
+        if sx < sy: self.nodes_size = round(sx*1.4, 0)
+        else:       self.nodes_size = round(sy*1.4, 0)
 
         if self.zoom_slider.value() == 0:
             self.zoom_slider.setValue(self.nodes_size)
 
 
         #initialize data
-
 
         self.scene.clear()
 
@@ -401,7 +400,7 @@ class NOCAnim(QWidget):
                 self.network[y][x] = n
                 self.scene.addItem(n)
 
-        self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]-1) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size * -1))
+        self.scene.setSceneRect(QRectF(0, 0, (self.networkSize[0]) * self.nodes_size, (self.networkSize[1] - 1) * self.nodes_size * -1))
 
         self.update()
 
