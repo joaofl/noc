@@ -82,33 +82,31 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetShaper(double_t b, uint8_t rd) {
+    XDenseApp::SetShaper(double_t b, uint8_t rd, uint8_t port) {
                 
-        m_router->SetShaper(b, rd);
+        m_router->SetShaper(b, rd, port);
     }
     
     void 
-    XDenseApp::SetFlowGenerator(double_t burstiness, double_t release_delay, uint32_t msg_size, uint32_t dest_x, uint32_t dest_y, bool trace) {
+    XDenseApp::SetFlowGenerator(double_t burstiness, double_t release_delay, uint32_t msg_size, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y) {
         if (burstiness == 0 || IsActive == false)
             return;        
 
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
-        if (trace){
-            hd.SetXdenseProtocol(XDenseHeader::TRACE);
-            hd.SetData(0 + release_delay);
-        }
+//        pck->PeekHeader(hd);
+//        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+//        if (trace){
+//            hd.SetXdenseProtocol(XDenseHeader::TRACE);
+//            hd.SetData(0 + release_delay);
+//        }
         
         Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
         Time t_offset = Time::FromInteger(PacketDuration.GetNanoSeconds() * release_delay, Time::NS);
         
-        Time t_ns = t_offset;
-        
         for (uint16_t i = 0 ; i < msg_size ; i++ ){
-            Ptr<Packet> pck = Create<Packet>();
-            pck->AddHeader(hd);
-            Simulator::Schedule(t_ns + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, dest_x, dest_y, USE_RELATIVE_ADDRESS);
-//            t_ns += t_step;
+            Ptr<Packet> pck_c = pck->Copy();
+            
+            Simulator::Schedule(t_offset + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, USE_RELATIVE_ADDRESS);
         }
     }
 
@@ -343,15 +341,24 @@ namespace ns3 {
         double_t shaper_b = total_ms / max_ms_over_b;
         if (shaper_b > 1) shaper_b = 1;
 
-//         if (true){
-//             shaper_b = 1;
-//             shaper_rd = 0;
-//             
-//         }
-        //////////////////////////////////////////////////////////////////
         
-        this->SetShaper(shaper_b, shaper_rd);
-        this->SetFlowGenerator(b, rd, ms, dest_x, dest_y, false);
+        shaper_b = 1;
+        shaper_rd = 0;
+        
+        XDenseHeader hd_out;
+        hd_out.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+        
+        Ptr<Packet> pck_out = Create<Packet>();
+        pck_out->AddHeader(hd_out);
+ 
+
+        if (origin_x == 0 && origin_y == 1){
+            shaper_rd = 10;
+            uint8_t dir = NOCRouting::UnicastClockwiseXY(dest_x, dest_y);
+            this->SetShaper(shaper_b, shaper_rd, dir);
+        }
+        
+        this->SetFlowGenerator(b, rd, ms, pck_out, dest_x, dest_y);
       
 //        Time t_ns;
 //        int32_t time_slot = 0;

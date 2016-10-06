@@ -40,6 +40,7 @@
 #include "ns3/calc.h"
 #include "ns3/data-io.h"
 #include "ns3/noc-net-device.h"
+#include "noc-routing.h"
 
 
 #define USE_ABSOLUTE_ADDRESS true
@@ -73,9 +74,9 @@ namespace ns3 {
         
         void Tests(void);
 
-        void SetShaper(double_t b, uint8_t rd);
+        void SetShaper(double_t b, uint8_t rd, uint8_t port);
             
-        void SetFlowGenerator(double_t, double_t, uint32_t, uint32_t dest_x, uint32_t dest_y, bool trace);
+        void SetFlowGenerator(double_t, double_t, uint32_t, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y);
 
         void RunApplicationWCA(bool trace, bool is_sink);
         
