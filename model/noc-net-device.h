@@ -192,7 +192,7 @@ namespace ns3 {
          * @param p Ptr to the packet to be transmitted.
          * @param pri Priority on transmitting the packet (default 0, 1 for prioritized transmissions)
          */
-        bool Send(Ptr<Packet> packet, uint8_t priority);
+//        bool Send(Ptr<Packet> packet, uint8_t priority);
         
 //        bool SendSignal(Ptr<Packet> packet);
 
@@ -261,8 +261,6 @@ namespace ns3 {
         virtual void SetNode(Ptr<Node> node);
 
         virtual bool NeedsArp(void) const;
-
-        
 
         virtual Address GetMulticast(Ipv6Address addr) const;
 
@@ -538,7 +536,7 @@ namespace ns3 {
         double_t m_burstiness;
         uint8_t m_release_delay;
         
-        bool m_initial_offset;
+        bool m_offset;
 //        bool m_second_run;
         
         uint32_t m_ifIndex;

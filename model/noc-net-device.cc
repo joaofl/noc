@@ -196,12 +196,10 @@ namespace ns3 {
     m_wait(false),
     m_remoteWait(false),
     m_currentPkt(0) {
-        NS_LOG_FUNCTION(this);
-//        queue_size_prioritized = 0;
-//        queue_size = 0;
-        m_initial_offset = false;
-        m_burstiness = 1;
-        m_release_delay = 0;
+    m_offset = false;
+    m_burstiness = 1;
+    m_release_delay = 0;
+    NS_LOG_FUNCTION(this);
     }
 
     NOCNetDevice::~NOCNetDevice() {
@@ -235,110 +233,6 @@ namespace ns3 {
 //        return t;
 //    }
 
-    
-    bool
-    NOCNetDevice::TransmitStart(Ptr<Packet> p) {
-        NS_LOG_FUNCTION(this << p);
-        NS_LOG_LOGIC("UID is " << p->GetUid() << ")");
-
-        //
-        // This function is called to start the process of transmitting a packet.
-        // We need to tell the channel that we've started wiggling the wire and
-        // schedule an event that will be executed when the transmission is complete.
-        //
-
-
-        //the time required to send a single bit
-        Time oneBitTransmissionTime;
-        Time txTime;
-        
-        if (m_serialComm == true){
-            uint16_t s = p->GetSize();
-            txTime =  m_bps.CalculateBitsTxTime(s * 10);
-            //since it simulates a UART port, it has to account for 2 extra bits
-            //per byte: Start and Stop bits.
-        }
-        else{
-            oneBitTransmissionTime = Seconds(m_bps.CalculateBitsTxTime(1));
-//            in parallel, one packet takes one cycle to be transmitted, considering
-//            that port and packet has both the same width.
-            txTime = PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() + 
-                    oneBitTransmissionTime.GetPicoSeconds() * m_clockSkew); 
-        }
-        
-        Time delay = PicoSeconds(txTime.GetPicoSeconds() / m_burstiness);
-        Time txCompleteTime;
-        
-        if (m_initial_offset && m_txMachineState == READY){
-//            m_second_run = true;
-            m_txMachineState = BUSY;
-            
-           txCompleteTime = (m_release_delay * txTime);        
-           Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitStart, this, p);
-           return 0;
-        }
-        else if (m_initial_offset && m_txMachineState == BUSY){
-//            m_second_run = false;
-            m_initial_offset = false;
-            m_txMachineState = READY;
-        }
-
-        txCompleteTime = delay;
-        
-        //Efectively transmit the data
-        
-        NS_ASSERT_MSG(m_txMachineState == READY, "Must be READY to transmit");
-        m_txMachineState = BUSY;
-
-        m_currentPkt = p;
-        m_phyTxBeginTrace(m_currentPkt);        
-        
-        NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
-        Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitComplete, this);
-
-        bool result = m_channel->TransmitStart(p, this, txTime);
-        if (result == false) {
-            m_phyTxDropTrace(p);
-        }
-        return result;
-    }
-    
-void
-    NOCNetDevice::TransmitComplete(void) {
-        NS_LOG_FUNCTION_NOARGS();
-
-        //
-        // This function is called to when we're all done transmitting a packet.
-        // We try and pull another packet off of the transmit queue.  If the queue
-        // is empty, we are done, otherwise we need to start transmitting the
-        // next packet.
-        //
-        NS_ASSERT_MSG(m_txMachineState == BUSY, "Must be BUSY if transmitting");
-        m_txMachineState = READY;
-
-        NS_ASSERT_MSG(m_currentPkt != 0, "NOCNetDevice::TransmitComplete(): m_currentPkt zero");
-
-        m_phyTxEndTrace(m_currentPkt);
-        m_currentPkt = 0;
-        
-        Ptr<QueueItem> item;
-        Ptr<Packet> p0;
-        if (m_queue_output->IsEmpty() == false){
-            item = m_queue_output->Dequeue();
-            p0 = item->GetPacket ();
-            //
-            // There was no packets on the high p, but on the lp queue, send them...
-            //
-
-            m_macTxQueueTrace(m_queue_output->GetNPackets());
-            m_snifferTrace(p0);
-            m_promiscSnifferTrace(p0);
-            m_macTxTrace(p0);
-            TransmitStart(p0);
-            return;
-        }
-        
-    }
     
     bool
     NOCNetDevice::Attach(Ptr<NOCChannel> ch) {
@@ -505,8 +399,7 @@ void
     NOCNetDevice::SetShaper(double_t b, uint8_t rd) {
         m_burstiness = b;
         m_release_delay = rd;
-        m_initial_offset = true;
-//        m_second_run = false;
+        m_offset = true;
     }
     
     Address
@@ -567,21 +460,13 @@ void
     }
 
     bool
-    NOCNetDevice::Send(
-            Ptr<Packet> packet,
-            const Address &dest,
-            uint16_t protocolNumber) {
+    NOCNetDevice::Send(Ptr<Packet> packet, const Address &dest, uint16_t protocolNumber) {
         return false;
     }
 
+
     int8_t
     NOCNetDevice::Send(Ptr<Packet> packet) {
-        //if no priority have been specified, send it with the lowest one;
-        return Send(packet, 0);
-    }
-
-    bool
-    NOCNetDevice::Send(Ptr<Packet> packet, uint8_t priority) {
         NS_LOG_FUNCTION_NOARGS();
         NS_LOG_LOGIC("UID is " << packet->GetUid());
 
@@ -593,6 +478,8 @@ void
             m_macTxDropTrace(packet);
             return false;
         }
+        
+        
         //
         // If there's a transmission in progress, we enque the packet for later
         // transmission; otherwise we send it now.
@@ -606,8 +493,7 @@ void
             // dequeue the packet to hit the tracing hooks.
             //
             if (m_queue_output->Enqueue(Create<QueueItem> (packet) ) == true) {
-//                uint32_t queue_size = m_queue->GetNPackets();
-                
+//              
                 Ptr<QueueItem> item = m_queue_output->Dequeue();
                 packet = item->GetPacket ();
                 
@@ -634,6 +520,104 @@ void
             }
             return r;
         }
+    }
+    
+bool
+    NOCNetDevice::TransmitStart(Ptr<Packet> p) {
+        NS_LOG_FUNCTION(this << p);
+        NS_LOG_LOGIC("UID is " << p->GetUid() << ")");
+
+        //
+        // This function is called to start the process of transmitting a packet.
+        // We need to tell the channel that we've started wiggling the wire and
+        // schedule an event that will be executed when the transmission is complete.
+        //
+        Time tPacket;
+        Time txCompleteTime;
+        
+        // First compute packet duration (if transmitted in series or parallell
+        
+        if (m_serialComm == true){
+            tPacket =  m_bps.CalculateBitsTxTime(p->GetSize() * 10);
+            //since it simulates a UART port, it has to account for 2 extra bits
+            //per byte: Start and Stop bits.
+        }
+        else{
+            //the time required to send a single bit
+            Time oneBitTransmissionTime = Seconds(m_bps.CalculateBitsTxTime(1));
+            //in parallel, one packet takes one cycle to be transmitted, considering
+            //that port and packet has both the same width.
+            tPacket = PicoSeconds(oneBitTransmissionTime.GetPicoSeconds() + 
+                    oneBitTransmissionTime.GetPicoSeconds() * m_clockSkew); 
+        }
+        
+        
+        //Check if the shaper is supposed to offset the transmission
+        if (m_offset == true && m_txMachineState == READY){
+            m_txMachineState = BUSY;     
+            Simulator::Schedule( ((m_release_delay + 1) * tPacket), &NOCNetDevice::TransmitStart, this, p);
+            return true;
+        }
+        else if (m_offset == true && m_txMachineState == BUSY){
+            m_offset = false;
+            m_txMachineState = READY;
+        } 
+
+        txCompleteTime = PicoSeconds(tPacket.GetPicoSeconds() / m_burstiness);
+        
+        //Efectively transmit the data
+        
+        NS_ASSERT_MSG(m_txMachineState == READY, "Must be READY to transmit");
+        m_txMachineState = BUSY;
+
+        m_currentPkt = p;
+        m_phyTxBeginTrace(m_currentPkt);        
+        
+        NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
+        Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitComplete, this);
+
+        bool result = m_channel->TransmitStart(p, this, tPacket);
+        if (result == false) {
+            m_phyTxDropTrace(p);
+        }
+        return result;
+    }
+    
+void
+    NOCNetDevice::TransmitComplete(void) {
+        NS_LOG_FUNCTION_NOARGS();
+
+        //
+        // This function is called to when we're all done transmitting a packet.
+        // We try and pull another packet off of the transmit queue.  If the queue
+        // is empty, we are done, otherwise we need to start transmitting the
+        // next packet.
+        //
+        NS_ASSERT_MSG(m_txMachineState == BUSY, "Must be BUSY if transmitting");
+        m_txMachineState = READY;
+
+        NS_ASSERT_MSG(m_currentPkt != 0, "NOCNetDevice::TransmitComplete(): m_currentPkt zero");
+
+        m_phyTxEndTrace(m_currentPkt);
+        m_currentPkt = 0;
+        
+        Ptr<QueueItem> item;
+        Ptr<Packet> p0;
+        if (m_queue_output->IsEmpty() == false){
+            item = m_queue_output->Dequeue();
+            p0 = item->GetPacket ();
+            //
+            // There was no packets on the high p, but on the lp queue, send them...
+            //
+
+            m_macTxQueueTrace(m_queue_output->GetNPackets());
+            m_snifferTrace(p0);
+            m_promiscSnifferTrace(p0);
+            m_macTxTrace(p0);
+            TransmitStart(p0);
+            return;
+        }
+        
     }
 
     bool
