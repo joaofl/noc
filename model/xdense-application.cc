@@ -291,6 +291,8 @@ namespace ns3 {
         int8_t delta_alt;
         int8_t pos_long;
         int8_t pos_alt;        
+        
+        //Do the axe translation to get all quadrants computed as the same
        
         char quad = NOCRouting::FindQuadrant(origin_x, origin_y);
          
@@ -316,10 +318,11 @@ namespace ns3 {
                 break;
                         
         }
-        
         delta_long = last_long - pos_long;
         delta_alt = last_alt - pos_alt;
         
+        
+        //Define the flow characteristics
         uint8_t dist = NOCRouting::Distance(pos_long, pos_alt, last_long, last_alt);
         
         double_t b      = double(1) / double(abs(last_long) * (abs(last_alt) + 1));
@@ -327,7 +330,7 @@ namespace ns3 {
         uint8_t rd      = dist + 1; // has to be related to its distance
         rd = 0;
         
-        
+        // Calculate the traffic shaping parameters
         uint32_t shaper_rd = delta_long + 1;
         uint32_t total_ms = (delta_long + 1) * ms;
         double_t max_ms_over_b = (total_ms) / (b * (delta_long));
@@ -341,40 +344,21 @@ namespace ns3 {
         double_t shaper_b = total_ms / max_ms_over_b;
         if (shaper_b > 1) shaper_b = 1;
 
-        
-        shaper_b = 1;
-        shaper_rd = 0;
-        
-        XDenseHeader hd_out;
-        hd_out.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
-        
-        Ptr<Packet> pck_out = Create<Packet>();
-        pck_out->AddHeader(hd_out);
- 
-
-        if (origin_x == 0 && origin_y == 1){
-            shaper_rd = 10;
+//        if (pos_long == 0 && pos_alt == 1){
+//            shaper_rd = 0;
+//            shaper_b = 0.5;
+            
             uint8_t dir = NOCRouting::UnicastClockwiseXY(dest_x, dest_y);
             this->SetShaper(shaper_b, shaper_rd, dir);
-        }
+//        }
+        
+        // Construct the packet to be transmitted
+        XDenseHeader hd_out;
+        hd_out.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+        Ptr<Packet> pck_out = Create<Packet>();
+        pck_out->AddHeader(hd_out);
         
         this->SetFlowGenerator(b, rd, ms, pck_out, dest_x, dest_y);
-      
-//        Time t_ns;
-//        int32_t time_slot = 0;
-//        
-//        for (uint8_t j = 0 ; j < 5 ; j++)
-//        {
-//            time_slot = NOCRouting::CalculateTimeSlot(origin_x, origin_y, ClusterSize_x, ClusterSize_y);
-//            if (time_slot >= 0){
-//                t_ns = time_slot * PacketDuration;
-//            }
-//            else{
-//                t_ns = Time::FromInteger(0, Time::US);
-//            }
-//            t_ns = j * PacketDuration;
-//            Simulator::Schedule(t_ns, &XDenseApp::DataAnnouncement, this, origin_x * -1, origin_y * -1);
-//        }
     }
     
     void
@@ -386,7 +370,6 @@ namespace ns3 {
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
         pck->AddHeader(hd);
 
-        //            m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, USE_ABSOLUTE_ADDRESS); 
         m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, USE_RELATIVE_ADDRESS); 
     }
     
