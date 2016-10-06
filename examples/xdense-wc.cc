@@ -322,15 +322,15 @@ main(int argc, char *argv[]) {
     //////////////////// From here, initialize the application at the nodes ///////////////// 
     
 //    
-    uint32_t s1x, s1y; //Sync 1 location
-    s1x = 0; s1y = 0;
+//    uint32_t s1x, s1y; //Sync 1 location
+//    s1x = 0; s1y = 0;
     
     bool use_traffic_shapper = true;
     double_t b      = 0.05;
 //    double_t bmax   = 0.064;
 //    double_t bmin   = 0.061;
     
-    double_t rd     = 1; 
+//    double_t rd     = 1; 
 //    double_t rd_max = 2.0; 
 //    double_t rd_min = 1.0; 
     
@@ -371,12 +371,12 @@ main(int argc, char *argv[]) {
 
 //              All to one
             if (x == 4 && y == 3){ //The one to trace
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd);                                          
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, s1x, s1y, true);                                          
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_S);                                          
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, s1x, s1y, true);                                          
             } 
             else if (x > 0){ 
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd);  
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, s1x, s1y, false);               
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_W);  
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, s1x, s1y, false);               
             }   
         }
     }
