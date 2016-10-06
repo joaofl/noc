@@ -73,7 +73,7 @@ namespace ns3 {
         
         void Tests(void);
 
-        void SetBurstiness(double_t b, uint8_t rd);
+        void SetShaper(double_t b, uint8_t rd);
             
         void SetFlowGenerator(double_t, double_t, uint32_t, uint32_t dest_x, uint32_t dest_y, bool trace);
 

@@ -233,7 +233,7 @@ namespace ns3 {
         
         void SetDirection(NOCRouting::Directions direction);
         
-        void SetBurstiness(double_t, uint8_t rd);
+        void SetShaper(double_t, uint8_t rd);
         
         virtual Address GetAddress(void) const;
 
@@ -538,8 +538,8 @@ namespace ns3 {
         double_t m_burstiness;
         uint8_t m_release_delay;
         
-        bool m_first_run;
-        bool m_second_run;
+        bool m_initial_offset;
+//        bool m_second_run;
         
         uint32_t m_ifIndex;
         bool m_linkUp;

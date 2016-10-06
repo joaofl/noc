@@ -371,11 +371,11 @@ main(int argc, char *argv[]) {
 
 //              All to one
             if (x == 4 && y == 3){ //The one to trace
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(shaper_b, shaper_rd);                                          
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd);                                          
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, s1x, s1y, true);                                          
             } 
             else if (x > 0){ 
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetBurstiness(shaper_b, shaper_rd);  
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd);  
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, s1x, s1y, false);               
             }   
         }

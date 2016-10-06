@@ -41,6 +41,24 @@ namespace ns3 {
             DIRECTION_N        = 3, //north
             DIRECTION_L        = 4  //Internal, local processor
         };
+        
+       
+        /*              |
+         *       B      |     A
+         *              |
+         * -------------|-------------
+         *              |
+         *       C      |     D
+         *              |
+         */
+        
+        enum Quadrants{
+            QUADRANT_PXPY        = 'a', //east
+            QUADRANT_NXPY        = 'b', //east
+            QUADRANT_NXNY        = 'c', //east
+            QUADRANT_PXNY        = 'd' //east
+
+        };
 
         enum DirectionsMasks {
             DIRECTION_MASK_NONE   = 0b00000000, //none
@@ -105,18 +123,18 @@ namespace ns3 {
         static uint8_t Broadcast(int32_t x_source, int32_t y_source);
         
         
-
+        static uint8_t Distance(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
         static int32_t CalculateTimeSlot(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size);
         
         
-        
+        static char FindQuadrant(int32_t x_dest, int32_t y_dest); 
 //        
         
     private:
 //        static NodeRef NodeAt(std::vector<NodeRef> * sn, int8_t, int8_t);
 
-        static char FindQuadrant(int32_t x_dest, int32_t y_dest);  
+         
 
     };
 }
