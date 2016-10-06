@@ -133,17 +133,24 @@ namespace ns3 {
     }
 
     void 
-    NOCRouter::SetShaper(double_t b, uint8_t rd) {
+    NOCRouter::SetShaper(double_t b, uint8_t rd, uint8_t ports_mask) {
         
-        uint8_t n = m_netDevices.GetN();
-////        uint8_t n = m_netDeviceInfoArray.size(); 
-//          uint8_t n = 4; 
-//
-        for (uint8_t i = 0; i < n ; i++){
-            GetNetDevice(i)->SetShaper(b, rd);
-        }
+//        uint8_t n = m_netDevices.GetN();
+
+//          GetNetDevice(0, port)->SetShaper(b, rd);
                 
-//        m_burstiness = b;
+        if ( (ports_mask >> NOCRouting::DIRECTION_N) & 1){
+            GetNetDevice(0, NOCRouting::DIRECTION_N)->SetShaper(b, rd);
+        }
+        else if ( (ports_mask >> NOCRouting::DIRECTION_S) & 1){
+            GetNetDevice(0, NOCRouting::DIRECTION_S)->SetShaper(b, rd);
+        }
+        else if ( (ports_mask >> NOCRouting::DIRECTION_E & 1) & 1){
+            GetNetDevice(0, NOCRouting::DIRECTION_E)->SetShaper(b, rd);
+        }
+        else if ( (ports_mask >> NOCRouting::DIRECTION_W) & 1){
+            GetNetDevice(0, NOCRouting::DIRECTION_W)->SetShaper(b, rd);
+        }
     }
 
     
@@ -407,10 +414,6 @@ namespace ns3 {
         Time t = Time::FromInteger(0, Time::NS);
         t = RoutingDelays->GetDelay();
 
-        //Tweak
-//        if (port_direction == NOCRouting::DIRECTION_E)
-//            t = Time::FromInteger(1, Time::NS);
-        
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
         Simulator::Schedule(t, fp, nd, pck->Copy());
         
