@@ -201,29 +201,30 @@ def main ():
             if abs_x == node_x and abs_y == node_y:
 
                 ################# Received ####################
-                #Build the matrix for the density map
-                if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
-                    # Build the cumulative arrival/departure for an specific node
-                    count_r += 1
-                    simul_r_x.append(t)
-                    simul_r_y.append(count_r)
+                if line[HEADER.protocol_app] == '1':
+                    #Build the matrix for the density map
+                    if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
+                        # Build the cumulative arrival/departure for an specific node
+                        count_r += 1
+                        simul_r_x.append(t)
+                        simul_r_y.append(count_r)
 
-                    #point there at what time the traced packed passed by
-                    if line[HEADER.protocol_app] == '6':
-                        simul_traced_x.append(t)
-                        simul_traced_y.append(count_r)
+                        #point there at what time the traced packed passed by
+                        if line[HEADER.protocol_app] == '6':
+                            simul_traced_x.append(t)
+                            simul_traced_y.append(count_r)
 
-                ################# Transmitted ####################
-                elif line[HEADER.operation] == 't': # or line[trace.operation] == 'g':
-                    #Build the cumulative arrival/departure curve
-                    count_t += 1
-                    simul_t_x.append(t+1)
-                    simul_t_y.append(count_t)
+                    ################# Transmitted ####################
+                    elif line[HEADER.operation] == 't': # or line[trace.operation] == 'g':
+                        #Build the cumulative arrival/departure curve
+                        count_t += 1
+                        simul_t_x.append(t+1)
+                        simul_t_y.append(count_t)
 
-                    # point there at what time the traced packed passed by
-                    if line[HEADER.protocol_app] == '6':
-                        simul_traced_x.append(t + 1) #Plus one time slot, the time to finish transmitting
-                        simul_traced_y.append(count_t)
+                        # point there at what time the traced packed passed by
+                        if line[HEADER.protocol_app] == '6':
+                            simul_traced_x.append(t + 1) #Plus one time slot, the time to finish transmitting
+                            simul_traced_y.append(count_t)
 
 
         ################# Now the same trace_packets but from the model ###################
