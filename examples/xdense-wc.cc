@@ -70,6 +70,7 @@ ofstream file_packet_trace;
 ofstream file_queue_size_trace;
 ofstream file_flow_trace;
 ofstream file_simulation_info;
+ofstream file_flows_source;
 
 Time start_offset, packet_duration;
 
@@ -138,7 +139,8 @@ log_queues(string context, uint16_t size){
 void
 log_flows_source(string context, double offset, double beta, uint8_t ms){
     
-    cout << context << "," << offset << "," << beta << "," << (int) ms << endl;
+    
+    file_flows_source << context << "," << offset << "," << beta << "," << (int) ms << endl;
     
 }
 
@@ -280,13 +282,13 @@ main(int argc, char *argv[]) {
         my_xdense_app->TraceConnect("FlowSourceTrace", context[0].str(), MakeCallback(&log_flows_source));  
 
         
-        context[0] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
-        my_noc_router->TraceConnect("RouterCxTrace", context[0].str(), MakeCallback(&log_netdevice_packets));
-        my_noc_router->TraceConnect("RouterCxTrace", context[0].str(), MakeCallback(&log_flows));
+        context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
+        my_noc_router->TraceConnect("RouterCxTrace", context[1].str(), MakeCallback(&log_netdevice_packets));
+        my_noc_router->TraceConnect("RouterCxTrace", context[1].str(), MakeCallback(&log_flows));
         
-        context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",g";
-        my_noc_router->TraceConnect("RouterGxTrace", context[1].str(), MakeCallback(&log_netdevice_packets));
-        my_noc_router->TraceConnect("RouterGxTrace", context[1].str(), MakeCallback(&log_flows));
+        context[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",g";
+        my_noc_router->TraceConnect("RouterGxTrace", context[2].str(), MakeCallback(&log_netdevice_packets));
+        my_noc_router->TraceConnect("RouterGxTrace", context[2].str(), MakeCallback(&log_flows));
         
         
         //Setup NetDevice's Callback
@@ -328,7 +330,7 @@ main(int argc, char *argv[]) {
     s1x = 0; s1y = 0;
     
     bool use_traffic_shapper = true;
-    double_t b      = 0.03;
+    double_t b      = 0.5;
 //    double_t bmax   = 0.064;
 //    double_t bmin   = 0.061;
     
@@ -351,11 +353,11 @@ main(int argc, char *argv[]) {
             uint32_t total_ms = (size_y - y) * ms;
             double_t max_ms_over_b = (total_ms) / (b * (size_y - y));
 
-            if (y == 0 && x > 0){
-                shaper_rd = shaper_rd + (size_x - x - 1);
-                total_ms = total_ms + ((total_ms) * (size_x - x - 1));
-                max_ms_over_b = (total_ms) / (b * (size_y - y) * (size_x - x));
-            }
+//            if (y == 0 && x > 0){
+//                shaper_rd = shaper_rd + (size_x - x - 1);
+//                total_ms = total_ms + ((total_ms) * (size_x - x - 1));
+//                max_ms_over_b = (total_ms) / (b * (size_y - y) * (size_x - x));
+//            }
             double_t shaper_b = total_ms / max_ms_over_b;
             if (shaper_b > 1) shaper_b = 1;
 
@@ -380,11 +382,14 @@ main(int argc, char *argv[]) {
 
 //              All to one
             if (y == 0 && x == 1){ //The one to trace
+                shaper_rd = 27;
+                shaper_b = 1;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_W);                                          
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
             } 
             else if (y == 1 && x == 1){ //The one to trace
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);                                          
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
+                rd = 30;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
             } 
 //            else if (x > 0){ 
@@ -408,29 +413,41 @@ main(int argc, char *argv[]) {
             << " --sinks_n=" << sinks_n
             << " --baudrate=" << baudrate
             << " --packet_size=" << pck_size;
-    file_simulation_info.close();
+    file_simulation_info.close(); //it is only modified here, so can be closed
 
     filename = dir_output + "packets-trace-netdevice.csv";
     file_packet_trace.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
 
     filename = dir_output + "queue-size-trace.csv";
     file_queue_size_trace.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
 
     filename = dir_output + "flows-trace.csv";
     file_flow_trace.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+    
 
-    cout << endl << "Simulation started. Please wait..." << endl ;
+    filename = dir_output + "flows-source.csv";
+    file_flows_source.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+
+    
+    cout << endl << "Simulation started, please wait..." << endl ;
     
     Simulator::Stop(Seconds(1));
     Simulator::Run();
 
     //**************** Output Printing ***************************
 
-    cout << "Simulation complete." << endl ;
+    cout << "Simulation completed successfully" << endl ;
+    
     file_packet_trace.close();
     file_queue_size_trace.close();
     file_flow_trace.close();
-    cout << "Log files created at: '" << dir_output << "'" << endl;
+    file_flows_source.close();
+    
+    cout << "Log files closed" << endl;
 
     Simulator::Destroy();
     return 0;
