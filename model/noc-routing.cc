@@ -22,6 +22,13 @@
 
 
 namespace ns3 {
+    uint8_t 
+    NOCRouting::EndToEndRoute(int32_t& points, int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig, RoutingProtocols) {
+
+        
+        return 0;
+    }
+
 
     uint8_t
     NOCRouting::Route(Ptr<const Packet> pck, RoutingProtocols param) {
