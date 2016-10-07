@@ -21,7 +21,6 @@
 
 
 #include "noc-router.h"
-#include "src/network/model/packet.h"
 
 
 using namespace std;

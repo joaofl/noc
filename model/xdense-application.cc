@@ -30,6 +30,20 @@ using namespace std;
 namespace ns3 {
 
     NS_LOG_COMPONENT_DEFINE("XDenseApplication");
+    
+    TypeId
+    XDenseApp::GetTypeId(void) {
+        static TypeId tid = TypeId("ns3::XDenseApplication")
+                .SetParent<Application> ()
+                .AddConstructor<XDenseApp> ()
+        
+                .AddTraceSource("FlowSourceTrace", 
+                "The packets received by the router of each node",
+                MakeTraceSourceAccessor(&XDenseApp::m_flows_source),
+                "ns3::XDenseApp::FlowSourceTrace")
+                ;
+        return tid;
+    }
 
     XDenseApp::XDenseApp()
     :
@@ -88,7 +102,7 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetFlowGenerator(double_t burstiness, double_t release_delay, uint32_t msg_size, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y) {
+    XDenseApp::SetFlowGenerator(double_t burstiness, double_t offset, uint32_t msg_size, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y) {
         if (burstiness == 0 || IsActive == false)
             return;        
 
@@ -100,13 +114,15 @@ namespace ns3 {
 //            hd.SetData(0 + release_delay);
 //        }
         
+        m_flows_source(offset, burstiness, msg_size);
+        
         Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
-        Time t_offset = Time::FromInteger(PacketDuration.GetNanoSeconds() * release_delay, Time::NS);
+        Time t_offset = Time::FromInteger(PacketDuration.GetNanoSeconds() * offset, Time::NS);
         
         for (uint16_t i = 0 ; i < msg_size ; i++ ){
             Ptr<Packet> pck_c = pck->Copy();
             
-            Simulator::Schedule(t_offset + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, USE_RELATIVE_ADDRESS);
+            Simulator::Schedule(t_offset + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
         }
     }
 
@@ -318,22 +334,24 @@ namespace ns3 {
                 break;
                         
         }
-        delta_long = last_long - pos_long;
-        delta_alt = last_alt - pos_alt;
-        
         
         //Define the flow characteristics
         uint8_t dist = NOCRouting::Distance(pos_long, pos_alt, last_long, last_alt);
         
         double_t b      = double(1) / double(abs(last_long) * (abs(last_alt) + 1));
         uint32_t ms     = 1;
-        uint8_t rd      = dist + 1; // has to be related to its distance
-        rd = 0;
+        uint8_t rd      = dist + 1; // all nodes send together. First wait for the last
+        rd = 0; //send the response as soon as the request is received
+        //At each node rd = 0, but relatively to origin, at the time the request was made,
+        // rd = do + 1, where do is distance to the origin
         
-        // Calculate the traffic shaping parameters
+        // Calculate the traffic shaping parameters        
+        delta_long = last_long - pos_long;
+        delta_alt = last_alt - pos_alt;
+
         uint32_t shaper_rd = delta_long + 1;
         uint32_t total_ms = (delta_long + 1) * ms;
-        double_t max_ms_over_b = (total_ms) / (b * (delta_long));
+        double_t max_ms_over_b = (total_ms - 1) / (b * (delta_long));
 
         if (pos_long == 0 && pos_alt > 0){
             shaper_rd = shaper_rd + (delta_alt - 1);

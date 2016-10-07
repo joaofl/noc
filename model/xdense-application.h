@@ -50,6 +50,8 @@ namespace ns3 {
 
     class XDenseApp : public Application {
     public:
+        
+        static TypeId GetTypeId (void);
 
         
         enum NetworkId {
@@ -113,12 +115,9 @@ namespace ns3 {
         
         typedef struct {
             int32_t x, y;
-//            uint32_t value;
-//            uint32_t serial_number; 
-//            bool updated;
         } node_ref;
         
-//        node_ref cluster_data_request_remetent;
+        TracedCallback< double, double, uint8_t > m_flows_source; //offset, beta, ms
 
 
         virtual void StartApplication(void);
