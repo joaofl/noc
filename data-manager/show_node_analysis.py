@@ -48,24 +48,22 @@ def main ():
     ############################# Initial settings #######################
     global options, args
 
-    dir = '/noc-data/nw5x4cWCA_ALL_TO_ONE/out/'
-    # dir = '/noc-data/nw5x4cWCA_2_TO_1/out/'
-    # dir = '/noc-data/nw5x4cWCA_LINE_TO_ONE/out/'
 
     home = expanduser("~")
 
-    if options.outputdir == None:
-        options.outputdir = home + dir + 'post/'
-    if options.inputfile == None:
-        options.inputfile = home + dir + 'packets-trace-netdevice.csv'
+    # if options.outputdir == None:
+    #     options.outputdir = home + dir + 'post/'
+    # if options.inputfile == None:
+    #     options.inputfile = home + dir + 'packets-trace-netdevice.csv'
 
-    inputfile_queue_size = home + dir + 'queue-size-trace.csv'
-    inputfile_flows = home + dir + 'flows-trace.csv'
+    inputfile_queue_size = options.inputdir + '/queue-size-trace.csv'
+    inputfile_flows = options.inputdir + '/flows-trace.csv'
+    inputfile_packet_trace = options.inputdir + '/packets-trace-netdevice.csv'
 
     # if not os.path.exists(options.outputdir):
         # os.makedirs(options.outputdir)
 
-    trace_packets = files_io.load_list(options.inputfile)
+    trace_packets = files_io.load_list(inputfile_packet_trace)
     if (len(trace_packets)) == 0:
         print('Log file is empty')
         exit(1)
@@ -280,7 +278,11 @@ def main ():
                 #     model_traced_x, model_traced_y,
                     ]
 
-            fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_in) + '.pdf'
+            sw_in_f = []
+            for i in range(len(sw_in)):
+                sw_in_f.append([float('%.2f' % elem) for elem in sw_in[i]])
+
+            fn = options.outputdir + '/cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_in_f) + '.pdf'
             plotCumulativeInOut(plots, filename=fn)
 
         else:
@@ -482,7 +484,7 @@ if __name__ == '__main__':
         parser = optparse.OptionParser(formatter=optparse.TitledHelpFormatter(), usage=globals()['__doc__'], version='$Id$')
 
         parser.add_option ('-v', '--verbose', action='store_true', default=False, help='verbose output')
-        parser.add_option ('-i', '--inputfile', help='input file containing the packet trace', default=None)
+        parser.add_option ('-i', '--inputdir', help='Dir containing the logs', default=None)
         # parser.add_option ('-c', '--inputconfigfile', help='config file containing the simulation parameters')
         parser.add_option ('-o', '--outputdir', help='', default=None)
 

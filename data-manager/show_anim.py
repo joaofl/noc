@@ -336,7 +336,7 @@ class NOCAnim(QWidget):
 
         global options, args
 
-        self.packetTrace = files_io.load_list(options.inputfile)
+        self.packetTrace = files_io.load_list(options.inputdir + '/packets-trace-netdevice.csv')
         if (len(self.packetTrace) == 0):
             print ('No input file provided')
             return -1
@@ -453,8 +453,9 @@ class NOCAnim(QWidget):
                 x = int(current_trans[trace.x_absolute])
                 y = int(current_trans[trace.y_absolute])
 
-                node = self.network[y][x]
                 print(x, y)
+                node = self.network[y][x]
+
 
                 if current_trans[trace.protocol_app] == '6':
                     node.setProperty(led = 1)
@@ -518,7 +519,7 @@ class NOCAnim(QWidget):
 
 
 def lauch_external(x, y):
-    args = ' --inputfile=' + options.inputfile + ' --outputdir=' + options.outputdir + ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' '
+    args = ' --inputdir=' + options.inputdir + ' --outputdir=' + options.outputdir # + ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' '
     script = '/home/joao/Repositorios/ns-3-dev/src/noc/data-manager/show_node_analysis.py'
 
     cmd = 'python3.5 ' + script + args
@@ -539,7 +540,7 @@ if __name__ == '__main__':
         parser = optparse.OptionParser(formatter=optparse.TitledHelpFormatter(), usage=globals()['__doc__'], version='$Id$')
 
         parser.add_option ('-v', '--verbose', action='store_false', default=False, help='verbose output')
-        parser.add_option ('-i', '--inputfile', help='input file containing the packet trace')
+        parser.add_option('-i', '--inputdir', help='Dir containing the logs', default=None)
         parser.add_option ('-o', '--outputdir', help='dir to save the plots')
         parser.add_option ('-t', '--timeslotsize', help='time between two refreshes of the animator')
         parser.add_option ('-x', '--size_x', help='network size', default=0)
