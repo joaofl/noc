@@ -167,7 +167,7 @@ class NOCLauncher(QWidget):
     def on_click_run(self):
         # scriptname = 'noc_flow_analysis'
 
-        args = ' --inputfile=' + self.selected_log + ' --outputdir=' + self.selected_dir + ' ' + self.textbox_args.text()
+        args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir + 'post/ ' + self.textbox_args.text()
 
         cmd = 'python3.5 ' + self.selected_script + args
         print('Command executed: ' + cmd)

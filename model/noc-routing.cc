@@ -35,7 +35,7 @@ namespace ns3 {
         x_current = ox;
         y_current = oy;
         
-        outstring << x_current << "," << y_current;
+        outstring << x_current << ";" << y_current;
 
         while (x_current != dx || y_current != dy) {
             uint8_t out = 0;
@@ -74,7 +74,7 @@ namespace ns3 {
                     break;
             }
             
-            outstring << "," << x_current << "," << y_current;
+            outstring << ";" << x_current << ";" << y_current;
 
         }
         
