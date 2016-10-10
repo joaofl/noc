@@ -65,6 +65,7 @@ namespace ns3 {
         bool IsSink, IsActive;
         Time PacketDuration;
         uint8_t ClusterSize_x, ClusterSize_y; 
+//        int32_t AbsoluteX, AbsoluteY;
         
 
         Ptr <NOCOutputDataSensors> SinkReceivedData;
@@ -113,11 +114,11 @@ namespace ns3 {
 
     private:
         
-        typedef struct {
-            int32_t x, y;
-        } node_ref;
+//        typedef struct {
+//            int32_t x, y;
+//        } node_ref;
         
-        TracedCallback< double, double, uint8_t > m_flows_source; //offset, beta, ms
+        TracedCallback< int32_t, int32_t, int32_t, int32_t, double, double, uint8_t > m_flows_source; //offset, beta, ms
 
 
         virtual void StartApplication(void);

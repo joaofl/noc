@@ -59,6 +59,7 @@ def main ():
     inputfile_queue_size = options.inputdir + '/queue-size-trace.csv'
     inputfile_flows = options.inputdir + '/flows-trace.csv'
     inputfile_packet_trace = options.inputdir + '/packets-trace-netdevice.csv'
+    inputfile_flows_source = options.inputdir + '/flows-source.csv'
 
     # if not os.path.exists(options.outputdir):
         # os.makedirs(options.outputdir)
@@ -76,7 +77,19 @@ def main ():
     trace_flows = files_io.load_list(inputfile_flows)
     if (len(trace_flows)) == 0:
         print('Flows trace is empty or not found.')
-        # exit(1)
+        # exit(1
+
+    trace_flows_source = files_io.load_list(inputfile_flows_source)
+    # for i in range(len(trace_flows_source)):
+    #     trace_flows_source[i][-1].replace(';', ',')
+        # for j in range(len(trace_flows_source[i][-1])):
+        #     str(trace_flows_source[i][-1]).replace(';', ',')
+            # if trace_flows_source[i][-1][j] == ';':
+            #     trace_flows_source[i][-1][j] = ','
+
+    if (len(trace_flows)) == 0:
+        print('Flows source trace is empty or not found.')
+
 
     # Could get it from the config file
     max_x = max(trace_packets[:, HEADER.x_absolute].astype(int)) + 1
@@ -201,9 +214,10 @@ def main ():
                 ################# Received ####################
                 if line[HEADER.protocol_app] == '1':
                     #Build the matrix for the density map
-                    if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
+                    if line[HEADER.operation] == 'r': #or line[HEADER.operation] == 'g':
                         # Build the cumulative arrival/departure for an specific node
                         count_r += 1
+
                         simul_r_x.append(t)
                         simul_r_y.append(count_r)
 
@@ -232,7 +246,7 @@ def main ():
         sw_in = incomming_flows_ub[node_y][node_x] # + [nodes_flows_ub[node_y][node_x]]
         sw_out = [outgoing_flow_lb[node_y][node_x]]
 
-        if len(simul_r_x) != 0:
+        if (count_t + count_r) > 0:
 
             #######
             def transform(data):
@@ -266,6 +280,8 @@ def main ():
             model_traced_x = [t_in_ub, t_out_lb]
             model_traced_y = [n_in_ub, n_in_lb]
 
+
+
             plots = [
                     simul_r_x, simul_r_y,
                     simul_t_x, simul_t_y,
@@ -288,7 +304,7 @@ def main ():
         else:
             print('The node selected have received no packets.')
 
-        return n_in_ub
+        return count_r + count_t
 
 
 

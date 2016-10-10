@@ -91,6 +91,10 @@ namespace ns3 {
         
         Ptr<NOCRouterDelayModel> RoutingDelays;
         
+        
+        int32_t AddressX, AddressY;
+        
+        
         NOCRouter();
         virtual ~NOCRouter();
         
@@ -201,8 +205,6 @@ namespace ns3 {
         EventId m_sendEvent;
         
         NetDeviceContainer m_netDevices;
-        
-        int32_t m_addressX, m_addressY;
         
         std::vector<NetDeviceInfo> m_netDeviceInfoArray;
         

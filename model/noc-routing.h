@@ -24,6 +24,7 @@
 
 //#include <math.h>
 #include <stdio.h>
+#include <string>
 #include "ns3/core-module.h"
 #include "ns3/packet.h"
 
@@ -96,7 +97,8 @@ namespace ns3 {
         
 //        static uint8_t RouteTo(uint8_t routing_alg, int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
-        static uint8_t EndToEndRoute(int32_t & points, int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig, RoutingProtocols);
+        static std::string EndToEndRoute(int32_t x_dest, int32_t y_dest, 
+        int32_t x_orig, int32_t y_orig, NOCHeader::NOCProtocols rp);
         
         static uint8_t Route(Ptr<const Packet> pck, RoutingProtocols param);
         

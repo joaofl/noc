@@ -68,13 +68,13 @@ namespace ns3 {
                 .AddAttribute("AddressX",
                 "The X coordinate of the router in the grid (required depending on the protocol)",
                 IntegerValue(0),
-                MakeIntegerAccessor(&NOCRouter::m_addressX),
+                MakeIntegerAccessor(&NOCRouter::AddressX),
                 MakeIntegerChecker<int32_t>())
 
                 .AddAttribute("AddressY",
                 "The Y coordinate of the router in the grid (required depending on the protocol)",
                 IntegerValue(0),
-                MakeIntegerAccessor(&NOCRouter::m_addressY),
+                MakeIntegerAccessor(&NOCRouter::AddressY),
                 MakeIntegerChecker<int32_t>())
                 ;
         return tid;
@@ -262,8 +262,8 @@ namespace ns3 {
         
         
         if (absolute_address){
-                destination_x = destination_x - m_addressX;
-                destination_y = destination_y - m_addressY;
+                destination_x = destination_x - AddressX;
+                destination_y = destination_y - AddressY;
         }
         
         if (destination_x == 0 && destination_y == 0)

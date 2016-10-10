@@ -20,13 +20,66 @@
 
 #include "noc-routing.h"
 
+//using namespace std;
+
 
 namespace ns3 {
-    uint8_t 
-    NOCRouting::EndToEndRoute(int32_t& points, int32_t x_dest, int32_t y_dest, int32_t x_orig, int32_t y_orig, RoutingProtocols) {
+    std::string 
+    NOCRouting::EndToEndRoute(int32_t ox, int32_t oy, int32_t dx, int32_t dy, 
+            NOCHeader::NOCProtocols rp) {
 
+        int32_t x_current, y_current;
         
-        return 0;
+        std::ostringstream outstring;
+
+        x_current = ox;
+        y_current = oy;
+        
+        outstring << x_current << "," << y_current;
+
+        while (x_current != dx || y_current != dy) {
+            uint8_t out = 0;
+
+            switch (rp) {
+                case NOCHeader::PROTOCOL_UNICAST:
+                    out = UnicastClockwiseXY(dx - x_current, dy - y_current);
+                    break;
+
+                case NOCHeader::PROTOCOL_UNICAST_OFFSET:
+                    //                out = UnicastClockwiseOffsetXY(adx, ady, asx, asy);
+//                    out = UnicastClockwiseOffsetStartXY(dx, dy, ox, oy);
+                    break;
+                    
+                default:
+                    break;
+                
+            }
+            
+            switch (out){
+                case DIRECTION_MASK_N:
+                    y_current += 1;
+                    break;
+                case DIRECTION_MASK_S:
+                    y_current -= 1;
+                    break;
+                case DIRECTION_MASK_E:
+                    x_current += 1;
+                    break;
+                case DIRECTION_MASK_W:
+                    x_current -= 1;
+                    break;
+                    
+                    
+                default:
+                    break;
+            }
+            
+            outstring << "," << x_current << "," << y_current;
+
+        }
+        
+//        outstring << "]";
+        return outstring.str();
     }
 
 

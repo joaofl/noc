@@ -106,15 +106,19 @@ namespace ns3 {
         if (burstiness == 0 || IsActive == false)
             return;        
 
-        XDenseHeader hd;
+//        XDenseHeader hd;
 //        pck->PeekHeader(hd);
 //        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
 //        if (trace){
 //            hd.SetXdenseProtocol(XDenseHeader::TRACE);
 //            hd.SetData(0 + release_delay);
 //        }
+        int32_t orig_x, orig_y;
         
-        m_flows_source(offset, burstiness, msg_size);
+        orig_x = m_router->AddressX;
+        orig_y = m_router->AddressY;
+        
+        m_flows_source(orig_x, orig_y, dest_x, dest_y, offset, burstiness, msg_size);
         
         Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
         Time t_offset = Time::FromInteger(PacketDuration.GetNanoSeconds() * offset, Time::NS);

@@ -519,7 +519,7 @@ class NOCAnim(QWidget):
 
 
 def lauch_external(x, y):
-    args = ' --inputdir=' + options.inputdir + ' --outputdir=' + options.outputdir # + ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' '
+    args = ' --inputdir=' + options.inputdir + ' --outputdir=' + options.outputdir + ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' '
     script = '/home/joao/Repositorios/ns-3-dev/src/noc/data-manager/show_node_analysis.py'
 
     cmd = 'python3.5 ' + script + args

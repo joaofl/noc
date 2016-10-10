@@ -137,10 +137,15 @@ log_queues(string context, uint16_t size){
 }
 
 void
-log_flows_source(string context, double offset, double beta, uint8_t ms){
+log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, double offset, double beta, uint8_t ms){
     
+    string points;
     
-    file_flows_source << context << "," << offset << "," << beta << "," << (int) ms << endl;
+    points = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);
+    
+//    file_flows_source << "Opa\n";
+    file_flows_source << context << "," << offset << "," << beta << "," << (int) ms << "," << points << endl;
+    cout << context << "," << offset << "," << beta << "," << (int) ms << "," << points << endl;
     
 }
 
@@ -222,6 +227,40 @@ main(int argc, char *argv[]) {
         cout << "Delay's data sucessfully loaded:  " << input_delay_data_path << "\n";
     }
     
+    /////////////////////// Create logfiles ///////////////////////
+    string filename;
+
+    filename = dir_output + "simulation-info.txt";    
+    file_simulation_info.open(filename.c_str(), ios::out);    
+    file_simulation_info
+            << "--size_x=" << size_x
+            << " --size_y=" << size_y
+            << " --size_neighborhood=" << size_neighborhood
+            << " --sinks_n=" << sinks_n
+            << " --baudrate=" << baudrate
+            << " --packet_size=" << pck_size;
+    cout << "Log file created at " << filename << endl;
+    
+
+    filename = dir_output + "packets-trace-netdevice.csv";
+    file_packet_trace.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+
+    filename = dir_output + "queue-size-trace.csv";
+    file_queue_size_trace.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+
+    filename = dir_output + "flows-trace.csv";
+    file_flow_trace.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+    
+
+    filename = dir_output + "flows-source.csv";
+    file_flows_source.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+    
+    
+     ///////////// Setup and initialize the network
    
     //Using the new helper
     GridHelper my_grid_network_helper;
@@ -263,8 +302,8 @@ main(int argc, char *argv[]) {
         my_noc_router->RoutingDelays = my_router_delay_model; //TODO: use a method set instead, otherwise there will be no default value, and it wont work.
 //        my_noc_router->ServerPolicy = NOCRouter::ROUND_ROBIN; //TODO: use a method set instead
         my_noc_router->ServerPolicy = NOCRouter::FIFO;
-//        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_XY_CLOCKWISE);
-        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_YFIRST);
+        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_XY_CLOCKWISE);
+//        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_YFIRST);
 	my_router_delay_model->InputData = &my_input_data;
 
         //Setup app
@@ -330,7 +369,7 @@ main(int argc, char *argv[]) {
     s1x = 0; s1y = 0;
     
     bool use_traffic_shapper = true;
-    double_t b      = 0.5;
+    double_t b      = 1;
 //    double_t bmax   = 0.064;
 //    double_t bmin   = 0.061;
     
@@ -365,6 +404,7 @@ main(int argc, char *argv[]) {
                  shaper_b = 1;
                  shaper_rd = 0;
              }
+            shaper_rd = shaper_rd;
             ////////////////////////////////////////////////////////////////////
             
             
@@ -381,14 +421,15 @@ main(int argc, char *argv[]) {
 //        this->SetFlowGenerator(b, rd, ms, pck_out, dest_x, dest_y);
 
 //              All to one
-            if (y == 0 && x == 1){ //The one to trace
+            if (y == 1 && x == 4){ //The one to trace
                 shaper_rd = 27;
                 shaper_b = 1;
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_W);                                          
+                rd = 1;
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_W);                                          
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
             } 
-            else if (y == 1 && x == 1){ //The one to trace
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
+            else if (y == 3 && x == 4){ //The one to trace
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
                 rd = 30;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
             } 
@@ -401,36 +442,6 @@ main(int argc, char *argv[]) {
 
 
     //**************** Simulation Setup **************************
-
-    string filename;
-
-    filename = dir_output + "simulation-info.txt";    
-    file_simulation_info.open(filename.c_str(), ios::out);    
-    file_simulation_info
-            << "--size_x=" << size_x
-            << " --size_y=" << size_y
-            << " --size_neighborhood=" << size_neighborhood
-            << " --sinks_n=" << sinks_n
-            << " --baudrate=" << baudrate
-            << " --packet_size=" << pck_size;
-    file_simulation_info.close(); //it is only modified here, so can be closed
-
-    filename = dir_output + "packets-trace-netdevice.csv";
-    file_packet_trace.open(filename.c_str(), ios::out);
-    cout << "Log file created at " << filename << endl;
-
-    filename = dir_output + "queue-size-trace.csv";
-    file_queue_size_trace.open(filename.c_str(), ios::out);
-    cout << "Log file created at " << filename << endl;
-
-    filename = dir_output + "flows-trace.csv";
-    file_flow_trace.open(filename.c_str(), ios::out);
-    cout << "Log file created at " << filename << endl;
-    
-
-    filename = dir_output + "flows-source.csv";
-    file_flows_source.open(filename.c_str(), ios::out);
-    cout << "Log file created at " << filename << endl;
 
     
     cout << endl << "Simulation started, please wait..." << endl ;
@@ -446,8 +457,9 @@ main(int argc, char *argv[]) {
     file_queue_size_trace.close();
     file_flow_trace.close();
     file_flows_source.close();
+    file_simulation_info.close(); //it is only modified here, so can be closed
     
-    cout << "Log files closed" << endl;
+    cout << "Log files saved" << endl;
 
     Simulator::Destroy();
     return 0;
