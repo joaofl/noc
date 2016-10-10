@@ -80,13 +80,6 @@ def main ():
         # exit(1
 
     trace_flows_source = files_io.load_list(inputfile_flows_source)
-    # for i in range(len(trace_flows_source)):
-    #     trace_flows_source[i][-1].replace(';', ',')
-        # for j in range(len(trace_flows_source[i][-1])):
-        #     str(trace_flows_source[i][-1]).replace(';', ',')
-            # if trace_flows_source[i][-1][j] == ';':
-            #     trace_flows_source[i][-1][j] = ','
-
     if (len(trace_flows)) == 0:
         print('Flows source trace is empty or not found.')
 
@@ -298,7 +291,7 @@ def main ():
             for i in range(len(sw_in)):
                 sw_in_f.append([float('%.2f' % elem) for elem in sw_in[i]])
 
-            fn = options.outputdir + '/cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_in_f) + '.pdf'
+            fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_in_f) + '.pdf'
             plotCumulativeInOut(plots, filename=fn)
 
         else:
@@ -306,7 +299,12 @@ def main ():
 
         return count_r + count_t
 
+    def find_intersections(nodes_flows):
+        nodes = []
 
+
+
+        return nodes
 
     def model_flows_io(nodes_flows, x_traced, y_traced):
         # resulting_flows = copy.deepcopy(nodes_flows)
@@ -398,7 +396,6 @@ def main ():
             # plt.pause(0.001)
             # plt.draw()
 
-
     def plotCumulativeInOut(axis, filename=None):
 
         global options
@@ -464,24 +461,35 @@ def main ():
 
     ################################# Running ####################################
 
-    f_lb = [0.05, 0, 5]  #nodes own output flow
-    f_ub = [0.05, 0, 5]  #nodes own output flow
+    node_x = int(options.pos_x)
+    node_y = int(options.pos_y)
+    f_none = [0, 0, 0, []]  #nodes own output flow
 
-    nodes_flows_lb = [[f_lb for _ in range(max_x)] for _ in range(max_y)]
-    nodes_flows_ub = [[f_ub for _ in range(max_x)] for _ in range(max_y)]
-    # nodes_flows_lb[3][4] = [0.0625, 0, 10]
+    nw_flows_matrix = [[f_none for _ in range(max_x)] for _ in range(max_y)]
+    nw_flows = []
 
-    x = int(options.pos_x)
-    y = int(options.pos_y)
-    # n_in = 2 #which packet of the message to trace and calculate eted to
+    for l in trace_flows_source:
+        x = int(l[1])
+        y = int(l[2])
+        p = l[-1].split(';')
+        r = []
+        for i in range(0, len(p), 2):
+            r.append([int(p[i]), int(p[i+1])])
 
-    incomming_flows_lb, outgoing_flow_lb, traced_flow_lb = model_flows_io(nodes_flows_lb, x, y)
-    incomming_flows_ub, outgoing_flow_ub, traced_flow_ub = model_flows_io(nodes_flows_ub, x, y)
+        f = [float(l[3]), float(l[4]), float(l[5]), r]
+        nw_flows_matrix[y][x] = f
+        nw_flows.append([x, y, float(l[3]), float(l[4]), float(l[5]), r])
+
+
+
+
+    incomming_flows_lb, outgoing_flow_lb, traced_flow_lb = model_flows_io(nw_flows_matrix, node_x, node_y)
+    # incomming_flows_ub, outgoing_flow_ub, traced_flow_ub = model_flows_io(nodes_flows_ub, x, y)
 
     #Checking the values now
     # show_simul_flows(plot=True)
 
-    show_node(x,y)
+    show_node(node_x,node_y)
 
 
     # for yi in range(y, 0, -1):
