@@ -41,6 +41,14 @@ import others.analysis_wc
 # ['ggplot', 'bmh', 'grayscale', 'fivethirtyeight', 'dark_background']
 #mpl.rcParams.update(mpl.rcParamsDefault)
 
+FLOW_ID = 0
+FLOW_X = 1
+FLOW_Y = 2
+FLOW_ROUTE = -1
+FLOW_BURSTNESS = 3
+FLOW_OFFSET = 4
+FLOW_SIZE = 5
+
 
 def main ():
 
@@ -178,7 +186,7 @@ def main ():
         plotMatrix(simul_q_max)
         plotMatrix(simul_r_count)
 
-    def show_node(node_x, node_y, packet_n=0):
+    def simulation_arrival_departure(node_x, node_y, packet_n=0):
 
         ################# Get trace_packets from simulation logs ##################
 
@@ -232,79 +240,134 @@ def main ():
                             simul_traced_y.append(count_t)
 
 
+
+        return [
+            simul_r_x, simul_r_y,
+            simul_t_x, simul_t_y
+                ]
+
+
+        # else:
+        #     print('The node selected have received no packets.')
+
+
+
+
         ################# Now the same trace_packets but from the model ###################
+        #
+        #
+        #
+        # sw_in = incomming_flows_ub[node_y][node_x] # + [nodes_flows_ub[node_y][node_x]]
+        # sw_out = [outgoing_flow_lb[node_y][node_x]]
+        #
+        # if (count_t + count_r) > 0:
+        #
+        #     #######
+        #     def transform(data):
+        #         x = []
+        #         y = []
+        #         for e in data:
+        #             y.append(e[1])
+        #             x.append(e[0])
+        #         return [x, y]
+        #     #######
+        #
+        #     [model_in, model_out] = wca.calculate_node(sw_in, sw_out)
+        #
+        #     [model_in_x, model_in_y] = transform(model_in)
+        #     [model_out_x, model_out_y] = transform(model_out)
+        #
+        #     t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
+        #         model_node_bounds(traced_flow=traced_flow_lb[node_y][node_x],
+        #                           in_flows=incomming_flows_lb[node_y][node_x],
+        #                           out_flow=outgoing_flow_lb[node_y][node_x],
+        #                           packet_n=packet_n)
+        #
+        #     t_in_ub, t_out_ub, n_in_ub, n_out_ub = \
+        #         model_node_bounds(traced_flow=traced_flow_ub[node_y][node_x],
+        #                           in_flows=incomming_flows_ub[node_y][node_x],
+        #                           out_flow=outgoing_flow_ub[node_y][node_x],
+        #                           packet_n=packet_n)
+        #
+        #
+        #
+        #     model_traced_x = [t_in_ub, t_out_lb]
+        #     model_traced_y = [n_in_ub, n_in_lb]
 
 
 
-        sw_in = incomming_flows_ub[node_y][node_x] # + [nodes_flows_ub[node_y][node_x]]
-        sw_out = [outgoing_flow_lb[node_y][node_x]]
 
-        if (count_t + count_r) > 0:
+    def model_arrivals_departures(flows_list, flows_matrix, node_x, node_y):
 
-            #######
-            def transform(data):
-                x = []
-                y = []
-                for e in data:
-                    y.append(e[1])
-                    x.append(e[0])
-                return [x, y]
-            #######
+        f_none = [0, 0, 0]  # nodes own output flow
+        # flows_incomming = [[f_none for _ in range(max_x)] for _ in range(max_y)]
+        flows_incomming = copy.deepcopy(flows_matrix)
+        flows_outgoing = [[f_none for _ in range(max_x)] for _ in range(max_y)]
 
-            [model_in, model_out] = wca.calculate_node(sw_in, sw_out)
+        arriving_flows_list = []
 
-            [model_in_x, model_in_y] = transform(model_in)
-            [model_out_x, model_out_y] = transform(model_out)
+        # find which flows pass by the node of interest
+        for i in range(len(flows_list)):
+            r = flows_list[i][FLOW_ROUTE]
 
-            t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
-                model_node_bounds(traced_flow=traced_flow_lb[node_y][node_x],
-                                  in_flows=incomming_flows_lb[node_y][node_x],
-                                  out_flow=outgoing_flow_lb[node_y][node_x],
-                                  packet_n=packet_n)
+            if [node_x, node_y] in r:
+                index = r.index([node_x, node_y])
 
-            t_in_ub, t_out_ub, n_in_ub, n_out_ub = \
-                model_node_bounds(traced_flow=traced_flow_ub[node_y][node_x],
-                                  in_flows=incomming_flows_ub[node_y][node_x],
-                                  out_flow=outgoing_flow_ub[node_y][node_x],
-                                  packet_n=packet_n)
+                try:
+                    # if (r[index + 1] == [node_x, node_y - 1]): #leaving to the same node (competing)
+                        arriving_flows_list.append(i)
+                except:
+                    continue
 
 
+        #find which of the intersecting flows are the farthest of its row
+        xs = {}
+        ys = {}
+        # max_x = max([flows_list[i][FLOW_X] for i in arriving_flows_list])
 
-            model_traced_x = [t_in_ub, t_out_lb]
-            model_traced_y = [n_in_ub, n_in_lb]
+        for i in arriving_flows_list:
+            x = flows_list[i][FLOW_X]
+            y = flows_list[i][FLOW_Y]
+
+            if not x in xs:
+                xs[x] = [y]
+            else:
+                xs[x].append(y)
+
+            if not y in ys:
+                ys[y] = [x]
+            else:
+                ys[y].append(x)
+
+        if len(arriving_flows_list) == 0:
+            print('No flows depart or cross through this node')
+            return -1
+
+        # applies to quadrant x+y+
+        for y in sorted(ys, reverse=True): #From top to bottom
+            for x in range(max(ys[y]), 0, -1): #at each line (y) with a flow sorce, start from the farthest one
+
+                if x == max(ys[y]):
+                    sw_in = [flows_incomming[y][x]]
+                else:
+                    sw_in = [flows_incomming[y][x], flows_outgoing[y][x+1]]
+
+                flows_outgoing[y][x] = wca.resulting_flow(sw_in, analysis='eted')
+                print(x,y, flows_outgoing[y][x])
 
 
+        for y in range(max(ys.keys()), node_y -1, -1):
+            if y == max(ys.keys()):
+                sw_in = [flows_incomming[y][node_x], flows_outgoing[y][node_x+1]]
+            else:
+                sw_in = [flows_incomming[y][node_x], flows_outgoing[y][node_x+1], flows_outgoing[y+1][node_x]]
 
-            plots = [
-                    simul_r_x, simul_r_y,
-                    simul_t_x, simul_t_y,
+            flows_outgoing[y][node_x] = wca.resulting_flow(sw_in, analysis='eted')
 
-                    # model_in_x, model_in_y,
-                    # model_out_x, model_out_y,
-
-                # simul_traced_x[(packet_n - 1) * 2:packet_n * 2], simul_traced_y[(packet_n - 1) * 2:packet_n * 2],
-                #     simul_traced_x, simul_traced_y,
-                #     model_traced_x, model_traced_y,
-                    ]
-
-            sw_in_f = []
-            for i in range(len(sw_in)):
-                sw_in_f.append([float('%.2f' % elem) for elem in sw_in[i]])
-
-            fn = options.outputdir + 'cumulative_n' + str(node_x) + ',' + str(node_y) + '_sw' + str(sw_in_f) + '.pdf'
-            plotCumulativeInOut(plots, filename=fn)
-
-        else:
-            print('The node selected have received no packets.')
-
-        return count_r + count_t
-
-    def find_intersections(nodes_flows):
-        nodes = []
+            print(node_x, y, flows_outgoing[y][x])
 
 
-
-        return nodes
+        return [flows_incomming, flows_outgoing, sw_in]
 
     def model_flows_io(nodes_flows, x_traced, y_traced):
         # resulting_flows = copy.deepcopy(nodes_flows)
@@ -338,6 +401,7 @@ def main ():
 
                 sw_in.append(nodes_flows[y][x])
                 sw_in = list(reversed(sw_in)) #tweak for better file names
+
                 incoming_flows[y][x] = copy.deepcopy(sw_in) #add my own flow to calculate the output
                 outgoing_flows[y][x] = wca.resulting_flow(sw_in, analysis='eted')
 
@@ -395,6 +459,8 @@ def main ():
             plt.show()
             # plt.pause(0.001)
             # plt.draw()
+
+
 
     def plotCumulativeInOut(axis, filename=None):
 
@@ -463,43 +529,64 @@ def main ():
 
     node_x = int(options.pos_x)
     node_y = int(options.pos_y)
-    f_none = [0, 0, 0, []]  #nodes own output flow
+    f_none = [0, 0, 0]  #nodes own output flow
 
     nw_flows_matrix = [[f_none for _ in range(max_x)] for _ in range(max_y)]
-    nw_flows = []
+    nw_flows_list = []
 
     for l in trace_flows_source:
-        x = int(l[1])
-        y = int(l[2])
-        p = l[-1].split(';')
+        id = int(l[FLOW_ID])
+        x = int(l[FLOW_X])
+        y = int(l[FLOW_Y])
+        p = l[FLOW_ROUTE].split(';')
         r = []
         for i in range(0, len(p), 2):
             r.append([int(p[i]), int(p[i+1])])
 
-        f = [float(l[3]), float(l[4]), float(l[5]), r]
+        f = [float(l[FLOW_BURSTNESS]), float(l[FLOW_OFFSET]), float(l[FLOW_SIZE])]
         nw_flows_matrix[y][x] = f
-        nw_flows.append([x, y, float(l[3]), float(l[4]), float(l[5]), r])
+        nw_flows_list.append([id, x, y] + f + [r])
 
 
+    flows_map = model_arrivals_departures(nw_flows_list, nw_flows_matrix, node_x, node_y)
+    if flows_map == -1:
+        print("Nothing found for the node [{},{}]".format(node_x, node_y))
+        return
 
+    flows_departures = flows_map[1]
 
-    incomming_flows_lb, outgoing_flow_lb, traced_flow_lb = model_flows_io(nw_flows_matrix, node_x, node_y)
+    # incomming_flows_lb, outgoing_flow_lb, traced_flow_lb = model_flows_io(nw_flows_matrix, node_x, node_y)
     # incomming_flows_ub, outgoing_flow_ub, traced_flow_ub = model_flows_io(nodes_flows_ub, x, y)
 
     #Checking the values now
     # show_simul_flows(plot=True)
 
-    show_node(node_x,node_y)
+    r = simulation_arrival_departure(node_x,node_y)
 
 
-    # for yi in range(y, 0, -1):
-    #     n_in = show_node(x, yi, packet_n=n_in)
-    # for xi in range(x, 0, -1):
-    #     n_in = show_node(xi, 0, packet_n=n_in)
+    plots = [
+        r[0], r[1], #arrivals
+        r[2], r[3], #departures
 
-    # n_in = show_node(x-1, y, packet_n=n_in)
-    # n_in = show_node(x-2, y, packet_n=n_in)
-    # n_in = show_node(x-3, y, packet_n=n_in)
+        # model_in_x, model_in_y,
+        # model_out_x, model_out_y,
+
+        # simul_traced_x[(packet_n - 1) * 2:packet_n * 2], simul_traced_y[(packet_n - 1) * 2:packet_n * 2],
+        #     simul_traced_x, simul_traced_y,
+        #     model_traced_x, model_traced_y,
+    ]
+
+    sw_in = flows_map[2]
+    sw_in_f = []
+    for i in range(len(sw_in)):
+        ff = [float('%.2f' % elem) for elem in sw_in[i]]
+        if ff != [0.0, 0.0, 0.0]:
+            sw_in_f.append(ff)
+
+    sw_out_f = flows_departures[node_y][node_x]
+
+    fn = options.outputdir + 'cumulative_n_' + str(node_x) + ',' + str(node_y) + '_sw_' + str(sw_in_f) + ' = ' + str(sw_out_f) + '.pdf'
+    plotCumulativeInOut(plots, filename=fn)
 
 
 if __name__ == '__main__':

@@ -137,15 +137,15 @@ log_queues(string context, uint16_t size){
 }
 
 void
-log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, double offset, double beta, uint8_t ms){
+log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, double offset, double burstness, uint8_t ms){
     
     string points;
     
     points = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);
     
 //    file_flows_source << "Opa\n";
-    file_flows_source << context << "," << offset << "," << beta << "," << (int) ms << "," << points << endl;
-    cout << context << "," << offset << "," << beta << "," << (int) ms << "," << points << endl;
+    file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << points << endl;
+    cout << context << "," << offset << "," << burstness << "," << (int) ms << "," << points << endl;
     
 }
 
