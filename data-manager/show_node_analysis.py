@@ -56,13 +56,7 @@ def main ():
     ############################# Initial settings #######################
     global options, args
 
-
     home = expanduser("~")
-
-    # if options.outputdir == None:
-    #     options.outputdir = home + dir + 'post/'
-    # if options.inputfile == None:
-    #     options.inputfile = home + dir + 'packets-trace-netdevice.csv'
 
     inputfile_queue_size = options.inputdir + '/queue-size-trace.csv'
     inputfile_flows = options.inputdir + '/flows-trace.csv'
@@ -246,7 +240,7 @@ def main ():
             simul_t_x, simul_t_y
                 ]
 
-
+    def model_arrival_departure():
         # else:
         #     print('The node selected have received no packets.')
 
@@ -293,31 +287,82 @@ def main ():
         #
         #     model_traced_x = [t_in_ub, t_out_lb]
         #     model_traced_y = [n_in_ub, n_in_lb]
+        return[]
 
 
-
-
-    def model_arrivals_departures(flows_list, flows_matrix, node_x, node_y):
-
-        f_none = [0, 0, 0]  # nodes own output flow
-        # flows_incomming = [[f_none for _ in range(max_x)] for _ in range(max_y)]
-        flows_incomming = copy.deepcopy(flows_matrix)
-        flows_outgoing = [[f_none for _ in range(max_x)] for _ in range(max_y)]
-
+    def intersects(flows_list, node_x, node_y):
         arriving_flows_list = []
-
-        # find which flows pass by the node of interest
         for i in range(len(flows_list)):
             r = flows_list[i][FLOW_ROUTE]
-
             if [node_x, node_y] in r:
-                index = r.index([node_x, node_y])
+                # j = r.index([node_x, node_y])
+                arriving_flows_list.append(i)
 
-                try:
-                    # if (r[index + 1] == [node_x, node_y - 1]): #leaving to the same node (competing)
-                        arriving_flows_list.append(i)
-                except:
-                    continue
+        return  arriving_flows_list
+
+
+    def model_propagate(flow_matrix, flows_list): #the list with the flows and the index of the one we are looking for
+        index = 0
+        f = flows_list[index]
+
+        # xo = f[FLOW_X]
+        # yo = f[FLOW_X]
+
+        route = f[FLOW_ROUTE]
+
+        for [x,y] in route: #which flows intersect the observed flow, at each hop
+            index_list = intersects(flows_list,x, y)
+            print(index, x, y, index_list)
+
+            if index_list == [index]: #contains myself only, self to propagate
+                print('')
+
+
+            #else, if someone else, check out that flow
+
+
+
+
+    def model_backpropagate(flows_list_all, flows_matrix_all, node_x, node_y):
+
+        f_none = [-1,-1,-1]  # unknown
+        f_zero = [0, 0, 0]   # no flows from that node
+
+        flows_source = [[f_zero for _ in range(len(flows_matrix_all[0]))] for _ in range(len(flows_matrix_all))]
+        flows_outgoing = [[f_none for _ in range(len(flows_matrix_all[0]))] for _ in range(len(flows_matrix_all))] #create an empty matrix
+
+        flows_list_filtered = []
+
+        # find filter only the flows that pass by the node of interest
+        for i in range(len(flows_list_all)):
+            l = flows_list_all[i]
+
+            route = l[FLOW_ROUTE]
+            x = l[FLOW_X]
+            y = l[FLOW_Y]
+            flow = [l[FLOW_BURSTNESS], l[FLOW_OFFSET], l[FLOW_SIZE]]
+
+            #add flows of interest to a separate list
+            # TODO: issue here is that I capture also nodes that may cross the node, and not actually interfeer
+            if [node_x, node_y] in route:
+                flows_list_filtered.append(l)
+                flows_source[y][x] = flow
+
+
+        #from this point on, work only with the contending flows
+        for l in flows_list_filtered:
+            route = l[FLOW_ROUTE]
+            # x = l[FLOW_X]
+            # y = l[FLOW_Y]
+            # flow = [l[FLOW_BURSTNESS], l[FLOW_OFFSET], l[FLOW_SIZE]]
+
+            for [x,y] in route: #which flows intersect the observed flow, at each hop
+                index_list = intersects(flows_list_filtered,x, y)
+                print(x, y, index_list)
+
+
+
+
 
 
         #find which of the intersecting flows are the farthest of its row
@@ -325,9 +370,9 @@ def main ():
         ys = {}
         # max_x = max([flows_list[i][FLOW_X] for i in arriving_flows_list])
 
-        for i in arriving_flows_list:
-            x = flows_list[i][FLOW_X]
-            y = flows_list[i][FLOW_Y]
+        for i in flows_list_filtered:
+            x = flows_list_all[i][FLOW_X]
+            y = flows_list_all[i][FLOW_Y]
 
             if not x in xs:
                 xs[x] = [y]
@@ -339,7 +384,7 @@ def main ():
             else:
                 ys[y].append(x)
 
-        if len(arriving_flows_list) == 0:
+        if len(flows_list_filtered) == 0:
             print('No flows depart or cross through this node')
             return -1
 
@@ -348,9 +393,9 @@ def main ():
             for x in range(max(ys[y]), 0, -1): #at each line (y) with a flow sorce, start from the farthest one
 
                 if x == max(ys[y]):
-                    sw_in = [flows_incomming[y][x]]
+                    sw_in = [flows_source[y][x]]
                 else:
-                    sw_in = [flows_incomming[y][x], flows_outgoing[y][x+1]]
+                    sw_in = [flows_source[y][x], flows_outgoing[y][x+1]]
 
                 flows_outgoing[y][x] = wca.resulting_flow(sw_in, analysis='eted')
                 print(x,y, flows_outgoing[y][x])
@@ -358,16 +403,17 @@ def main ():
 
         for y in range(max(ys.keys()), node_y -1, -1):
             if y == max(ys.keys()):
-                sw_in = [flows_incomming[y][node_x], flows_outgoing[y][node_x+1]]
+                sw_in = [flows_source[y][node_x], flows_outgoing[y][node_x+1]]
             else:
-                sw_in = [flows_incomming[y][node_x], flows_outgoing[y][node_x+1], flows_outgoing[y+1][node_x]]
+                sw_in = [flows_source[y][node_x], flows_outgoing[y][node_x+1], flows_outgoing[y+1][node_x]]
 
             flows_outgoing[y][node_x] = wca.resulting_flow(sw_in, analysis='eted')
 
             print(node_x, y, flows_outgoing[y][x])
 
 
-        return [flows_incomming, flows_outgoing, sw_in]
+        return [flows_source, flows_outgoing, sw_in]
+
 
     def model_flows_io(nodes_flows, x_traced, y_traced):
         # resulting_flows = copy.deepcopy(nodes_flows)
@@ -460,8 +506,6 @@ def main ():
             # plt.pause(0.001)
             # plt.draw()
 
-
-
     def plotCumulativeInOut(axis, filename=None):
 
         global options
@@ -548,12 +592,15 @@ def main ():
         nw_flows_list.append([id, x, y] + f + [r])
 
 
-    flows_map = model_arrivals_departures(nw_flows_list, nw_flows_matrix, node_x, node_y)
-    if flows_map == -1:
-        print("Nothing found for the node [{},{}]".format(node_x, node_y))
-        return
 
-    flows_departures = flows_map[1]
+    # model_propagate(nw_flows_matrix, nw_flows_list, 0)
+    flows_map = model_backpropagate(nw_flows_list, nw_flows_matrix, node_x, node_y)
+
+    # if flows_map == -1:
+    #     print("Nothing found for the node [{},{}]".format(node_x, node_y))
+    #     return
+    #
+    # flows_departures = flows_map[1]
 
     # incomming_flows_lb, outgoing_flow_lb, traced_flow_lb = model_flows_io(nw_flows_matrix, node_x, node_y)
     # incomming_flows_ub, outgoing_flow_ub, traced_flow_ub = model_flows_io(nodes_flows_ub, x, y)
@@ -576,14 +623,16 @@ def main ():
         #     model_traced_x, model_traced_y,
     ]
 
-    sw_in = flows_map[2]
+    # sw_in = flows_map[2]
+    sw_in = [[1,1,1], [2,2,2]]
     sw_in_f = []
     for i in range(len(sw_in)):
         ff = [float('%.2f' % elem) for elem in sw_in[i]]
         if ff != [0.0, 0.0, 0.0]:
             sw_in_f.append(ff)
 
-    sw_out_f = flows_departures[node_y][node_x]
+    # sw_out_f = flows_departures[node_y][node_x]
+    sw_out_f = [3.0,3.0,3.0]
 
     fn = options.outputdir + 'cumulative_n_' + str(node_x) + ',' + str(node_y) + '_sw_' + str(sw_in_f) + ' = ' + str(sw_out_f) + '.pdf'
     plotCumulativeInOut(plots, filename=fn)

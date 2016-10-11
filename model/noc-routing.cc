@@ -38,18 +38,16 @@ namespace ns3 {
         outstring << x_current << ";" << y_current;
 
         while (x_current != dx || y_current != dy) {
-            uint8_t out = 0;
+        uint8_t out = 0;
 
             switch (rp) {
                 case NOCHeader::PROTOCOL_UNICAST:
                     out = UnicastClockwiseXY(dx - x_current, dy - y_current);
                     break;
-
-                case NOCHeader::PROTOCOL_UNICAST_OFFSET:
-                    //                out = UnicastClockwiseOffsetXY(adx, ady, asx, asy);
-//                    out = UnicastClockwiseOffsetStartXY(dx, dy, ox, oy);
-                    break;
-                    
+//              case NOCHeader::PROTOCOL_UNICAST_OFFSET:
+//                  out = UnicastClockwiseOffsetXY(adx, ady, asx, asy);
+//                  out = UnicastClockwiseOffsetStartXY(dx, dy, ox, oy);
+//                  break;
                 default:
                     break;
                 
