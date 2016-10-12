@@ -430,7 +430,12 @@ main(int argc, char *argv[]) {
             } 
             else if (y == 3 && x == 4){ //The one to trace
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
-                rd = 30;
+                rd = 20;
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
+            } 
+            else if (y == 2 && x == 3){ //The one to trace
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
+                rd = 10;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
             } 
 //            else if (x > 0){ 

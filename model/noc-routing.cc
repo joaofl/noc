@@ -30,16 +30,15 @@ namespace ns3 {
 
         int32_t x_current, y_current;
         
+        
         std::ostringstream outstring;
 
         x_current = ox;
         y_current = oy;
         
-        outstring << x_current << ";" << y_current;
-
-        while (x_current != dx || y_current != dy) {
         uint8_t out = 0;
-
+        
+        while (x_current != dx || y_current != dy) {
             switch (rp) {
                 case NOCHeader::PROTOCOL_UNICAST:
                     out = UnicastClockwiseXY(dx - x_current, dy - y_current);
@@ -52,6 +51,8 @@ namespace ns3 {
                     break;
                 
             }
+            
+            outstring << x_current << ";" << y_current << ";" << int(out) << ";";
             
             switch (out){
                 case DIRECTION_MASK_N:
@@ -71,10 +72,9 @@ namespace ns3 {
                 default:
                     break;
             }
-            
-            outstring << ";" << x_current << ";" << y_current;
-
         }
+        
+        outstring << x_current << ";" << y_current << ";" << int(DIRECTION_MASK_L);
         
 //        outstring << "]";
         return outstring.str();
