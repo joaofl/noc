@@ -42,7 +42,7 @@ import others.analysis_wc
 #mpl.rcParams.update(mpl.rcParamsDefault)
 
 #Reference to the fields from simulator's flow source log file
-FLOW_ID = 0
+FLOW_NODE_ID = 0
 FLOW_X = 1
 FLOW_Y = 2
 FLOW_BURSTNESS = 3
@@ -65,8 +65,10 @@ def main ():
 
     ############################# Initial settings #######################
     global options, args
+    global flow_list_g
+    flow_list_g = []
 
-    home = expanduser("~")
+    # home = expanduser("~")
 
     inputfile_queue_size = options.inputdir + '/queue-size-trace.csv'
     inputfile_flows = options.inputdir + '/flows-trace.csv'
@@ -115,6 +117,7 @@ def main ():
             dy = abs(y2 - y1)
 
         return dx + dy
+
 
 
     def show_simul_flows(x='all', y='all', n='all', plot=False):
@@ -301,55 +304,62 @@ def main ():
         return[]
 
 
-    def compete_for(flows_list, node_x, node_y, port):
+    def competing_flows(flows_list, node_x, node_y, port):
         arriving_flows_list = []
-        for i in range(len(flows_list)):
-            r = flows_list[i][3]
-            if [node_x, node_y, port] in r:
-                # j = r.index([node_x, node_y])
+        for i in range(len(flows_list)): #Check all the flows that compete for a specific node/output port
+            route = flows_list[i][3]
+            if [node_x, node_y, port] in route:
                 arriving_flows_list.append(i)
 
+        #Return the indexes of the flows
         return  arriving_flows_list
 
 
-    flow_list_g = []
+
 
     def model_propagate(f_index=0): #the list with the flows and the index of the one we are looking for
-        line = flow_list_g[f_index] #take whatever, should be the same
-        route_base = line[3]
-        route_flows_base = line[4]
+
+        route_base = flow_list_g[f_index][3]
+        route_flows_base = flow_list_g[f_index][4] # a list containing the resulting flows at that route
+        route_flows_index_base = flow_list_g[f_index][5] # a list with the indexes of the flows that generated the correncponding flow
 
         i = 0
         while i in range(len(route_base) -1): #which flows intersect the observed flow, at each hop
             [x, y, p] = route_base[i]
-            index_list = compete_for(flow_list_g, x, y, p)
+            index_list = competing_flows(flow_list_g, x, y, p)
 
             # First Check which are uknown
             sw_in = []
+            sw_in_index = []
             unknown_list = []
-            unknown = 0
-            for j in index_list:
-                l2 = flow_list_g[j]
-                route = l2[3]
-                route_flows = l2[4]
 
-                k = route.index([x,y,p])
-                if route_flows[k] == f_unknown:
-                    unknown += 1
+            for j in index_list:
+                route = flow_list_g[j][3]
+                route_flows = flow_list_g[j][4] #get the complete route of the flow that intersects with the initial one
+                route_flows_index = flow_list_g[j][5]
+                hop_n = route.index([x,y,p]) #get the index of the point at each the flows intersect
+
+                if route_flows[hop_n] == f_unknown:
                     unknown_list.append(j)
                 else:
-                    if not route_flows[k] in sw_in: #TODO: this is wrong like that. Have to account a single time for flow already aggregated. But how? Using a id?
-                        sw_in.append(route_flows[k])
+                    # if not route_flows[hop_n] in sw_in: #TODO: this is wrong like that. Have to account a single time for flow already aggregated. But how? Using a id?
+                    if not route_flows_index[hop_n] in sw_in_index:
+                        sw_in.append(route_flows[hop_n])
+                        sw_in_index.append(route_flows_index[hop_n])
 
-            if unknown == 0:
-                route_flows_base[i + 1] = wca.resulting_flow(sw_in, analysis='eted')
+
+            #If all are known, calculate the resulting flow
+            if len(unknown_list) == 0:
+                f_out = wca.resulting_flow(sw_in, analysis='eted')
+                route_flows_base[i + 1] = f_out
+                route_flows_index_base[i + 1] = index_list
                 i += 1
             else:
                 model_propagate(unknown_list[0])
                 # return
                 # else
 
-        print(route_flows_base)
+        # print(route_flows_base)
         return
 
 
@@ -517,23 +527,28 @@ def main ():
     f_unknown = [-1, -1, -1]  #nodes own output flow
     nw_flows_list = []
 
-    for l in trace_flows_source:
-        id = int(l[FLOW_ID])
+    for k in range(len(trace_flows_source)):
+        l = trace_flows_source[k]
+        id = int(l[FLOW_NODE_ID])
         x = int(l[FLOW_X])
         y = int(l[FLOW_Y])
         f = [float(l[FLOW_BURSTNESS]), float(l[FLOW_OFFSET]), float(l[FLOW_SIZE])]
         p = l[FLOW_ROUTE].split(';')
+
         route = []
         route_flows = []
+        route_flows_index = []
 
 
         for i in range(0, len(p), 3):
             route.append([int(p[i]), int(p[i+1]), int(p[i+2])])
             route_flows.append(f_unknown)
+            route_flows_index.append([])
 
         route_flows[0] = f
+        route_flows_index[0] = [k]
 
-        nw_flows_list.append([id, x, y] + [route] + [route_flows])
+        nw_flows_list.append([id, x, y] + [route] + [route_flows] + [route_flows_index])
 
 
     # find filter only the flows that pass by the node of interest
@@ -542,7 +557,6 @@ def main ():
         if [node_x, node_y, port] in route:
             flow_list_g.append(l)
 
-    # flow_list_g = flows_list_filtered
     model_propagate()
 
     print(flow_list_g)
