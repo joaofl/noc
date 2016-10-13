@@ -262,20 +262,10 @@ def main ():
         sw_in = flow_dict_g[node_x, node_y][0]
         sw_out = [flow_dict_g[node_x, node_y][1]]
 
-        #######
-        def transform(data):
-            x = []
-            y = []
-            for e in data:
-                y.append(e[1])
-                x.append(e[0])
-            return [x, y]
-        #######
 
-        [model_in, model_out] = wca.calculate_node(sw_in, sw_out)
+        [x_arrival, y_arrival] = wca.calculate_node(sw_in)
+        [x_departure, y_departure] = wca.calculate_node(sw_out)
 
-        [x_arrival, y_arrival] = transform(model_in)
-        [x_departure, y_departure] = transform(model_out)
 
         # t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
             # model_node_bounds(
@@ -286,7 +276,7 @@ def main ():
             # )
 
 
-        return[x_arrival, y_arrival, x_departure, y_departure]
+        return [x_arrival, y_arrival, x_departure, y_departure]
 
 
     def competing_flows(flows_list, node_x, node_y, port):
@@ -353,45 +343,6 @@ def main ():
         return
 
 
-
-    def model_flows_io(nodes_flows, x_traced, y_traced):
-        # resulting_flows = copy.deepcopy(nodes_flows)
-        outgoing_flows = [[0 for _ in range(max_x)] for _ in range(max_y)]
-        incoming_flows = [[0 for _ in range(max_x)] for _ in range(max_y)] #including mine
-        traced_flows = [[0 for _ in range(max_x)] for _ in range(max_y)] #the flow that carries the packet we are tracing
-
-        #Considering routing is y first, which holds for +x+y quadrant if using clockwise routing
-        for x in range(len(nodes_flows[0]) -1, -1, -1):
-            for y in range(len(nodes_flows) -1, -1, -1):
-
-                if y == y_traced and x == x_traced:
-                    traced_flows[y][x] = nodes_flows[y][x]
-                elif y < y_traced and y > 0 and x == x_traced:
-                    traced_flows[y][x] = outgoing_flows[y+1][x]
-                elif (y == 0):
-                    if x == x_traced:
-                        traced_flows[y][x] = outgoing_flows[y + 1][x]
-                    elif x < x_traced:
-                        traced_flows[y][x] = outgoing_flows[y][x + 1]
-
-                if (y == len(nodes_flows) -1): #node on the top edge. Only its own flow
-                    sw_in = [[0,0,0]]
-                elif (y < len(nodes_flows) -1 and y > 0): #myself and the node before myself
-                    sw_in = [outgoing_flows[y+1][x]]
-                elif (y == 0): #nodes in the sink's line. Get from right and top
-                    if (x == len(nodes_flows[0])-1): #if on the right edge, it only gets from top
-                        sw_in = [outgoing_flows[y + 1][x]]
-                    elif (x < len(nodes_flows[0])-1):
-                        sw_in = [outgoing_flows[y + 1][x], outgoing_flows[y][x+1]]
-
-                sw_in.append(nodes_flows[y][x])
-                sw_in = list(reversed(sw_in)) #tweak for better file names
-
-                incoming_flows[y][x] = copy.deepcopy(sw_in) #add my own flow to calculate the output
-                outgoing_flows[y][x] = wca.resulting_flow(sw_in, analysis='eted')
-
-        return incoming_flows, outgoing_flows, traced_flows
-
     def model_node_bounds(traced_flow, in_flows, out_flow, packet_n=0):
         swi = in_flows  # the incomming
         swo = [out_flow]
@@ -457,15 +408,15 @@ def main ():
         y_lim = None
 
         lines = ["-", "-", ":", "--", " ", " ", " ", " "]
-        markers = ["", "", "", "", "o", "*", "o", "o"]
-        colours = ['lightgreen', 'yellow', 'black', 'black', 'cyan', 'blue', 'purple', 'purple']
+        markers = ["x", "x", "*", "*", "o", "*", "o", "o"]
+        colours = ['lightgreen', 'darkgreen', 'black', 'black', 'cyan', 'blue', 'purple', 'purple']
         labels = [
             'Arrivals',
             'Departures',
-            'Arrivals UB',
+            'Arrivals',
             # 'Departures UP',
             # 'Arrivals LB',
-            'Departures LB',
+            'Departures',
             'Traced',
             'Bounds'
         ]
