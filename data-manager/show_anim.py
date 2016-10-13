@@ -58,6 +58,7 @@ class Node(QGraphicsItem):
         # self.setFlag(QGraphicsItem.ItemIsMovable)
 
         self.__m = node_size / 10
+        m = self.__m
 
         self.__x_pos = position[0]
         self.__y_pos = position[1]
@@ -66,17 +67,50 @@ class Node(QGraphicsItem):
 
         self.setPos(self.__x, self.__y)
 
+        self.__north_tx_rect = QRectF(m, -2 * m, 2 * m, 3 * m)
+        self.__north_rx_rect = QRectF(3 * m, -2 * m, 2 * m, 3 * m)
+
+        self.__south_tx_rect = QRectF(3 * m, 5 * m, 2 * m, 3 * m)
+        self.__south_rx_rect = QRectF(m, 5 * m, 2 * m, 3 * m)
+
+        self.__east_tx_rect = QRectF(5 * m, 3 * m, 3 * m, 2 * m)
+        self.__east_rx_rect = QRectF(5 * m, m, 3 * m, 2 * m)
+
+        self.__west_tx_rect = QRectF(-2 * m, m, 3 * m, 2 * m)
+        self.__west_rx_rect = QRectF(-2 * m, 3 * m, 3 * m, 2 * m)
+
+        self.__core_rect = QRectF(m, m, 4 * m, 4 * m)
+        # self.__core_rect.setX(self.__x)
+        # self.__core_rect.setY(self.__y)
+
+        # self.__core_rx_rect = QRectF(-2 * m, 3 * m, 3 * m, 2 * m)
 
     def mouseDoubleClickEvent(self, QMouseEvent):
-        print('[' + str(self.__x_pos) + ',' + str(self.__y_pos) + ']')
-        lauch_external(self.__x_pos, self.__y_pos)
-    # def mousePressEvent(self, QGraphicsSceneMouseEvent):
-    #     print('MM')
+        msg = "Double clicked on node [{},{}]".format(self.__x_pos, self.__y_pos)
+        ex.status_bar.showMessage(msg)
 
+        lauch_external(self.__x_pos, self.__y_pos)
+
+    def mousePressEvent(self, QGraphicsSceneMouseEvent):
+        pos = QGraphicsSceneMouseEvent.scenePos()
+
+        # item = ex.graphics.itemAt(pos)
+        # item = ex.scene.itemAt(pos, QGraphicsView.transform(ex.graphics))
+        item = ex.scene.itemAt(pos, QGraphicsItem.transform(self))
+
+        who = self.__core_rect.contains(pos)
+
+        print(self.__core_rect.getCoords())
+
+
+        # msg = "Selected node [{},{}] at".format(item._Node__x_pos, item._Node__y_pos, pos)
+        msg = "Selected {} [{},{}] at {}".format(who, self.__x_pos, self.__y_pos, pos)
+        ex.status_bar.showMessage(msg)
 
 
     def boundingRect(self):
         r = QRectF(self.__m , self.__m, 4 * self.__m, 4 * self.__m) #only inside the core
+        # r = QRectF(-2 * self.__m , -2 * self.__m, 8 * self.__m, 8 * self.__m) #only inside the core
         # r.adjust(self, 1,1,1,1)
         return r
 
@@ -177,29 +211,29 @@ class Node(QGraphicsItem):
         # qp.setBrush(QColor("white"))
         qp.setPen(QColor("lightgrey"))
 
-        c = self.__m
+        m = self.__m
         # x = 0
         # y = 0
 
         qp.setBrush(self.__north_tx_brush)
-        qp.drawRect(c, -2*c, 2*c, 3*c) #draw netdev north rx e tx
+        qp.drawRect(self.__north_tx_rect) #draw netdev north rx e tx
         qp.setBrush(self.__north_rx_brush)
-        qp.drawRect(3*c, -2*c, 2*c, 3*c) #draw netdev north rx e tx
+        qp.drawRect(self.__north_rx_rect) #draw netdev north rx e tx
 
         qp.setBrush(self.__south_rx_brush)
-        qp.drawRect(c, 5*c, 2 * c, 3 * c) #draw netdev south rx e tx
+        qp.drawRect(self.__south_rx_rect) #draw netdev south rx e tx
         qp.setBrush(self.__south_tx_brush)
-        qp.drawRect(3*c, 5*c, 2 * c, 3 * c)
+        qp.drawRect(self.__south_tx_rect)
 
         qp.setBrush(self.__west_tx_brush)
-        qp.drawRect(-2 * c, c, 3*c, 2 * c) #draw netdev east rx e tx
+        qp.drawRect(self.__west_tx_rect) #draw netdev east rx e tx
         qp.setBrush(self.__west_rx_brush)
-        qp.drawRect(-2 * c, 3 * c, 3*c, 2 * c)
+        qp.drawRect(self.__west_rx_rect)
 
         qp.setBrush(self.__east_rx_brush)
-        qp.drawRect(5 * c, c, 3*c, 2 * c) #draw netdev west rx e tx
+        qp.drawRect(self.__east_rx_rect) #draw netdev west rx e tx
         qp.setBrush(self.__east_tx_brush)
-        qp.drawRect(5 * c, 3 * c, 3*c, 2 * c)
+        qp.drawRect(self.__east_tx_rect)
 
 
         qp.setPen(QColor("darkgrey"))
@@ -214,7 +248,7 @@ class Node(QGraphicsItem):
         if (self.__core_tx == 1):
             qp.setBrush( self.__core_tx_brush)
 
-        qp.drawRect(c, c, 4 * c, 4 * c)
+        qp.drawRect(self.__core_rect)
 
         qp.setBrush(QColor("white"))
         qp.setBrush( self.__led_off_brush)
@@ -222,18 +256,16 @@ class Node(QGraphicsItem):
         if (self.__led == 1):
             qp.setBrush( self.__led_on_brush)
             # qp.setPen(QColor("green"))
-        qp.drawEllipse(3.3 * c, 3.3 * c, 1.3 * c, 1.3 * c)  # draw the node
+        qp.drawEllipse(3.3 * m, 3.3 * m, 1.3 * m, 1.3 * m)  # draw the node
         # if (self.__led == 0):
         #     qp.setBrush( self.__led_off_brush)
 
 
         qp.setPen(QColor("darkgrey"))
-        qp.drawText(1.3 * c, 3 * c, self.__text)
+        qp.drawText(1.3 * m, 3 * m, self.__text)
 
 
 class NOCAnim(QWidget):
-
-
 
     def __init__(self):
         super().__init__()
@@ -287,18 +319,10 @@ class NOCAnim(QWidget):
 
 
         self.scene = QGraphicsScene()
-
-        # self.graphics = MyQGraphicsView()
         self.graphics = QGraphicsView()
         self.graphics.setScene(self.scene)
-        # self.graphics.setInteractive(True)
-        # self.graphics.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        # self.graphics.verticalScrollBar().setSingleStep(1)
-        # self.graphics.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        # self.graphics.horizontalScrollBar().setSingleStep(1)
-        # self.graphics.setViewport(QGLWidget())
-        # self.graphics.resize(100,100)
-        # self.graphics.setMouseTracking(True)
+
+        self.status_bar = QStatusBar(self)
 
 
         hbox_l1 = QHBoxLayout()
@@ -313,17 +337,20 @@ class NOCAnim(QWidget):
         hbox_l1.addStretch(1)
 
 
-
         hbox_l2 = QHBoxLayout()
         hbox_l2.addWidget(self.pbar)
         hbox_l2.addWidget(self.tb_time_ns)
         hbox_l2.addWidget(self.tb_time_tts)
+
+        hbox_l3 = QHBoxLayout()
+        hbox_l3.addWidget(self.status_bar)
 
 
         vbox = QVBoxLayout()
         vbox.addLayout(hbox_l1)
         vbox.addLayout(hbox_l2)
         vbox.addWidget(self.graphics)
+        vbox.addLayout(hbox_l3)
 
         self.setLayout(vbox)
         self.setGeometry(200, 100, 1200, 900)
