@@ -102,7 +102,7 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetFlowGenerator(double_t burstiness, double_t offset, uint32_t msg_size, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y) {
+    XDenseApp::SetFlowGenerator(uint8_t start_delay, double_t burstiness, double_t offset, uint32_t msg_size, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y) {
         if (burstiness == 0 || IsActive == false)
             return;        
 
@@ -121,7 +121,7 @@ namespace ns3 {
         m_flows_source(orig_x, orig_y, dest_x, dest_y, offset, burstiness, msg_size);
         
         Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
-        Time t_offset = Time::FromInteger(PacketDuration.GetNanoSeconds() * offset, Time::NS);
+        Time t_offset = Time::FromInteger(PacketDuration.GetNanoSeconds() * (offset + start_delay), Time::NS);
         
         for (uint16_t i = 0 ; i < msg_size ; i++ ){
             Ptr<Packet> pck_c = pck->Copy();
@@ -380,7 +380,7 @@ namespace ns3 {
         Ptr<Packet> pck_out = Create<Packet>();
         pck_out->AddHeader(hd_out);
         
-        this->SetFlowGenerator(b, rd, ms, pck_out, dest_x, dest_y);
+        this->SetFlowGenerator(0, b, rd, ms, pck_out, dest_x, dest_y);
     }
     
     void

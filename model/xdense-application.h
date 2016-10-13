@@ -79,7 +79,7 @@ namespace ns3 {
 
         void SetShaper(double_t b, uint8_t rd, uint8_t port);
             
-        void SetFlowGenerator(double_t, double_t, uint32_t, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y);
+        void SetFlowGenerator(uint8_t start_delay, double_t, double_t, uint32_t, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y);
 
         void RunApplicationWCA(bool trace, bool is_sink);
         
