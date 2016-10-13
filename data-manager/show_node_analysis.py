@@ -67,6 +67,8 @@ def main ():
     global options, args
     global flow_list_g
     flow_list_g = []
+    global flow_dict_g
+    flow_dict_g = {}
 
     # home = expanduser("~")
 
@@ -254,54 +256,37 @@ def main ():
             simul_t_x, simul_t_y
                 ]
 
-    def model_arrival_departure():
-        # else:
+    def model_arrival_departure(node_x, node_y):
         #     print('The node selected have received no packets.')
 
+        sw_in = flow_dict_g[node_x, node_y][0]
+        sw_out = [flow_dict_g[node_x, node_y][1]]
+
+        #######
+        def transform(data):
+            x = []
+            y = []
+            for e in data:
+                y.append(e[1])
+                x.append(e[0])
+            return [x, y]
+        #######
+
+        [model_in, model_out] = wca.calculate_node(sw_in, sw_out)
+
+        [x_arrival, y_arrival] = transform(model_in)
+        [x_departure, y_departure] = transform(model_out)
+
+        # t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
+            # model_node_bounds(
+            #                   in_flows=incomming_flows_lb[node_y][node_x],
+            #                   out_flow=outgoing_flow_lb[node_y][node_x],
+            #                     traced_flow=traced_flow_lb[node_y][node_x],
+            #                   packet_n=packet_n
+            # )
 
 
-
-        ################# Now the same trace_packets but from the model ###################
-        #
-        #
-        #
-        # sw_in = incomming_flows_ub[node_y][node_x] # + [nodes_flows_ub[node_y][node_x]]
-        # sw_out = [outgoing_flow_lb[node_y][node_x]]
-        #
-        # if (count_t + count_r) > 0:
-        #
-        #     #######
-        #     def transform(data):
-        #         x = []
-        #         y = []
-        #         for e in data:
-        #             y.append(e[1])
-        #             x.append(e[0])
-        #         return [x, y]
-        #     #######
-        #
-        #     [model_in, model_out] = wca.calculate_node(sw_in, sw_out)
-        #
-        #     [model_in_x, model_in_y] = transform(model_in)
-        #     [model_out_x, model_out_y] = transform(model_out)
-        #
-        #     t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
-        #         model_node_bounds(traced_flow=traced_flow_lb[node_y][node_x],
-        #                           in_flows=incomming_flows_lb[node_y][node_x],
-        #                           out_flow=outgoing_flow_lb[node_y][node_x],
-        #                           packet_n=packet_n)
-        #
-        #     t_in_ub, t_out_ub, n_in_ub, n_out_ub = \
-        #         model_node_bounds(traced_flow=traced_flow_ub[node_y][node_x],
-        #                           in_flows=incomming_flows_ub[node_y][node_x],
-        #                           out_flow=outgoing_flow_ub[node_y][node_x],
-        #                           packet_n=packet_n)
-        #
-        #
-        #
-        #     model_traced_x = [t_in_ub, t_out_lb]
-        #     model_traced_y = [n_in_ub, n_in_lb]
-        return[]
+        return[x_arrival, y_arrival, x_departure, y_departure]
 
 
     def competing_flows(flows_list, node_x, node_y, port):
@@ -354,6 +339,11 @@ def main ():
                 route_flows_base[i + 1] = f_out
                 route_flows_index_base[i + 1] = index_list
                 i += 1
+
+                # organaze data in a hashtable to allow easy access by coordinates
+                if not (x, y) in flow_dict_g:
+                    flow_dict_g[x, y] = [sw_in, f_out]
+
             else:
                 model_propagate(unknown_list[0])
                 # return
@@ -535,9 +525,9 @@ def main ():
         f = [float(l[FLOW_BURSTNESS]), float(l[FLOW_OFFSET]), float(l[FLOW_SIZE])]
         p = l[FLOW_ROUTE].split(';')
 
-        route = []
-        route_flows = []
-        route_flows_index = []
+        route = [] #keeps track of the route
+        route_flows = [] #Keeps track of the resulting flows along the route
+        route_flows_index = [] #it is an anrray that keeps track of which flows intercept you at each hop
 
 
         for i in range(0, len(p), 3):
@@ -545,7 +535,7 @@ def main ():
             route_flows.append(f_unknown)
             route_flows_index.append([])
 
-        route_flows[0] = f
+        route_flows[0] = f #in the begining, you yours is known (the source)
         route_flows_index[0] = [k]
 
         nw_flows_list.append([id, x, y] + [route] + [route_flows] + [route_flows_index])
@@ -559,47 +549,39 @@ def main ():
 
     model_propagate()
 
-    print(flow_list_g)
+
+
+    for l in flow_list_g:
+        print("--------------------------------------------------------------------------")
+        print("Route: {}".format(l[3]))
+        print("Flows: {}".format(l[4]))
+        print("Inter: {}".format(l[5]))
+    print("--------------------------------------------------------------------------")
+
 
     # if flows_map == -1:
     #     print("Nothing found for the node [{},{}]".format(node_x, node_y))
     #     return
-    #
-    # flows_departures = flows_map[1]
 
-    # incomming_flows_lb, outgoing_flow_lb, traced_flow_lb = model_flows_io(nw_flows_matrix, node_x, node_y)
-    # incomming_flows_ub, outgoing_flow_ub, traced_flow_ub = model_flows_io(nodes_flows_ub, x, y)
+    plots_simul = simulation_arrival_departure(node_x, node_y)
+    plots_model = model_arrival_departure(node_x, node_y)
 
-    #Checking the values now
-    # show_simul_flows(plot=True)
-
-    route = simulation_arrival_departure(node_x,node_y)
+    plots = plots_simul + plots_model
 
 
-    plots = [
-        route[0], route[1], #arrivals
-        route[2], route[3], #departures
 
-        # model_in_x, model_in_y,
-        # model_out_x, model_out_y,
-
-        # simul_traced_x[(packet_n - 1) * 2:packet_n * 2], simul_traced_y[(packet_n - 1) * 2:packet_n * 2],
-        #     simul_traced_x, simul_traced_y,
-        #     model_traced_x, model_traced_y,
-    ]
-
-    # sw_in = flows_map[2]
-    sw_in = [[1,1,1], [2,2,2]]
+    # Naming the output file
+    sw_in = flow_dict_g[node_x, node_y][0]
+    sw_out_f = flow_dict_g[node_x, node_y][1]
     sw_in_f = []
     for i in range(len(sw_in)):
         ff = [float('%.2f' % elem) for elem in sw_in[i]]
         if ff != [0.0, 0.0, 0.0]:
             sw_in_f.append(ff)
 
-    # sw_out_f = flows_departures[node_y][node_x]
-    sw_out_f = [3.0,3.0,3.0]
-
     fn = options.outputdir + 'cumulative_n_' + str(node_x) + ',' + str(node_y) + '_sw_' + str(sw_in_f) + ' = ' + str(sw_out_f) + '.pdf'
+
+    #Ploting results
     plotCumulativeInOut(plots, filename=fn)
 
 

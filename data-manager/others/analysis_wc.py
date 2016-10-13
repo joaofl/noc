@@ -89,7 +89,7 @@ def resulting_flow(sw, analysis):
 
 def calculate_node(sw_in, sw_out):
 
-    step = 0.01
+    step = 0.05
     ############# Input #############################################
     arrivals = []
 

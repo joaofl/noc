@@ -424,20 +424,25 @@ main(int argc, char *argv[]) {
             if (y == 1 && x == 4){ //The one to trace
                 shaper_rd = 27;
                 shaper_b = 1;
-                rd = 1;
+//                rd = 1;
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_W);                                          
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
             } 
-            else if (y == 3 && x == 4){ //The one to trace
+            else if (y == 3 && x == 0){ //The one to trace
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
-                rd = 20;
+//                rd = 20;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
             } 
-            else if (y == 2 && x == 3){ //The one to trace
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
-                rd = 10;
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
-            } 
+//            else if (y == 2 && x == 3){ //The one to trace
+////                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
+//                rd = 10;
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
+//            } 
+//            else if (y == 2 && x == 2){ //The one to trace
+////                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
+//                rd = 10;
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
+//            } 
 //            else if (x > 0){ 
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);  
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);               
