@@ -87,38 +87,31 @@ def resulting_flow(sw, analysis):
     return [burstiness_out, release_delay_out, msg_size_out]
 
 
-def calculate_node(sw_in, sw_out):
+def calculate_node(sw_in):
 
-    step = 0.05
+    step = 0.01
     ############# Input #############################################
-    arrivals = []
+    x_arrivals = []
+    y_arrivals = []
 
     msg_size_total = 0
 
     for f in sw_in:
         msg_size_total += f[2]
 
-    count = 0
+    count = -1
     t = 0
 
     while(count < msg_size_total):
-        count = produced_until(t, sw_in)
-        arrivals.append([t, count])
+        count_n = produced_until(t, sw_in)
+        if count_n != count:
+            count = count_n
+            x_arrivals.append(t)
+            y_arrivals.append(count)
+
         t += step
-    t -= step #removed from last iteration not done
 
-    ############# Output ##########################################
-    departures = []
-    count = 0
-    t = 0
-
-    while(count < msg_size_total):
-        count = produced_until(t, sw_out)
-        departures.append([t, count])
-        t += step
-    t -= step #removed from last iteration not done
-
-    return [arrivals, departures]
+    return [x_arrivals, y_arrivals]
 
 
 def calculate():
