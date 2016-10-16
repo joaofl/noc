@@ -225,7 +225,7 @@ def main ():
                 ################# Received ####################
                 if line[HEADER.protocol_app] == '1':
                     #Build the matrix for the density map
-                    if line[HEADER.operation] == 'r': #or line[HEADER.operation] == 'g':
+                    if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
                         # Build the cumulative arrival/departure for an specific node
                         count_r += 1
 
@@ -308,6 +308,9 @@ def main ():
             sw_in_index = []
             unknown_list = []
 
+            if x == 1 and y == 1:
+                print('')
+
             for j in index_list:
                 route = flow_list_g[j][3]
                 route_flows = flow_list_g[j][4] #get the complete route of the flow that intersects with the initial one
@@ -325,7 +328,7 @@ def main ():
 
             #If all are known, calculate the resulting flow
             if len(unknown_list) == 0:
-                f_out = wca.resulting_flow(sw_in, analysis='eted')
+                f_out = wca.resulting_flow(sw_in)
                 route_flows_base[i + 1] = f_out
                 route_flows_index_base[i + 1] = index_list
                 i += 1
@@ -463,7 +466,8 @@ def main ():
 
     node_x = int(options.pos_x)
     node_y = int(options.pos_y)
-    port = int(DIRECTION_MASK_S) #Has to be provided from the interface, by clicking at the port
+    # port = int(DIRECTION_MASK_S) #Has to be provided from the interface, by clicking at the port
+    port = int(options.port)
 
     f_unknown = [-1, -1, -1]  #nodes own output flow
     nw_flows_list = []
@@ -551,6 +555,7 @@ if __name__ == '__main__':
         parser.add_option ('-y', '--size_y', help='network size')
         parser.add_option ('--pos_x', help='node to analyse', default=0)
         parser.add_option ('--pos_y', help='node to analyse', default=0)
+        parser.add_option ('--port', help='port to analyse', default=0)
         parser.add_option ('-s', '--sinks_n', help='number of sinks', default=1)
         parser.add_option ('-b', '--baudrate', help='baudrate utilized', default=3000000)
         parser.add_option ('-p', '--packet_size', help='packet_size in bits', default=16*10)

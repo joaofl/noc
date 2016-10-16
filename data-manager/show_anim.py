@@ -53,6 +53,21 @@ class Node(QGraphicsItem):
     __east_rx_brush, __east_tx_brush = QColor("white"),QColor("white")
     __west_rx_brush, __west_tx_brush = QColor("white"),QColor("white")
 
+    port = {
+        'east'  :   0b00000001,
+        'south' :   0b00000010,
+        'west'  :   0b00000100,
+        'north' :   0b00001000,
+        'core'  :   0b00010000,
+        'all'   :   0b00011111,
+        'none'  :   0b00000000,
+    }
+
+    direction = {
+        0 : 'out',
+        1 : 'in'
+    }
+
     def __init__(self, position, nw_size, node_size, parent = None):
         QGraphicsItem.__init__(self,parent)
         # self.setFlag(QGraphicsItem.ItemIsMovable)
@@ -86,33 +101,56 @@ class Node(QGraphicsItem):
         # self.__core_rx_rect = QRectF(-2 * m, 3 * m, 3 * m, 2 * m)
 
     def mouseDoubleClickEvent(self, QMouseEvent):
-        msg = "Double clicked on node [{},{}]".format(self.__x_pos, self.__y_pos)
+
+        pos = QMouseEvent.pos()
+
+        port = self.get_who(pos)
+
+        msg = "Node analysis run for {} [{},{}]".format(port, self.__x_pos, self.__y_pos)
         ex.status_bar.showMessage(msg)
 
-        lauch_external(self.__x_pos, self.__y_pos)
+        lauch_external(self.__x_pos, self.__y_pos, port)
 
     def mousePressEvent(self, QGraphicsSceneMouseEvent):
-        pos = QGraphicsSceneMouseEvent.scenePos()
+        pos = QGraphicsSceneMouseEvent.pos()
 
-        # item = ex.graphics.itemAt(pos)
-        # item = ex.scene.itemAt(pos, QGraphicsView.transform(ex.graphics))
-        item = ex.scene.itemAt(pos, QGraphicsItem.transform(self))
+        who = self.get_who(pos)
 
-        who = self.__core_rect.contains(pos)
-
-        print(self.__core_rect.getCoords())
-
-
-        # msg = "Selected node [{},{}] at".format(item._Node__x_pos, item._Node__y_pos, pos)
-        msg = "Selected {} [{},{}] at {}".format(who, self.__x_pos, self.__y_pos, pos)
+        msg = "Selected {} [{},{}]".format(who, self.__x_pos, self.__y_pos)
         ex.status_bar.showMessage(msg)
 
 
     def boundingRect(self):
-        r = QRectF(self.__m , self.__m, 4 * self.__m, 4 * self.__m) #only inside the core
-        # r = QRectF(-2 * self.__m , -2 * self.__m, 8 * self.__m, 8 * self.__m) #only inside the core
+        # r = QRectF(self.__m , self.__m, 4 * self.__m, 4 * self.__m) #only inside the core
+        r = QRectF(-2 * self.__m , -2 * self.__m, 10 * self.__m, 10 * self.__m) #only inside the core
         # r.adjust(self, 1,1,1,1)
         return r
+
+    def get_who(self, pos):
+        if self.__core_rect.contains(pos):
+            who = self.port['core']
+
+        elif self.__east_rx_rect.contains(pos):
+            who = self.port['east']
+        elif self.__east_tx_rect.contains(pos):
+            who = self.port['east']
+
+        elif self.__west_rx_rect.contains(pos):
+            who = self.port['west']
+        elif self.__west_tx_rect.contains(pos):
+            who = self.port['west']
+
+        elif self.__north_rx_rect.contains(pos):
+            who = self.port['north']
+        elif self.__north_tx_rect.contains(pos):
+            who = self.port['north']
+
+        elif self.__south_rx_rect.contains(pos):
+            who = self.port['south']
+        elif self.__south_tx_rect.contains(pos):
+            who = self.port['south']
+
+        return who
 
     def reset(self):
         self.setProperty(0,0,0,0,0,0,0,0,0,0)
@@ -400,7 +438,7 @@ class NOCAnim(QWidget):
 
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]-1, 0, -1):
-                n = Node([x,y], self.networkSize, node_size=self.nodes_size)
+                n = Node([x,y], self.networkSize, node_size=self.nodes_size, parent=None)
                 self.network[y][x] = n
                 self.scene.addItem(n)
 
@@ -527,10 +565,10 @@ class NOCAnim(QWidget):
         self.pbar.setValue((t / lastT) * 100)
 
         tts = round(t / self.packetDuration, 2)
-        self.tb_time_tts.setText('{0:.2f}'.format(tts) + 'tts')
+        self.tb_time_tts.setText('{0:.2f}tts'.format(tts))
 
         time = round(t / 1000, 2)
-        self.tb_time_ns.setText('{0:.2f}'.format(time) + 'µs')
+        self.tb_time_ns.setText('{0:.2f}µs'.format(time))
 
         if self.previous_index == len(self.packetTrace) - 1:
             self.doActionStartStop()
@@ -545,8 +583,9 @@ class NOCAnim(QWidget):
         #self.update()
 
 
-def lauch_external(x, y):
-    args = ' --inputdir=' + options.inputdir + ' --outputdir=' + options.outputdir + ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' '
+def lauch_external(x, y, port):
+    args = ' --inputdir=' + options.inputdir + ' --outputdir=' + options.outputdir + \
+           ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' --port=' + str(port) + ' '
     script = '/home/joao/Repositorios/ns-3-dev/src/noc/data-manager/show_node_analysis.py'
 
     cmd = 'python3.5 ' + script + args

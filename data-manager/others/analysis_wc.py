@@ -49,7 +49,7 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw, analysis):
+def resulting_flow(sw):
     burstiness = []
     release_delay = []
     msg_size = []
@@ -70,15 +70,15 @@ def resulting_flow(sw, analysis):
     burstiness_out = 0
     release_delay_out = 0
 
-    if analysis == 'eted':
-        burstiness_out = msg_size_out / numpy.max(ms_over_b)
-        release_delay_out = numpy.max(release_delay) + 1
+    # if analysis == 'eted':
+    burstiness_out = msg_size_out / numpy.max(ms_over_b)
+    release_delay_out = numpy.max(release_delay) + 1
     # elif analysis == 'eted_lb':
     #     burstiness_out = numpy.sum(burstiness)
     #     release_delay_out = numpy.min(release_delay) + 1
-    else:
-        print('Invalid model option ' + analysis)
-        exit(1)
+    # else:
+    #     print('Invalid model option ' + analysis)
+    #     exit(1)
 
 
     if burstiness_out > 1:
