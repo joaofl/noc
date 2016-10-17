@@ -23,6 +23,7 @@
 #include "src/core/model/simulator.h"
 #include "src/network/model/packet.h"
 #include "noc-routing.h"
+#include "ns3/xdense-application.h"
 
 
 
@@ -102,7 +103,9 @@ namespace ns3 {
     }
     
     void 
-    XDenseApp::SetFlowGenerator(uint8_t start_delay, double_t burstiness, double_t offset, uint32_t msg_size, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y) {
+    XDenseApp::SetFlowGenerator(uint8_t initial_delay, double_t burstiness, double_t t_offset, uint32_t msg_size, 
+            Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y, bool addressing) {
+        
         if (burstiness == 0 || IsActive == false)
             return;        
 
@@ -113,20 +116,30 @@ namespace ns3 {
 //            hd.SetXdenseProtocol(XDenseHeader::TRACE);
 //            hd.SetData(0 + release_delay);
 //        }
-        int32_t orig_x, orig_y;
+        int32_t orig_x_log, orig_y_log, dest_x_log, dest_y_log;
+        double offset_log = (Simulator::Now().GetNanoSeconds() / PacketDuration.GetNanoSeconds()) + t_offset; //get the absolute offset
         
-        orig_x = m_router->AddressX;
-        orig_y = m_router->AddressY;
+        orig_x_log = m_router->AddressX;
+        orig_y_log = m_router->AddressY;
         
-        m_flows_source(orig_x, orig_y, dest_x, dest_y, offset, burstiness, msg_size);
+        if (addressing == ADDRESSING_RELATIVE){
+                dest_x_log = m_router->AddressX + dest_x;
+                dest_y_log = m_router->AddressY + dest_y;
+        }
+        else if (addressing == ADDRESSING_ABSOLUTE){
+                dest_x_log = dest_x;
+                dest_y_log = dest_y;           
+        }
         
-        Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
-        Time t_offset = Time::FromInteger(PacketDuration.GetNanoSeconds() * (offset + start_delay), Time::NS);
+        m_flows_source(orig_x_log, orig_y_log, dest_x_log, dest_y_log, offset_log, burstiness, msg_size);
+        
+        Time t_step_t = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
+        Time t_offset_t = Time::FromInteger(PacketDuration.GetNanoSeconds() * (initial_delay + t_offset), Time::NS);
         
         for (uint16_t i = 0 ; i < msg_size ; i++ ){
             Ptr<Packet> pck_c = pck->Copy();
             
-            Simulator::Schedule(t_offset + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
+            Simulator::Schedule(t_offset_t + (i * t_step_t), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, addressing);
 //            Simulator::Schedule(t_offset + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, USE_RELATIVE_ADDRESS);
         }
     }
@@ -162,10 +175,10 @@ namespace ns3 {
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketUnicast, this->m_router, pck, NETWORK_ID_0, -15,-15, 0); //Quadrant D
 //        t_ns += 10 * PacketDuration;
         
-        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15,USE_RELATIVE_ADDRESS);
-        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15,USE_RELATIVE_ADDRESS);
-        m_router->PacketUnicast(pck,NETWORK_ID_0, 7,-7,USE_RELATIVE_ADDRESS);
-        m_router->PacketUnicast(pck,NETWORK_ID_0, 7, 7,USE_RELATIVE_ADDRESS);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15,-15, ADDRESSING_RELATIVE);
+        m_router->PacketUnicast(pck,NETWORK_ID_0,-15, 15, ADDRESSING_RELATIVE);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 7,-7, ADDRESSING_RELATIVE);
+        m_router->PacketUnicast(pck,NETWORK_ID_0, 7, 7, ADDRESSING_RELATIVE);
 
         m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15,-15);
         m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15, 15);
@@ -273,12 +286,14 @@ namespace ns3 {
 
         Time t_ns = Time::FromInteger(0,Time::NS);
         
-        for (uint8_t j = 0 ; j < 10 ; j++)
-        {
-            t_ns = j * PacketDuration;
-            Simulator::Schedule(t_ns, &NOCRouter::PacketUnicastOffset, this->m_router, pck, NETWORK_ID_0, x_dest, y_dest);
+//        for (uint8_t j = 0 ; j < 10 ; j++)
+//        {
+//            t_ns = j * PacketDuration;
+//            Simulator::Schedule(t_ns, &NOCRouter::PacketUnicastOffset, this->m_router, pck, NETWORK_ID_0, x_dest, y_dest);
+//        
+//        }
         
-        }
+//        this->SetFlowGenerator(0, 1, )
     }
 
     
@@ -321,7 +336,7 @@ namespace ns3 {
         last_alt = size_y / 2;
         
         switch (quad){
-            case NOCRouting::QUADRANT_PXPY:
+            case NOCRouting::QUADRANT_PXPY://Positive X and positive Y
                 pos_long = origin_x;
                 pos_alt = origin_y;
                 break;
@@ -349,6 +364,7 @@ namespace ns3 {
         rd = 0; //send the response as soon as the request is received
         //At each node rd = 0, but relatively to origin, at the time the request was made,
         // rd = do + 1, where do is distance to the origin
+//        rd = 
         
         // Calculate the traffic shaping parameters        
         delta_long = last_long - pos_long;
@@ -381,7 +397,10 @@ namespace ns3 {
         Ptr<Packet> pck_out = Create<Packet>();
         pck_out->AddHeader(hd_out);
         
-        this->SetFlowGenerator(0, b, rd, ms, pck_out, dest_x, dest_y);
+        this->SetFlowGenerator(0, b, rd, ms, pck_out, dest_x, dest_y, ADDRESSING_RELATIVE);
+        
+//        Simulator::Schedule(Time::From(rd * PacketDuration.GetNanoSeconds()), 
+//                &XDenseApp::SetFlowGenerator, this, 0, b, rd, ms, pck_out, dest_x, dest_y, ADDRESSING_RELATIVE);
     }
     
     void
@@ -393,7 +412,7 @@ namespace ns3 {
         hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
         pck->AddHeader(hd);
 
-        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, USE_RELATIVE_ADDRESS); 
+        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 
     }
     
     bool

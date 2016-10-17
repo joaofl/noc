@@ -511,16 +511,14 @@ def main ():
 
     # flow_list_g = nw_flows_list
 
-    model_propagate()
-
-
-    #Presenting results
     if len(flow_list_g) == 0:
         print("Nothing found for port {} of node [{},{}]".format(port, node_x, node_y))
         exit(0)
 
-    print('Iterations required: {}'.format(iteration_counter_g))
-    print('Total number of flows: {}'.format(len(flow_list_g)))
+    model_propagate()
+
+
+    #Presenting results
     for l in flow_list_g:
         print("--------------------------------------------------------------------------")
         print("Route: {}".format(l[3]))
@@ -528,7 +526,8 @@ def main ():
         print("Inter: {}".format(l[5]))
     print("--------------------------------------------------------------------------")
 
-
+    print('Iterations required: {}'.format(iteration_counter_g))
+    print('Total number of flows: {}'.format(len(flow_list_g)))
 
 
     plots_simul = simulation_arrival_departure(node_x, node_y)
@@ -546,6 +545,8 @@ def main ():
         ff = [float('%.2f' % elem) for elem in sw_in[i]]
         if ff != [0.0, 0.0, 0.0]:
             sw_in_f.append(ff)
+
+    sw_out_f = [float('%.2f' % elem) for elem in sw_out_f]
 
     fn = options.outputdir + 'cumulative_n_' + str(node_x) + ',' + str(node_y) + '_sw_' + str(sw_in_f) + ' = ' + str(sw_out_f) + '.pdf'
 

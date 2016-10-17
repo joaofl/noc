@@ -43,8 +43,8 @@
 #include "noc-routing.h"
 
 
-#define USE_ABSOLUTE_ADDRESS true
-#define USE_RELATIVE_ADDRESS false
+//#define USE_ABSOLUTE_ADDRESS true
+//#define USE_RELATIVE_ADDRESS false
 
 namespace ns3 {
 
@@ -58,6 +58,12 @@ namespace ns3 {
             NETWORK_ID_0 = 0,
             NETWORK_ID_1 = 1,
             NETWORK_ID_2 = 2
+        };
+        
+        
+        enum Addressing{
+            ADDRESSING_RELATIVE = false,
+            ADDRESSING_ABSOLUTE = true
         };
 
         
@@ -79,7 +85,8 @@ namespace ns3 {
 
         void SetShaper(double_t b, uint8_t rd, uint8_t port);
             
-        void SetFlowGenerator(uint8_t start_delay, double_t, double_t, uint32_t, Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y);
+        void SetFlowGenerator(uint8_t initial_delay, double_t burstiness, double_t t_offset, uint32_t msg_size, 
+            Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y, bool addressing);
 
         void RunApplicationWCA(bool trace, bool is_sink);
         
