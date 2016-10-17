@@ -69,6 +69,8 @@ def main ():
     flow_list_g = []
     global flow_dict_g
     flow_dict_g = {}
+    global iteration_counter_g
+    iteration_counter_g = 0
 
     # home = expanduser("~")
 
@@ -293,6 +295,8 @@ def main ():
 
 
     def model_propagate(f_index=0): #the list with the flows and the index of the one we are looking for
+        global iteration_counter_g
+        iteration_counter_g += 1
 
         route_base = flow_list_g[f_index][3]
         route_flows_base = flow_list_g[f_index][4] # a list containing the resulting flows at that route
@@ -308,7 +312,7 @@ def main ():
             sw_in_index = []
             unknown_list = []
 
-            if x == 1 and y == 1:
+            if x == 2 and y == 1:
                 print('')
 
             for j in index_list:
@@ -320,7 +324,7 @@ def main ():
                 if route_flows[hop_n] == f_unknown:
                     unknown_list.append(j)
                 else:
-                    # if not route_flows[hop_n] in sw_in: #TODO: this is wrong like that. Have to account a single time for flow already aggregated. But how? Using a id?
+                    #Have to account a single time for flow already aggregated. by Using an id
                     if not route_flows_index[hop_n] in sw_in_index:
                         sw_in.append(route_flows[hop_n])
                         sw_in_index.append(route_flows_index[hop_n])
@@ -334,11 +338,11 @@ def main ():
                 i += 1
 
                 # organaze data in a hashtable to allow easy access by coordinates
-                if not (x, y) in flow_dict_g:
-                    flow_dict_g[x, y] = [sw_in, f_out]
+                # if not (x, y) in flow_dict_g:
+                flow_dict_g[x, y] = [sw_in, f_out]
 
             else:
-                model_propagate(unknown_list[0])
+                model_propagate(sorted(unknown_list)[0])
                 # return
                 # else
 
@@ -496,16 +500,27 @@ def main ():
         nw_flows_list.append([id, x, y] + [route] + [route_flows] + [route_flows_index])
 
 
-    # find filter only the flows that pass by the node of interest
+    # find filter only the flows that pass by the node of interest (decrease recursions required and memory usage)
+    index = 0
     for l in nw_flows_list:
         route = l[3]
         if [node_x, node_y, port] in route:
+            l[5][0] = index #reset the index for
             flow_list_g.append(l)
+            index += 1
+
+    # flow_list_g = nw_flows_list
 
     model_propagate()
 
 
+    #Presenting results
+    if len(flow_list_g) == 0:
+        print("Nothing found for port {} of node [{},{}]".format(port, node_x, node_y))
+        exit(0)
 
+    print('Iterations required: {}'.format(iteration_counter_g))
+    print('Total number of flows: {}'.format(len(flow_list_g)))
     for l in flow_list_g:
         print("--------------------------------------------------------------------------")
         print("Route: {}".format(l[3]))
@@ -514,9 +529,7 @@ def main ():
     print("--------------------------------------------------------------------------")
 
 
-    # if flows_map == -1:
-    #     print("Nothing found for the node [{},{}]".format(node_x, node_y))
-    #     return
+
 
     plots_simul = simulation_arrival_departure(node_x, node_y)
     plots_model = model_arrival_departure(node_x, node_y)

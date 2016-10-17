@@ -127,6 +127,7 @@ namespace ns3 {
             Ptr<Packet> pck_c = pck->Copy();
             
             Simulator::Schedule(t_offset + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, USE_ABSOLUTE_ADDRESS);
+//            Simulator::Schedule(t_offset + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, USE_RELATIVE_ADDRESS);
         }
     }
 

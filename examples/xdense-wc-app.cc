@@ -70,6 +70,7 @@ ofstream file_packet_trace;
 ofstream file_queue_size_trace;
 ofstream file_flow_trace;
 ofstream file_simulation_info;
+ofstream file_flows_source;
 
 Time start_offset, packet_duration;
 
@@ -135,6 +136,17 @@ log_queues(string context, uint16_t size){
     << size << endl;
 }
 
+void
+log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, 
+        double offset, double burstness, uint8_t ms){
+    string points;
+    
+    points = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);
+    
+    file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << points << endl;
+    cout << context << "," << offset << "," << burstness << "," << (int) ms << "," << points << endl;
+    
+}
 
 uint32_t 
 GetN(uint32_t size_x, uint32_t size_y, uint32_t x, uint32_t y){
@@ -214,6 +226,39 @@ main(int argc, char *argv[]) {
         cout << "Delay's data sucessfully loaded:  " << input_delay_data_path << "\n";
     }
     
+    /////////////////////// Create logfiles ///////////////////////
+    string filename;
+
+    filename = dir_output + "simulation-info.txt";    
+    file_simulation_info.open(filename.c_str(), ios::out);    
+    file_simulation_info
+            << "--size_x=" << size_x
+            << " --size_y=" << size_y
+            << " --size_neighborhood=" << size_neighborhood
+            << " --sinks_n=" << sinks_n
+            << " --baudrate=" << baudrate
+            << " --packet_size=" << pck_size;
+    cout << "Log file created at " << filename << endl;
+    
+
+    filename = dir_output + "packets-trace-netdevice.csv";
+    file_packet_trace.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+
+    filename = dir_output + "queue-size-trace.csv";
+    file_queue_size_trace.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+
+    filename = dir_output + "flows-trace.csv";
+    file_flow_trace.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+    
+
+    filename = dir_output + "flows-source.csv";
+    file_flows_source.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;
+    
+    
    
     //Using the new helper
     GridHelper my_grid_network_helper;
@@ -286,6 +331,9 @@ main(int argc, char *argv[]) {
         my_noc_router->TraceConnect("RouterGxTrace", context[1].str(), MakeCallback(&log_netdevice_packets));
         my_noc_router->TraceConnect("RouterGxTrace", context[1].str(), MakeCallback(&log_flows));
         
+        context[3] << i << "," << x.Get() << "," << y.Get();
+        my_xdense_app->TraceConnect("FlowSourceTrace", context[3].str(), MakeCallback(&log_flows_source));  
+        
         
         //Setup NetDevice's Callback
         Ptr<NOCNetDevice> my_net_device;
@@ -329,42 +377,26 @@ main(int argc, char *argv[]) {
     my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->RunApplicationWCA(false, true);                                          
 
 
+
     //**************** Simulation Setup **************************
 
-    string filename;
-
-    filename = dir_output + "simulation-info.txt";    
-    file_simulation_info.open(filename.c_str(), ios::out);    
-    file_simulation_info
-            << "--size_x=" << size_x
-            << " --size_y=" << size_y
-            << " --size_neighborhood=" << size_neighborhood
-            << " --sinks_n=" << sinks_n
-            << " --baudrate=" << baudrate
-            << " --packet_size=" << pck_size;
-    file_simulation_info.close();
-
-    filename = dir_output + "packets-trace-netdevice.csv";
-    file_packet_trace.open(filename.c_str(), ios::out);
-
-    filename = dir_output + "queue-size-trace.csv";
-    file_queue_size_trace.open(filename.c_str(), ios::out);
-
-    filename = dir_output + "flows-trace.csv";
-    file_flow_trace.open(filename.c_str(), ios::out);
-
-    cout << endl << "Simulation started. Please wait..." << endl ;
+    
+    cout << endl << "Simulation started, please wait..." << endl ;
     
     Simulator::Stop(Seconds(1));
     Simulator::Run();
 
     //**************** Output Printing ***************************
 
-    cout << "Simulation complete." << endl ;
+    cout << "Simulation completed successfully" << endl ;
+    
     file_packet_trace.close();
     file_queue_size_trace.close();
     file_flow_trace.close();
-    cout << "Log files created at: '" << dir_output << "'" << endl;
+    file_flows_source.close();
+    file_simulation_info.close(); //it is only modified here, so can be closed
+    
+    cout << "Log files saved" << endl;
 
     Simulator::Destroy();
     return 0;

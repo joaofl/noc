@@ -518,7 +518,7 @@ class NOCAnim(QWidget):
                 x = int(current_trans[trace.x_absolute])
                 y = int(current_trans[trace.y_absolute])
 
-                print(x, y)
+                # print(x, y)
                 node = self.network[y][x]
 
 

@@ -137,13 +137,12 @@ log_queues(string context, uint16_t size){
 }
 
 void
-log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, double offset, double burstness, uint8_t ms){
-    
+log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, 
+        double offset, double burstness, uint8_t ms){
     string points;
     
     points = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);
     
-//    file_flows_source << "Opa\n";
     file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << points << endl;
     cout << context << "," << offset << "," << burstness << "," << (int) ms << "," << points << endl;
     
@@ -368,7 +367,7 @@ main(int argc, char *argv[]) {
     uint8_t start_delay = 1; //1 tts
     
     uint32_t s1x, s1y; //Sync 1 location
-    s1x = 0; s1y = 0;
+    s1x = 1; s1y = 0;
     
     bool use_traffic_shapper = true;
     double_t b      = 1;
@@ -446,10 +445,9 @@ main(int argc, char *argv[]) {
 //                rd = 10;
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);                                          
 //            } 
-//            else if (x > 0){ 
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);  
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(b, rd, ms, pck_out, s1x, s1y);               
-//            }   
+            else if (y > 0){ 
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(start_delay, b, rd, ms, pck_out, s1x, s1y);               
+            }   
         }
     }
 
