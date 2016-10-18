@@ -370,7 +370,7 @@ main(int argc, char *argv[]) {
     s1x = 0; s1y = 0;
     
     bool use_traffic_shapper = true;
-    double_t b      = 1;
+    double_t b      = 0.8;
 //    double_t bmax   = 0.064;
 //    double_t bmin   = 0.061;
     
@@ -422,21 +422,24 @@ main(int argc, char *argv[]) {
 //        this->SetFlowGenerator(b, rd, ms, pck_out, dest_x, dest_y);
 
 //              All to one
-            if (y == 1 && x == 2){ //The one to trace
+            if (y == 1 && x == 1){ //The one to trace
                 shaper_rd = 27;
                 shaper_b = 1;
+                b = 1;
                 rd = 0;
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_W);                                          
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 
             else if (y == 2 && x == 0){ //The one to trace
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
-                rd = 10;
+                rd = 20;
+                b = 0.8;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 
-            else if (y == 1 && x == 3){ //The one to trace
+            else if (y == 1 && x == 0){ //The one to trace
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
-                rd = 20;
+                rd = 10;
+                b = 0.9;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 
 

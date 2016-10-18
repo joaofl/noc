@@ -49,42 +49,84 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw):
+def resulting_flow(sw, model='C'):
     burstiness = []
-    release_delay = []
+    offset = []
     msg_size = []
     ms_over_b = []
+    ms_over_b_o = []
     for f in sw: # do it fow all the flows getting into that switch
         b = f[0]
-        rd = f[1]
+        o = f[1]
         ms = f[2]
 
         if ms > 0:
             burstiness.append(b)
-            release_delay.append(rd)
+            offset.append(o)
             msg_size.append(ms)
-            ms_over_b.append(ms/b)
+            ms_over_b.append((ms)/b)
+            ms_over_b_o.append(((ms - 1) / b) + o)
 
     msg_size_out = numpy.sum(msg_size)
 
-    burstiness_out = 0
-    release_delay_out = 0
+    if model == 'A': # or len(sw) == 1:
+        burstiness_out = msg_size_out / numpy.max(ms_over_b)
+        offset_out = numpy.max(offset) + 1
+    elif model == 'B':
+        bursts_calc = []
+        tfixed = numpy.max(ms_over_b_o)
+        pfixed = msg_size_out
 
-    # if analysis == 'eted':
-    burstiness_out = msg_size_out / numpy.max(ms_over_b)
-    release_delay_out = numpy.max(release_delay) + 1
-    # elif analysis == 'eted_lb':
-    #     burstiness_out = numpy.sum(burstiness)
-    #     release_delay_out = numpy.min(release_delay) + 1
-    # else:
-    #     print('Invalid model option ' + analysis)
-    #     exit(1)
+        for i in range(len(sw)):
+            ti = offset[i]
+            tf = ms_over_b_o[i]
+            pi = produced_until(ti, sw) + 1
+            pf = produced_until(tf, sw) + 1
 
+            dp1 = pfixed - pi
+            dp2 = pfixed - pf
+            dt1 = tfixed - ti
+            dt2 = tfixed - tf
+
+            b1 = dp1 / dt1
+            b2 = dp2 / dt2
+
+            bursts_calc.append(b1)
+            bursts_calc.append(b2)
+
+        burstiness_out = max(bursts_calc)
+        offset_out = numpy.max(ms_over_b_o) - ((msg_size_out - 1) / burstiness_out) + 1
+
+    elif model == 'C':
+        bursts_calc = []
+        tfixed = min(offset)
+        pfixed = 1
+
+        for i in range(len(sw)):
+            ti = offset[i]
+            tf = ms_over_b_o[i]
+            pi = produced_until(ti, sw) + 1
+            pf = produced_until(tf, sw) + 1
+
+            dp1 = pi - pfixed
+            dp2 = pf - pfixed
+            dt1 = ti - tfixed
+            dt2 = tf - tfixed
+
+            b1 = dp1 / dt1
+            b2 = dp2 / dt2
+
+            bursts_calc.append(b1)
+            bursts_calc.append(b2)
+
+        bursts_calc = [e for e in bursts_calc if not math.isnan(e)] #remove Nan's otherwise they get detected as min
+        burstiness_out = min(bursts_calc)
+        offset_out = tfixed + 1
 
     if burstiness_out > 1:
         burstiness_out = 1
 
-    return [burstiness_out, release_delay_out, msg_size_out]
+    return [burstiness_out, offset_out, msg_size_out]
 
 
 def calculate_node(sw_in):

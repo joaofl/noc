@@ -69,8 +69,10 @@ def main ():
     flow_list_g = []
     global flow_dict_g
     flow_dict_g = {}
-    global iteration_counter_g
-    iteration_counter_g = 0
+    global counter_iteration_g
+    counter_iteration_g = 0
+    global counter_recursion_g
+    counter_recursion_g = 0
 
     # home = expanduser("~")
 
@@ -295,8 +297,8 @@ def main ():
 
 
     def model_propagate(f_index=0): #the list with the flows and the index of the one we are looking for
-        global iteration_counter_g
-        iteration_counter_g += 1
+        global counter_iteration_g
+        counter_iteration_g += 1
 
         route_base = flow_list_g[f_index][3]
         route_flows_base = flow_list_g[f_index][4] # a list containing the resulting flows at that route
@@ -311,9 +313,6 @@ def main ():
             sw_in = []
             sw_in_index = []
             unknown_list = []
-
-            if x == 2 and y == 1:
-                print('')
 
             for j in index_list:
                 route = flow_list_g[j][3]
@@ -416,7 +415,7 @@ def main ():
 
         lines = ["-", "-", ":", "--", " ", " ", " ", " "]
         markers = ["x", "x", "*", "*", "o", "*", "o", "o"]
-        colours = ['lightgreen', 'darkgreen', 'black', 'black', 'cyan', 'blue', 'purple', 'purple']
+        colours = ['lightgreen', 'yellow', 'black', 'black', 'cyan', 'blue', 'purple', 'purple']
         labels = [
             'Arrivals',
             'Departures',
@@ -521,12 +520,12 @@ def main ():
     #Presenting results
     for l in flow_list_g:
         print("--------------------------------------------------------------------------")
-        print("Route: {}".format(l[3]))
-        print("Flows: {}".format(l[4]))
-        print("Inter: {}".format(l[5]))
+        print("Route:\t {}".format(l[3]))
+        print("Flows:\t {}".format(l[4]))
+        print("Intersections:\t {}".format(l[5]))
     print("--------------------------------------------------------------------------")
 
-    print('Iterations required: {}'.format(iteration_counter_g))
+    print('Iterations required: {}'.format(counter_iteration_g))
     print('Total number of flows: {}'.format(len(flow_list_g)))
 
 

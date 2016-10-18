@@ -388,7 +388,8 @@ namespace ns3 {
 //            shaper_b = 0.5;
             
             uint8_t dir = NOCRouting::UnicastClockwiseXY(dest_x, dest_y);
-            this->SetShaper(shaper_b, shaper_rd, dir);
+            dir = dir;
+//            this->SetShaper(shaper_b, shaper_rd, dir);
 //        }
         
         // Construct the packet to be transmitted
