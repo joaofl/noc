@@ -49,7 +49,7 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw, model='B'):
+def resulting_flow(sw, model='C'):
     burstiness = []
     offset = []
     msg_size = []
@@ -65,13 +65,14 @@ def resulting_flow(sw, model='B'):
             offset.append(o)
             msg_size.append(ms)
             ms_over_b.append((ms)/b)
-            ms_over_b_o.append(((ms - 1) / b) + o)
+            ms_over_b_o.append(((ms - 0) / b) + o)
 
     msg_size_out = numpy.sum(msg_size)
 
     if model == 'A': # or len(sw) == 1:
         burstiness_out = msg_size_out / numpy.max(ms_over_b)
         offset_out = numpy.max(offset) + 1
+
     elif model == 'B':
         bursts_calc = []
         tfixed = numpy.max(ms_over_b_o)
@@ -80,8 +81,8 @@ def resulting_flow(sw, model='B'):
         for i in range(len(sw)):
             ti = offset[i]
             tf = ms_over_b_o[i]
-            pi = produced_until(ti, sw) + 1
-            pf = produced_until(tf, sw) + 1
+            pi = produced_until(ti, sw)
+            pf = produced_until(tf, sw)
 
             dp1 = pfixed - pi
             dp2 = pfixed - pf
@@ -100,13 +101,15 @@ def resulting_flow(sw, model='B'):
     elif model == 'C':
         bursts_calc = []
         tfixed = min(offset)
-        pfixed = 1
+        pfixed = produced_until(tfixed, sw)
+        # pfixed = 0
 
         for i in range(len(sw)):
             ti = offset[i]
+            pi = produced_until(ti, sw)
+
             tf = ms_over_b_o[i]
-            pi = produced_until(ti, sw) + 1
-            pf = produced_until(tf, sw) + 1
+            pf = produced_until(tf, sw)
 
             dp1 = pi - pfixed
             dp2 = pf - pfixed
@@ -121,7 +124,9 @@ def resulting_flow(sw, model='B'):
 
         bursts_calc = [e for e in bursts_calc if not math.isnan(e)] #remove Nan's otherwise they get detected as min
         burstiness_out = min(bursts_calc)
+        # offset_out = tfixed + 1/burstiness_out
         offset_out = tfixed + 1
+
 
     if burstiness_out > 1:
         burstiness_out = 1
