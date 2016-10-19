@@ -260,6 +260,11 @@ def main ():
             simul_t_x, simul_t_y
                 ]
 
+    def f(x, x_array, y_array):
+
+
+        return y
+
     def model_arrival_departure(node_x, node_y):
         #     print('The node selected have received no packets.')
 
@@ -282,12 +287,10 @@ def main ():
         y_eted = [] #= sorted(y_arrival + y_departure)
         x_eted = []
         for i in range(len(y_arrival)):
-            # tin = wca.time_taken(sw_in, e) #time taken to produce e packets
-            # tout = wca.time_taken(sw_out, e)
-            y_eted.append(y_arrival[i] - y_departure[i])
-            x_eted.append(i)
+            x_eted.append(x_departure[i] - x_arrival[i])
+            y_eted.append(y_arrival[i])
 
-        return [x_arrival, y_arrival, x_departure, y_departure, x_queue, y_queue, x_eted, y_eted]
+        return [x_arrival, y_arrival, x_departure, y_departure] #, x_queue, y_queue, x_eted, y_eted]
 
 
     def competing_flows(flows_list, node_x, node_y, port):
@@ -299,9 +302,6 @@ def main ():
 
         #Return the indexes of the flows
         return  arriving_flows_list
-
-
-
 
     def model_propagate(f_index=0): #the list with the flows and the index of the one we are looking for
         global counter_iteration_g
@@ -420,9 +420,9 @@ def main ():
         x_lim = None
         y_lim = None
 
-        lines = ["-", "-", ":", "--", "-", " ", " ", " "]
+        lines = ["-", "-", ":", "--", "-", "-", " ", " "]
         markers = ["", "", "", "", "", "", "", ""]
-        colours = ['lightgreen', 'yellow', 'black', 'black', 'cyan', 'blue', 'purple', 'purple']
+        colours = ['lightgreen', 'yellow', 'black', 'black', 'cyan', 'magenta', 'purple', 'purple']
         labels = [
             'Arrivals',
             'Departures',
