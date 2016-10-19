@@ -426,7 +426,7 @@ main(int argc, char *argv[]) {
                 shaper_rd = 27;
                 shaper_b = 1;
                 b = 1;
-                rd = 0;
+                rd = 20;
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_W);                                          
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 
@@ -438,7 +438,7 @@ main(int argc, char *argv[]) {
             } 
             else if (y == 1 && x == 0){ //The one to trace
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
-                rd = 10;
+                rd = 1;
                 b = 0.9;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 

@@ -30,7 +30,7 @@ def produced_until(t, sw):
 
     return total_produced
 
-def time_taken(fl, n='all', direction='out'):
+def time_taken(fl, n='all'):
     b = fl[0]
     rd = fl[1]
     ms = fl[2]
@@ -49,7 +49,7 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw, model='C'):
+def resulting_flow(sw, model='B'):
     burstiness = []
     offset = []
     msg_size = []
@@ -133,8 +133,8 @@ def calculate_node(sw_in):
 
     step = 0.01
     ############# Input #############################################
-    x_arrivals = []
-    y_arrivals = []
+    x = []
+    y = []
 
     msg_size_total = 0
 
@@ -148,12 +148,12 @@ def calculate_node(sw_in):
         count_n = produced_until(t, sw_in)
         if count_n != count:
             count = count_n
-            x_arrivals.append(t)
-            y_arrivals.append(count)
+            x.append(t)
+            y.append(count)
 
         t += step
 
-    return [x_arrivals, y_arrivals]
+    return [x, y]
 
 
 def calculate():

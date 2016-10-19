@@ -271,16 +271,23 @@ def main ():
         [x_departure, y_departure] = wca.calculate_node(sw_out)
 
 
-        # t_in_lb, t_out_lb, n_in_lb, n_out_lb = \
-            # model_node_bounds(
-            #                   in_flows=incomming_flows_lb[node_y][node_x],
-            #                   out_flow=outgoing_flow_lb[node_y][node_x],
-            #                     traced_flow=traced_flow_lb[node_y][node_x],
-            #                   packet_n=packet_n
-            # )
+        x_queue = sorted(x_arrival + x_departure)
+        y_queue = []
+        for e in x_queue:
+            pin = wca.produced_until(e, sw_in)
+            pout = wca.produced_until(e, sw_out)
+            y_queue.append(pin - pout)
 
 
-        return [x_arrival, y_arrival, x_departure, y_departure]
+        y_eted = [] #= sorted(y_arrival + y_departure)
+        x_eted = []
+        for i in range(len(y_arrival)):
+            # tin = wca.time_taken(sw_in, e) #time taken to produce e packets
+            # tout = wca.time_taken(sw_out, e)
+            y_eted.append(y_arrival[i] - y_departure[i])
+            x_eted.append(i)
+
+        return [x_arrival, y_arrival, x_departure, y_departure, x_queue, y_queue, x_eted, y_eted]
 
 
     def competing_flows(flows_list, node_x, node_y, port):
@@ -413,8 +420,8 @@ def main ():
         x_lim = None
         y_lim = None
 
-        lines = ["-", "-", ":", "--", " ", " ", " ", " "]
-        markers = ["x", "x", "*", "*", "o", "*", "o", "o"]
+        lines = ["-", "-", ":", "--", "-", " ", " ", " "]
+        markers = ["", "", "", "", "", "", "", ""]
         colours = ['lightgreen', 'yellow', 'black', 'black', 'cyan', 'blue', 'purple', 'purple']
         labels = [
             'Arrivals',
@@ -423,7 +430,7 @@ def main ():
             # 'Departures UP',
             # 'Arrivals LB',
             'Departures',
-            'Traced',
+            'Queue',
             'Bounds'
         ]
 
@@ -533,7 +540,6 @@ def main ():
     plots_model = model_arrival_departure(node_x, node_y)
 
     plots = plots_simul + plots_model
-
 
 
     # Naming the output file
