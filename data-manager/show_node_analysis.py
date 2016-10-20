@@ -445,8 +445,8 @@ def main ():
             ax_i = ax_main
             ax_i.step(axis[i], axis[i + 1], '-', linestyle=next(linecycler), label=next(labelcycler), where='post',
                       color=next(colourcycler), marker=next(markercycler))
-            # ax_i.plot(axis[i], axis[i + 1], '-', linestyle=next(linecycler), label=next(labelcycler),
-            #           color=next(colourcycler), marker=next(markercycler))
+            ax_i.plot(axis[i], axis[i + 1], '-', linestyle=next(linecycler), label=next(labelcycler),
+                      color=next(colourcycler), marker=next(markercycler))
 
         ax_main.set_xlabel("Transmission time slot (TTS)")
         ax_main.set_ylabel("Cumulative packet count")
