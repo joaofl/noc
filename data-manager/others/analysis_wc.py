@@ -75,51 +75,61 @@ def resulting_flow(sw, model='C'):
 
     elif model == 'B':
         bursts_calc = []
-        tfixed = numpy.max(ms_over_b_o)
-        pfixed = msg_size_out
+        timeline = []
 
         for i in range(len(sw)):
-            ti = offset[i]
-            tf = ms_over_b_o[i]
-            pi = produced_until(ti, sw)
-            pf = produced_until(tf, sw)
+            b = burstiness[i]
+            tf = offset[i]
+            ti = (msg_size[i] / b) + tf
+            timeline.append([ti, +b])
+            timeline.append([tf, -b])
 
-            dp1 = pfixed - pi
-            dp2 = pfixed - pf
-            dt1 = tfixed - ti
-            dt2 = tfixed - tf
+        timeline = sorted(timeline, reverse=True)
 
-            b1 = dp1 / dt1
-            b2 = dp2 / dt2
+        local_b = 0
+        total_t = 0
+        total_tb = 0
+        for i in range(len(timeline) - 1):
+            t0 = timeline[i][0]
+            t1 = timeline[i+1][0]
+            local_b += timeline[i][1]
+            local_tb = (t0 - t1) * local_b
+            total_tb += local_tb
+            total_t += (t0 - t1)
 
-            bursts_calc.append(b1)
-            bursts_calc.append(b2)
+            bursts_calc.append( (total_tb) / total_t )
 
         burstiness_out = max(bursts_calc)
-        offset_out = numpy.max(ms_over_b_o) - ((msg_size_out - 1) / burstiness_out) + 0 #not sure to add 1 here to make it safe
+        offset_out = timeline[0][0] + 1 - msg_size_out/burstiness_out
 
     elif model == 'C':
         bursts_calc = []
-        timeline = {}
-
+        timeline = []
 
         for i in range(len(sw)):
             b = burstiness[i]
             ti = offset[i]
             tf = (msg_size[i] / b) + ti
-            timeline[ti] = +b
-            timeline[tf] = -b
+            timeline.append([ti, +b])
+            timeline.append([tf, -b])
 
+        timeline = sorted(timeline)
 
+        local_b = 0
+        total_t = 0
+        total_tb = 0
+        for i in range(len(timeline) - 1):
+            t0 = timeline[i][0]
+            t1 = timeline[i+1][0]
+            local_b += timeline[i][1]
+            local_tb = (t1 - t0) * local_b
+            total_tb += local_tb
+            total_t += t1 - t0
 
+            bursts_calc.append( (total_tb) / total_t )
 
-        bursts_calc.append(b2)
-
-        bursts_calc = [e for e in bursts_calc if not math.isnan(e) and e >= 0] #remove Nan's otherwise they get detected as min
         burstiness_out = min(bursts_calc)
-        # offset_out = tfixed + 1/burstiness_out
-        offset_out = tfixed + 1  #1 for the intrinsic delay, and 1 to make it safe (due to ireversibility of the floor function)
-
+        offset_out = timeline[0][0] + 1
 
     if burstiness_out > 1:
         burstiness_out = 1

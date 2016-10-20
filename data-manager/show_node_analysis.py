@@ -290,6 +290,9 @@ def main ():
             x_eted.append(x_departure[i] - x_arrival[i])
             y_eted.append(y_arrival[i])
 
+        print('Max eted: {}'.format(max(x_eted)))
+        print('Max queue: {}'.format(max(y_queue)))
+
         return [x_arrival, y_arrival, x_departure, y_departure] #, x_queue, y_queue, x_eted, y_eted]
 
 
@@ -445,8 +448,8 @@ def main ():
             ax_i = ax_main
             ax_i.step(axis[i], axis[i + 1], '-', linestyle=next(linecycler), label=next(labelcycler), where='post',
                       color=next(colourcycler), marker=next(markercycler))
-            ax_i.plot(axis[i], axis[i + 1], '-', linestyle=next(linecycler), label=next(labelcycler),
-                      color=next(colourcycler), marker=next(markercycler))
+            # ax_i.plot(axis[i], axis[i + 1], '-', linestyle=next(linecycler), label=next(labelcycler),
+            #           color=next(colourcycler), marker=next(markercycler))
 
         ax_main.set_xlabel("Transmission time slot (TTS)")
         ax_main.set_ylabel("Cumulative packet count")
