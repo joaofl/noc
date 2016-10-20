@@ -260,10 +260,10 @@ def main ():
             simul_t_x, simul_t_y
                 ]
 
-    def f(x, x_array, y_array):
-
-
-        return y
+    # def f(x, x_array, y_array):
+    #
+    #
+    #     return y
 
     def model_arrival_departure(node_x, node_y):
         #     print('The node selected have received no packets.')
@@ -420,9 +420,9 @@ def main ():
         x_lim = None
         y_lim = None
 
-        lines = ["-", "-", ":", "--", "-", "-", " ", " "]
+        lines = ["-", "-", "--", "--", "-", "--", "-", "--"]
         markers = ["", "", "", "", "", "", "", ""]
-        colours = ['lightgreen', 'yellow', 'black', 'black', 'cyan', 'magenta', 'purple', 'purple']
+        colours = ['lightgreen', 'yellow', 'black', 'grey', 'cyan', 'magenta', 'purple']
         labels = [
             'Arrivals',
             'Departures',
@@ -445,6 +445,8 @@ def main ():
             ax_i = ax_main
             ax_i.step(axis[i], axis[i + 1], '-', linestyle=next(linecycler), label=next(labelcycler), where='post',
                       color=next(colourcycler), marker=next(markercycler))
+            # ax_i.plot(axis[i], axis[i + 1], '-', linestyle=next(linecycler), label=next(labelcycler),
+            #           color=next(colourcycler), marker=next(markercycler))
 
         ax_main.set_xlabel("Transmission time slot (TTS)")
         ax_main.set_ylabel("Cumulative packet count")

@@ -49,7 +49,7 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw, model='C'):
+def resulting_flow(sw, model='B'):
     burstiness = []
     offset = []
     msg_size = []
@@ -65,11 +65,11 @@ def resulting_flow(sw, model='C'):
             offset.append(o)
             msg_size.append(ms)
             ms_over_b.append((ms)/b)
-            ms_over_b_o.append(((ms - 0) / b) + o)
+            ms_over_b_o.append(((ms) / b) + o)
 
     msg_size_out = numpy.sum(msg_size)
 
-    if model == 'A': # or len(sw) == 1:
+    if model == 'A' or len(sw) == 1:
         burstiness_out = msg_size_out / numpy.max(ms_over_b)
         offset_out = numpy.max(offset) + 1
 
@@ -96,7 +96,7 @@ def resulting_flow(sw, model='C'):
             bursts_calc.append(b2)
 
         burstiness_out = max(bursts_calc)
-        offset_out = numpy.max(ms_over_b_o) - ((msg_size_out - 1) / burstiness_out) + 1
+        offset_out = numpy.max(ms_over_b_o) - ((msg_size_out - 1) / burstiness_out) + 0 #not sure to add 1 here to make it safe
 
     elif model == 'C':
         bursts_calc = []
@@ -107,25 +107,23 @@ def resulting_flow(sw, model='C'):
         for i in range(len(sw)):
             ti = offset[i]
             pi = produced_until(ti, sw)
+            dp1 = pi - pfixed
+            dt1 = (ti) - tfixed
+            b1 = dp1 / dt1
 
             tf = ms_over_b_o[i]
             pf = produced_until(tf, sw)
-
-            dp1 = pi - pfixed
             dp2 = pf - pfixed
-            dt1 = ti - tfixed
             dt2 = tf - tfixed
-
-            b1 = dp1 / dt1
             b2 = dp2 / dt2
 
             bursts_calc.append(b1)
             bursts_calc.append(b2)
 
-        bursts_calc = [e for e in bursts_calc if not math.isnan(e)] #remove Nan's otherwise they get detected as min
+        bursts_calc = [e for e in bursts_calc if not math.isnan(e) and e >= 0] #remove Nan's otherwise they get detected as min
         burstiness_out = min(bursts_calc)
         # offset_out = tfixed + 1/burstiness_out
-        offset_out = tfixed + 1
+        offset_out = tfixed + 1 + 1 #1 for the intrinsic delay, and 1 to make it safe (due to ireversibility of the floor function)
 
 
     if burstiness_out > 1:
