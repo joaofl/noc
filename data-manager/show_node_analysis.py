@@ -284,11 +284,12 @@ def main ():
             y_queue.append(pin - pout)
 
 
-        y_eted = [] #= sorted(y_arrival + y_departure)
+        y_eted = sorted(y_arrival + y_departure)
         x_eted = []
-        for i in range(len(y_arrival)):
-            x_eted.append(x_departure[i] - x_arrival[i])
-            y_eted.append(y_arrival[i])
+        for n in y_eted:
+            tin = wca.time_taken(sw_in, n)
+            tout = wca.time_taken(sw_out, n)
+            x_eted.append(tout- tin)
 
         print('Max eted: {}'.format(max(x_eted)))
         print('Max queue: {}'.format(max(y_queue)))
@@ -363,7 +364,7 @@ def main ():
         swi = in_flows  # the incomming
         swo = [out_flow]
         # get t_in from the packet of interest, after, use t_out from previous iteration
-        t_in = wca.time_taken(traced_flow, n=packet_n, direction='in')
+        t_in = wca.time_taken(traced_flow, n_in=packet_n, direction='in')
         n_in = wca.produced_until(t_in, swi) + 1  # plus itself
 
         t_out = wca.time_taken(out_flow, n_in, direction='out')

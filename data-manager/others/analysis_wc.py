@@ -11,24 +11,71 @@ import numpy
 def produced_until(t, sw):
     received = []
     for f in sw: # do it fow all the flows getting into that switch
-        utilization = f[0]
+        burstiness = f[0]
         jitter = f[1]
-        bsize = f[2]
+        msg_size = f[2]
 
         tw = (t-jitter)
         if tw < 0:
             tw = 0
 
-        produced = math.ceil((utilization) * tw) #how many packets a flow have produced
+        produced = math.ceil((burstiness) * tw) #how many packets a flow have produced
 
-        if (produced >= bsize):
-            produced = bsize
+        if (produced >= msg_size):
+            produced = msg_size
 
         received.append(produced)
 
     total_produced = numpy.sum(received)
 
     return total_produced
+
+def time_taken_new(sw, n_in='all'):
+
+    if isinstance(sw, int): #if it is a single flow, make it switch-like
+        sw = [sw]
+
+    timeline = []
+
+    for fl in sw:
+        b = fl[0]
+        rd = fl[1]
+        ms = fl[2]
+
+        ti = fl[1]
+        tf = (ms / b) + ti
+
+        timeline.append([ti, +b, 0])
+        timeline.append([tf, -b, ms])
+
+        if n_in== 'all':
+            n_in += ms
+
+    timeline = sorted(timeline)
+
+    b_local = 0
+    t_total = 0
+    n_total = 0
+
+    for i in range(len(timeline) - 1): #find in which segment it is
+        b_local += timeline[i][1]
+        ti = (timeline[i][0])
+        tf = (timeline[i+1][0])
+        dt = (tf-ti)
+
+        n = dt * b_local
+
+        if (n <= n_in):
+            t_total += dt
+            n_total += n
+        else:
+            tf = (n_in - n_total) / b_local
+            t_total += tf
+            break
+
+
+
+    return t_total
 
 def time_taken(fl, n='all'):
     b = fl[0]
@@ -42,6 +89,7 @@ def time_taken(fl, n='all'):
 
     return t
 
+
 def burst_size(sw):
     b_out = 0
     for f in sw:  # do it fow all the flows getting into that switch
@@ -49,7 +97,7 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw, model='C'):
+def resulting_flow(sw, model='B'):
     burstiness = []
     offset = []
     msg_size = []
@@ -69,7 +117,8 @@ def resulting_flow(sw, model='C'):
 
     msg_size_out = numpy.sum(msg_size)
 
-    if model == 'A' or len(sw) == 1:
+
+    if model == 'A': # or len(sw) == 1:
         burstiness_out = msg_size_out / numpy.max(ms_over_b)
         offset_out = numpy.max(offset) + 1
 
