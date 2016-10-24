@@ -149,7 +149,12 @@ def resulting_flow(sw, model='B'):
             bursts_calc.append( (total_tb) / total_t )
 
         burstiness_out = max(bursts_calc)
+
+        if burstiness_out > 1:
+            burstiness_out = 1
+
         offset_out = timeline[0][0] + 1 - msg_size_out/burstiness_out
+
 
     elif model == 'C':
         bursts_calc = []
@@ -180,8 +185,8 @@ def resulting_flow(sw, model='B'):
         burstiness_out = min(bursts_calc)
         offset_out = timeline[0][0] + 1
 
-    if burstiness_out > 1:
-        burstiness_out = 1
+        if burstiness_out > 1:
+            burstiness_out = 1
 
     return [burstiness_out, offset_out, msg_size_out]
 
