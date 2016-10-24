@@ -52,9 +52,9 @@ def load_single_value(filename):
 
     return float(data)
 
-def write_single_value(value, filename):
-    with file(filename, 'w') as file_out:
-        file_out.write(str(value))
+def write(string, filename):
+    with open(filename, 'w') as file_out:
+        file_out.write(string)
         file_out.close()
         # except:
         #     print("Error writing file: " + filename + '\n')
