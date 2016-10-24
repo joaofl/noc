@@ -233,7 +233,7 @@ namespace ns3 {
         
         void SetDirection(NOCRouting::Directions direction);
         
-        void SetShaper(double_t, uint8_t rd);
+        void SetShaper(float b, float rd, uint8_t ms);
         
         virtual Address GetAddress(void) const;
 
@@ -533,8 +533,9 @@ namespace ns3 {
         
         
         double_t m_clockSkew;
-        double_t m_burstiness;
-        uint8_t m_release_delay;
+        
+        float m_burstiness;
+        float m_release_delay;
         
         bool m_offset;
 //        bool m_second_run;

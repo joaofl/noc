@@ -141,7 +141,7 @@ namespace ns3 {
         
         void SetDataRate(DataRate bps);
         
-        void SetShaper(double_t b, uint8_t rd, uint8_t port);
+        void SetShaper(float b, float rd, uint8_t ms , uint8_t ports_mask);
      
         
         //            void

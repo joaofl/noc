@@ -99,7 +99,8 @@ namespace ns3 {
     void 
     XDenseApp::SetShaper(double_t b, uint8_t rd, uint8_t port) {
                 
-        m_router->SetShaper(b, rd, port);
+        uint8_t ms = 0; //message size
+        m_router->SetShaper(b, rd, ms, port);
     }
     
     void 

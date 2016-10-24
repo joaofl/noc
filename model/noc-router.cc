@@ -132,24 +132,24 @@ namespace ns3 {
     }
 
     void 
-    NOCRouter::SetShaper(double_t b, uint8_t rd, uint8_t ports_mask) {
+    NOCRouter::SetShaper(float b, float rd, uint8_t ms , uint8_t port) {
         
 //        uint8_t n = m_netDevices.GetN();
 
-//          GetNetDevice(0, port)->SetShaper(b, rd);
+          GetNetDevice(0, port)->SetShaper(b, rd, ms);
                 
-        if ( (ports_mask >> NOCRouting::DIRECTION_N) & 1){
-            GetNetDevice(0, NOCRouting::DIRECTION_N)->SetShaper(b, rd);
-        }
-        else if ( (ports_mask >> NOCRouting::DIRECTION_S) & 1){
-            GetNetDevice(0, NOCRouting::DIRECTION_S)->SetShaper(b, rd);
-        }
-        else if ( (ports_mask >> NOCRouting::DIRECTION_E & 1) & 1){
-            GetNetDevice(0, NOCRouting::DIRECTION_E)->SetShaper(b, rd);
-        }
-        else if ( (ports_mask >> NOCRouting::DIRECTION_W) & 1){
-            GetNetDevice(0, NOCRouting::DIRECTION_W)->SetShaper(b, rd);
-        }
+//        if ( (ports_mask >> NOCRouting::DIRECTION_N) & 1){
+//            GetNetDevice(0, NOCRouting::DIRECTION_N)->SetShaper(b, rd);
+//        }
+//        else if ( (ports_mask >> NOCRouting::DIRECTION_S) & 1){
+//            GetNetDevice(0, NOCRouting::DIRECTION_S)->SetShaper(b, rd);
+//        }
+//        else if ( (ports_mask >> NOCRouting::DIRECTION_E & 1) & 1){
+//            GetNetDevice(0, NOCRouting::DIRECTION_E)->SetShaper(b, rd);
+//        }
+//        else if ( (ports_mask >> NOCRouting::DIRECTION_W) & 1){
+//            GetNetDevice(0, NOCRouting::DIRECTION_W)->SetShaper(b, rd);
+//        }
     }
 
     
