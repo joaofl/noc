@@ -180,6 +180,8 @@ main(int argc, char *argv[]) {
     
     string input_delay_data_path = "";
 //    input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
+    
+    string input_shaping_data_path = "/home/joao/noc-data/nw5x4cWCA_ALL_TO_ONE/out/post/shaping_config.csv";
  
     CommandLine cmd;
     cmd.AddValue("context", "String to identify the simulation instance", context);
@@ -224,6 +226,14 @@ main(int argc, char *argv[]) {
     }
     else{
         cout << "Delay's data sucessfully loaded:  " << input_delay_data_path << "\n";
+    }
+
+    NOCRouterShapingConf my_shaping_data;
+    if ( my_shaping_data.LoadData(input_shaping_data_path)  == 0){
+        cout << "Error loading traffic shaping information at " << input_shaping_data_path << "\n";
+    }
+    else{
+        cout << "Traffic shaping information loaded from " << input_shaping_data_path << "\n";
     }
     
     /////////////////////// Create logfiles ///////////////////////
@@ -347,7 +357,17 @@ main(int argc, char *argv[]) {
             context_nd[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
             my_net_device->TraceConnect("MacRxQueue", context_nd[2].str(), MakeCallback(&log_queues));          
             context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
-            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues));          
+            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues)); 
+            
+            
+            if (my_shaping_data.IsShaped(x.Get(), y.Get(), direction)){
+                float b = my_shaping_data.GetBurstiness(x.Get(), y.Get(), direction);
+                float o = my_shaping_data.GetOffset(x.Get(), y.Get(), direction);
+                uint8_t ms = my_shaping_data.GetMsgSize(x.Get(), y.Get(), direction);; //message size, in case shaping have to be applied cyclic
+                my_net_device->SetShaper(b,o,ms);
+            }
+            
+//            my_noc_router->SetShaper(b, o, ms, p);
         }
 
         //Should be installed in this order!!!
@@ -425,22 +445,22 @@ main(int argc, char *argv[]) {
             if (y == 1 && x == 1){ //The one to trace
                 shaper_rd = 27;
                 shaper_b = 1;
-                b = 0.1;
-                rd = 0;
+                b = 0.25;
+                rd = 5;
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_W);                                          
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 
             else if (y == 2 && x == 0){
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
-                rd = 20;
-                b = 1;
+                rd = 19;
+                b = 0.8;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 
             else if (y == 1 && x == 0){
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
-                rd = 10;
-                b = 1;
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
+                rd = 9;
+                b = 0.9;
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 
 
 //            else if (y == 1 && x == 1){

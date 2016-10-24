@@ -141,15 +141,11 @@ namespace ns3 {
                     getline(n_line, tmp_c, ',');
                     uint32_t item = atof(tmp_c.c_str());
                     line_value.push_back(item);
-//                    cout << item << ", ";
                 }
                 matrix_value.push_back(line_value);
-//                cout << "\n";
             }
             matrix_value.pop_back();
             m_data_sensors_on_time.push_back(matrix_value);   
-//            cout << "@";
-//            cout << m_data_on_time.size();
         }
 
 
@@ -174,6 +170,112 @@ namespace ns3 {
         vector< vector <uint32_t> > matrix = m_data_sensors_on_time.at(t);
         vector<uint32_t> line = matrix.at(y);
         return line.at(x);
+    }
+    
+    
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+
+    bool
+    NOCRouterShapingConf::LoadData(string fn) {
+
+        ifstream file(fn.c_str());
+        string sv = "";
+        string lv = "";
+        float v;
+
+        while (file.good()) {
+            getline(file, sv, '\n');
+            stringstream line(sv);
+            vector<float> line_value;
+
+            while (line.good()) {
+                getline(line, lv, ',');
+                v = atof(lv.c_str());
+                v=v;
+                line_value.push_back(v);
+            }
+            m_data.push_back(line_value);
+        }
+        
+        if (m_data.size() == 0)
+            return false;
+        else
+            return true;
+    }
+    uint32_t 
+    NOCRouterShapingConf::GetArraySize() {
+        return m_data.size();
+    }
+    
+    bool
+    NOCRouterShapingConf::IsShaped(int32_t x_in, int32_t y_in, uint8_t p_in) {
+            
+        if (m_data.size() > 0){
+            int32_t x;
+            int32_t y;
+            uint8_t p;  
+            for (uint32_t i = 0 ; i < m_data.size() - 1; i++){
+                x = m_data.at(i).at(0);
+                y = m_data.at(i).at(1);
+                p = m_data.at(i).at(2);         
+
+                if (x_in == x && y_in == y && p_in == p){
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    float 
+    NOCRouterShapingConf::GetBurstiness(int32_t x_in, int32_t y_in, uint8_t p_in) {
+        int32_t x;
+        int32_t y;
+        uint8_t p;        
+        for (uint32_t i = 0 ; i < m_data.size() - 1; i++){
+            x = m_data.at(i).at(0);
+            y = m_data.at(i).at(1);
+            p = m_data.at(i).at(2);         
+            
+            if (x_in == x && y_in == y && p_in == p){
+                return(m_data.at(i).at(3));
+            }
+        }
+        return 1;
+    }
+
+    uint32_t NOCRouterShapingConf::GetMsgSize(int32_t x_in, int32_t y_in, uint8_t p_in) {
+        int32_t x;
+        int32_t y;
+        uint8_t p;        
+        for (uint32_t i = 0 ; i < m_data.size() - 1; i++){
+            x = m_data.at(i).at(0);
+            y = m_data.at(i).at(1);
+            p = m_data.at(i).at(2);         
+            
+            if (x_in == x && y_in == y && p_in == p){
+                return(m_data.at(i).at(5));
+            }
+        }
+        return 0;
+    }
+
+    float NOCRouterShapingConf::GetOffset(int32_t x_in, int32_t y_in, uint8_t p_in) {
+        int32_t x;
+        int32_t y;
+        uint8_t p;        
+        for (uint32_t i = 0 ; i < m_data.size() - 1; i++){
+            x = m_data.at(i).at(0);
+            y = m_data.at(i).at(1);
+            p = m_data.at(i).at(2);         
+            
+            if (x_in == x && y_in == y && p_in == p){
+                return(m_data.at(i).at(4));
+            }
+        }
+        return 0;
     }
     
     

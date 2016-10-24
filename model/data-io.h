@@ -28,7 +28,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <vector>
-#include <string>
+//#include <string>
 #include <math.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -48,6 +48,7 @@ using namespace std;
 int do_mkdir(const char *path, mode_t mode);
 int mkpath(const char *path, mode_t mode);
 
+//TODO: make it static maybe.. Make different classes?. Improve it!
 namespace ns3 {
     ////////////////////////////////////////////////////////////////////////////
     class DataIO{
@@ -59,7 +60,8 @@ namespace ns3 {
         
         bool LoadArray(string file_name);
         uint32_t GetArraySize(void);
-        float GetValue(uint32_t i); //a random number between 0 and 1
+        float GetValue(uint32_t i);
+        
         
     private:
         //bool initialized;
@@ -68,6 +70,29 @@ namespace ns3 {
 
         vector< vector<uint32_t> > m_data_sensors;
         vector< vector< vector <uint32_t> > > m_data_sensors_on_time;
+    };
+
+    /**************************************************************************/
+    ////////////////////////////////////////////////////////////////////////////
+    class NOCRouterShapingConf{
+    public:
+
+        float GetBurstiness(int32_t x, int32_t y, uint8_t p);        
+        float GetOffset(int32_t x, int32_t y, uint8_t p);        
+        uint32_t GetMsgSize(int32_t x, int32_t y, uint8_t p);        
+        bool IsShaped(int32_t x, int32_t y, uint8_t p);        
+        bool LoadData(string file_name);
+        uint32_t GetArraySize(void);
+        float GetValue(uint32_t i);
+        
+        
+    private:
+        vector< vector<float> > m_data; //TODO: this could be a multidimensional
+                                        //array to allow storing info of nodes/ports
+                                        //and avoid iterating though lists
+        
+        
+        
     };
 
     /**************************************************************************/
