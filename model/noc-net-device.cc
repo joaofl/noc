@@ -23,6 +23,7 @@
 
 
 #include "noc-net-device.h"
+#include "src/core/model/simulator.h"
 
 
 NS_LOG_COMPONENT_DEFINE("NOCNetDevice");
@@ -396,10 +397,13 @@ namespace ns3 {
     }
 
     void 
-    NOCNetDevice::SetShaper(double_t b, uint8_t rd) {
+    NOCNetDevice::SetShaper(float b, float rd, uint8_t ms) {
         m_burstiness = b;
         m_release_delay = rd;
+//        if (rd > 0)
         m_offset = true;
+//        else
+//            m_offset = false;
     }
     
     Address
@@ -555,7 +559,19 @@ bool
         //Check if the shaper is supposed to offset the transmission
         if (m_offset == true && m_txMachineState == READY){
             m_txMachineState = BUSY;     
-            Simulator::Schedule( ((m_release_delay + 1) * tPacket), &NOCNetDevice::TransmitStart, this, p);
+            Time t = Time::FromDouble(m_release_delay * tPacket.ToDouble(Time::NS), Time::NS);
+            Time t2 = Simulator::Now();
+            Time t3 = t-t2;
+            
+            double ts;
+            ts = (t2) / tPacket;
+            ts = ts;
+            
+            if (t3 > 0)
+                Simulator::Schedule(t3, &NOCNetDevice::TransmitStart, this, p);
+            else
+                Simulator::Schedule(Time::FromInteger(0, Time::NS), &NOCNetDevice::TransmitStart, this, p);
+            
             return true;
         }
         else if (m_offset == true && m_txMachineState == BUSY){
