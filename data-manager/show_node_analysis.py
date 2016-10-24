@@ -284,14 +284,14 @@ def main ():
             y_queue.append(pin - pout)
 
 
-        y_eted = sorted(y_arrival + y_departure)
-        x_eted = []
-        for n in y_eted:
-            tin = wca.time_taken(sw_in, n)
-            tout = wca.time_taken(sw_out, n)
-            x_eted.append(tout- tin)
+        # y_eted = sorted(y_arrival + y_departure)
+        # x_eted = []
+        # for n in y_eted:
+            # tin = wca.time_taken(sw_in, n)
+            # tout = wca.time_taken(sw_out, n)
+            # x_eted.append(tout- tin)
 
-        print('Max eted: {}'.format(max(x_eted)))
+        # print('Max eted: {}'.format(max(x_eted)))
         print('Max queue: {}'.format(max(y_queue)))
 
         return [x_arrival, y_arrival, x_departure, y_departure] #, x_queue, y_queue, x_eted, y_eted]
@@ -478,6 +478,27 @@ def main ():
             plt.show()
 
 
+    def mask_to_port(p):
+
+        # DIRECTION_E = 0, // east
+        # DIRECTION_S = 1, // south
+        # DIRECTION_W = 2, // west
+        # DIRECTION_N = 3, // north
+        # DIRECTION_L = 4 // Internal, local
+
+        if p == 0b00000001:
+            r = 0
+        if p == 0b00000010:
+            r = 1
+        if p == 0b00000100:
+            r = 2
+        if p == 0b00001000:
+            r = 3
+        if p == 0b00010000:
+            r = 4
+
+        return r
+
     ################################# Running ####################################
 
     node_x = int(options.pos_x)
@@ -514,11 +535,11 @@ def main ():
 
     # find filter only the flows that pass by the node of interest (decrease recursions required and memory usage)
     index = 0
-    for l in nw_flows_list:
-        route = l[3]
+    for f in nw_flows_list:
+        route = f[3]
         if [node_x, node_y, port] in route:
-            l[5][0] = index #reset the index for
-            flow_list_g.append(l)
+            f[5][0] = index #reset the index for
+            flow_list_g.append(f)
             index += 1
 
     # flow_list_g = nw_flows_list
@@ -531,15 +552,26 @@ def main ():
 
 
     #Presenting results
-    for l in flow_list_g:
+    shaping_dict = {}
+    for f in flow_list_g:
+
+        for i in range(len(f[3])-1):
+            [x, y, p] = f[3][i]
+
+            p = mask_to_port(p)
+            shaping_dict[x, y, p] = f[4][i+1]
+
+
         print("--------------------------------------------------------------------------")
-        print("Route:\t {}".format(l[3]))
-        print("Flows:\t {}".format(l[4]))
-        print("Intersections:\t {}".format(l[5]))
+        print("Route:\t {}".format(f[3]))
+        print("Flows:\t {}".format(f[4]))
+        print("Intersections:\t {}".format(f[5]))
     print("--------------------------------------------------------------------------")
 
     print('Iterations required: {}'.format(counter_iteration_g))
     print('Total number of flows: {}'.format(len(flow_list_g)))
+
+
 
 
     plots_simul = simulation_arrival_departure(node_x, node_y)
@@ -559,11 +591,18 @@ def main ():
 
     sw_out_f = [float('%.2f' % elem) for elem in sw_out_f]
 
+    str_out = ''
+    for l in shaping_dict:
+        str_out += str(l) + ',' + str(shaping_dict[l]) + '\n'
+
+    str_out = str_out.replace('[', '').replace(']','').replace('(','').replace(')','').replace(' ','')
+    fn = options.outputdir + 'shaping_config.csv'
+    files_io.write(str_out, fn)
+
+
+    # Ploting results
     fn = options.outputdir + 'cumulative_n_' + str(node_x) + ',' + str(node_y) + '_sw_' + str(sw_in_f) + ' = ' + str(sw_out_f) + '.pdf'
-
-    #Ploting results
     plotCumulativeInOut(plots, filename=fn)
-
 
 if __name__ == '__main__':
     try:
