@@ -122,9 +122,10 @@ def resulting_flow(sw, model='B'):
         burstiness_out = msg_size_out / numpy.max(ms_over_b)
         offset_out = numpy.max(offset) + 1
 
-    elif model == 'B':
+    elif model == 'B': # from end to begining of the flow
         bursts_calc = []
         timeline = []
+        timeline_norm = []
 
         for i in range(len(sw)):
             b = burstiness[i]
@@ -141,22 +142,23 @@ def resulting_flow(sw, model='B'):
         for i in range(len(timeline) - 1):
             t0 = timeline[i][0]
             t1 = timeline[i+1][0]
+            dt = t0 - t1
             local_b += timeline[i][1]
-            local_tb = (t0 - t1) * local_b
+            local_tb = dt * local_b
             total_tb += local_tb
-            total_t += (t0 - t1)
+            total_t += dt
 
             bursts_calc.append( (total_tb) / total_t )
 
         burstiness_out = max(bursts_calc)
 
-        if burstiness_out > 1:
-            burstiness_out = 1
+        offset_out = timeline[0][0] - msg_size_out/burstiness_out + 1
 
-        offset_out = timeline[0][0] + 1 - msg_size_out/burstiness_out
+        if burstiness_out >= 1: #in this case it fails, so redirect to model D
+            model = 'D'
 
 
-    elif model == 'C':
+    if model == 'C': #from befining to the end of the flow
         bursts_calc = []
         timeline = []
 
@@ -187,6 +189,45 @@ def resulting_flow(sw, model='B'):
 
         if burstiness_out > 1:
             burstiness_out = 1
+
+    if model == 'D': #find the min offset for the nearest beta=1 departure curve
+        timeline = []
+
+        for i in range(len(sw)):
+            b = burstiness[i]
+            ti = offset[i]
+            tf = (msg_size[i] / b) + ti
+            timeline.append([ti, +b])
+            timeline.append([tf, -b])
+
+        timeline = sorted(timeline)
+
+        msg_size_total = []
+        msg_size_cum = 0
+        msg_size_total.append(msg_size_cum) #start with zero packets transmited
+
+        local_b = 0
+
+        for i in range(1, len(timeline)):
+            t0 = timeline[i-1][0]
+            t1 = timeline[i][0]
+            dt = t1 - t0
+            local_b += timeline[i-1][1]
+
+            msg_size_cum += dt * local_b
+
+            msg_size_total.append(msg_size_cum)
+
+
+        offsets = []
+        for i in range(len(timeline)):
+            t = timeline[i][0]
+            p = msg_size_total[i]
+
+            offsets.append((p - t) * -1)
+
+        burstiness_out = 1
+        offset_out = max(offsets) + 1
 
     return [burstiness_out, offset_out, msg_size_out]
 
