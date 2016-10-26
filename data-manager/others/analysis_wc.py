@@ -9,6 +9,10 @@ import numpy
 #         return 0
 
 def produced_until(t, sw):
+
+    if not isinstance(sw[0], list): #if it is a single flow, make it switch-like
+        sw = [sw]
+
     received = []
     for f in sw: # do it fow all the flows getting into that switch
         burstiness = f[0]
@@ -30,9 +34,9 @@ def produced_until(t, sw):
 
     return total_produced
 
-def time_taken_new(sw, n_in='all'):
+def time_taken_new(sw, p_in='all'):
 
-    if isinstance(sw, int): #if it is a single flow, make it switch-like
+    if not isinstance(sw[0], list): #if it is a single flow, make it switch-like
         sw = [sw]
 
     timeline = []
@@ -42,42 +46,50 @@ def time_taken_new(sw, n_in='all'):
         rd = fl[1]
         ms = fl[2]
 
-        ti = fl[1]
+        ti = rd
         tf = (ms / b) + ti
 
-        timeline.append([ti, +b, 0])
-        timeline.append([tf, -b, ms])
+        timeline.append([ti, +b])
+        timeline.append([tf, -b])
 
-        if n_in== 'all':
-            n_in += ms
+        if p_in== 'all':
+            p_in += ms
 
     timeline = sorted(timeline)
 
-    b_local = 0
+    msg_size_cum = 0
+    msg_size_total = []
+    msg_size_total.append(msg_size_cum)
+    # msg_size_total.append()  # start with zero packets transmited
+
+    local_b = 0
+    for i in range(1, len(timeline)):
+        t0 = timeline[i - 1][0]
+        t1 = timeline[i][0]
+        dt = t1 - t0
+        local_b += timeline[i - 1][1]
+
+        msg_size_cum += dt * local_b
+        msg_size_total.append(msg_size_cum)
+
+
+    local_b = 0
     t_total = 0
-    n_total = 0
+    for i in range(len(timeline)-1):
+        local_b += timeline[i][1]
+        t = timeline[i][0]
+        p = msg_size_total[i]
+        p_n = msg_size_total[i+1]
 
-    for i in range(len(timeline) - 1): #find in which segment it is
-        b_local += timeline[i][1]
-        ti = (timeline[i][0])
-        tf = (timeline[i+1][0])
-        dt = (tf-ti)
-
-        n = dt * b_local
-
-        if (n <= n_in):
-            t_total += dt
-            n_total += n
-        else:
-            tf = (n_in - n_total) / b_local
-            t_total += tf
+        if p_in >= p and p_in <= p_n:
+            dif = p_in - p
+            t_total = t + (dif / local_b)
             break
-
 
 
     return t_total
 
-def time_taken(fl, n='all'):
+def time_taken_old(fl, n='all'):
     b = fl[0]
     rd = fl[1]
     ms = fl[2]
@@ -232,7 +244,10 @@ def resulting_flow(sw, model='B'):
     return [burstiness_out, offset_out, msg_size_out]
 
 
-def calculate_node(sw_in):
+def calculate_node(sw):
+
+    if not isinstance(sw[0], list): #if it is a single flow, make it switch-like
+        sw = [sw]
 
     step = 0.01
     ############# Input #############################################
@@ -241,14 +256,14 @@ def calculate_node(sw_in):
 
     msg_size_total = 0
 
-    for f in sw_in:
+    for f in sw:
         msg_size_total += f[2]
 
     count = -1
     t = 0
 
     while(count < msg_size_total):
-        count_n = produced_until(t, sw_in)
+        count_n = produced_until(t, sw)
         if count_n != count:
             count = count_n
             x.append(t)
@@ -257,65 +272,3 @@ def calculate_node(sw_in):
         t += step
 
     return [x, y]
-
-
-def calculate():
-
-    # {p, j, bs, D} period, jitter, burst size, deadline
-    # The internal flow has jitter 0, since it is at the node already
-    fa = [1, 0, 200]  # whereas the flows comming from neighbors take one time cycle more
-    fb = [1, 0, 200]
-    fc = [1, 0, 200]
-    fd = [1, 0, 200]
-
-    sw2 = [fa, fb, fc]
-    sw1 = [fb, fb, fa]
-    sw0 = [fb, fb, fb]
-
-    # at each hop, the flows that compete for the same output
-    route = [sw1, sw1, sw1, sw1, sw1]
-
-    ############# Linear component ###################
-    tt_basic = 0
-    dist = len(route) - 1
-    tt_basic = dist
-
-    tt_basic = 0
-
-    ############# Linear component ###################
-    tt_int = 0
-    for i in range(0, dist):
-        tt_int += len(route[i]) - 1
-
-    tt_int = 0 #not sure if it makes sense to separate it
-
-    ############# Exponential component ##############
-    # q_n+1 = (floor(Sum(1/Pi...Pn)) + 1 - 2) * q_n
-    tt_queue = 0
-    q_profile = []
-
-    tactual = 1
-    for sw in route:
-        tnext = produced_until(tactual, sw)
-        tactual = tnext
-
-        tt_queue += tnext
-        q_profile.append(tnext)
-
-    # for t in range(0,30):
-    #     print(str(t) + " " + str(queue(t, sw0)))
-
-
-        # q_next = (math.ceil(p) +1 -2) * q_this # -2 since the this waiting was acconted separetely
-        # q_this = q_next
-        # q_profile.append(q_this)
-        # tt_queue += q_this
-
-    tt_tot = tt_basic + tt_int + tt_queue
-    return tt_tot
-
-    print(q_profile)
-    print(tt_basic)
-    print(tt_int)
-    print(tt_queue)
-    print(tt_tot)

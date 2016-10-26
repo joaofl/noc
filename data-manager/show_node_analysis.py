@@ -204,11 +204,11 @@ def main ():
 
         ################# Get trace_packets from simulation logs ##################
 
-        simul_t_x = []
-        simul_t_y = []
+        x_departure = []
+        y_departure = []
 
-        simul_r_x = []
-        simul_r_y = []
+        x_arrival = []
+        y_arrival = []
 
         simul_traced_y = []
         simul_traced_x = []
@@ -233,8 +233,8 @@ def main ():
                         # Build the cumulative arrival/departure for an specific node
                         count_r += 1
 
-                        simul_r_x.append(t)
-                        simul_r_y.append(count_r)
+                        x_arrival.append(t)
+                        y_arrival.append(count_r)
 
                         #point there at what time the traced packed passed by
                         if line[HEADER.protocol_app] == '6':
@@ -245,8 +245,8 @@ def main ():
                     elif line[HEADER.operation] == 't': # or line[trace.operation] == 'g':
                         #Build the cumulative arrival/departure curve
                         count_t += 1
-                        simul_t_x.append(t+1)
-                        simul_t_y.append(count_t)
+                        x_departure.append(t+1)
+                        y_departure.append(count_t)
 
                         # point there at what time the traced packed passed by
                         if line[HEADER.protocol_app] == '6':
@@ -255,44 +255,35 @@ def main ():
 
 
 
-        return [
-            simul_r_x, simul_r_y,
-            simul_t_x, simul_t_y
-                ]
+        return [x_arrival, y_arrival, x_departure, y_departure]
 
-    # def f(x, x_array, y_array):
-    #
-    #
-    #     return y
+    def model_queue(sw_in, sw_out, t_in):
 
-    def model_arrival_departure(node_x, node_y):
-        #     print('The node selected have received no packets.')
+        y = []
+        for t in t_in:
+            pin = wca.produced_until(t, sw_in)
+            pout = wca.produced_until(t, sw_out)
+            y.append(pin - pout)
 
-        sw_in = flow_dict_g[node_x, node_y][0]
-        sw_out = [flow_dict_g[node_x, node_y][1]]
+        return y
 
+    def model_delay(sw_in, sw_out, p_in):
+
+        x = []
+        for n in p_in:
+            tin = wca.time_taken_new(sw_in, n)
+            tout = wca.time_taken_new(sw_out, n)
+            x.append(tout- tin)
+
+        return x
+
+
+    def model_arrival_departure(sw_in, sw_out):
+        #     print('The node selected have received no packets.'
 
         [x_arrival, y_arrival] = wca.calculate_node(sw_in)
         [x_departure, y_departure] = wca.calculate_node(sw_out)
 
-
-        x_queue = sorted(x_arrival + x_departure)
-        y_queue = []
-        for e in x_queue:
-            pin = wca.produced_until(e, sw_in)
-            pout = wca.produced_until(e, sw_out)
-            y_queue.append(pin - pout)
-
-
-        # y_eted = sorted(y_arrival + y_departure)
-        # x_eted = []
-        # for n in y_eted:
-            # tin = wca.time_taken(sw_in, n)
-            # tout = wca.time_taken(sw_out, n)
-            # x_eted.append(tout- tin)
-
-        # print('Max eted: {}'.format(max(x_eted)))
-        print('Max queue: {}'.format(max(y_queue)))
 
         return [x_arrival, y_arrival, x_departure, y_departure] #, x_queue, y_queue, x_eted, y_eted]
 
@@ -372,15 +363,15 @@ def main ():
 
         return t_in, t_out, n_in, n_out
 
-    def plotMatrix(data):
+    def plotMatrix(data, title=''):
 
         filename = None;
         show = True;
         title = "";
         lable_x = "";
         lable_y = "";
-        x_size = 8;
-        y_size = 8;
+        x_size = 4;
+        y_size = 3;
 
         plt.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
         plt.imshow(data, cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')
@@ -390,11 +381,13 @@ def main ():
         plt.xlabel(lable_x)
         plt.ylabel(lable_y)
 
-        plt.tight_layout(pad=2, w_pad=1, h_pad=0.9)
+        # plt.xticks(np.arange(1, 6, dtype=np.int))
 
-        for y in range(data.shape[0]):
-            for x in range(data.shape[1]):
-                plt.text(x, y, '%d' % data[y, x],
+        # plt.tight_layout(pad=2, w_pad=1, h_pad=0.9)
+
+        for y in range(len(data)):
+            for x in range(len(data[0])):
+                plt.text(x, y, '%0.2f' % data[y][x],
                          horizontalalignment='center',
                          verticalalignment='center',
                          )
@@ -413,9 +406,9 @@ def main ():
             # plt.pause(0.001)
             # plt.draw()
 
-    def plotCumulativeInOut(axis, filename=None):
+    def plot(axis, filename=None):
 
-        global options
+        # global options
 
         # filename = options.outputdir + 'cumulative_ad.pdf'
         show = True
@@ -553,31 +546,106 @@ def main ():
 
     #Presenting results
     shaping_dict = {}
-    for f in flow_list_g:
 
+    for f in flow_list_g:
         for i in range(len(f[3])-1):
             [x, y, p] = f[3][i]
 
             p = mask_to_port(p)
             shaping_dict[x, y, p] = f[4][i+1]
 
-
         print("--------------------------------------------------------------------------")
         print("Route:\t {}".format(f[3]))
         print("Flows:\t {}".format(f[4]))
         print("Intersections:\t {}".format(f[5]))
-    print("--------------------------------------------------------------------------")
 
+    print("--------------------------------------------------------------------------")
     print('Iterations required: {}'.format(counter_iteration_g))
     print('Total number of flows: {}'.format(len(flow_list_g)))
 
 
-
-
+    ####### SIMULATION ARRIVAL / DEPARTURE
     plots_simul = simulation_arrival_departure(node_x, node_y)
-    plots_model = model_arrival_departure(node_x, node_y)
 
+
+    ####### MODEL
+    sw_in = flow_dict_g[node_x, node_y][0]
+    sw_out = [flow_dict_g[node_x, node_y][1]]
+
+    ####### MODEL ARRIVAL / DEPARTURE
+    [x_arrival, y_arrival, x_departure, y_departure] = model_arrival_departure(sw_in, sw_out)
+    plots_model = [x_arrival, y_arrival, x_departure, y_departure]
     plots = plots_simul + plots_model
+
+    ####### MODEL QUEUE
+    x_queue = sorted(x_arrival + x_departure)
+    y_queue = model_queue(sw_in, sw_out, x_queue)
+    plots_model_queue = [x_queue, y_queue]
+
+    ####### MODEL DELAY
+    x_delay = y_arrival
+    y_delay = model_delay(sw_in, sw_out, x_delay)
+    plots_model_delay = [x_delay, y_delay]
+
+    print('Max delay: {}'.format(max(y_delay)))
+    print('Max queue: {}'.format(max(y_queue)))
+    #
+    # plot(plots_model_delay)
+    # plot(plots_model_queue)
+
+
+    # x_range = []
+    # y_range = []
+    # for (x, y) in flow_dict_g:
+    #     x_range.append(x)
+    #     y_range.append(y)
+    #
+    # nw_size_y = max(y_range) - min(y_range) + 1
+    # nw_size_x = max(x_range) - min(x_range) + 1
+
+    nw_size_y = 4
+    nw_size_x = 5
+
+    nw_matrix = []
+    for y in range(nw_size_y):
+        nw_matrix.append([])
+        for x in range(nw_size_x):
+            nw_matrix[y].append(0)
+
+    queue_matrix = copy.deepcopy(nw_matrix)
+    delay_matrix = copy.deepcopy(nw_matrix)
+
+
+    for hop in flow_dict_g:
+        sw_in = flow_dict_g[hop][0]
+        sw_out = flow_dict_g[hop][1]
+
+        ####### MODEL ARRIVAL / DEPARTURE
+        [x_arrival, y_arrival, x_departure, y_departure] = model_arrival_departure(sw_in, sw_out)
+
+        ####### MODEL QUEUE
+        x_queue = sorted(x_arrival + x_departure)
+        y_queue = model_queue(sw_in, sw_out, x_queue)
+
+        ####### MODEL DELAY
+        x_delay = y_arrival
+        y_delay = model_delay(sw_in, sw_out, x_delay)
+
+        max_queue = max(y_queue)
+        max_delay = max(y_delay)
+
+        (x, y) = hop
+
+        queue_matrix[y][x] = max_queue
+        delay_matrix[y][x] = max_delay
+
+        # print('Node: ' + str(hop))
+        # print('Max delay: {}'.format(max_delay))
+        # print('Max queue: {}'.format(max_queue))
+
+
+    plotMatrix(queue_matrix)
+    plotMatrix(delay_matrix)
 
 
     # Naming the output file
@@ -601,8 +669,8 @@ def main ():
 
 
     # Ploting results
-    fn = options.outputdir + 'cumulative_n_' + str(node_x) + ',' + str(node_y) + '_sw_' + str(sw_in_f) + ' = ' + str(sw_out_f) + '.pdf'
-    plotCumulativeInOut(plots, filename=fn)
+    fn = options.outputdir + 'cumulative (' + str(node_x) + ',' + str(node_y) + ') sw ' + str(sw_in_f) + ' = ' + str(sw_out_f) + '.pdf'
+    plot(plots, filename=None)
 
 if __name__ == '__main__':
     try:
