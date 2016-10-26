@@ -200,6 +200,23 @@ def main ():
         plotMatrix(simul_q_max)
         plotMatrix(simul_r_count)
 
+    def simulation_queue(x_arrival, y_arrival, x_departure, y_departure):
+        queue = []
+
+        for i in range(len(x_arrival)):
+            queue.append(y_arrival[i] - y_departure[i])
+
+        return max(queue)
+
+    def simulation_delay(x_arrival, y_arrival, x_departure, y_departure):
+        delay = []
+
+        for i in range(len(y_arrival)):
+            delay.append(x_departure[i] - x_arrival[i])
+
+        return max(delay)
+
+
     def simulation_arrival_departure(node_x, node_y, packet_n=0):
 
         ################# Get trace_packets from simulation logs ##################
@@ -255,7 +272,7 @@ def main ():
 
 
 
-        return [x_arrival, y_arrival, x_departure, y_departure]
+        return x_arrival, y_arrival, x_departure, y_departure
 
     def model_queue(sw_in, sw_out, t_in):
 
@@ -370,13 +387,24 @@ def main ():
         title = "";
         lable_x = "";
         lable_y = "";
-        x_size = 4;
-        y_size = 3;
+        x_size = 10;
+        y_size = 8;
 
         plt.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
-        plt.imshow(data, cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')
 
-        # plt.colorbar()
+        for m in range(len(data)):
+            ax = plt.subplot(2, 2, m+1)
+            ax.imshow(data[m], cmap=plt.get_cmap('hot_r'), interpolation='nearest', origin='lower')
+
+            for y in range(len(data[m])):
+                for x in range(len(data[m][0])):
+                    ax.text(x, y, '%0.2f' % data[m][y][x],
+                             horizontalalignment='center',
+                             verticalalignment='center',
+                             fontsize = 10
+                             )
+
+        # ax.colorbar()
 
         plt.xlabel(lable_x)
         plt.ylabel(lable_y)
@@ -385,12 +413,7 @@ def main ():
 
         # plt.tight_layout(pad=2, w_pad=1, h_pad=0.9)
 
-        for y in range(len(data)):
-            for x in range(len(data[0])):
-                plt.text(x, y, '%0.2f' % data[y][x],
-                         horizontalalignment='center',
-                         verticalalignment='center',
-                         )
+
 
         if filename != None:
             dir = filename[:filename.rfind("/")]
@@ -565,14 +588,17 @@ def main ():
 
 
     ####### SIMULATION ARRIVAL / DEPARTURE
-    plots_simul = simulation_arrival_departure(node_x, node_y)
+    x_arrival, y_arrival, x_departure, y_departure = simulation_arrival_departure(node_x, node_y)
+    simulation_delay(x_arrival, y_arrival, x_departure, y_departure)
+
+    plots_simul = [x_arrival, y_arrival, x_departure, y_departure]
+    # simulation_queue(plots_simul)
 
 
-    ####### MODEL
+    ####### MODEL ARRIVAL / DEPARTURE
     sw_in = flow_dict_g[node_x, node_y][0]
     sw_out = [flow_dict_g[node_x, node_y][1]]
 
-    ####### MODEL ARRIVAL / DEPARTURE
     [x_arrival, y_arrival, x_departure, y_departure] = model_arrival_departure(sw_in, sw_out)
     plots_model = [x_arrival, y_arrival, x_departure, y_departure]
     plots = plots_simul + plots_model
@@ -586,6 +612,7 @@ def main ():
     x_delay = y_arrival
     y_delay = model_delay(sw_in, sw_out, x_delay)
     plots_model_delay = [x_delay, y_delay]
+
 
     print('Max delay: {}'.format(max(y_delay)))
     print('Max queue: {}'.format(max(y_queue)))
@@ -612,13 +639,25 @@ def main ():
         for x in range(nw_size_x):
             nw_matrix[y].append(0)
 
-    queue_matrix = copy.deepcopy(nw_matrix)
-    delay_matrix = copy.deepcopy(nw_matrix)
+    model_queue_matrix = copy.deepcopy(nw_matrix)
+    model_delay_matrix = copy.deepcopy(nw_matrix)
 
+    sim_queue_matrix = copy.deepcopy(nw_matrix)
+    sim_delay_matrix = copy.deepcopy(nw_matrix)
 
     for hop in flow_dict_g:
         sw_in = flow_dict_g[hop][0]
         sw_out = flow_dict_g[hop][1]
+
+        (x, y) = hop
+
+        ####### SIM QUEUE
+        x_arrival, y_arrival, x_departure, y_departure = simulation_arrival_departure(x, y)
+        sim_max_delay = simulation_delay(x_arrival, y_arrival, x_departure, y_departure)
+        sim_max_queue = simulation_queue(x_arrival, y_arrival, x_departure, y_departure)
+
+        sim_delay_matrix[y][x] = sim_max_delay
+        sim_queue_matrix[y][x] = sim_max_queue
 
         ####### MODEL ARRIVAL / DEPARTURE
         [x_arrival, y_arrival, x_departure, y_departure] = model_arrival_departure(sw_in, sw_out)
@@ -631,21 +670,18 @@ def main ():
         x_delay = y_arrival
         y_delay = model_delay(sw_in, sw_out, x_delay)
 
-        max_queue = max(y_queue)
-        max_delay = max(y_delay)
+        model_max_queue = max(y_queue)
+        model_max_delay = max(y_delay)
 
-        (x, y) = hop
-
-        queue_matrix[y][x] = max_queue
-        delay_matrix[y][x] = max_delay
+        model_queue_matrix[y][x] = model_max_queue
+        model_delay_matrix[y][x] = model_max_delay
 
         # print('Node: ' + str(hop))
         # print('Max delay: {}'.format(max_delay))
         # print('Max queue: {}'.format(max_queue))
 
 
-    plotMatrix(queue_matrix)
-    plotMatrix(delay_matrix)
+    plotMatrix([model_queue_matrix, model_delay_matrix, sim_queue_matrix, sim_delay_matrix])
 
 
     # Naming the output file
