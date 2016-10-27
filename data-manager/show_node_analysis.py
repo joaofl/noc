@@ -73,6 +73,7 @@ def main ():
     counter_iteration_g = 0
     global counter_recursion_g
     counter_recursion_g = 0
+    global pck_duration
 
     # home = expanduser("~")
 
@@ -200,21 +201,33 @@ def main ():
         plotMatrix(simul_q_max)
         plotMatrix(simul_r_count)
 
-    def simulation_queue(x_arrival, y_arrival, x_departure, y_departure):
+    def simulation_queue(x_in, y_in):
         queue = []
+        time  = []
 
-        for i in range(len(x_arrival)):
-            queue.append(y_arrival[i] - y_departure[i])
+        for line in trace_queue_size:
+            x = int(line[HEADER.x_absolute])
+            y = int(line[HEADER.y_absolute])
 
-        return max(queue)
+            if x_in == x and y_in == y:
+                queue.append(int(line[HEADER.queue_size]))
+                time.append(float(line[HEADER.time]) / pck_duration)
 
-    def simulation_delay(x_arrival, y_arrival, x_departure, y_departure):
+        # if len(queue) > 0:
+        #     return (queue)
+        return time, queue
+
+    def measure_delay(x_arrival, y_arrival, x_departure, y_departure):
         delay = []
+        prod = []
 
-        for i in range(len(y_arrival)):
+        for i in range(0, len(y_arrival)):
             delay.append(x_departure[i] - x_arrival[i])
+            prod.append(y_arrival[i])
 
-        return max(delay)
+        # t = max(delay)
+        # p = y_arrival[delay.index(t)]
+        return delay, prod
 
 
     def simulation_arrival_departure(node_x, node_y, packet_n=0):
@@ -275,24 +288,27 @@ def main ():
         return x_arrival, y_arrival, x_departure, y_departure
 
     def model_queue(sw_in, sw_out, t_in):
-
+        x = []
         y = []
         for t in t_in:
             pin = wca.produced_until(t, sw_in)
             pout = wca.produced_until(t, sw_out)
             y.append(pin - pout)
+            x.append(t)
 
-        return y
+        return x, y
 
-    def model_delay(sw_in, sw_out, p_in):
+    def model_delay_old(sw_in, sw_out, p_in):
 
         x = []
-        for n in p_in:
-            tin = wca.time_taken_new(sw_in, n)
-            tout = wca.time_taken_new(sw_out, n)
+        y = []
+        for n in range(0, len(p_in)-1):
+            tin = wca.time_taken_new(sw_in, p_in[n])
+            tout = wca.time_taken_new(sw_out, p_in[n])
             x.append(tout- tin)
+            y.append(p_in[n])
 
-        return x
+        return x, y
 
 
     def model_arrival_departure(sw_in, sw_out):
@@ -380,15 +396,15 @@ def main ():
 
         return t_in, t_out, n_in, n_out
 
-    def plotMatrix(data, title=''):
+    def plotMatrix(data, title='', show=True):
 
         filename = None;
-        show = True;
+        # show = True;
         title = "";
         lable_x = "";
         lable_y = "";
-        x_size = 10;
-        y_size = 8;
+        x_size = 6;
+        y_size = 5;
 
         plt.figure(title, figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
 
@@ -411,7 +427,7 @@ def main ():
 
         # plt.xticks(np.arange(1, 6, dtype=np.int))
 
-        # plt.tight_layout(pad=2, w_pad=1, h_pad=0.9)
+        plt.tight_layout(pad=2, w_pad=1, h_pad=0.9)
 
 
 
@@ -441,7 +457,7 @@ def main ():
         y_lim = None
 
         lines = ["-", "-", "--", "--", "-", "--", "-", "--"]
-        markers = ["", "", "", "", "", "", "", ""]
+        markers = ["x", "x", "+", "+", "", "", "", ""]
         colours = ['lightgreen', 'yellow', 'black', 'grey', 'cyan', 'magenta', 'purple']
         labels = [
             'Arrivals',
@@ -480,7 +496,6 @@ def main ():
 
         # ax = plt.gca()
         # ax.set_xticklabels(x)
-
         # plt.locator_params(axis='x', nbins=len(x))
 
         if filename is not None:
@@ -589,11 +604,15 @@ def main ():
 
     ####### SIMULATION ARRIVAL / DEPARTURE
     x_arrival, y_arrival, x_departure, y_departure = simulation_arrival_departure(node_x, node_y)
-    simulation_delay(x_arrival, y_arrival, x_departure, y_departure)
-
     plots_simul = [x_arrival, y_arrival, x_departure, y_departure]
-    # simulation_queue(plots_simul)
 
+    ####### SIMULATION QUEUE
+    qx, qy = simulation_queue(node_x, node_y)
+    plots_sim_queue = [qx, qy]
+
+    ####### SIMULATION DELAY
+    dx, dy = measure_delay(x_arrival, y_arrival, x_departure, y_departure)
+    plots_sim_delay = [dx, dy]
 
     ####### MODEL ARRIVAL / DEPARTURE
     sw_in = flow_dict_g[node_x, node_y][0]
@@ -604,22 +623,22 @@ def main ():
     plots = plots_simul + plots_model
 
     ####### MODEL QUEUE
-    x_queue = sorted(x_arrival + x_departure)
-    y_queue = model_queue(sw_in, sw_out, x_queue)
+    base = sorted(x_arrival + x_departure)
+    x_queue, y_queue = model_queue(sw_in, sw_out, base)
     plots_model_queue = [x_queue, y_queue]
 
     ####### MODEL DELAY
-    x_delay = y_arrival
-    y_delay = model_delay(sw_in, sw_out, x_delay)
+    base = y_arrival
+    # x_delay, y_delay = model_delay(sw_in, sw_out, base)
+    x_delay, y_delay = measure_delay(x_arrival, y_arrival, x_departure, y_departure)
     plots_model_delay = [x_delay, y_delay]
 
 
     print('Max delay: {}'.format(max(y_delay)))
     print('Max queue: {}'.format(max(y_queue)))
-    #
-    # plot(plots_model_delay)
-    # plot(plots_model_queue)
 
+    # plot(plots_sim_delay + plots_model_delay)
+    plot(plots_sim_queue + plots_model_queue)
 
     # x_range = []
     # y_range = []
@@ -651,37 +670,33 @@ def main ():
 
         (x, y) = hop
 
-        ####### SIM QUEUE
-        x_arrival, y_arrival, x_departure, y_departure = simulation_arrival_departure(x, y)
-        sim_max_delay = simulation_delay(x_arrival, y_arrival, x_departure, y_departure)
-        sim_max_queue = simulation_queue(x_arrival, y_arrival, x_departure, y_departure)
+        ####### SIMULATION
+        [x_arrival, y_arrival, x_departure, y_departure] = simulation_arrival_departure(x, y)
 
-        sim_delay_matrix[y][x] = sim_max_delay
-        sim_queue_matrix[y][x] = sim_max_queue
+        x_sim_delay, y_sim_delay  = measure_delay(x_arrival, y_arrival, x_departure, y_departure)
 
-        ####### MODEL ARRIVAL / DEPARTURE
+        sim_queue_x, sim_queue_y = simulation_queue(x, y)
+
+        sim_queue_matrix[y][x] = max(sim_queue_y)
+        sim_delay_matrix[y][x] = max(x_sim_delay)
+
+        ####### MODEL
         [x_arrival, y_arrival, x_departure, y_departure] = model_arrival_departure(sw_in, sw_out)
 
-        ####### MODEL QUEUE
-        x_queue = sorted(x_arrival + x_departure)
-        y_queue = model_queue(sw_in, sw_out, x_queue)
+        base = sorted(x_arrival + x_departure)
+        x_queue, y_queue = model_queue(sw_in, sw_out, base)
 
-        ####### MODEL DELAY
-        x_delay = y_arrival
-        y_delay = model_delay(sw_in, sw_out, x_delay)
+        x_delay, y_delay = measure_delay(x_arrival, y_arrival, x_departure, y_departure)
 
-        model_max_queue = max(y_queue)
-        model_max_delay = max(y_delay)
-
-        model_queue_matrix[y][x] = model_max_queue
-        model_delay_matrix[y][x] = model_max_delay
+        model_queue_matrix[y][x] = max(y_queue)
+        model_delay_matrix[y][x] = max(x_delay)
 
         # print('Node: ' + str(hop))
         # print('Max delay: {}'.format(max_delay))
         # print('Max queue: {}'.format(max_queue))
 
 
-    plotMatrix([model_queue_matrix, model_delay_matrix, sim_queue_matrix, sim_delay_matrix])
+    plotMatrix([model_queue_matrix, model_delay_matrix, sim_queue_matrix, sim_delay_matrix], show=False)
 
 
     # Naming the output file
