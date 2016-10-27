@@ -497,8 +497,10 @@ namespace ns3 {
             // dequeue the packet to hit the tracing hooks.
             //
             if (m_queue_output->Enqueue(Create<QueueItem> (packet) ) == true) {
-//              
+                
                 Ptr<QueueItem> item = m_queue_output->Dequeue();
+                m_macTxQueueTrace(m_queue_output->GetNPackets());
+                
                 packet = item->GetPacket ();
                 
                 m_snifferTrace(packet);
@@ -515,14 +517,12 @@ namespace ns3 {
         
         else //m_txMachineState != READY
         {
-
-            bool r = m_queue_output->Enqueue(Create<QueueItem> (packet));
-            
-            if (r){
+            if (m_queue_output->Enqueue(Create<QueueItem> (packet))){
 //                if (m_queue_output->GetNPackets() > 1)  
                 m_macTxQueueTrace(m_queue_output->GetNPackets());
+                return true;
             }
-            return r;
+            return false;
         }
     }
     
@@ -563,6 +563,7 @@ bool
             Time t2 = Simulator::Now();
             Time t3 = t-t2;
             
+            //TODO: tweak will fail in many scenarios. Re-implement it 
             double ts;
             ts = (t2) / tPacket;
             ts = ts;
@@ -581,7 +582,8 @@ bool
 
         txCompleteTime = PicoSeconds(tPacket.GetPicoSeconds() / m_burstiness);
         
-        //Efectively transmit the data
+        //Efectively transmit the data+
+//        m_macTxQueueTrace(m_queue_output->GetNPackets());
         
         NS_ASSERT_MSG(m_txMachineState == READY, "Must be READY to transmit");
         m_txMachineState = BUSY;
@@ -616,17 +618,20 @@ void
 
         m_phyTxEndTrace(m_currentPkt);
         m_currentPkt = 0;
-        
+//        m_macTxQueueTrace(m_queue_output->GetNPackets());
+                    
         Ptr<QueueItem> item;
         Ptr<Packet> p0;
         if (m_queue_output->IsEmpty() == false){
+            
             item = m_queue_output->Dequeue();
+            m_macTxQueueTrace(m_queue_output->GetNPackets());
             p0 = item->GetPacket ();
             //
             // There was no packets on the high p, but on the lp queue, send them...
             //
 
-            m_macTxQueueTrace(m_queue_output->GetNPackets());
+//            m_macTxQueueTrace(m_queue_output->GetNPackets());
             m_snifferTrace(p0);
             m_promiscSnifferTrace(p0);
             m_macTxTrace(p0);
