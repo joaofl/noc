@@ -201,34 +201,6 @@ def main ():
         plotMatrix(simul_q_max)
         plotMatrix(simul_r_count)
 
-    def simulation_queue(x_in, y_in):
-        queue = []
-        time  = []
-
-        for line in trace_queue_size:
-            x = int(line[HEADER.x_absolute])
-            y = int(line[HEADER.y_absolute])
-
-            if x_in == x and y_in == y:
-                queue.append(int(line[HEADER.queue_size]))
-                time.append(float(line[HEADER.time]) / pck_duration)
-
-        # if len(queue) > 0:
-        #     return (queue)
-        return time, queue
-
-    def measure_delay(x_arrival, y_arrival, x_departure, y_departure):
-        delay = []
-        prod = []
-
-        for i in range(0, len(y_arrival)):
-            delay.append(x_departure[i] - x_arrival[i])
-            prod.append(y_arrival[i])
-
-        # t = max(delay)
-        # p = y_arrival[delay.index(t)]
-        return delay, prod
-
 
     def simulation_arrival_departure(node_x, node_y, packet_n=0):
 
@@ -287,35 +259,56 @@ def main ():
 
         return x_arrival, y_arrival, x_departure, y_departure
 
-    def model_queue(sw_in, sw_out, t_in):
+
+    def profile_delay(x_arrival, y_arrival, x_departure, y_departure):
+        delay = []
+        prod = []
+
+        for i in range(0, len(y_arrival)):
+            delay.append(x_departure[i] - x_arrival[i])
+            prod.append(y_arrival[i])
+
+        # t = max(delay)
+        # p = y_arrival[delay.index(t)]
+        return delay, prod
+
+    def profile_queue(x_arrival, y_arrival, x_departure, y_departure):
+        def f(x, x_array, y_array):
+            i = 1
+            while x_array[i] < x and i < len(x_array)-1:
+                i += 1
+            y = y_array[i-1]
+            return y
+
+        queue = []
+        t_axis = sorted(x_arrival + x_departure)
+
+        for i in range(0, len(t_axis)):
+            t_now = t_axis[i]
+
+            p_in = f(t_now, x_arrival, y_arrival)
+            p_out = f(t_now, x_departure, y_departure)
+
+            queue.append(p_in - p_out)
+
+        return t_axis, queue
+
+    def model_queue_old(sw_in, sw_out, t_in):
         x = []
         y = []
         for t in t_in:
             pin = wca.produced_until(t, sw_in)
             pout = wca.produced_until(t, sw_out)
-            y.append(pin - pout)
+            y.append(pin - pout) # minus the one beeing transmitted, which is not actually buffered??
             x.append(t)
 
         return x, y
 
-    def model_delay_old(sw_in, sw_out, p_in):
-
-        x = []
-        y = []
-        for n in range(0, len(p_in)-1):
-            tin = wca.time_taken_new(sw_in, p_in[n])
-            tout = wca.time_taken_new(sw_out, p_in[n])
-            x.append(tout- tin)
-            y.append(p_in[n])
-
-        return x, y
-
-
     def model_arrival_departure(sw_in, sw_out):
         #     print('The node selected have received no packets.'
 
-        [x_arrival, y_arrival] = wca.calculate_node(sw_in)
-        [x_departure, y_departure] = wca.calculate_node(sw_out)
+        [x_arrival, y_arrival] = wca.arrival_departure(sw_in)
+        [x_departure, y_departure] = wca.arrival_departure(sw_out)
 
 
         return [x_arrival, y_arrival, x_departure, y_departure] #, x_queue, y_queue, x_eted, y_eted]
@@ -383,6 +376,27 @@ def main ():
         # print(route_flows_base)
         return
 
+    def mask_to_port(p):
+
+        # DIRECTION_E = 0, // east
+        # DIRECTION_S = 1, // south
+        # DIRECTION_W = 2, // west
+        # DIRECTION_N = 3, // north
+        # DIRECTION_L = 4 // Internal, local
+
+        if p == 0b00000001:
+            r = 0
+        if p == 0b00000010:
+            r = 1
+        if p == 0b00000100:
+            r = 2
+        if p == 0b00001000:
+            r = 3
+        if p == 0b00010000:
+            r = 4
+
+        return r
+
 
     def model_node_bounds(traced_flow, in_flows, out_flow, packet_n=0):
         swi = in_flows  # the incomming
@@ -445,12 +459,12 @@ def main ():
             # plt.pause(0.001)
             # plt.draw()
 
-    def plot(axis, filename=None):
+    def plot(axis, filename=None, show = True):
 
         # global options
 
         # filename = options.outputdir + 'cumulative_ad.pdf'
-        show = True
+
         x_size = 6.5
         y_size = 3.1
         x_lim = None
@@ -509,26 +523,6 @@ def main ():
             plt.show()
 
 
-    def mask_to_port(p):
-
-        # DIRECTION_E = 0, // east
-        # DIRECTION_S = 1, // south
-        # DIRECTION_W = 2, // west
-        # DIRECTION_N = 3, // north
-        # DIRECTION_L = 4 // Internal, local
-
-        if p == 0b00000001:
-            r = 0
-        if p == 0b00000010:
-            r = 1
-        if p == 0b00000100:
-            r = 2
-        if p == 0b00001000:
-            r = 3
-        if p == 0b00010000:
-            r = 4
-
-        return r
 
     ################################# Running ####################################
 
@@ -552,7 +546,6 @@ def main ():
         route_flows = [] #Keeps track of the resulting flows along the route
         route_flows_index = [] #it is an anrray that keeps track of which flows intercept you at each hop
 
-
         for i in range(0, len(p), 3):
             route.append([int(p[i]), int(p[i+1]), int(p[i+2])])
             route_flows.append(f_unknown)
@@ -573,33 +566,20 @@ def main ():
             flow_list_g.append(f)
             index += 1
 
-    # flow_list_g = nw_flows_list
-
     if len(flow_list_g) == 0:
         print("Nothing found for port {} of node [{},{}]".format(port, node_x, node_y))
         exit(0)
 
+    # Here the model is calculated, given the input flow's characteristics
     model_propagate()
 
-
-    #Presenting results
+    #Organize the data in a dict for easy access by coordinates
     shaping_dict = {}
-
     for f in flow_list_g:
         for i in range(len(f[3])-1):
             [x, y, p] = f[3][i]
-
             p = mask_to_port(p)
             shaping_dict[x, y, p] = f[4][i+1]
-
-        print("--------------------------------------------------------------------------")
-        print("Route:\t {}".format(f[3]))
-        print("Flows:\t {}".format(f[4]))
-        print("Intersections:\t {}".format(f[5]))
-
-    print("--------------------------------------------------------------------------")
-    print('Iterations required: {}'.format(counter_iteration_g))
-    print('Total number of flows: {}'.format(len(flow_list_g)))
 
 
     ####### SIMULATION ARRIVAL / DEPARTURE
@@ -607,11 +587,11 @@ def main ():
     plots_simul = [x_arrival, y_arrival, x_departure, y_departure]
 
     ####### SIMULATION QUEUE
-    qx, qy = simulation_queue(node_x, node_y)
+    qx, qy = profile_queue(x_arrival, y_arrival, x_departure, y_departure)
     plots_sim_queue = [qx, qy]
 
     ####### SIMULATION DELAY
-    dx, dy = measure_delay(x_arrival, y_arrival, x_departure, y_departure)
+    dx, dy = profile_delay(x_arrival, y_arrival, x_departure, y_departure)
     plots_sim_delay = [dx, dy]
 
     ####### MODEL ARRIVAL / DEPARTURE
@@ -623,32 +603,29 @@ def main ():
     plots = plots_simul + plots_model
 
     ####### MODEL QUEUE
-    base = sorted(x_arrival + x_departure)
-    x_queue, y_queue = model_queue(sw_in, sw_out, base)
+    x_queue, y_queue = profile_queue(x_arrival, y_arrival, x_departure, y_departure)
     plots_model_queue = [x_queue, y_queue]
 
     ####### MODEL DELAY
-    base = y_arrival
-    # x_delay, y_delay = model_delay(sw_in, sw_out, base)
-    x_delay, y_delay = measure_delay(x_arrival, y_arrival, x_departure, y_departure)
+    x_delay, y_delay = profile_delay(x_arrival, y_arrival, x_departure, y_departure)
     plots_model_delay = [x_delay, y_delay]
 
 
-    print('Max delay: {}'.format(max(y_delay)))
-    print('Max queue: {}'.format(max(y_queue)))
-
+    plots += plots_sim_queue + plots_model_queue
     # plot(plots_sim_delay + plots_model_delay)
-    plot(plots_sim_queue + plots_model_queue)
+    # plot(plots_sim_queue + plots_model_queue)
 
+    #Calculate the range
+    #
     # x_range = []
     # y_range = []
     # for (x, y) in flow_dict_g:
     #     x_range.append(x)
     #     y_range.append(y)
-    #
     # nw_size_y = max(y_range) - min(y_range) + 1
     # nw_size_x = max(x_range) - min(x_range) + 1
 
+    #Set the range fixed for now
     nw_size_y = 4
     nw_size_x = 5
 
@@ -673,9 +650,9 @@ def main ():
         ####### SIMULATION
         [x_arrival, y_arrival, x_departure, y_departure] = simulation_arrival_departure(x, y)
 
-        x_sim_delay, y_sim_delay  = measure_delay(x_arrival, y_arrival, x_departure, y_departure)
+        x_sim_delay, y_sim_delay  = profile_delay(x_arrival, y_arrival, x_departure, y_departure)
 
-        sim_queue_x, sim_queue_y = simulation_queue(x, y)
+        sim_queue_x, sim_queue_y = profile_queue(x_arrival, y_arrival, x_departure, y_departure)
 
         sim_queue_matrix[y][x] = max(sim_queue_y)
         sim_delay_matrix[y][x] = max(x_sim_delay)
@@ -683,10 +660,8 @@ def main ():
         ####### MODEL
         [x_arrival, y_arrival, x_departure, y_departure] = model_arrival_departure(sw_in, sw_out)
 
-        base = sorted(x_arrival + x_departure)
-        x_queue, y_queue = model_queue(sw_in, sw_out, base)
-
-        x_delay, y_delay = measure_delay(x_arrival, y_arrival, x_departure, y_departure)
+        x_queue, y_queue = profile_queue(x_arrival, y_arrival, x_departure, y_departure)
+        x_delay, y_delay = profile_delay(x_arrival, y_arrival, x_departure, y_departure)
 
         model_queue_matrix[y][x] = max(y_queue)
         model_delay_matrix[y][x] = max(x_delay)
@@ -695,9 +670,9 @@ def main ():
         # print('Max delay: {}'.format(max_delay))
         # print('Max queue: {}'.format(max_queue))
 
-
     plotMatrix([model_queue_matrix, model_delay_matrix, sim_queue_matrix, sim_delay_matrix], show=False)
 
+    ############## SAVING THE RESULTS ##########################
 
     # Naming the output file
     sw_in = flow_dict_g[node_x, node_y][0]
@@ -715,9 +690,21 @@ def main ():
         str_out += str(l) + ',' + str(shaping_dict[l]) + '\n'
 
     str_out = str_out.replace('[', '').replace(']','').replace('(','').replace(')','').replace(' ','')
-    fn = options.outputdir + 'shaping_config.csv'
-    files_io.write(str_out, fn)
+    fn1 = options.outputdir + 'shaping_config.csv'
+    files_io.write(str_out, fn1)
 
+    output_tx = ''
+    for f in flow_list_g:
+        output_tx += ("--------------------------------------------------------------------------\n")
+        output_tx += ("Route:\t {}\n".format(f[3]))
+        output_tx += ("Flows:\t {}\n".format(f[4]))
+        output_tx += ("Intersections:\t {}\n".format(f[5]))
+    output_tx += ("--------------------------------------------------------------------------\n")
+    output_tx += ('Iterations required: {}\n'.format(counter_iteration_g))
+    output_tx += ('Total number of flows: {}\n'.format(len(flow_list_g)))
+
+    fn2 = fn1.replace('shaping_config.csv', 'flows.csv')
+    files_io.write(output_tx, fn2)
 
     # Ploting results
     fn = options.outputdir + 'cumulative (' + str(node_x) + ',' + str(node_y) + ') sw ' + str(sw_in_f) + ' = ' + str(sw_out_f) + '.pdf'

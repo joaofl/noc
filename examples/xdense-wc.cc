@@ -354,8 +354,8 @@ main(int argc, char *argv[]) {
             context_nd[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
             my_net_device->TraceConnect("MacTx", context_nd[1].str(), MakeCallback(&log_netdevice_packets));            
 
-            context_nd[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
-            my_net_device->TraceConnect("MacRxQueue", context_nd[2].str(), MakeCallback(&log_queues));          
+//            context_nd[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
+//            my_net_device->TraceConnect("MacRxQueue", context_nd[2].str(), MakeCallback(&log_queues)); //Since there is a FIFO at the output port only
             context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
             my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues)); 
             
@@ -366,8 +366,6 @@ main(int argc, char *argv[]) {
                 uint8_t ms = my_shaping_data.GetMsgSize(x.Get(), y.Get(), direction);; //message size, in case shaping have to be applied cyclic
                 my_net_device->SetShaper(b,o,ms);
             }
-            
-//            my_noc_router->SetShaper(b, o, ms, p);
         }
 
         //Should be installed in this order!!!
@@ -457,9 +455,7 @@ main(int argc, char *argv[]) {
                 beta = 0.5;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 
-
-//            else if (y == 1 && x == 1){
-////                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetShaper(shaper_b, shaper_rd, NOCRouting::DIRECTION_MASK_S);     
+//            else if (y == 1 && x == 1){   
 //                rd = 10;
 //                b = .7;
 //                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, b, rd, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          

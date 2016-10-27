@@ -244,12 +244,12 @@ def resulting_flow(sw, model='B'):
     return [burstiness_out, offset_out, msg_size_out]
 
 
-def calculate_node(sw):
+def arrival_departure(sw):
 
     if not isinstance(sw[0], list): #if it is a single flow, make it switch-like
         sw = [sw]
 
-    step = 0.01
+    step = 0.001
     ############# Input #############################################
     x = []
     y = []

@@ -275,8 +275,8 @@ namespace ns3 {
     
     Ptr<Packet>
     NOCNetDevice::DequeueReceived() {
+//        m_macTxQueueTrace(m_queue_input->GetNPackets());
         Ptr<QueueItem> item = m_queue_input->Dequeue();
-        m_macRxQueueTrace(m_queue_input->GetNPackets());
         return item->GetPacket();
     }
     Ptr<const Packet>
@@ -292,7 +292,7 @@ namespace ns3 {
     void
     NOCNetDevice::Receive(Ptr<Packet> packet) {
         NS_LOG_FUNCTION(this << packet);
-
+        
         if (m_receiveErrorModel && m_receiveErrorModel->IsCorrupt(packet)) {
             // 
             // If we have an error model and it indicates that it is time to lose a
@@ -350,7 +350,7 @@ namespace ns3 {
                 std::cout << "Packet dropped\n";
             }
             
-            m_macRxQueueTrace(m_queue_input->GetNPackets());               
+//            m_macRxQueueTrace(m_queue_input->GetNPackets());               
 
             m_rxCallback(packet, m_direction);
 
@@ -474,7 +474,6 @@ namespace ns3 {
         NS_LOG_FUNCTION_NOARGS();
         NS_LOG_LOGIC("UID is " << packet->GetUid());
 
-        //
         // If IsLinkUp() is false it means there is no channel to send any packet 
         // over so we just hit the drop trace on the packet and return an error.
         //
@@ -483,8 +482,6 @@ namespace ns3 {
             return false;
         }
         
-        
-        //
         // If there's a transmission in progress, we enque the packet for later
         // transmission; otherwise we send it now.
         //
@@ -498,8 +495,9 @@ namespace ns3 {
             //
             if (m_queue_output->Enqueue(Create<QueueItem> (packet) ) == true) {
                 
-                Ptr<QueueItem> item = m_queue_output->Dequeue();
                 m_macTxQueueTrace(m_queue_output->GetNPackets());
+                Ptr<QueueItem> item = m_queue_output->Dequeue();
+                
                 
                 packet = item->GetPacket ();
                 
@@ -582,8 +580,6 @@ bool
 
         txCompleteTime = PicoSeconds(tPacket.GetPicoSeconds() / m_burstiness);
         
-        //Efectively transmit the data+
-//        m_macTxQueueTrace(m_queue_output->GetNPackets());
         
         NS_ASSERT_MSG(m_txMachineState == READY, "Must be READY to transmit");
         m_txMachineState = BUSY;
@@ -618,6 +614,7 @@ void
 
         m_phyTxEndTrace(m_currentPkt);
         m_currentPkt = 0;
+        
 //        m_macTxQueueTrace(m_queue_output->GetNPackets());
                     
         Ptr<QueueItem> item;
@@ -625,13 +622,13 @@ void
         if (m_queue_output->IsEmpty() == false){
             
             item = m_queue_output->Dequeue();
-            m_macTxQueueTrace(m_queue_output->GetNPackets());
+
             p0 = item->GetPacket ();
             //
             // There was no packets on the high p, but on the lp queue, send them...
             //
 
-//            m_macTxQueueTrace(m_queue_output->GetNPackets());
+
             m_snifferTrace(p0);
             m_promiscSnifferTrace(p0);
             m_macTxTrace(p0);
