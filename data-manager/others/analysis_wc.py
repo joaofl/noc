@@ -249,7 +249,7 @@ def arrival_departure(sw):
     if not isinstance(sw[0], list): #if it is a single flow, make it switch-like
         sw = [sw]
 
-    step = 0.001
+    step = 0.01
     ############# Input #############################################
     x = []
     y = []

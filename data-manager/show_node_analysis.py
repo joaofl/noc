@@ -166,8 +166,8 @@ def main ():
                             simul_eted_min[abs_y][abs_x] = etedn
 
         if plot:
-            plotMatrix(simul_eted_max)
-            plotMatrix(simul_eted_min)
+            plot_matrix(simul_eted_max)
+            plot_matrix(simul_eted_min)
 
         return(t)
 
@@ -198,8 +198,8 @@ def main ():
 
 
 
-        plotMatrix(simul_q_max)
-        plotMatrix(simul_r_count)
+        plot_matrix(simul_q_max)
+        plot_matrix(simul_r_count)
 
 
     def simulation_arrival_departure(node_x, node_y, packet_n=0):
@@ -410,7 +410,7 @@ def main ():
 
         return t_in, t_out, n_in, n_out
 
-    def plotMatrix(data, title='', show=True):
+    def plot_matrix(data, title='', show=True):
 
         filename = None;
         # show = True;
@@ -670,7 +670,20 @@ def main ():
         # print('Max delay: {}'.format(max_delay))
         # print('Max queue: {}'.format(max_queue))
 
-    plotMatrix([model_queue_matrix, model_delay_matrix, sim_queue_matrix, sim_delay_matrix], show=False)
+    plot_matrix([model_queue_matrix, model_delay_matrix, sim_queue_matrix, sim_delay_matrix], show=True)
+
+    ####### Calcultate max end-to-end delay by summing max per hop delay
+    sim_eted_matrix = copy.deepcopy(nw_matrix)
+    model_eted_matrix = copy.deepcopy(nw_matrix)
+
+    for f in flow_list_g:
+        xo, yo, po = f[3][0]
+        for i in range(len(f[3])):
+            [x, y, p] = f[3][i]
+            model_eted_matrix[yo][xo] += model_delay_matrix[y][x]
+            sim_eted_matrix[yo][xo] += sim_delay_matrix[y][x]
+
+    plot_matrix([model_eted_matrix, sim_eted_matrix], show=True)
 
     ############## SAVING THE RESULTS ##########################
 
