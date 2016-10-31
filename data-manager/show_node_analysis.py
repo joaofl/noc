@@ -683,7 +683,20 @@ def main ():
             model_eted_matrix[yo][xo] += model_delay_matrix[y][x]
             sim_eted_matrix[yo][xo] += sim_delay_matrix[y][x]
 
-    plot_matrix([model_eted_matrix, sim_eted_matrix], show=True)
+    sim_msg_eted_matrix = copy.deepcopy(sim_eted_matrix)
+    model_msg_eted_matrix = copy.deepcopy(model_eted_matrix)
+
+    for e in flow_dict_g:
+        (x, y) = e
+        beta = flow_dict_g[e][0][0][0]
+        msg_size = flow_dict_g[e][0][0][2]
+        sim_msg_eted_matrix[y][x] += msg_size / beta
+        model_msg_eted_matrix[y][x] += msg_size / beta
+
+
+    plot_matrix([model_eted_matrix, model_msg_eted_matrix, sim_eted_matrix, sim_msg_eted_matrix], show=True)
+
+
 
     ############## SAVING THE RESULTS ##########################
 
