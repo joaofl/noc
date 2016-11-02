@@ -127,6 +127,7 @@ class Node(QGraphicsItem):
         return r
 
     def get_who(self, pos):
+        who = None
         if self.__core_rect.contains(pos):
             who = self.port['core']
 
@@ -299,8 +300,8 @@ class Node(QGraphicsItem):
         #     qp.setBrush( self.__led_off_brush)
 
 
-        qp.setPen(QColor("darkgrey"))
-        qp.drawText(1.3 * m, 3 * m, self.__text)
+        # qp.setPen(QColor("darkgrey"))
+        # qp.drawText(1.3 * m, 3 * m, self.__text)
 
 
 class NOCAnim(QWidget):

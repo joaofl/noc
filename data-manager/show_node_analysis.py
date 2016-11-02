@@ -245,7 +245,7 @@ def main ():
 
             if abs_x == node_x and abs_y == node_y:
                 ################# Received ####################
-                if line[HEADER.app_protocol] == '1':
+                if line[HEADER.app_protocol] == '1' or line[HEADER.app_protocol] == '3':
                     #Build the matrix for the density map
                     if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
                         # Build the cumulative arrival for an specific node
@@ -295,6 +295,9 @@ def main ():
                 y = y_f[i + 1]
             return y
 
+        if [x_f1, y_f1, x_f2, y_f2] == [[0],[0],[0],[0]]:
+            return [[0], [0]]
+
         if inverted==False:
             y_fs = []
             x_fs = sorted(list(set(x_f1 + x_f2)))
@@ -324,6 +327,12 @@ def main ():
 
         return [x_arrival, y_arrival, x_departure, y_departure] #, x_queue, y_queue, x_eted, y_eted]
 
+
+    def round_array(data, digits):
+        data_r = []
+        for l in data:
+            data_r.append(round(l, digits))
+        return data_r
 
     def competing_flows(flows_list, node_x, node_y, port):
         arriving_flows_list = []
@@ -388,13 +397,11 @@ def main ():
         return
 
     def mask_to_port(p):
-
         # DIRECTION_E = 0, // east
         # DIRECTION_S = 1, // south
         # DIRECTION_W = 2, // west
         # DIRECTION_N = 3, // north
         # DIRECTION_L = 4 // Internal, local
-
         if p == 0b00000001:
             r = 0
         if p == 0b00000010:
@@ -405,7 +412,6 @@ def main ():
             r = 3
         if p == 0b00010000:
             r = 4
-
         return r
 
 
@@ -618,13 +624,15 @@ def main ():
             p = mask_to_port(p)
             shaping_dict[x, y, p] = f[4][i+1]
 
-
+    rounding_digits = 2
 
     ####### ARRIVAL / DEPARTURE
     sw_in = flow_model_dict_g[node_x, node_y][0]
     sw_out = [flow_model_dict_g[node_x, node_y][1]]
 
     [x_arrival_model, y_arrival_model, x_departure_model, y_departure_model] = model_arrival_departure(sw_in, sw_out)
+    x_arrival_model = round_array(x_arrival_model, rounding_digits)
+    x_departure_model = round_array(x_departure_model, rounding_digits)
     plots_model = [x_arrival_model, y_arrival_model, x_departure_model, y_departure_model]
 
     ####### MODEL QUEUE
@@ -637,6 +645,8 @@ def main ():
 
     ####### SIMULATION ARRIVAL / DEPARTURE
     x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim = simulation_arrival_departure(node_x, node_y)
+    x_arrival_sim = round_array(x_arrival_sim, rounding_digits)
+    x_departure_sim = round_array(x_departure_sim, rounding_digits)
     plots_simul = [x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim]
 
     ####### SIMULATION QUEUE
@@ -696,6 +706,9 @@ def main ():
         ####### SIMULATION
         [x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim] = simulation_arrival_departure(x, y)
 
+        x_arrival_sim = round_array(x_arrival_sim, rounding_digits)
+        x_departure_sim = round_array(x_departure_sim, rounding_digits)
+
         x_sim_queue, y_sim_queue = subtract(x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim)
         x_sim_delay, y_sim_delay  = subtract(x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim, inverted=True)
 
@@ -704,6 +717,9 @@ def main ():
 
         ####### MODEL
         [x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim] = model_arrival_departure(sw_in, sw_out)
+
+        x_arrival_model = round_array(x_arrival_model, rounding_digits)
+        x_departure_model = round_array(x_departure_model, rounding_digits)
 
         x_queue, y_queue = subtract(x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim)
         x_delay, y_delay = subtract(x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim, inverted=True)
