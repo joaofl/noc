@@ -144,8 +144,6 @@ log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy,
     points = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);
     
     file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << points << endl;
-    cout << context << "," << offset << "," << burstness << "," << (int) ms << "," << points << endl;
-    
 }
 
 uint32_t 
@@ -162,9 +160,9 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 35;
-    uint32_t size_y = 15;
-    uint32_t size_neighborhood = 7; //odd only, such that cluster heads are centered
+    uint32_t size_x = 72 + 1; //multiples of 9, to allow r=4 neighborhoods
+    uint32_t size_y = 36 + 1;
+    uint32_t size_neighborhood = 2; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -174,12 +172,13 @@ main(int argc, char *argv[]) {
     string context = "WCA_APP_00";
         
     string output_data_dir = homedir + "/noc-data";
-    
     string input_sensors_data_path = "";
 //    string input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
     
     string input_delay_data_path = "";
 //    input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
+    
+    string input_shaping_data_path = "/home/joao/noc-data/nw73x37cWCA_APP_00/out/post/shaping_config.csv";
  
     CommandLine cmd;
     cmd.AddValue("context", "String to identify the simulation instance", context);
@@ -225,6 +224,14 @@ main(int argc, char *argv[]) {
     else{
         cout << "Delay's data sucessfully loaded:  " << input_delay_data_path << "\n";
     }
+
+    NOCRouterShapingConf my_shaping_data;
+    if ( my_shaping_data.LoadData(input_shaping_data_path)  == 0){
+        cout << "Error loading traffic shaping information at " << input_shaping_data_path << "\n";
+    }
+    else{
+        cout << "Traffic shaping information loaded from " << input_shaping_data_path << "\n";
+    }
     
     /////////////////////// Create logfiles ///////////////////////
     string filename;
@@ -245,13 +252,13 @@ main(int argc, char *argv[]) {
     file_packet_trace.open(filename.c_str(), ios::out);
     cout << "Log file created at " << filename << endl;
 
-    filename = dir_output + "queue-size-trace.csv";
-    file_queue_size_trace.open(filename.c_str(), ios::out);
-    cout << "Log file created at " << filename << endl;
+//    filename = dir_output + "queue-size-trace.csv";
+//    file_queue_size_trace.open(filename.c_str(), ios::out);
+//    cout << "Log file created at " << filename << endl;
 
-    filename = dir_output + "flows-trace.csv";
-    file_flow_trace.open(filename.c_str(), ios::out);
-    cout << "Log file created at " << filename << endl;
+//    filename = dir_output + "flows-trace.csv";
+//    file_flow_trace.open(filename.c_str(), ios::out);
+//    cout << "Log file created at " << filename << endl;
     
 
     filename = dir_output + "flows-source.csv";
@@ -259,6 +266,7 @@ main(int argc, char *argv[]) {
     cout << "Log file created at " << filename << endl;
     
     
+     ///////////// Setup and initialize the network
    
     //Using the new helper
     GridHelper my_grid_network_helper;
@@ -315,24 +323,17 @@ main(int argc, char *argv[]) {
         
         ostringstream context[4];
         
-//        context[0] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",r";
-//        my_xdense_app->TraceConnect("FlowRxTrace", context[0].str(), MakeCallback(&log_flows));  
-//        context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",t";
-//        my_xdense_app->TraceConnect("FlowTxTrace", context[1].str(), MakeCallback(&log_flows));  
+        context[0] << i << "," << x.Get() << "," << y.Get();
+        my_xdense_app->TraceConnect("FlowSourceTrace", context[0].str(), MakeCallback(&log_flows_source));  
+
         
+        context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
+        my_noc_router->TraceConnect("RouterCxTrace", context[1].str(), MakeCallback(&log_netdevice_packets));
+        my_noc_router->TraceConnect("RouterCxTrace", context[1].str(), MakeCallback(&log_flows));
         
-//        ostringstream context_router_cx, context_router_gx;
-        
-        context[0] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
-        my_noc_router->TraceConnect("RouterCxTrace", context[0].str(), MakeCallback(&log_netdevice_packets));
-        my_noc_router->TraceConnect("RouterCxTrace", context[0].str(), MakeCallback(&log_flows));
-        
-        context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",g";
-        my_noc_router->TraceConnect("RouterGxTrace", context[1].str(), MakeCallback(&log_netdevice_packets));
-        my_noc_router->TraceConnect("RouterGxTrace", context[1].str(), MakeCallback(&log_flows));
-        
-        context[3] << i << "," << x.Get() << "," << y.Get();
-        my_xdense_app->TraceConnect("FlowSourceTrace", context[3].str(), MakeCallback(&log_flows_source));  
+        context[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",g";
+        my_noc_router->TraceConnect("RouterGxTrace", context[2].str(), MakeCallback(&log_netdevice_packets));
+        my_noc_router->TraceConnect("RouterGxTrace", context[2].str(), MakeCallback(&log_flows));
         
         
         //Setup NetDevice's Callback
@@ -350,10 +351,18 @@ main(int argc, char *argv[]) {
             context_nd[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
             my_net_device->TraceConnect("MacTx", context_nd[1].str(), MakeCallback(&log_netdevice_packets));            
 
-            context_nd[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
-            my_net_device->TraceConnect("MacRxQueue", context_nd[2].str(), MakeCallback(&log_queues));          
-            context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
-            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues));          
+//            context_nd[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
+//            my_net_device->TraceConnect("MacRxQueue", context_nd[2].str(), MakeCallback(&log_queues)); //Since there is a FIFO at the output port only
+//            context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
+//            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues)); 
+            
+            
+            if (my_shaping_data.IsShaped(x.Get(), y.Get(), direction)){
+                float b = my_shaping_data.GetBurstiness(x.Get(), y.Get(), direction);
+                float o = my_shaping_data.GetOffset(x.Get(), y.Get(), direction);
+                uint8_t ms = my_shaping_data.GetMsgSize(x.Get(), y.Get(), direction);; //message size, in case shaping have to be applied cyclic
+                my_net_device->SetShaper(b,o,ms);
+            }
         }
 
         //Should be installed in this order!!!
@@ -391,8 +400,8 @@ main(int argc, char *argv[]) {
     cout << "Simulation completed successfully" << endl ;
     
     file_packet_trace.close();
-    file_queue_size_trace.close();
-    file_flow_trace.close();
+//    file_queue_size_trace.close();
+//    file_flow_trace.close();
     file_flows_source.close();
     file_simulation_info.close(); //it is only modified here, so can be closed
     
