@@ -503,7 +503,7 @@ namespace ns3 {
                 
                 m_snifferTrace(packet);
                 m_promiscSnifferTrace(packet);
-                m_macTxTrace(packet);              
+//                m_macTxTrace(packet);              
                 
                 return TransmitStart(packet);
             } else {
@@ -561,7 +561,7 @@ bool
             Time t2 = Simulator::Now();
             Time t3 = t-t2;
             
-            //TODO: tweak will fail in many scenarios. Re-implement it 
+            //TODO: tweak may fail in some scenarios. Re-implement it 
             double ts;
             ts = (t2) / tPacket;
             ts = ts;
@@ -586,6 +586,8 @@ bool
 
         m_currentPkt = p;
         m_phyTxBeginTrace(m_currentPkt);        
+        
+        m_macTxTrace(p);  
         
         NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
         Simulator::Schedule(txCompleteTime, &NOCNetDevice::TransmitComplete, this);
@@ -631,7 +633,7 @@ void
 
             m_snifferTrace(p0);
             m_promiscSnifferTrace(p0);
-            m_macTxTrace(p0);
+//            m_macTxTrace(p0);
             TransmitStart(p0);
             return;
         }
