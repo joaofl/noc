@@ -109,16 +109,10 @@ namespace ns3 {
         
         if (burstiness == 0 || IsActive == false)
             return;        
-
-//        XDenseHeader hd;
-//        pck->PeekHeader(hd);
-//        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
-//        if (trace){
-//            hd.SetXdenseProtocol(XDenseHeader::TRACE);
-//            hd.SetData(0 + release_delay);
-//        }
+        
+        
         int32_t orig_x_log, orig_y_log, dest_x_log, dest_y_log;
-        double offset_log = (Simulator::Now().GetNanoSeconds() / PacketDuration.GetNanoSeconds()) + t_offset; //get the absolute offset
+        double offset_log = (Simulator::Now().GetNanoSeconds() / PacketDuration.GetNanoSeconds()) + t_offset -1; //get the absolute offset
         
         orig_x_log = m_router->AddressX;
         orig_y_log = m_router->AddressY;
@@ -139,6 +133,12 @@ namespace ns3 {
         
         for (uint16_t i = 0 ; i < msg_size ; i++ ){
             Ptr<Packet> pck_c = pck->Copy();
+            XDenseHeader hd;
+            pck_c->RemoveHeader(hd);
+            hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+//            hd.SetXdenseProtocol(XDenseHeader::TRACE);
+            hd.SetData(i);
+            pck_c->AddHeader(hd);
             
             Simulator::Schedule(t_offset_t + (i * t_step_t), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, addressing);
 //            Simulator::Schedule(t_offset + (i * t_step), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, USE_RELATIVE_ADDRESS);
@@ -230,10 +230,11 @@ namespace ns3 {
             case XDenseHeader::NETWORK_SETUP:
 //                NetworkSetupReceived(pck, origin_x, origin_y);                
             case XDenseHeader::TRACE:
-                tts_now = Simulator::Now().GetNanoSeconds() / PacketDuration;
+//                tts_now = Simulator::Now().GetNanoSeconds() / PacketDuration;
                 tts_pck = h.GetData();
-                tts_total = tts_now - tts_pck;
-                cout << "Received at the app layer:" << Simulator::Now().GetNanoSeconds() << " tts:" << tts_total << "\n";            
+                cout << "Traced packet received: id=" << pck->GetUid() << "\tdata=" << tts_pck << endl; 
+//                tts_total = tts_now - tts_pck;
+//                cout << "Received at the app layer:" << Simulator::Now().GetNanoSeconds() << " tts:" << tts_total << "\n";            
                 break;
             
         }
@@ -247,8 +248,7 @@ namespace ns3 {
         hd.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA_REQUEST);
         pck->AddHeader(hd);
 
-        Time t_ns = Time::FromInteger(0,Time::NS);
-
+//        Time t_ns = Time::FromInteger(0,Time::NS);
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastIndividuals, this->m_router, pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
             this->m_router->PacketMulticastIndividuals(pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
 //        this->ClusterDataRequestReceived(pck, 0, 0, ClusterSize_x, ClusterSize_y);
@@ -307,7 +307,7 @@ namespace ns3 {
         hd.SetData(ClusterSize_x);
         pck->AddHeader(hd);
         
-        m_router->PacketMulticastArea(pck, NETWORK_ID_0, ClusterSize_x/2, ClusterSize_y/2);
+        m_router->PacketMulticastArea(pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
     }
     
     void
