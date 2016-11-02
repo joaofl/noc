@@ -28,14 +28,14 @@ def load_list(file_name):
     a = []
     try:
         a = numpy.array(list(csv.reader(open(file_name, "rt"), delimiter=',')))
-        if (len(a)) == 0:
-            print('Log file is empty\n')
+        # if (len(a)) == 0:
+            # print('Log file is empty\n')
             # exit(1)
         # else:
         #     return a
     except:
-        print("Log file does not exist\n")
-        # return -1
+        # print("Log file does not exist\n")
+        return a
 
     return a
 
@@ -53,6 +53,10 @@ def load_single_value(filename):
     return float(data)
 
 def write(string, filename):
+    dir = filename[:filename.rfind("/")]
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
     with open(filename, 'w') as file_out:
         file_out.write(string)
         file_out.close()
