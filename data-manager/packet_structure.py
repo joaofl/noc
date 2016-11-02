@@ -22,7 +22,8 @@ y_source = 11
 x_dest = 12
 y_dest = 13
 
-protocol_app = 14
+app_protocol = 14
+app_data = 15
 
 # Definition of the NetDevices direction by their index
 
