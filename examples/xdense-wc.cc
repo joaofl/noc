@@ -144,8 +144,6 @@ log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy,
     points = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);
     
     file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << points << endl;
-    cout << context << "," << offset << "," << burstness << "," << (int) ms << "," << points << endl;
-    
 }
 
 uint32_t 
@@ -218,9 +216,7 @@ main(int argc, char *argv[]) {
     if (status != 0) {
         cout << "Error creating the directory " << dir_output << "\n";
     }
-    
     DataIO my_input_data;
-    
     if ( my_input_data.LoadArray(input_delay_data_path)  == 0){
         cout << "Error loading the input data file at " << input_delay_data_path << "\n";
     }
@@ -255,13 +251,13 @@ main(int argc, char *argv[]) {
     file_packet_trace.open(filename.c_str(), ios::out);
     cout << "Log file created at " << filename << endl;
 
-    filename = dir_output + "queue-size-trace.csv";
-    file_queue_size_trace.open(filename.c_str(), ios::out);
-    cout << "Log file created at " << filename << endl;
+//    filename = dir_output + "queue-size-trace.csv";
+//    file_queue_size_trace.open(filename.c_str(), ios::out);
+//    cout << "Log file created at " << filename << endl;
 
-    filename = dir_output + "flows-trace.csv";
-    file_flow_trace.open(filename.c_str(), ios::out);
-    cout << "Log file created at " << filename << endl;
+//    filename = dir_output + "flows-trace.csv";
+//    file_flow_trace.open(filename.c_str(), ios::out);
+//    cout << "Log file created at " << filename << endl;
     
 
     filename = dir_output + "flows-source.csv";
@@ -356,8 +352,8 @@ main(int argc, char *argv[]) {
 
 //            context_nd[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
 //            my_net_device->TraceConnect("MacRxQueue", context_nd[2].str(), MakeCallback(&log_queues)); //Since there is a FIFO at the output port only
-            context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
-            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues)); 
+//            context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
+//            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues)); 
             
             
             if (my_shaping_data.IsShaped(x.Get(), y.Get(), direction)){
@@ -450,11 +446,11 @@ main(int argc, char *argv[]) {
                 beta = 0.8;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
             } 
-            else if (y == 1 && x == 0){
-                offset = 24;
-                beta = 0.5;
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
-            } 
+//            else if (y == 1 && x == 0){
+//                offset = 24;
+//                beta = 0.5;
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
+//            } 
 //            else if (y == 1 && x == 1){   
 //                rd = 10;
 //                b = .7;
@@ -481,8 +477,8 @@ main(int argc, char *argv[]) {
     cout << "Simulation completed successfully" << endl ;
     
     file_packet_trace.close();
-    file_queue_size_trace.close();
-    file_flow_trace.close();
+//    file_queue_size_trace.close();
+//    file_flow_trace.close();
     file_flows_source.close();
     file_simulation_info.close(); //it is only modified here, so can be closed
     
