@@ -647,9 +647,9 @@ def main ():
     dx, dy = subtract(x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim, inverted=True)
     plots_sim_delay = [dx, dy]
 
-    plots = plots_simul + plots_model + plots_sim_queue + plots_model_queue + plots_sim_delay + plots_model_delay
+    # plots = plots_simul + plots_model + plots_sim_queue + plots_model_queue + plots_sim_delay + plots_model_delay
     # plots = plots_simul + plots_model + plots_sim_delay + plots_model_delay
-    # plots = plots_simul + plots_model
+    plots = plots_simul + plots_model
     # plot(plots_sim_delay + plots_model_delay)
     # plot(plots_sim_queue + plots_model_queue)
 
@@ -747,7 +747,7 @@ def main ():
         model_msg_eted_matrix[y][x] += msg_size / beta
 
 
-    # plot_matrix([model_msg_eted_matrix, sim_msg_eted_matrix], show=True, title='Maximum end-to-end delay')
+    plot_matrix([model_msg_eted_matrix, sim_msg_eted_matrix], show=True, title='Maximum end-to-end delay', region=nw_region)
 
 
     ####### Gethering eted from logfiles
@@ -761,7 +761,7 @@ def main ():
         sim_flow_trace_eted_matrix[yo][xo] = dt
 
     # plot_matrix([sim_flow_trace_eted_matrix], show=True)
-    # plot_matrix([model_msg_eted_matrix, sim_flow_trace_eted_matrix], show=True, title='Measured end-to-end delay')
+    plot_matrix([model_msg_eted_matrix, sim_flow_trace_eted_matrix], show=True, title='Measured end-to-end delay', region=nw_region)
     ############## SAVING THE RESULTS ##########################
 
     # Naming the output file

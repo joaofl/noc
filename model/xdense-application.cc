@@ -360,7 +360,8 @@ namespace ns3 {
         uint8_t dist = NOCRouting::Distance(pos_long, pos_alt, last_long, last_alt);
         
         double_t b      = double(1) / double(abs(last_long) * (abs(last_alt) + 1));
-        uint32_t ms     = 1;
+//        double_t b      = double(1) / double(ClusterSize_x * (ClusterSize_y -1));
+        uint32_t ms     = 5;
         uint8_t rd      = dist + 1; // all nodes send together. First wait for the last
         rd = 0; //send the response as soon as the request is received
         //At each node rd = 0, but relatively to origin, at the time the request was made,
@@ -398,6 +399,10 @@ namespace ns3 {
         hd_out.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
         Ptr<Packet> pck_out = Create<Packet>();
         pck_out->AddHeader(hd_out);
+        
+        b = 0.5;
+        rd = 0;
+        ms = 5;
         
         this->SetFlowGenerator(0, b, rd, ms, pck_out, dest_x, dest_y, ADDRESSING_RELATIVE);
         

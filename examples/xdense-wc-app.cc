@@ -162,14 +162,14 @@ main(int argc, char *argv[]) {
     
     uint32_t size_x = 72 + 1; //multiples of 9, to allow r=4 neighborhoods
     uint32_t size_y = 36 + 1;
-    uint32_t size_neighborhood = 2; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_neighborhood = 4; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "WCA_APP_00";
+    string context = "WCA_APP_01";
         
     string output_data_dir = homedir + "/noc-data";
     string input_sensors_data_path = "";
