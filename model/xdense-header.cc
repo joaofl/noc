@@ -58,9 +58,8 @@ namespace ns3 {
     void
     XDenseHeader::Print(std::ostream &os) const {
         os << (int) this->m_protocol;    
-//        for (uint8_t i = 0 ; i < PAYLOAD_SIZE ; i++){
-//            os << this->m_data[i];            
-//        }
+        os << ",";
+        os << this->m_data;       
     }
 
     uint32_t
