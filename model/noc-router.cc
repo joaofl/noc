@@ -333,7 +333,7 @@ namespace ns3 {
         NOCHeader h;
         h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST_INDIVIDUALS);
         h.SetSourceAddressXY(0,0);
-        h.SetDestinationAddressXY(x_position, y_position);
+        h.SetDestinationAddressXY(x_position*2 + 1, y_position*2 + 1);
         
         Ptr<Packet> pck_c = pck->Copy();
         pck_c->AddHeader(h);
