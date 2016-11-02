@@ -79,12 +79,9 @@ log_netdevice_packets(string context, Ptr<const Packet> pck_r)
 {
 //    uint64_t now = Simulator::Now().GetNanoSeconds();
     uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
-    
     Ptr<Packet> pck = pck_r->Copy();
-    
     NOCHeader hdnoc;
     pck->RemoveHeader(hdnoc);
-    
     XDenseHeader hdxd;
     pck->RemoveHeader(hdxd);
     
@@ -104,12 +101,9 @@ log_netdevice_packets(string context, Ptr<const Packet> pck_r)
 void
 log_flows(string context, Ptr<const Packet> pck_r){
     uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
-    
     Ptr<Packet> pck = pck_r->Copy();
-    
     NOCHeader hdnoc;
     pck->RemoveHeader(hdnoc);
-    
     XDenseHeader hdxd;
     pck->RemoveHeader(hdxd);
     
@@ -126,15 +120,15 @@ log_flows(string context, Ptr<const Packet> pck_r){
     file_flow_trace << "\n";    
 }
 
-void
-log_queues(string context, uint16_t size){
-    uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
-    //  Context info
-    file_queue_size_trace
-    << now << ","
-    << context << "," //[ i, x, y, port, event ];
-    << size << endl;
-}
+//void
+//log_queues(string context, uint16_t size){
+//    uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
+//    //  Context info
+//    file_queue_size_trace
+//    << now << ","
+//    << context << "," //[ i, x, y, port, event ];
+//    << size << endl;
+//}
 
 void
 log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, 
@@ -383,16 +377,10 @@ main(int argc, char *argv[]) {
     uint32_t s1x, s1y; //Sync 1 location
     s1x = 0; s1y = 0;
     
-    bool use_traffic_shapper = true;
-    double_t beta      = 0.05;
-//    double_t bmax   = 0.064;
-//    double_t bmin   = 0.061;
-    
-    double_t offset     = 0; 
-//    double_t rd_max = 2.0; 
-//    double_t rd_min = 1.0; 
-    
-    uint32_t ms     = 5;
+//    bool use_traffic_shapper = true;
+    double_t beta       = 0.05;
+    double_t offset     = 0;   
+    uint32_t ms         = 5;
     
     Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable> ();
       
@@ -401,50 +389,66 @@ main(int argc, char *argv[]) {
             uint32_t n = GetN(size_x, size_y, x, y);
 
             
-            // The following calculation applies only if all the flows have the
-            //same characteristics
-            uint32_t shaper_rd = (size_y - y - 1);
-            uint32_t total_ms = (size_y - y) * ms;
-            double_t max_ms_over_b = (total_ms) / (beta * (size_y - y));
-
-//            if (y == 0 && x > 0){
-//                shaper_rd = shaper_rd + (size_x - x - 1);
-//                total_ms = total_ms + ((total_ms) * (size_x - x - 1));
-//                max_ms_over_b = (total_ms) / (b * (size_y - y) * (size_x - x));
+//            // The following calculation applies only if all the flows have the
+//            //same characteristics
+//            uint32_t shaper_rd = (size_y - y - 1);
+//            uint32_t total_ms = (size_y - y) * ms;
+//            double_t max_ms_over_b = (total_ms) / (beta * (size_y - y));
+//
+////            if (y == 0 && x > 0){
+////                shaper_rd = shaper_rd + (size_x - x - 1);
+////                total_ms = total_ms + ((total_ms) * (size_x - x - 1));
+////                max_ms_over_b = (total_ms) / (b * (size_y - y) * (size_x - x));
+////            }
+//            double_t shaper_b = total_ms / max_ms_over_b;
+//            if (shaper_b > 1) shaper_b = 1;
+//
+//             if (use_traffic_shapper == false){
+//                 shaper_b = 1;
+//                 shaper_rd = 0;
+//             }
+//            shaper_rd = shaper_rd;
+//            ////////////////////////////////////////////////////////////////////
+//            
+//            TODO: the flows logging should be done from here
+//            
+//            //Simulate the assyncronism by applying random burstiness and rd to nodes
+////            b = r->GetValue(bmin, bmax);
+////            rd = r->GetValue(rd_min, rd_max);
+////            shaper_b *= r->GetValue(0.99, 1.01);
+            
+//            int32_t orig_x_log, orig_y_log, dest_x_log, dest_y_log;
+//            double offset_log = (Simulator::Now().GetNanoSeconds() / PacketDuration.GetNanoSeconds()) + t_offset -1; //get the absolute offset
+//
+//            orig_x_log = m_router->AddressX;
+//            orig_y_log = m_router->AddressY;
+//
+//            if (addressing == ADDRESSING_RELATIVE){
+//                    dest_x_log = m_router->AddressX + dest_x;
+//                    dest_y_log = m_router->AddressY + dest_y;
 //            }
-            double_t shaper_b = total_ms / max_ms_over_b;
-            if (shaper_b > 1) shaper_b = 1;
-
-             if (use_traffic_shapper == false){
-                 shaper_b = 1;
-                 shaper_rd = 0;
-             }
-            shaper_rd = shaper_rd;
-            ////////////////////////////////////////////////////////////////////
-            
-            
-            //Simulate the assyncronism by applying random burstiness and rd to nodes
-//            b = r->GetValue(bmin, bmax);
-//            rd = r->GetValue(rd_min, rd_max);
-//            shaper_b *= r->GetValue(0.99, 1.01);
+//            else if (addressing == ADDRESSING_ABSOLUTE){
+//                    dest_x_log = dest_x;
+//                    dest_y_log = dest_y;           
+//            }
+//
+//            m_flows_source(orig_x_log, orig_y_log, dest_x_log, dest_y_log, offset_log, burstiness, msg_size);
             
             XDenseHeader hd_out;
             hd_out.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
             Ptr<Packet> pck_out = Create<Packet>();
             pck_out->AddHeader(hd_out);
-        
-//        this->SetFlowGenerator(b, rd, ms, pck_out, dest_x, dest_y);
 
 //              All to one
             if (y == 1 && x == 1){ //The one to trace
                 beta = 0.9;
                 offset = 0;                                      
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST);                                          
             } 
             else if (y == 2 && x == 0){
                 offset = 19;
                 beta = 0.8;
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);                                          
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST);                                          
             } 
 //            else if (y == 1 && x == 0){
 //                offset = 24;
@@ -458,7 +462,7 @@ main(int argc, char *argv[]) {
 //            } 
             else if (y > 0){ 
                 beta = 0.111;
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE);               
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, s1x, s1y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST);               
             }   
         }
     }

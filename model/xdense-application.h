@@ -71,6 +71,7 @@ namespace ns3 {
         bool IsSink, IsActive;
         Time PacketDuration;
         uint8_t ClusterSize_x, ClusterSize_y; 
+        double_t AggregationRate = 0.8;
 //        int32_t AbsoluteX, AbsoluteY;
         
 
@@ -84,9 +85,11 @@ namespace ns3 {
         void Tests(void);
 
         void SetShaper(double_t b, uint8_t rd, uint8_t port);
+        
+        void CalculateShaper(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
             
         void SetFlowGenerator(uint8_t initial_delay, double_t burstiness, double_t t_offset, uint32_t msg_size, 
-            Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y, bool addressing);
+            Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y, bool addressing, uint8_t protocol);
 
         void RunApplicationWCA(bool trace, bool is_sink);
         
@@ -125,7 +128,7 @@ namespace ns3 {
 //            int32_t x, y;
 //        } node_ref;
         
-        TracedCallback< int32_t, int32_t, int32_t, int32_t, double, double, uint8_t > m_flows_source; //offset, beta, ms
+        TracedCallback< int32_t, int32_t, int32_t, int32_t, double, double, uint8_t, uint8_t > m_flows_source; //offset, beta, ms
 
 
         virtual void StartApplication(void);

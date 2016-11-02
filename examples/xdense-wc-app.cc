@@ -138,12 +138,17 @@ log_queues(string context, uint16_t size){
 
 void
 log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, 
-        double offset, double burstness, uint8_t ms){
-    string points;
+        double offset, double burstness, uint8_t ms, uint8_t protocol){
+    string route;
     
-    points = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);
+    if (protocol == NOCHeader::PROTOCOL_UNICAST){
+      route = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);  
+    }
+    else if (protocol == NOCHeader::PROTOCOL_UNICAST_OFFSET){
+        route = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST_OFFSET); 
+    }
     
-    file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << points << endl;
+    file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << route << endl;
 }
 
 uint32_t 
@@ -172,13 +177,10 @@ main(int argc, char *argv[]) {
     string context = "WCA_APP_01";
         
     string output_data_dir = homedir + "/noc-data";
+    
     string input_sensors_data_path = "";
-//    string input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
-    
     string input_delay_data_path = "";
-//    input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
-    
-    string input_shaping_data_path = "/home/joao/noc-data/nw73x37cWCA_APP_00/out/post/shaping_config.csv";
+    string input_shaping_data_path = "";
  
     CommandLine cmd;
     cmd.AddValue("context", "String to identify the simulation instance", context);
@@ -194,7 +196,7 @@ main(int argc, char *argv[]) {
     cmd.Parse(argc, argv);
     
     ///////////////////////////////////////////////////////////////
-
+    
     stringstream context_dir;
     context_dir << "/";
     context_dir << "nw" << size_x << "x" <<size_y;
@@ -208,6 +210,10 @@ main(int argc, char *argv[]) {
     
     string dir_output = output_data_dir + context_dir.str() + "out/";
     string dir_input = output_data_dir + context_dir.str() + "in/";     
+    
+//  input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
+//  input_delay_data_path = output_data_dir + "/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
+    input_shaping_data_path = dir_output + "post/shaping_config.csv";
     
     int status;
     status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);

@@ -43,10 +43,10 @@ namespace ns3 {
                 case NOCHeader::PROTOCOL_UNICAST:
                     out = UnicastClockwiseXY(dx - x_current, dy - y_current);
                     break;
-//              case NOCHeader::PROTOCOL_UNICAST_OFFSET:
-//                  out = UnicastClockwiseOffsetXY(adx, ady, asx, asy);
-//                  out = UnicastClockwiseOffsetStartXY(dx, dy, ox, oy);
-//                  break;
+                case NOCHeader::PROTOCOL_UNICAST_OFFSET:
+//                    out = UnicastClockwiseOffsetXY(adx, ady, asx, asy);
+                    out = UnicastClockwiseOffsetStartXY(dx - x_current, dy - y_current, ox - x_current, oy - y_current);
+                    break;
                 default:
                     break;
                 
@@ -75,8 +75,6 @@ namespace ns3 {
         }
         
         outstring << x_current << ";" << y_current << ";" << int(DIRECTION_MASK_L);
-        
-//        outstring << "]";
         return outstring.str();
     }
 
