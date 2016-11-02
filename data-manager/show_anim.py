@@ -522,7 +522,7 @@ class NOCAnim(QWidget):
                 node = self.network[y][x]
 
 
-                if current_trans[trace.protocol_app] == '6':
+                if current_trans[trace.app_protocol] == '6':
                     node.setProperty(led = 1)
                 # else:
                 #     node.setProperty(led = 0)
