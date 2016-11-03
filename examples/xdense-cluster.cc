@@ -373,9 +373,9 @@ main(int argc, char *argv[]) {
     uint32_t ms         = 5;
     double_t offset     = 0;   
     
-    beta = 1 / (double(size_x * size_y * ms) / 4);
-    beta = 0.03;
-    beta = 1;
+//    beta = 1 / (double(size_x * size_y * ms) / 4);
+//    beta = 0.03;
+//    beta = 1;
     
     uint32_t center_x = (size_x - 1) / 2;
     uint32_t center_y = (size_y - 1) / 2;
@@ -391,7 +391,6 @@ main(int argc, char *argv[]) {
             
             offset = NOCRouting::Distance(center_x, center_y, x, y);
             
-
             if (y == center_y && x == center_x){ //The one to trace
 
             } 
