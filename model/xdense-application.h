@@ -71,8 +71,10 @@ namespace ns3 {
         bool IsSink, IsActive;
         Time PacketDuration;
         uint8_t ClusterSize_x, ClusterSize_y; 
-        double_t AggregationRate = 0.8;
+        double_t AggregationRate;
 //        int32_t AbsoluteX, AbsoluteY;
+        
+        TracedCallback< int32_t, int32_t, int32_t, int32_t, double, double, uint8_t, uint8_t > m_flows_source; //offset, beta, ms
         
 
         Ptr <NOCOutputDataSensors> SinkReceivedData;
@@ -92,6 +94,7 @@ namespace ns3 {
             Ptr<const Packet> pck, int32_t dest_x, int32_t dest_y, bool addressing, uint8_t protocol);
 
         void RunApplicationWCA(bool trace, bool is_sink);
+        void RunApplicationCluster(void);
         
         void DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x,int32_t origin_y, int32_t dest_x,int32_t dest_y);
         
@@ -128,7 +131,7 @@ namespace ns3 {
 //            int32_t x, y;
 //        } node_ref;
         
-        TracedCallback< int32_t, int32_t, int32_t, int32_t, double, double, uint8_t, uint8_t > m_flows_source; //offset, beta, ms
+
 
 
         virtual void StartApplication(void);

@@ -64,6 +64,7 @@ namespace ns3 {
         //of fixed and absolute pre-defined x,y)
 
         IntegerValue x, y;
+        AggregationRate = 0.8;
         m_router->GetAttribute("AddressX", x);
         m_router->GetAttribute("AddressY", y);
         m_router->SetReceiveCallback(MakeCallback(&XDenseApp::DataReceived, this));
@@ -137,6 +138,11 @@ namespace ns3 {
             Simulator::Schedule(t_step, &XDenseApp::ClusterDataRequest, this);
 //            ClusterDataRequest();
         }
+    }
+    void
+    XDenseApp::RunApplicationCluster(void) {
+        Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds(), Time::NS);
+        Simulator::Schedule(t_step, &XDenseApp::DataSharingRequest, this);
     }
 
 
@@ -245,13 +251,11 @@ namespace ns3 {
         //then it schedule few local requests, and replies to the global sink,
         //so it can send it back its pre-processed cluster data
         
-        Time tbase = PacketDuration * (ClusterSize_x + 1) * (ClusterSize_x + 1) * 5;
+        Time tbase = PacketDuration * (ClusterSize_x + 1) * (ClusterSize_x + 1) * 4;
         Time t;
         
-
         t = 0 * tbase;
-        Simulator::Schedule(t, &XDenseApp::DataSharingRequest, this); // schedule the request
-        
+//        Simulator::Schedule(t, &XDenseApp::DataSharingRequest, this); // schedule the reques
         t = tbase; //set the waiting time
         Simulator::Schedule(t, &XDenseApp::ClusterDataResponse, this, -origin_x, -origin_y); // and response
         

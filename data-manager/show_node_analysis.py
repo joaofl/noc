@@ -219,7 +219,60 @@ def main ():
 
         return flow_trace_dict
 
-    def simulation_arrival_departure(node_x, node_y, packet_n=0):
+    def simulation_get_port_packets_new(node_x, node_y, port):
+        traced_flows = []
+
+        for line in trace_packets:
+            log_x = int(line[HEADER.x_absolute])
+            log_y = int(line[HEADER.y_absolute])
+            log_port = port_to_mask(int(line[HEADER.direction]))
+            log_operation = line[HEADER.operation]
+            log_id = int(line[HEADER.id])
+
+            #check which flows are leaving the selected port
+            if log_x == node_x and log_y == node_y and log_port == port and log_operation == 't':
+                if not log_id in traced_flows:
+                    traced_flows.append(log_id)
+
+        return trace_flows
+
+    def simulation_arrival_departure_new(node_x, node_y, traced_flows):
+        x_arrival = []
+        y_arrival = []
+        x_arrival.append(0)
+        y_arrival.append(0)
+
+        x_departure = []
+        y_departure = []
+        x_departure.append(0)
+        y_departure.append(0)
+
+        count_r = 0;
+        count_t = 0;
+
+        for line in trace_packets:
+            log_x = int(line[HEADER.x_absolute])
+            log_y = int(line[HEADER.y_absolute])
+            log_operation = line[HEADER.operation]
+            log_id = int(line[HEADER.id])
+            log_t = float(line[HEADER.time]) / pck_duration
+
+            if log_x == node_x and log_y == node_y and log_id in traced_flows:
+                ## Received or generated
+                if log_operation == 'r' or log_operation == 'g':
+                    # Build the cumulative arrival for an specific node
+                    count_r += 1
+                    x_arrival.append(log_t)
+                    y_arrival.append(count_r)
+                ## Transmitted
+                elif log_operation == 't':  # or line[trace.operation] == 'g':
+                    count_t += 1
+                    x_departure.append(log_t + 1)
+                    y_departure.append(count_t)
+
+        return x_arrival, y_arrival, x_departure, y_departure
+
+    def simulation_arrival_departure(node_x, node_y, protocol=1):
         ################# Get trace_packets from simulation logs ##################
         x_arrival = []
         y_arrival = []
@@ -230,43 +283,31 @@ def main ():
         y_departure = []
         x_departure.append(0)
         y_departure.append(0)
-        # simul_traced_y = []
-        # simul_traced_x = []
 
         count_r = 0;
         count_t = 0;
 
         for line in trace_packets:
-            abs_x = int(line[HEADER.x_absolute])
-            abs_y = int(line[HEADER.y_absolute])
+            log_x = int(line[HEADER.x_absolute])
+            log_y = int(line[HEADER.y_absolute])
+            log_protocol = int(line[HEADER.app_protocol])
+            log_t = float(line[HEADER.time]) / pck_duration
 
-            t = float(line[HEADER.time]) / pck_duration
-            # t = time_slot
-
-            if abs_x == node_x and abs_y == node_y:
+            if log_x == node_x and log_y == node_y and log_protocol == protocol:
                 ################# Received ####################
-                if line[HEADER.app_protocol] == '1' or line[HEADER.app_protocol] == '3':
-                    #Build the matrix for the density map
-                    if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
-                        # Build the cumulative arrival for an specific node
-                        count_r += 1
-                        x_arrival.append(t)
-                        y_arrival.append(count_r)
-                        #point there at what time the traced packed passed by
-                        # if line[HEADER.app_protocol] == '6':
-                        #     simul_traced_x.append(t)
-                        #     simul_traced_y.append(count_r)
+                #Build the matrix for the density map
+                if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
+                    # Build the cumulative arrival for an specific node
+                    count_r += 1
+                    x_arrival.append(log_t)
+                    y_arrival.append(count_r)
 
-                    ################# Transmitted ####################
-                    elif line[HEADER.operation] == 't': # or line[trace.operation] == 'g':
-                        #Build the cumulative departure curve
-                        count_t += 1
-                        x_departure.append(t+1)
-                        y_departure.append(count_t)
-                        # point there at what time the traced packed passed by
-                        # if line[HEADER.app_protocol] == '6':
-                        #     simul_traced_x.append(t + 1) #Plus one time slot, the time to finish transmitting
-                        #     simul_traced_y.append(count_t)
+                ################# Transmitted ####################
+                elif line[HEADER.operation] == 't': # or line[trace.operation] == 'g':
+                    #Build the cumulative departure curve
+                    count_t += 1
+                    x_departure.append(log_t+1)
+                    y_departure.append(count_t)
 
         return x_arrival, y_arrival, x_departure, y_departure
 
@@ -386,7 +427,7 @@ def main ():
 
                 # organaze data in a hashtable to allow easy access by coordinates
                 # if not (x, y) in flow_dict_g:
-                flow_model_dict_g[x, y] = [sw_in, f_out]
+                flow_model_dict_g[x, y] = [sw_in, f_out, p]
 
             else:
                 model_propagate(sorted(unknown_list)[0])
@@ -402,6 +443,7 @@ def main ():
         # DIRECTION_W = 2, // west
         # DIRECTION_N = 3, // north
         # DIRECTION_L = 4 // Internal, local
+        r = 0
         if p == 0b00000001:
             r = 0
         if p == 0b00000010:
@@ -412,6 +454,25 @@ def main ():
             r = 3
         if p == 0b00010000:
             r = 4
+        return r
+
+    def port_to_mask(p):
+        # DIRECTION_E = 0, // east
+        # DIRECTION_S = 1, // south
+        # DIRECTION_W = 2, // west
+        # DIRECTION_N = 3, // north
+        # DIRECTION_L = 4 // Internal, local
+        r = 0
+        if p == 0:
+            r = 0b00000001
+        if p == 1:
+            r = 0b00000010
+        if p == 2:
+            r = 0b00000100
+        if p == 3:
+            r = 0b00001000
+        if p == 4:
+            r = 0b00010000
         return r
 
 
@@ -514,7 +575,7 @@ def main ():
         y_lim = None
 
         lines = ["-", "-", "--", "--", "-", "--", "-", "--"]
-        markers = ["x", "x", "+", "+", "", "", "", ""]
+        markers = ["", "", "", "", "", "", "", ""]
         colours = ['lightgreen', 'yellow', 'black', 'grey', 'cyan', 'magenta', 'purple']
         labels = [
             'Arrivals',
@@ -626,7 +687,7 @@ def main ():
 
     rounding_digits = 2
 
-    ####### ARRIVAL / DEPARTURE
+    ####### MODEL ARRIVAL / DEPARTURE
     sw_in = flow_model_dict_g[node_x, node_y][0]
     sw_out = [flow_model_dict_g[node_x, node_y][1]]
 
@@ -663,6 +724,9 @@ def main ():
     # plot(plots_sim_delay + plots_model_delay)
     # plot(plots_sim_queue + plots_model_queue)
 
+    # plot(plots, filename=None)
+    # exit(0)
+
     #Calculate the range
     #
     # x_range = []
@@ -697,6 +761,7 @@ def main ():
     for hop in flow_model_dict_g:
         sw_in = flow_model_dict_g[hop][0]
         sw_out = flow_model_dict_g[hop][1]
+        port_out = flow_model_dict_g[hop][2]
 
         (x, y) = hop
 
