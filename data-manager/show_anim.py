@@ -106,7 +106,7 @@ class Node(QGraphicsItem):
 
         port = self.get_who(pos)
 
-        msg = "Node analysis run for {} [{},{}]".format(port, self.__x_pos, self.__y_pos)
+        msg = "Node analysis run for port {} on node [{},{}]".format(port, self.__x_pos, self.__y_pos)
         ex.status_bar.showMessage(msg)
 
         lauch_external(self.__x_pos, self.__y_pos, port)
@@ -116,7 +116,7 @@ class Node(QGraphicsItem):
 
         who = self.get_who(pos)
 
-        msg = "Selected {} [{},{}]".format(who, self.__x_pos, self.__y_pos)
+        msg = "Selected port {} on node [{},{}]".format(who, self.__x_pos, self.__y_pos)
         ex.status_bar.showMessage(msg)
 
 
@@ -585,9 +585,11 @@ class NOCAnim(QWidget):
 
 
 def lauch_external(x, y, port):
-    args = ' --inputdir=' + options.inputdir + ' --outputdir=' + options.outputdir + \
-           ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' --port=' + str(port) + ' '
     script = '/home/joao/Repositorios/ns-3-dev/src/noc/data-manager/show_node_analysis.py'
+    args = ' --inputdir=' + options.inputdir + ' --outputdir=' + options.outputdir + \
+           ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' --port=' + str(port) + ' ' + \
+           ' --size_x=' + options.size_x + ' --size_y=' + options.size_y
+
 
     cmd = 'python3.5 ' + script + args
     print('Command executed: ' + cmd)
