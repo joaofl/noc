@@ -120,24 +120,19 @@ log_flows(string context, Ptr<const Packet> pck_r){
     file_flow_trace << "\n";    
 }
 
-//void
-//log_queues(string context, uint16_t size){
-//    uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
-//    //  Context info
-//    file_queue_size_trace
-//    << now << ","
-//    << context << "," //[ i, x, y, port, event ];
-//    << size << endl;
-//}
-
 void
 log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, 
-        double offset, double burstness, uint8_t ms){
-    string points;
+        double offset, double burstness, uint8_t ms, uint8_t protocol){
+    string route;
     
-    points = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);
+    if (protocol == NOCHeader::PROTOCOL_UNICAST){
+      route = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);  
+    }
+    else if (protocol == NOCHeader::PROTOCOL_UNICAST_OFFSET){
+        route = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST_OFFSET); 
+    }
     
-    file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << points << endl;
+    file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << route << endl;
 }
 
 uint32_t 
@@ -154,9 +149,9 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 5;
-    uint32_t size_y = 4;
-    uint32_t size_neighborhood = 0; //odd only, so neighborhoods do not overlap eachother
+    uint32_t size_x = 72 + 1; //multiples of 9, to allow r=4 neighborhoods
+    uint32_t size_y = 36 + 1;
+    uint32_t size_neighborhood = 4; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -171,9 +166,7 @@ main(int argc, char *argv[]) {
 //    string input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
     
     string input_delay_data_path = "";
-//    input_delay_data_path = "/home/joao/noc-data/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
-    
-    string input_shaping_data_path = "/home/joao/noc-data/nw5x4cWCA_ALL_TO_ONE/out/post/shaping_config.csv";
+    string input_shaping_data_path = "";
  
     CommandLine cmd;
     cmd.AddValue("context", "String to identify the simulation instance", context);
@@ -204,13 +197,19 @@ main(int argc, char *argv[]) {
     string dir_output = output_data_dir + context_dir.str() + "out/";
     string dir_input = output_data_dir + context_dir.str() + "in/";     
     
+//  input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
+//  input_delay_data_path = output_data_dir + "/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
+    input_shaping_data_path = dir_output + "post/shaping_config.csv";
+    
     int status;
     status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     //TODO: threat possible errors here
     if (status != 0) {
         cout << "Error creating the directory " << dir_output << "\n";
     }
+    
     DataIO my_input_data;
+    
     if ( my_input_data.LoadArray(input_delay_data_path)  == 0){
         cout << "Error loading the input data file at " << input_delay_data_path << "\n";
     }
