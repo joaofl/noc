@@ -598,6 +598,16 @@ namespace ns3 {
         
         return abs(dx) + abs(dy);
     }
+    uint8_t
+    NOCRouting::DistanceLinear(int32_t x_source, int32_t x_dest) {
+        uint8_t dx;
+        if (x_source > x_dest)
+            dx = x_source - x_dest;
+        else
+            dx = x_dest - x_source;
+        
+        return abs(dx);
+    }
     
     char 
     NOCRouting::FindQuadrant(int32_t x_dest, int32_t y_dest) {

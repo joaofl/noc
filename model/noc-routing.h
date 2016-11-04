@@ -131,6 +131,8 @@ namespace ns3 {
         
         static uint8_t Distance(int32_t x_source, int32_t y_source, int32_t x_dest, int32_t y_dest);
         
+        static uint8_t DistanceLinear(int32_t x_source, int32_t x_dest);
+        
         static int32_t CalculateTimeSlot(int32_t x_source, int32_t y_source, int32_t x_size, int32_t y_size);
         
         
