@@ -61,6 +61,7 @@ class NOCLauncher(QWidget):
         self.label_title2.setText('Script files found:')
 
         self.textbox_args = QLineEdit()
+        self.textbox_args_additional = QLineEdit()
 
         # self.button_load_anim = QPushButton("Load animation")
         # self.button_load_anim.clicked.connect(self.on_click_load_anim)
@@ -84,6 +85,7 @@ class NOCLauncher(QWidget):
         vbox.addWidget(self.listbox_scripts)
         vbox.addWidget(self.label_scripts)
         vbox.addWidget(self.textbox_args)
+        vbox.addWidget(self.textbox_args_additional)
         vbox.addWidget(self.button_run)
         # vbox.addWidget(self.button_plot_service)
         self.setLayout(vbox)
@@ -167,7 +169,8 @@ class NOCLauncher(QWidget):
     def on_click_run(self):
         # scriptname = 'noc_flow_analysis'
 
-        args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir + 'post/ ' + self.textbox_args.text()
+        args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir + 'post/ ' + \
+               self.textbox_args.text() + ' ' + self.textbox_args_additional.text()
 
         cmd = 'python3.5 ' + self.selected_script + args
         print('Command executed: ' + cmd)
