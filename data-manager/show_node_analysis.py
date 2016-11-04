@@ -386,10 +386,11 @@ if __name__ == '__main__':
                     i += 1
                 y = y_f[i - 1]
             else:
-                i = len(x_f) - 1
-                while i > 0 and x_f[i] >= value:
+                i = len(x_f) - 2
+                while i >= 0 and x_f[i] >= value:
                     i -= 1
                 y = y_f[i + 1]
+
             return y
 
         if [x_f1, y_f1, x_f2, y_f2] == [[0],[0],[0],[0]]:
@@ -501,7 +502,8 @@ if __name__ == '__main__':
         sim_max_queue = max(y_sim_queue)
         sim_max_delay = max(x_sim_delay)
 
-        sim_results = [sim_max_queue, sim_max_delay, x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim]
+        sim_results = [sim_max_queue, sim_max_delay, x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim, y_sim_queue, x_sim_delay]
+
 
         ####### MODEL
         [x_arrival_model, y_arrival_model, x_departure_model, y_departure_model] = model_arrival_departure(sw_in, sw_out)
@@ -515,11 +517,80 @@ if __name__ == '__main__':
         model_max_queue = max(y_model_queue)
         model_max_delay = max(x_model_delay)
 
-        model_results = [model_max_queue, model_max_delay, x_arrival_model, y_arrival_model, x_departure_model, y_departure_model]
+        model_results = [model_max_queue, model_max_delay, x_arrival_model, y_arrival_model, x_departure_model, y_departure_model, y_model_queue, x_model_delay]
+
 
         return [x, y, sim_results, model_results]
 
-    def plot_matrix(data, title='', show=True, region=[0,0,0,0]):
+    def plot_hist(data, filename=None):
+        fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
+
+        # ax0, ax1 = ax.flat
+
+        y_label = ['Model', 'Simulation']
+
+        for i in range(len(ax)):
+            axi = ax[i]
+
+            axi.hist(data[i], bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
+            axi.hist(data[i], bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
+
+            axi.set_ylabel(y_label[i])
+            axi.grid(True)
+
+        ax[-1].set_xlabel('Per hop delay distribution')
+
+        # x = np.linspace(d_min, d_max, d_count)
+        #
+        # param = uniform.fit(d)
+        # # y = uniform.pdf(x, param[0], param[1])
+        # y = uniform.cdf(x, param[0], param[1])
+        # ax.plot(x, y, 'r--', color='darkred', label='Uniform distribution fit')
+
+        # plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
+
+        # ax.legend(loc='upper left', frameon=True, prop={'size': 12})
+        fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+        # file_out = file_in + '-cdf.eps'
+
+
+        if filename != None:
+            dir = filename[:filename.rfind("/")]
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            plt.savefig(filename)
+    
+    def plot_box(data, filename=None):
+        title = ""
+        lable_x = ""
+        lable_y = ""
+        x_size = 9
+        y_size = 5
+        plt.figure(title, figsize=(x_size, y_size), dpi=80, facecolor='w', edgecolor='w')
+        plt.xlabel(lable_x, fontsize=20)
+        plt.ylabel(lable_y, fontsize=20)
+        # if y_lim != []:
+
+        # plt.ylim(y_lim)
+
+        # cem = (0,2)
+        # plt.boxplot(data, conf_intervals=[cem, cem, cem, cem, cem, cem])
+        plt.boxplot(data)
+
+        # ax = plt.gca()
+        # ax.set_xticklabels([1,2,3,4,5,6,7])
+        # for label in ax.get_xticklabels() + ax.get_yticklabels():
+        #     label.set_fontsize(18)
+
+        plt.tight_layout()
+
+        if filename != None:
+            dir = filename[:filename.rfind("/")]
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            plt.savefig(filename)
+
+    def plot_matrix(data, title='', show=True, region=[0,0,0,0], filename = None):
         data_cropped = []
         if region != [0,0,0,0]:
             [min_x, max_x, min_y, max_y] = region
@@ -528,8 +599,6 @@ if __name__ == '__main__':
                 data_cropped.append(m_cropped)
             data = data_cropped
 
-        filename = None;
-        # show = True;
         # title = "What";
         lable_x = ['Model','Simulation'];
         lable_y = "";
@@ -587,11 +656,9 @@ if __name__ == '__main__':
                 os.makedirs(dir)
             plt.savefig(filename)
 
-        # plt.ion()
-        # plt.show()
-
-        elif show == True:
-            plt.show()
+        if show == True:
+            # plt.show()
+            plt.draw()
 
     def plot(axis, filename=None, show = True):
         x_size = 6.5
@@ -650,6 +717,7 @@ if __name__ == '__main__':
 
         if show == True:
             plt.show()
+            # plt.draw()
 
 
     ################################# Running ####################################
@@ -734,7 +802,11 @@ if __name__ == '__main__':
 
     nw_region_list_x = []
     nw_region_list_y = []
-
+    list_model_max_queue = []
+    list_model_max_delay = []
+    list_sim_max_queue = []
+    list_sim_max_delay = []
+    
     # plots_arrival_departure = profile_node(node_x, node_y)
 
     results = Parallel(n_jobs=-1)(delayed(profile_node)(x, y) for (x, y) in flow_model_dict_g)
@@ -744,14 +816,32 @@ if __name__ == '__main__':
         nw_region_list_x.append(x)
         nw_region_list_y.append(y)
 
-        [sim_max_queue, sim_max_delay, x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim] = r[2]
-        [model_max_queue, model_max_delay, x_arrival_model, y_arrival_model, x_departure_model, y_departure_model] = r[3]
+        [sim_max_queue, sim_max_delay,
+         x_arrival_sim, y_arrival_sim,
+         x_departure_sim, y_departure_sim,
+         y_sim_queue, x_sim_delay] = r[2]
+
+        [model_max_queue, model_max_delay,
+         x_arrival_model, y_arrival_model,
+         x_departure_model, y_departure_model,
+         y_model_queue, x_model_delay] = r[3]
 
         model_queue_matrix_g[y][x] = model_max_queue
+        # list_model_max_queue.append(model_max_queue)
+        list_model_max_queue += y_model_queue
+
         sim_queue_matrix_g[y][x] = sim_max_queue
+        # list_sim_max_queue.append(sim_max_queue)
+        list_sim_max_queue += y_sim_queue
+        #I'm actually apending arrays to each other, containing the whole queue size over time
+
 
         model_delay_matrix_g[y][x] = model_max_delay
+        # list_model_max_delay.append(model_max_delay)
+        list_model_max_delay += x_model_delay
         sim_delay_matrix_g[y][x] = sim_max_delay
+        # list_sim_max_delay.append(sim_max_delay)
+        list_sim_max_delay += x_sim_delay
 
         if [x, y] == [node_x, node_y]:
             plots_arrival_departure = [x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim, x_arrival_model, y_arrival_model, x_departure_model, y_departure_model]
@@ -825,16 +915,35 @@ if __name__ == '__main__':
     files_io.write(output_tx, fn2)
     print('Flows modeling information saved at ' + fn2)
 
-    fn3 = options.outputdir + 'cumulative-node[' + str(node_x) + ',' + str(node_y) + ']sw' + str(sw_in_f).replace(' ', '') + '=' + str(sw_out_f).replace(' ', '') + '.pdf'
+    fn = options.outputdir + 'CC[' + str(node_x) + ',' + str(node_y) + ']sw' + str(sw_in_f).replace(' ', '') + '=' + str(sw_out_f).replace(' ', '') + '.pdf'
+    fn3 = fn.replace('CC', 'matrix-max-queue')
+    fn4 = fn.replace('CC', 'matrix-max-queue')
+    fn5 = fn.replace('CC', 'matrix-max-delay')
+    fn6 = fn.replace('CC', 'matrix-max-eted')
+    fn7 = fn.replace('CC', 'matrix-measured-eted')
+    fn8 = fn.replace('CC', 'dist-delay')
+    fn9 = fn.replace('CC', 'dist-queue')
+
 
     ####### Plotting results
 
-    plot_matrix([model_queue_matrix_g, sim_queue_matrix_g], show=True, title='Maximum per-hop queueing', region=nw_region)
-    plot_matrix([model_delay_matrix_g, sim_delay_matrix_g], show=True, title='Maximum per-hop delay', region=nw_region)
-    plot_matrix([model_msg_eted_matrix, sim_msg_eted_matrix], show=True, title='Maximum end-to-end delay', region=nw_region)
-    plot_matrix([model_msg_eted_matrix, sim_flow_trace_eted_matrix], show=True, title='Measured end-to-end delay', region=nw_region)
-    plot(plots_arrival_departure, filename=fn3)
+    plot_hist([list_model_max_delay, list_sim_max_delay], filename=fn9)
+    plot_hist([list_model_max_queue, list_sim_max_queue], filename=fn8)
+    # plt.show()
 
+    # list_model_max_queue = []
+    # list_model_max_delay = []
+    # list_sim_max_queue = []
+    # list_sim_max_delay = []
+
+    show = False
+    plot_matrix([model_queue_matrix_g, sim_queue_matrix_g], show=show, title='Maximum per-hop queueing', region=nw_region, filename=fn4)
+    plot_matrix([model_delay_matrix_g, sim_delay_matrix_g], show=show, title='Maximum per-hop delay', region=nw_region, filename=fn5)
+    plot_matrix([model_msg_eted_matrix, sim_msg_eted_matrix], show=show, title='Maximum end-to-end delay', region=nw_region, filename=fn6)
+    # plot_matrix([model_msg_eted_matrix, sim_flow_trace_eted_matrix], show=show, title='Measured end-to-end delay', region=nw_region, filename=fn7)
+    plot(plots_arrival_departure, filename=fn3, show=show)
+
+    plt.show()
 
 
 
