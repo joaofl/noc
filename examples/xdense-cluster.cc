@@ -153,14 +153,14 @@ main(int argc, char *argv[]) {
     
     uint32_t size_x = 11; //multiples of 9, to allow r=4 neighborhoods
     uint32_t size_y = 11;
-    uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "WCA_CLUSTER";
+    string context = "WCA_CLUSTER_VB";
         
     string output_data_dir = homedir + "/noc-data";
     
@@ -201,7 +201,7 @@ main(int argc, char *argv[]) {
     
 //  input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
 //  input_delay_data_path = output_data_dir + "/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
-    input_shaping_data_path = dir_output + "post/shaping_config.csv.DONT_LOAD";
+    input_shaping_data_path = dir_output + "post/shaping_config.csv.---DONT_LOAD---";
     
     int status;
     status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -375,7 +375,7 @@ main(int argc, char *argv[]) {
     uint32_t ms         = 5;
     double_t offset     = 0;   
     
-//    beta = 1 / (double(size_x * size_y * ms) / 4);
+    beta = 1 / double( pow(size_neighborhood, 2) + size_neighborhood);
 //    beta = 0.03;
 //    beta = 1;
     
@@ -394,6 +394,7 @@ main(int argc, char *argv[]) {
             uint8_t d = NOCRouting::Distance(center_x, center_y, x, y);
             uint8_t dx = NOCRouting::DistanceLinear(center_x , x);
             uint8_t dy = NOCRouting::DistanceLinear(center_y , y);
+            
             offset = d;
             
             if (y == center_y && x == center_x){ //The one to trace

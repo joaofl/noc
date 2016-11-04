@@ -502,7 +502,13 @@ if __name__ == '__main__':
         sim_max_queue = max(y_sim_queue)
         sim_max_delay = max(x_sim_delay)
 
-        sim_results = [sim_max_queue, sim_max_delay, x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim, y_sim_queue, x_sim_delay]
+        sim_results = [
+            sim_max_queue, sim_max_delay,
+            x_arrival_sim, y_arrival_sim,
+            x_departure_sim, y_departure_sim,
+            x_sim_queue, y_sim_queue,
+            x_sim_delay, y_sim_delay
+        ]
 
 
         ####### MODEL
@@ -517,7 +523,13 @@ if __name__ == '__main__':
         model_max_queue = max(y_model_queue)
         model_max_delay = max(x_model_delay)
 
-        model_results = [model_max_queue, model_max_delay, x_arrival_model, y_arrival_model, x_departure_model, y_departure_model, y_model_queue, x_model_delay]
+        model_results = [
+            model_max_queue, model_max_delay,
+            x_arrival_model, y_arrival_model,
+            x_departure_model, y_departure_model,
+            x_model_queue, y_model_queue,
+            x_model_delay, y_model_delay
+        ]
 
 
         return [x, y, sim_results, model_results]
@@ -670,14 +682,14 @@ if __name__ == '__main__':
         markers = ["", "", "", "", "", "", "", ""]
         colours = ['lightgreen', 'yellow', 'black', 'grey', 'cyan', 'magenta', 'purple']
         labels = [
-            'Arrivals',
-            'Departures',
-            'Arrivals',
-            # 'Departures UP',
-            # 'Arrivals LB',
-            'Departures',
-            'Queue',
-            'Bounds'
+            'Sim arrival',
+            'Sim departures',
+            'Model arrivals',
+            'Model departures',
+            'Sim queue',
+            'Model queue',
+            'Sim delay',
+            'Model delay',
         ]
 
         linecycler = cycle(lines)
@@ -816,15 +828,21 @@ if __name__ == '__main__':
         nw_region_list_x.append(x)
         nw_region_list_y.append(y)
 
-        [sim_max_queue, sim_max_delay,
-         x_arrival_sim, y_arrival_sim,
-         x_departure_sim, y_departure_sim,
-         y_sim_queue, x_sim_delay] = r[2]
+        [
+            sim_max_queue, sim_max_delay,
+            x_arrival_sim, y_arrival_sim,
+            x_departure_sim, y_departure_sim,
+            x_sim_queue, y_sim_queue,
+            x_sim_delay, y_sim_delay
+        ] = r[2]
 
-        [model_max_queue, model_max_delay,
-         x_arrival_model, y_arrival_model,
-         x_departure_model, y_departure_model,
-         y_model_queue, x_model_delay] = r[3]
+        [
+            model_max_queue, model_max_delay,
+            x_arrival_model, y_arrival_model,
+            x_departure_model, y_departure_model,
+            x_model_queue, y_model_queue,
+            x_model_delay, y_model_delay
+        ] = r[3]
 
         model_queue_matrix_g[y][x] = model_max_queue
         # list_model_max_queue.append(model_max_queue)
@@ -844,7 +862,17 @@ if __name__ == '__main__':
         list_sim_max_delay += x_sim_delay
 
         if [x, y] == [node_x, node_y]:
-            plots_arrival_departure = [x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim, x_arrival_model, y_arrival_model, x_departure_model, y_departure_model]
+            plots_arrival_departure = \
+                [
+                    x_arrival_sim, y_arrival_sim,
+                    x_departure_sim, y_departure_sim,
+                    x_arrival_model, y_arrival_model,
+                    x_departure_model, y_departure_model,
+                    x_sim_queue, y_sim_queue,
+                    x_sim_delay, y_sim_delay,
+                    x_model_queue, y_model_queue,
+                    x_model_delay, y_model_delay
+                ]
 
     nw_region = [min(nw_region_list_x), max(nw_region_list_x), min(nw_region_list_y), max(nw_region_list_y)]
 
@@ -927,29 +955,28 @@ if __name__ == '__main__':
 
     ####### Plotting results
 
-    plot_hist([list_model_max_delay, list_sim_max_delay], filename=fn9)
-    plot_hist([list_model_max_queue, list_sim_max_queue], filename=fn8)
+    show = False
+
+    # plot_hist([list_model_max_delay, list_sim_max_delay], filename=fn9)
+    # plot_hist([list_model_max_queue, list_sim_max_queue], filename=fn8)
     # plt.show()
 
-    # list_model_max_queue = []
-    # list_model_max_delay = []
-    # list_sim_max_queue = []
-    # list_sim_max_delay = []
 
-    show = False
     plot_matrix([model_queue_matrix_g, sim_queue_matrix_g], show=show, title='Maximum per-hop queueing', region=nw_region, filename=fn4)
     plot_matrix([model_delay_matrix_g, sim_delay_matrix_g], show=show, title='Maximum per-hop delay', region=nw_region, filename=fn5)
-    plot_matrix([model_msg_eted_matrix, sim_msg_eted_matrix], show=show, title='Maximum end-to-end delay', region=nw_region, filename=fn6)
+    # plot_matrix([model_msg_eted_matrix, sim_msg_eted_matrix], show=show, title='Maximum end-to-end delay', region=nw_region, filename=fn6)
     # plot_matrix([model_msg_eted_matrix, sim_flow_trace_eted_matrix], show=show, title='Measured end-to-end delay', region=nw_region, filename=fn7)
     plot(plots_arrival_departure, filename=fn3, show=show)
 
     plt.show()
 
 
-
-    if options.verbose: print (time.asctime())
-    if options.verbose: print ('Total execution time (s):')
-    if options.verbose: print (time.time() - start_time)
+    # if options.verbose:
+    print (time.asctime())
+    # if options.verbose:
+    print ('Total execution time (s):')
+    # if options.verbose:
+    print (time.time() - start_time)
     sys.exit(0)
 
     # except (KeyboardInterrupt, e): # Ctrl-C
