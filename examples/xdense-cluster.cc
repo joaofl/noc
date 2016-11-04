@@ -149,9 +149,11 @@ main(int argc, char *argv[]) {
     
     // Default values
     
+    //--pos_x=5 --pos_y=6 --port=2
+    
     uint32_t size_x = 11; //multiples of 9, to allow r=4 neighborhoods
     uint32_t size_y = 11;
-    uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -185,10 +187,10 @@ main(int argc, char *argv[]) {
 
     stringstream context_dir;
     context_dir << "/";
+    context_dir << context;
     context_dir << "nw" << size_x << "x" <<size_y;
 //    context_dir << "s" << sinks_n;
-//    context_dir << "n" << size_neighborhood;
-    context_dir << "c" << context;
+    context_dir << "n" << size_neighborhood;
     context_dir << "/";
     
     packet_duration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);
@@ -199,7 +201,7 @@ main(int argc, char *argv[]) {
     
 //  input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
 //  input_delay_data_path = output_data_dir + "/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
-    input_shaping_data_path = dir_output + "post/shaping_config.csv";
+    input_shaping_data_path = dir_output + "post/shaping_config.csv.DONT_LOAD";
     
     int status;
     status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -389,12 +391,15 @@ main(int argc, char *argv[]) {
             Ptr<Packet> pck_out = Create<Packet>();
             pck_out->AddHeader(hd_out);
             
-            offset = NOCRouting::Distance(center_x, center_y, x, y);
+            uint8_t d = NOCRouting::Distance(center_x, center_y, x, y);
+            uint8_t dx = NOCRouting::DistanceLinear(center_x , x);
+            uint8_t dy = NOCRouting::DistanceLinear(center_y , y);
+            offset = d;
             
             if (y == center_y && x == center_x){ //The one to trace
 
             } 
-            else{
+            else if(dx <= size_neighborhood && dy <= size_neighborhood){
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, center_x, center_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, center_x, center_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST);                                          
             } 
