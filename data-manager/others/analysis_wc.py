@@ -134,7 +134,7 @@ def resulting_flow(sw, model='A'):
         burstiness_out = msg_size_out / numpy.max(ms_over_b)
         offset_out = numpy.max(offset) + 1
 
-    elif model == 'A': # from end to begining of the flow
+    elif model == 'A' or model == 'B': # from end to begining of the flow
         bursts_calc = []
         timeline = []
         timeline_norm = []
@@ -166,9 +166,10 @@ def resulting_flow(sw, model='A'):
 
         offset_out = timeline[0][0] - msg_size_out/burstiness_out + 1
 
-        if burstiness_out >= 1: #in this case it fails, so redirect to model D
-            # model = 'D'
+        if burstiness_out >= 1:
             burstiness_out = 1
+            # if model == 'B':
+            #     model = 'C' #in this case it fails, so redirect to model C
 
 
 

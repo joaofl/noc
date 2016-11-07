@@ -133,25 +133,28 @@ if __name__ == '__main__':
 
     # Queue
     # fn = base_dir + 'post/' + shaper
-    beta_in = 'B1.0'
+    beta_in = 'B0.01'
     [x, s] = get_group(array_result_files, 0 , shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
     [x, mA] = get_group(array_result_files, 3, shaper_in='SA', beta_in=beta_in)
     [x, mB] = get_group(array_result_files, 3, shaper_in='SB', beta_in=beta_in)
     [x, mC] = get_group(array_result_files, 3, shaper_in='SC', beta_in=beta_in)
-    plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop queue')
+    # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop queue')
+    plot2xy(x, [s, mA, mB, mC], axis_label=['Sim', 'A', 'B', 'C'], show=True, title='Maximum hop queue')
 
     # Delay
     [x, s] = get_group(array_result_files, 1 , shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
     [x, mA] = get_group(array_result_files, 4, shaper_in='SA', beta_in=beta_in)
     [x, mB] = get_group(array_result_files, 4, shaper_in='SB', beta_in=beta_in)
     [x, mC] = get_group(array_result_files, 4, shaper_in='SC', beta_in=beta_in)
-    plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop delay')
+    # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop delay')
+    plot2xy(x, [s, mA, mB, mC], axis_label=['Sim', 'A', 'B', 'C'], show=True, title='Maximum hop delay')
 
     # Duration
     [x, s] = get_group(array_result_files, 2,  shaper_in='SA', beta_in=beta_in)  # If shaping is disabled, sim should be the same for A B or C
     [x, mA] = get_group(array_result_files, 5, shaper_in='SA', beta_in=beta_in)
     [x, mB] = get_group(array_result_files, 5, shaper_in='SB', beta_in=beta_in)
     [x, mC] = get_group(array_result_files, 5, shaper_in='SC', beta_in=beta_in)
-    plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Total time')
+    # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Total time')
+    plot2xy(x, [s, mA, mB, mC], axis_label=['Sim', 'A', 'B', 'C'], show=True, title='Total time')
 
     plt.show()

@@ -160,7 +160,7 @@ main(int argc, char *argv[]) {
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "WCA_CLUSTER_B0.01_SC_";
+    string context = "WCA_CLUSTER_BV_SA_";
         
     string output_data_dir = homedir + "/noc-data";
     
@@ -375,10 +375,10 @@ main(int argc, char *argv[]) {
     uint32_t ms;
     double_t offset;   
     
-//    beta = 1 / double( pow(size_neighborhood, 2) + size_neighborhood);
+    beta = 1 / double( pow(size_neighborhood, 2) + size_neighborhood);
 //    beta = 0.03;
 //    beta = 0.1;
-    beta = 0.01;
+//    beta = 0.2;
     
     ms = 5;
     
