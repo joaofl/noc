@@ -21,18 +21,18 @@ __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
 
 #Libs
-import sys, os, traceback, optparse
+import sys, os, optparse
 import time
 import numpy
 import matplotlib.pyplot as plt
 import copy
 from itertools import cycle
-import files_io
 from joblib import Parallel, delayed
 
 #My stuff
 import packet_structure as HEADER
 import others.analysis_wc as wca
+import files_io
 
 import others.analysis_wc
 
@@ -67,18 +67,21 @@ if __name__ == '__main__':
     start_time = time.time()
     parser = optparse.OptionParser(formatter=optparse.TitledHelpFormatter(), usage=globals()['__doc__'], version='$Id$')
 
-    parser.add_option ('--verbose', action='store_true', default=False, help='verbose output')
-    parser.add_option ('--inputdir', help='Dir containing the logs', default=None)
-    parser.add_option ('--outputdir', help='', default=None)
-    parser.add_option ('--size_x', help='network size', default=0)
-    parser.add_option ('--size_y', help='network size', default=0)
-    parser.add_option ('--pos_x', help='node to analyse', default=0)
-    parser.add_option ('--pos_y', help='node to analyse', default=0)
-    parser.add_option ('--port', help='port to analyse', default=0)
-    parser.add_option ('--sinks_n', help='number of sinks', default=1)
-    parser.add_option ('--baudrate', help='baudrate utilized', default=3000000)
-    parser.add_option ('--packet_size', help='packet_size in bits', default=16*10)
-    parser.add_option ('--size_neighborhood', help='neighborhood size', default=0)
+    parser.add_option('--verbose', action='store_true', default=False, help='verbose output')
+    parser.add_option('--inputdir', help='Dir containing the logs', default=None)
+    parser.add_option('--outputdir', help='', default=None)
+    parser.add_option('--basedir', help='Base dir for simulation output files', default='')
+    parser.add_option('--showplots', help='Show plots', default='True')
+    parser.add_option('--shaper', help='Which traffic shaping policy to use', default='A')
+    parser.add_option('--size_x', help='network size', default=0)
+    parser.add_option('--size_y', help='network size', default=0)
+    parser.add_option('--pos_x', help='node to analyse', default=0)
+    parser.add_option('--pos_y', help='node to analyse', default=0)
+    parser.add_option('--port', help='port to analyse', default=0)
+    parser.add_option('--sinks_n', help='number of sinks', default=1)
+    parser.add_option('--baudrate', help='baudrate utilized', default=3000000)
+    parser.add_option('--packet_size', help='packet_size in bits', default=16*10)
+    parser.add_option('--size_neighborhood', help='neighborhood size', default=0)
 
     (options, args) = parser.parse_args()
     if options.verbose: print (time.asctime())
@@ -465,7 +468,7 @@ if __name__ == '__main__':
 
             #If all are known, calculate the resulting flow
             if len(unknown_list) == 0:
-                f_out = wca.resulting_flow(sw_in)
+                f_out = wca.resulting_flow(sw_in, model=options.shaper)
                 route_flows_base[i + 1] = f_out
                 route_flows_index_base[i + 1] = index_list
                 i += 1
@@ -818,6 +821,8 @@ if __name__ == '__main__':
     list_model_max_delay = []
     list_sim_max_queue = []
     list_sim_max_delay = []
+    total_time_model = 0
+    total_time_sim = 0
     
     # plots_arrival_departure = profile_node(node_x, node_y)
 
@@ -868,11 +873,13 @@ if __name__ == '__main__':
                     x_departure_sim, y_departure_sim,
                     x_arrival_model, y_arrival_model,
                     x_departure_model, y_departure_model,
-                    x_sim_queue, y_sim_queue,
-                    x_sim_delay, y_sim_delay,
-                    x_model_queue, y_model_queue,
-                    x_model_delay, y_model_delay
+                    # x_sim_queue, y_sim_queue,
+                    # x_sim_delay, y_sim_delay,
+                    # x_model_queue, y_model_queue,
+                    # x_model_delay, y_model_delay
                 ]
+            total_time_model = x_departure_model[-1]
+            total_time_sim = x_departure_sim[-1]
 
     nw_region = [min(nw_region_list_x), max(nw_region_list_x), min(nw_region_list_y), max(nw_region_list_y)]
 
@@ -908,6 +915,16 @@ if __name__ == '__main__':
 
 
     ######## Producing output results
+    str_results = ''
+    str_results += str(max(list_sim_max_queue)) + ','
+    str_results += str(max(list_sim_max_delay)) + ','
+    str_results += str(total_time_sim) + ','
+
+    str_results += str(max(list_model_max_queue)) + ','
+    str_results += str(max(list_model_max_delay)) + ','
+    str_results += str(total_time_model) + ''
+
+
     # Naming the output file
     sw_in = flow_model_dict_g[node_x, node_y][0]
     sw_out_f = flow_model_dict_g[node_x, node_y][1]
@@ -937,14 +954,18 @@ if __name__ == '__main__':
 
     fn1 = options.outputdir + 'shaping_config.csv'
     files_io.write(str_out, fn1)
-    print('Traffic shaping information saved at ' + fn1)
+    print('Traffic shaping parameters saved at ' + fn1)
 
     fn2 = fn1.replace('shaping_config.csv', 'flows_model.csv')
     files_io.write(output_tx, fn2)
-    print('Flows modeling information saved at ' + fn2)
+    print('Flows model saved at ' + fn2)
+
+    fn10 = fn1.replace('shaping_config.csv', 'results.csv')
+    files_io.write(str_results, fn10)
+    print('Results saved at ' + fn10)
 
     fn = options.outputdir + 'CC[' + str(node_x) + ',' + str(node_y) + ']sw' + str(sw_in_f).replace(' ', '') + '=' + str(sw_out_f).replace(' ', '') + '.pdf'
-    fn3 = fn.replace('CC', 'matrix-max-queue')
+    fn3 = fn.replace('CC', 'cumulative-ad')
     fn4 = fn.replace('CC', 'matrix-max-queue')
     fn5 = fn.replace('CC', 'matrix-max-delay')
     fn6 = fn.replace('CC', 'matrix-max-eted')
@@ -955,6 +976,7 @@ if __name__ == '__main__':
 
     ####### Plotting results
 
+    show = bool(options.showplots)
     show = False
 
     # plot_hist([list_model_max_delay, list_sim_max_delay], filename=fn9)
@@ -968,7 +990,8 @@ if __name__ == '__main__':
     # plot_matrix([model_msg_eted_matrix, sim_flow_trace_eted_matrix], show=show, title='Measured end-to-end delay', region=nw_region, filename=fn7)
     plot(plots_arrival_departure, filename=fn3, show=show)
 
-    plt.show()
+    if show:
+        plt.show()
 
 
     # if options.verbose:

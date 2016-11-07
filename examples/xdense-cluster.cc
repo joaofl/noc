@@ -160,7 +160,7 @@ main(int argc, char *argv[]) {
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "WCA_CLUSTER_VB";
+    string context = "WCA_CLUSTER_B0.01_SC_";
         
     string output_data_dir = homedir + "/noc-data";
     
@@ -371,13 +371,16 @@ main(int argc, char *argv[]) {
     
     //////////////////// From here, initialize the application at the nodes ///////////////// 
     uint8_t  initial_delay = 1;
-    double_t beta       = 0.1;
-    uint32_t ms         = 5;
-    double_t offset     = 0;   
+    double_t beta;
+    uint32_t ms;
+    double_t offset;   
     
-    beta = 1 / double( pow(size_neighborhood, 2) + size_neighborhood);
+//    beta = 1 / double( pow(size_neighborhood, 2) + size_neighborhood);
 //    beta = 0.03;
-//    beta = 1;
+//    beta = 0.1;
+    beta = 0.01;
+    
+    ms = 5;
     
     uint32_t center_x = (size_x - 1) / 2;
     uint32_t center_y = (size_y - 1) / 2;

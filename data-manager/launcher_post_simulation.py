@@ -39,9 +39,9 @@ class NOCLauncher(QWidget):
         self.setWindowTitle('NoC4ns3 Launcher')
 
         self.label_dir = QLabel("Base directory:")
-        dir = expanduser("~") + '/noc-data'
+        dir = expanduser("~") + '/noc-data/'
         # self.edit_dir = QLineEdit(os.getcwd()) #current dir
-        self.edit_dir = QLineEdit(dir)
+        self.base_dir = QLineEdit(dir)
 
         self.button_load = QPushButton("Load log files")
         self.button_load.clicked.connect(self.on_click_load)
@@ -75,7 +75,7 @@ class NOCLauncher(QWidget):
         # layout the widgets (vertical)
         vbox = QVBoxLayout()
         vbox.addWidget(self.label_dir)
-        vbox.addWidget(self.edit_dir)
+        vbox.addWidget(self.base_dir)
         vbox.addWidget(self.button_load)
         vbox.addWidget(self.label_title1)
         vbox.addWidget(self.listbox)
@@ -119,7 +119,7 @@ class NOCLauncher(QWidget):
 
         ############ Load the logs
 
-        directory = self.edit_dir.text()
+        directory = self.base_dir.text()
 
         if (os.path.isdir(directory)):
             self.listbox.clear()
@@ -146,6 +146,9 @@ class NOCLauncher(QWidget):
         sf = "{} log files found".format(len(self.list_fnames))
         self.label_result.setText(sf)
 
+        # l = files_io.load_line(directory + 'post_simulation_config.csv')
+        self.textbox_args_additional.setText('--pos_x=5 --pos_y=6 --port=2 --showplots=True --shaper=A')
+
 
         ############## Load the scripts
 
@@ -169,7 +172,8 @@ class NOCLauncher(QWidget):
     def on_click_run(self):
         # scriptname = 'noc_flow_analysis'
 
-        args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir + 'post/ ' + \
+        args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir +  'post/ ' + \
+               ' --basedir=' + self.base_dir.text() + ' ' + \
                self.textbox_args.text() + ' ' + self.textbox_args_additional.text()
 
         cmd = 'python3.5 ' + self.selected_script + args
