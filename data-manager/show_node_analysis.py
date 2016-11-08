@@ -917,11 +917,12 @@ if __name__ == '__main__':
     ######## Producing output results
     str_results = ''
     str_results += str(max(list_sim_max_queue)) + ','
-    str_results += str(max(list_sim_max_delay)) + ','
-    str_results += str(total_time_sim) + ','
-
     str_results += str(max(list_model_max_queue)) + ','
+
+    str_results += str(max(list_sim_max_delay)) + ','
     str_results += str(max(list_model_max_delay)) + ','
+
+    str_results += str(total_time_sim) + ','
     str_results += str(total_time_model) + ''
 
 
@@ -977,7 +978,7 @@ if __name__ == '__main__':
     ####### Plotting results
 
     show = bool(options.showplots)
-    show = False
+    show = True
 
     # plot_hist([list_model_max_delay, list_sim_max_delay], filename=fn9)
     # plot_hist([list_model_max_queue, list_sim_max_queue], filename=fn8)
