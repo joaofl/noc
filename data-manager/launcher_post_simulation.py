@@ -121,6 +121,9 @@ class NOCLauncher(QWidget):
 
         directory = self.base_dir.text()
 
+        self.selected_log = ''
+        self.selected_dir = ''
+
         if (os.path.isdir(directory)):
             self.listbox.clear()
         else:
@@ -172,19 +175,22 @@ class NOCLauncher(QWidget):
     def on_click_run(self):
         # scriptname = 'noc_flow_analysis'
 
-        args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir +  'post/ ' + \
-               ' --basedir=' + self.base_dir.text() + ' ' + \
-               self.textbox_args.text() + ' ' + self.textbox_args_additional.text()
+        try:
+            args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir +  'post/ ' + \
+                   ' --basedir=' + self.base_dir.text() + ' ' + \
+                   self.textbox_args.text() + ' ' + self.textbox_args_additional.text()
 
-        cmd = 'python3.5 ' + self.selected_script + args
-        print('Command executed: ' + cmd)
+            cmd = 'python3.5 ' + self.selected_script + args
+            print('Command executed: ' + cmd)
 
-        launch_thread = True
+            launch_thread = True
 
-        if (launch_thread == True):
-            _thread.start_new_thread(os.system,(cmd,))
-        else:
-            os.system(cmd)
+            if (launch_thread == True):
+                _thread.start_new_thread(os.system,(cmd,))
+            else:
+                os.system(cmd)
+        except:
+            print('Error running command')
 
 
     def on_click_load_anim(self):
