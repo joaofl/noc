@@ -25,6 +25,7 @@ import time
 import os, optparse
 import files_io
 import matplotlib.pyplot as plt
+import numpy as np
 from itertools import cycle
 
 
@@ -54,36 +55,45 @@ if __name__ == '__main__':
 
     ############################# Global vars and settings #######################
 
-    def plot2xy(axis, data, axis_label=None, filename=None, show=False, title='', label_y=''):
-        label_x = "$n_{size}$"
-        x_size = 6.5
-        y_size = 3.1
-        # logscale = True
+    def plot_bars(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='', log=False):
+        x_size = 6
+        y_size = 3
 
-        lines = ["-", "--", "-.", ":"]
-        linecycler = cycle(lines)
+        fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
+        fig.canvas.set_window_title('Title')
 
-        fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=120, facecolor='w', edgecolor='w')
-        fig.canvas.set_window_title(title)
+        colours = ['green', 'yellow', 'blue', 'cyan', 'magenta', 'purple']
+        colourcycler = cycle(colours)
 
-        # if logscale == True:
-        #     plt.yscale('log')
+        index = np.arange(len(x))
+        # bar_width = 0.35
+        opacity = 0.4
+        x = np.asarray(x)
 
-        for i in range(len(data)):
-            axi = ax
-            axi.plot(axis, data[i], 'o', linestyle=next(linecycler), label=axis_label[i])
+        dim = len(x)
+        w = 0.60
+        dimw = w / dim
 
-        ax.set_xlabel(label_x)
-        ax.set_ylabel(label_y)
+        for i in range(len(fx_list)):
+            rects1 = plt.bar(x + (i * dimw), fx_list[i], dimw,
+                             alpha=opacity,
+                             color=next(colourcycler),
+                             # yerr=std_men,
+                             # error_kw=error_config,
+                             label=axis_label[i])
+
+
+        plt.xlabel('Shaping')
+        plt.ylabel(label_y)
+        if (log):
+            plt.yscale('log')
+        # plt.title('Scores by group and gender')
+        # plt.xticks(index + bar_width, ('A', 'B', 'C'))
+        plt.xticks(x + w / 2, x_ticks)
+        plt.legend(loc=0, fontsize=11)
 
         plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-        plt.legend(fontsize=11)
-        plt.grid(True)
 
-        # ax = plt.gca()
-        # ax.set_xticklabels(x)
-
-        # plt.locator_params(axis='x', nbins=len(x))
 
         if filename is not None:
             dir = filename[:filename.rfind("/")]
@@ -95,7 +105,52 @@ if __name__ == '__main__':
         if show == True:
             plt.draw()
 
-    def get_group(array_result_files, index, shaper_in='SA', beta_in='B0.1'):
+    def plot_multiple_lines(axis, data, axis_label=None, filename=None, show=False, title='', label_y=''):
+        label_x = "$n_{size}$"
+        x_size = 6
+        y_size = 3
+        # logscale = True
+
+        lines = ["-", "--", "-.", ":"]
+        linecycler = cycle(lines)
+
+        fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
+        fig.canvas.set_window_title(title)
+
+        # if logscale == True:
+        #     plt.yscale('log')
+
+        for i in range(len(data)):
+            axi = ax
+            axi.plot(axis, data[i], 'o', linestyle=next(linecycler), label=axis_label[i])
+            # axi.plot(axis, data[i], 'o', linestyle=next(linecycler))
+
+        ax.set_xlabel(label_x)
+        ax.set_ylabel(label_y)
+
+        plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+        plt.legend(loc=0, fontsize=11)
+        plt.grid(True)
+
+
+        # ax = plt.gca()
+        # ax.set_xticklabels(axis)
+
+        plt.xlim([axis[0]-0.1, axis[-1]+0.1])
+        plt.locator_params(axis='x', nbins=len(axis))
+        plt.legend(loc=2, fontsize=11)
+
+        if filename is not None:
+            dir = filename[:filename.rfind("/")]
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            plt.savefig(filename)
+            print("Plot saved in " + filename)
+
+        if show == True:
+            plt.draw()
+
+    def filter(array_result_files, index, shaper_in, beta_in):
         y = []
         x = []
 
@@ -115,6 +170,20 @@ if __name__ == '__main__':
 
         return [x,y]
 
+    def get_scenario(array_result_files, shaper_in, beta_in, n_size_in):
+        for file in sorted(array_result_files):
+            context = file.split('/')[-4]
+            beta = context.split('_')[2]
+            shaper = context.split('_')[3]
+            i = context.rfind('n')
+            n = int(context[i + 1])
+
+            if beta == beta_in and n == n_size_in and shaper == shaper_in:
+                r = files_io.load_line(file).split(',')
+                return [float(v) for v in r]
+
+        return None
+
 
     base_dir = options.basedir
 
@@ -133,28 +202,67 @@ if __name__ == '__main__':
 
     # Queue
     # fn = base_dir + 'post/' + shaper
-    beta_in = 'B0.01'
-    [x, s] = get_group(array_result_files, 0 , shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
-    [x, mA] = get_group(array_result_files, 3, shaper_in='SA', beta_in=beta_in)
-    [x, mB] = get_group(array_result_files, 3, shaper_in='SB', beta_in=beta_in)
-    [x, mC] = get_group(array_result_files, 3, shaper_in='SC', beta_in=beta_in)
-    # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop queue')
-    plot2xy(x, [s, mA, mB, mC], axis_label=['Sim', 'A', 'B', 'C'], show=True, title='Maximum hop queue')
+    beta_mask = ['B0.01', 'B0.1', 'B0.2', 'B1.0']
+    shapers_mask = ['Sim', 'TB', 'BT', 'RL']
+    shapers_mask_old = ['SA', 'SB', 'SC']
 
-    # Delay
-    [x, s] = get_group(array_result_files, 1 , shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
-    [x, mA] = get_group(array_result_files, 4, shaper_in='SA', beta_in=beta_in)
-    [x, mB] = get_group(array_result_files, 4, shaper_in='SB', beta_in=beta_in)
-    [x, mC] = get_group(array_result_files, 4, shaper_in='SC', beta_in=beta_in)
-    # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop delay')
-    plot2xy(x, [s, mA, mB, mC], axis_label=['Sim', 'A', 'B', 'C'], show=True, title='Maximum hop delay')
 
-    # Duration
-    [x, s] = get_group(array_result_files, 2,  shaper_in='SA', beta_in=beta_in)  # If shaping is disabled, sim should be the same for A B or C
-    [x, mA] = get_group(array_result_files, 5, shaper_in='SA', beta_in=beta_in)
-    [x, mB] = get_group(array_result_files, 5, shaper_in='SB', beta_in=beta_in)
-    [x, mC] = get_group(array_result_files, 5, shaper_in='SC', beta_in=beta_in)
-    # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Total time')
-    plot2xy(x, [s, mA, mB, mC], axis_label=['Sim', 'A', 'B', 'C'], show=True, title='Total time')
+    fx_list = []
+
+    #Next add from all
+    what = 3 # model_total_time
+    n_size = 3 #something wrong with 4
+    for b in beta_mask:
+        fxi = []
+        for s in shapers_mask_old:
+            results = get_scenario(array_result_files, s, b, n_size) #return a single value
+            if results is not None:
+                model_total_time = results[what]
+                fxi.append(model_total_time)
+                fxi_sim = results[what-3]
+
+        fx_list.append([fxi_sim] + fxi)
+
+    x = [i for i in range(len(shapers_mask))]
+
+    fn = base_dir + 'post/n' + str(n_size) + '_max_queue.pdf'
+    plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=False, filename=fn)
+    plt.show()
+    exit(0)
+    # plot_bars(x, fx_list)
+
+
+    # Here, do neighborgood size, in function of shaper used, in terms of delay/queue/duration
+    for beta_in in beta_mask:
+        [x, s] = filter(array_result_files, 0, shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
+        [x, mA] = filter(array_result_files, 3, shaper_in='SA', beta_in=beta_in)
+        [x, mB] = filter(array_result_files, 3, shaper_in='SB', beta_in=beta_in)
+        [x, mC] = filter(array_result_files, 3, shaper_in='SC', beta_in=beta_in)
+        # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop queue')
+
+        fn = base_dir + 'post/' + beta_in + '_max_queue.pdf'
+        plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Maximum hop queue', label_y='Max. queue size', filename=fn)
+
+        # Delay
+        [x, s] = filter(array_result_files, 1, shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
+        [x, mA] = filter(array_result_files, 4, shaper_in='SA', beta_in=beta_in)
+        [x, mB] = filter(array_result_files, 4, shaper_in='SB', beta_in=beta_in)
+        [x, mC] = filter(array_result_files, 4, shaper_in='SC', beta_in=beta_in)
+        # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop delay')
+
+        fn = base_dir + 'post/' + beta_in + '_max_delay.pdf'
+        plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Maximum hop delay', label_y='Max. hop delay (TTS)', filename=fn)
+
+        # Duration
+        [x, s] = filter(array_result_files, 2, shaper_in='SA', beta_in=beta_in)  # If shaping is disabled, sim should be the same for A B or C
+        [x, mA] = filter(array_result_files, 5, shaper_in='SA', beta_in=beta_in)
+        [x, mB] = filter(array_result_files, 5, shaper_in='SB', beta_in=beta_in)
+        [x, mC] = filter(array_result_files, 5, shaper_in='SC', beta_in=beta_in)
+        # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Total time')
+
+        fn = base_dir + 'post/' + beta_in + '_total_time.pdf'
+        plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Total time', label_y='Total time (TTS)', filename=fn)
+
+
 
     plt.show()
