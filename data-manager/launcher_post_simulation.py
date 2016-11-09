@@ -189,35 +189,25 @@ class NOCLauncher(QWidget):
 
         for item in indexes:
             i = item.row()
-            # context = self.listbox[i].text()
             args = files_io.load_line(self.list_dir_names[i] + 'simulation-info.txt')
 
             j = self.list_vnames[i].rfind('s')
             args += ' --shaper=' + self.list_vnames[i][j+1:j+3]
-
-            # self.textbox_args.setText(args)
 
             cmd = 'python3.5 ' + self.selected_script + \
                     ' --inputdir=' + self.list_dir_names[i] + ' --outputdir=' + self.list_dir_names[i] +  'post/ ' + \
                     ' --basedir=' + self.base_dir.text() + ' ' + \
                     args + ' ' + self.textbox_args_additional.text()
 
-            # cmd_list.append(cmd)
-
-
             try:
-                # args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir +  'post/ ' + \
-                #        ' --basedir=' + self.base_dir.text() + ' ' + \
-                #        self.textbox_args.text() + ' ' + self.textbox_args_additional.text()
-                #
-                # cmd = 'python3.5 ' + self.selected_script + args
-                print('Command executed: ' + cmd)
 
                 launch_thread = True
 
                 if (launch_thread == True):
                     _thread.start_new_thread(os.system,(cmd,))
+                    print('Thread launched with command: ' + cmd)
                 else:
+                    print('Wait for command execution: ' + cmd)
                     os.system(cmd)
             except:
                 print('Error running command')

@@ -25,6 +25,7 @@ import time
 import os, optparse
 import files_io
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from itertools import cycle
 
@@ -55,14 +56,14 @@ if __name__ == '__main__':
 
     ############################# Global vars and settings #######################
 
-    def plot_bars(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='', log=False):
+    def plot_bars(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='', label_x='', log=False):
         x_size = 6
         y_size = 3
 
         fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
-        fig.canvas.set_window_title('Title')
+        fig.canvas.set_window_title(title)
 
-        colours = ['green', 'yellow', 'blue', 'cyan', 'magenta', 'purple']
+        colours = ['darkgreen', 'darkcyan', 'darkblue', 'burlywood', 'seagreen', 'confotableblue']
         colourcycler = cycle(colours)
 
         index = np.arange(len(x))
@@ -81,21 +82,23 @@ if __name__ == '__main__':
                 color=next(colourcycler),
                 # yerr=std_men,
                 # error_kw=error_config,
-                label=axis_label[i]
+                label=axis_label[i],
+                hatch="/"
                              )
 
 
-        plt.xlabel('Shaping')
+        plt.xlabel(label_x)
         plt.ylabel(label_y)
         if (log):
             plt.yscale('log')
-        # plt.title('Scores by group and gender')
-        # plt.xticks(index + bar_width, ('A', 'B', 'C'))
+
         plt.xticks(x + w / 2, x_ticks)
         plt.legend(loc=0, fontsize=11)
 
         plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
 
+        plt.ylim([1e1, 16000])
+        # plt.ylim([0, 31])
 
         if filename is not None:
             dir = filename[:filename.rfind("/")]
@@ -107,7 +110,68 @@ if __name__ == '__main__':
         if show == True:
             plt.draw()
 
-    def plot_multiple_lines(axis, data, axis_label=None, filename=None, show=False, title='', label_y=''):
+    def plot_bars3d(x, fx3d_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='', label_x='', log=False):
+        x_size = 6
+        y_size = 3
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        # fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
+        fig.canvas.set_window_title(title)
+
+        colours = ['darkgreen', 'darkcyan', 'darkblue', 'burlywood', 'seagreen', 'confotableblue']
+        colourcycler = cycle(colours)
+
+        index = np.arange(len(x))
+        # bar_width = 0.35
+        opacity = 0.9
+        x = np.asarray(x)
+
+        dim = len(x)
+        w = 0.60
+        dimw = w / dim
+
+        fx_list = fx3d_list[0]
+
+        for n in range(len(fx3d_list)):
+            for i in range(len(fx_list)):
+                rects1 = ax.bar3d(
+                    x + (i * dimw), n, fx_list[i],
+                    dimw, (n)*dimw, 0,
+                    alpha=opacity,
+                    # color=next(colourcycler),
+                    # yerr=std_men,
+                    # error_kw=error_config,
+                    # label=axis_label[i],
+                    # hatch="/"
+                                 )
+
+
+        plt.xlabel(label_x)
+        plt.ylabel('n')
+        # if (log):
+        #     plt.zscale('log')
+
+        # plt.xticks(x + w / 2, x_ticks)
+        # plt.legend(loc=0, fontsize=11)
+
+        # plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+
+        # plt.ylim([1e1, 16000])
+        # plt.ylim([0, 31])
+
+        # if filename is not None:
+        #     dir = filename[:filename.rfind("/")]
+        #     if not os.path.exists(dir):
+        #         os.makedirs(dir)
+        #     plt.savefig(filename)
+        #     print("Plot saved in " + filename)
+
+        # if show == True:
+        #     plt.draw()
+
+    def plot_multiple_lines(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='', label_x='', log=False):
         label_x = "$n_{size}$"
         x_size = 6
         y_size = 3
@@ -119,12 +183,12 @@ if __name__ == '__main__':
         fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
         fig.canvas.set_window_title(title)
 
-        # if logscale == True:
-        #     plt.yscale('log')
+        if log == True:
+            plt.yscale('log')
 
-        for i in range(len(data)):
+        for i in range(len(fx_list)):
             axi = ax
-            axi.plot(axis, data[i], 'o', linestyle=next(linecycler), label=axis_label[i])
+            axi.plot(x, fx_list[i], 'o', linestyle=next(linecycler), label=axis_label[i])
             # axi.plot(axis, data[i], 'o', linestyle=next(linecycler))
 
         ax.set_xlabel(label_x)
@@ -138,8 +202,8 @@ if __name__ == '__main__':
         # ax = plt.gca()
         # ax.set_xticklabels(axis)
 
-        plt.xlim([axis[0]-0.1, axis[-1]+0.1])
-        plt.locator_params(axis='x', nbins=len(axis))
+        plt.xlim([x[0]-0.1, x[-1]+0.1])
+        plt.locator_params(axis='x', nbins=len(x))
         plt.legend(loc=2, fontsize=11)
 
         if filename is not None:
@@ -151,26 +215,6 @@ if __name__ == '__main__':
 
         if show == True:
             plt.draw()
-
-    def filter(array_result_files, index, shaper_in, beta_in):
-        y = []
-        x = []
-
-        for file in sorted(array_result_files):
-            context = file.split('/')[-4]
-            beta = context.split('_')[2]
-            shaper = context.split('_')[3]
-            i = context.rfind('n')
-            # j = context.rfind('S')
-            # txt = context[i + 1]  # + context[j+1]
-
-            if shaper == shaper_in and beta == beta_in:
-                # label.append(txt)
-                x.append(int(context[i + 1]))
-                r = files_io.load_line(file).split(',')
-                y.append(float(r[index]))
-
-        return [x,y]
 
     def get_scenario(array_result_files, shaper_in, beta_in, n_size_in):
         for file in sorted(array_result_files):
@@ -207,73 +251,75 @@ if __name__ == '__main__':
 
     # Queue
     # fn = base_dir + 'post/' + shaper
-    n_size_mask = [2,3,4,5]
+    # n_size_mask = [2,3,4,5]
+    n_size_mask = [3]
     beta_mask = ['0.01', '0.05', '0.10', '0.50', '1.00']
-    shapers_mask = ['BU', 'TD', 'RL', 'TL', 'SIM']
+    shapers_mask = ['BU', 'RL', 'TD',  'TL', 'SIM']
     # shapers_mask_old = ['SA', 'SB', 'SC']
 
 
 
 
     #Next add from all
-    what = 1 # model_total_time
-    n_size = 3 #something wrong with 4
+    what = 5 # model_total_time
+    label_y = 'Total time (TTS)'
+    # label_y = 'Max. queue size'
+    use_log_scale = True
 
     for n in n_size_mask:
         fx_list = []
         for b in beta_mask:
             fxi = []
             for s in shapers_mask:
+                if s == 'SIM':
+                    index = what - 1
+                    s = shapers_mask[0]  # any other one
+                else:
+                    index = what
+
                 results = get_scenario(array_result_files, s, b, n) #return a single value
+                # if results is not None:
+                fxi.append(results[index])
 
-                if results is not None:
-                    fxi.append(results[what])
-                    fxi_sim = results[what - 1]
-
-            fxi.append(fxi_sim) #sim goes last
             fx_list.append(fxi)
 
         x = [i for i in range(len(shapers_mask))]
 
-        fn = base_dir + 'post/n' + str(n) + '_max_queue.pdf'
-        plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=False, filename=fn)
-        plt.draw()
+        fn = base_dir + 'post/n' + str(n) + 'shaper_vs_total_time.pdf'
+
+        # plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=use_log_scale, filename=fn, label_y=label_y, label_x='Shaping scheme', title='n=' + str(n))
+
+
+    fx3d_list = []
+    for n in n_size_mask:
+        fx_list = []
+        for s in shapers_mask:
+            if s == 'SIM':
+                index = what - 1
+                s = shapers_mask[0] #any other one
+            else:
+                index = what
+
+            fxi = []
+
+            for b in beta_mask:
+                results = get_scenario(array_result_files, s, b, n) #return a single value
+
+                if results is not None:
+                    fxi.append(results[index])
+
+            fx_list.append(fxi)
+
+        x = [i for i in range(len(beta_mask))]
+
+        fx3d_list.append(fx_list)
+
+        fn = base_dir + 'post/n' + str(n) + 'beta_vs_total_time.pdf'
+
+        # plot_bars(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale, filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n))
+        # plot_multiple_lines(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale, filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n))
+
+    plot_bars3d(x, fx3d_list, axis_label=shapers_mask, x_ticks=beta_mask, log=use_log_scale, filename=fn, label_y=label_y,
+              label_x='Burstiness (beta)', title='n=' + str(n))
 
     plt.show()
-
-
-    #
-    # # Here, do neighborgood size, in function of shaper used, in terms of delay/queue/duration
-    # for beta_in in beta_mask:
-    #     [x, s] = filter(array_result_files, 0, shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
-    #     [x, mA] = filter(array_result_files, 3, shaper_in='SA', beta_in=beta_in)
-    #     [x, mB] = filter(array_result_files, 3, shaper_in='SB', beta_in=beta_in)
-    #     [x, mC] = filter(array_result_files, 3, shaper_in='SC', beta_in=beta_in)
-    #     # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop queue')
-    #
-    #     fn = base_dir + 'post/' + beta_in + '_max_queue.pdf'
-    #     plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Maximum hop queue', label_y='Max. queue size', filename=fn)
-    #
-    #     # Delay
-    #     [x, s] = filter(array_result_files, 1, shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
-    #     [x, mA] = filter(array_result_files, 4, shaper_in='SA', beta_in=beta_in)
-    #     [x, mB] = filter(array_result_files, 4, shaper_in='SB', beta_in=beta_in)
-    #     [x, mC] = filter(array_result_files, 4, shaper_in='SC', beta_in=beta_in)
-    #     # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop delay')
-    #
-    #     fn = base_dir + 'post/' + beta_in + '_max_delay.pdf'
-    #     plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Maximum hop delay', label_y='Max. hop delay (TTS)', filename=fn)
-    #
-    #     # Duration
-    #     [x, s] = filter(array_result_files, 2, shaper_in='SA', beta_in=beta_in)  # If shaping is disabled, sim should be the same for A B or C
-    #     [x, mA] = filter(array_result_files, 5, shaper_in='SA', beta_in=beta_in)
-    #     [x, mB] = filter(array_result_files, 5, shaper_in='SB', beta_in=beta_in)
-    #     [x, mC] = filter(array_result_files, 5, shaper_in='SC', beta_in=beta_in)
-    #     # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Total time')
-    #
-    #     fn = base_dir + 'post/' + beta_in + '_total_time.pdf'
-    #     plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Total time', label_y='Total time (TTS)', filename=fn)
-    #
-    #
-    #
-    # plt.show()
