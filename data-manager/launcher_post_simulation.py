@@ -47,6 +47,7 @@ class NOCLauncher(QWidget):
         self.button_load.clicked.connect(self.on_click_load)
 
         self.listbox = QListWidget()
+        self.listbox.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.listbox.clicked.connect(self.on_select)
 
         self.listbox_scripts = QListWidget()
@@ -98,6 +99,7 @@ class NOCLauncher(QWidget):
         """
         an item in the listbox has been clicked/selected
         """
+
         # self.selected = self.listbox.currentItem().text()
         i = self.listbox.currentRow()
         self.selected_log = self.list_fnames[i]
@@ -106,6 +108,10 @@ class NOCLauncher(QWidget):
         self.label_result.setText(self.list_vnames[i] + ' selected')
 
         args = files_io.load_line(self.list_dir_names[i] + 'simulation-info.txt')
+
+        j = self.list_vnames[i].rfind('s')
+        args += ' --shaper=' + self.list_vnames[i][j+1:j+3]
+
         self.textbox_args.setText(args)
 
     def on_select_scripts(self):
@@ -150,7 +156,7 @@ class NOCLauncher(QWidget):
         self.label_result.setText(sf)
 
         # l = files_io.load_line(directory + 'post_simulation_config.csv')
-        self.textbox_args_additional.setText('--pos_x=5 --pos_y=6 --port=2 --showplots=True --shaper=A')
+        self.textbox_args_additional.setText('--pos_x=5 --pos_y=6 --port=2 --showplots=True')
 
 
         ############## Load the scripts
@@ -175,22 +181,46 @@ class NOCLauncher(QWidget):
     def on_click_run(self):
         # scriptname = 'noc_flow_analysis'
 
-        try:
-            args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir +  'post/ ' + \
-                   ' --basedir=' + self.base_dir.text() + ' ' + \
-                   self.textbox_args.text() + ' ' + self.textbox_args_additional.text()
+        #Check the ones selected
+        # items = self.listbox.selectedItems()
+        indexes = self.listbox.selectedIndexes()
 
-            cmd = 'python3.5 ' + self.selected_script + args
-            print('Command executed: ' + cmd)
+        cmd_list = []
 
-            launch_thread = True
+        for item in indexes:
+            i = item.row()
+            # context = self.listbox[i].text()
+            args = files_io.load_line(self.list_dir_names[i] + 'simulation-info.txt')
 
-            if (launch_thread == True):
-                _thread.start_new_thread(os.system,(cmd,))
-            else:
-                os.system(cmd)
-        except:
-            print('Error running command')
+            j = self.list_vnames[i].rfind('s')
+            args += ' --shaper=' + self.list_vnames[i][j+1:j+3]
+
+            # self.textbox_args.setText(args)
+
+            cmd = 'python3.5 ' + self.selected_script + \
+                    ' --inputdir=' + self.list_dir_names[i] + ' --outputdir=' + self.list_dir_names[i] +  'post/ ' + \
+                    ' --basedir=' + self.base_dir.text() + ' ' + \
+                    args + ' ' + self.textbox_args_additional.text()
+
+            # cmd_list.append(cmd)
+
+
+            try:
+                # args = ' --inputdir=' + self.selected_dir + ' --outputdir=' + self.selected_dir +  'post/ ' + \
+                #        ' --basedir=' + self.base_dir.text() + ' ' + \
+                #        self.textbox_args.text() + ' ' + self.textbox_args_additional.text()
+                #
+                # cmd = 'python3.5 ' + self.selected_script + args
+                print('Command executed: ' + cmd)
+
+                launch_thread = True
+
+                if (launch_thread == True):
+                    _thread.start_new_thread(os.system,(cmd,))
+                else:
+                    os.system(cmd)
+            except:
+                print('Error running command')
 
 
     def on_click_load_anim(self):
