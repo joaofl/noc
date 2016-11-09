@@ -153,14 +153,15 @@ main(int argc, char *argv[]) {
     
     uint32_t size_x = 11; //multiples of 9, to allow r=4 neighborhoods
     uint32_t size_y = 11;
-    uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_neighborhood = 2; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "WCA_CLUSTER_BV_SA_";
+    string context = "WCA_CLUSTER_b1.0";
+    double_t beta = 1;
         
     string output_data_dir = homedir + "/noc-data";
     
@@ -371,13 +372,14 @@ main(int argc, char *argv[]) {
     
     //////////////////// From here, initialize the application at the nodes ///////////////// 
     uint8_t  initial_delay = 1;
-    double_t beta;
+//    double_t beta;
     uint32_t ms;
     double_t offset;   
     
-    beta = 1 / double( pow(size_neighborhood, 2) + size_neighborhood);
+//    beta = 1 / double( pow(size_neighborhood, 2) + size_neighborhood);
 //    beta = 0.03;
 //    beta = 0.1;
+//    beta = 0.2;
 //    beta = 0.2;
     
     ms = 5;

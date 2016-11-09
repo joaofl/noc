@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
         index = np.arange(len(x))
         # bar_width = 0.35
-        opacity = 0.4
+        opacity = 0.9
         x = np.asarray(x)
 
         dim = len(x)
@@ -75,12 +75,14 @@ if __name__ == '__main__':
         dimw = w / dim
 
         for i in range(len(fx_list)):
-            rects1 = plt.bar(x + (i * dimw), fx_list[i], dimw,
-                             alpha=opacity,
-                             color=next(colourcycler),
-                             # yerr=std_men,
-                             # error_kw=error_config,
-                             label=axis_label[i])
+            rects1 = plt.bar(
+                x + (i * dimw), fx_list[i], dimw,
+                alpha=opacity,
+                color=next(colourcycler),
+                # yerr=std_men,
+                # error_kw=error_config,
+                label=axis_label[i]
+                             )
 
 
         plt.xlabel('Shaping')
@@ -173,8 +175,11 @@ if __name__ == '__main__':
     def get_scenario(array_result_files, shaper_in, beta_in, n_size_in):
         for file in sorted(array_result_files):
             context = file.split('/')[-4]
-            beta = context.split('_')[2]
-            shaper = context.split('_')[3]
+            i = context.rfind('b')
+            j = context.rfind('nw')
+            beta = context[i+1:j]
+            i = context.rfind('s')
+            shaper = context[i+1:i+3]
             i = context.rfind('n')
             n = int(context[i + 1])
 
@@ -194,75 +199,81 @@ if __name__ == '__main__':
 
     # Table of indexes
     # 0    sim_max_queue,
-    # 1    sim_max_delay,
-    # 2    sim_total_time,
-    # 3    model_max_queue,
-    # 4    model_max_delay,
+    # 1    model_max_queue,
+    # 2    sim_max_delay,
+    # 3    model_max_delay,
+    # 4    sim_total_time,
     # 5    model_total_time
 
     # Queue
     # fn = base_dir + 'post/' + shaper
-    beta_mask = ['B0.01', 'B0.1', 'B0.2', 'B1.0']
-    shapers_mask = ['Sim', 'TB', 'BT', 'RL']
-    shapers_mask_old = ['SA', 'SB', 'SC']
+    n_size_mask = [2,3,4,5]
+    beta_mask = ['0.01', '0.05', '0.10', '0.50', '1.00']
+    shapers_mask = ['BU', 'TD', 'RL', 'TL', 'SIM']
+    # shapers_mask_old = ['SA', 'SB', 'SC']
 
 
-    fx_list = []
+
 
     #Next add from all
-    what = 3 # model_total_time
+    what = 1 # model_total_time
     n_size = 3 #something wrong with 4
-    for b in beta_mask:
-        fxi = []
-        for s in shapers_mask_old:
-            results = get_scenario(array_result_files, s, b, n_size) #return a single value
-            if results is not None:
-                model_total_time = results[what]
-                fxi.append(model_total_time)
-                fxi_sim = results[what-3]
 
-        fx_list.append([fxi_sim] + fxi)
+    for n in n_size_mask:
+        fx_list = []
+        for b in beta_mask:
+            fxi = []
+            for s in shapers_mask:
+                results = get_scenario(array_result_files, s, b, n) #return a single value
 
-    x = [i for i in range(len(shapers_mask))]
+                if results is not None:
+                    fxi.append(results[what])
+                    fxi_sim = results[what - 1]
 
-    fn = base_dir + 'post/n' + str(n_size) + '_max_queue.pdf'
-    plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=False, filename=fn)
-    plt.show()
-    exit(0)
-    # plot_bars(x, fx_list)
+            fxi.append(fxi_sim) #sim goes last
+            fx_list.append(fxi)
 
+        x = [i for i in range(len(shapers_mask))]
 
-    # Here, do neighborgood size, in function of shaper used, in terms of delay/queue/duration
-    for beta_in in beta_mask:
-        [x, s] = filter(array_result_files, 0, shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
-        [x, mA] = filter(array_result_files, 3, shaper_in='SA', beta_in=beta_in)
-        [x, mB] = filter(array_result_files, 3, shaper_in='SB', beta_in=beta_in)
-        [x, mC] = filter(array_result_files, 3, shaper_in='SC', beta_in=beta_in)
-        # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop queue')
-
-        fn = base_dir + 'post/' + beta_in + '_max_queue.pdf'
-        plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Maximum hop queue', label_y='Max. queue size', filename=fn)
-
-        # Delay
-        [x, s] = filter(array_result_files, 1, shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
-        [x, mA] = filter(array_result_files, 4, shaper_in='SA', beta_in=beta_in)
-        [x, mB] = filter(array_result_files, 4, shaper_in='SB', beta_in=beta_in)
-        [x, mC] = filter(array_result_files, 4, shaper_in='SC', beta_in=beta_in)
-        # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop delay')
-
-        fn = base_dir + 'post/' + beta_in + '_max_delay.pdf'
-        plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Maximum hop delay', label_y='Max. hop delay (TTS)', filename=fn)
-
-        # Duration
-        [x, s] = filter(array_result_files, 2, shaper_in='SA', beta_in=beta_in)  # If shaping is disabled, sim should be the same for A B or C
-        [x, mA] = filter(array_result_files, 5, shaper_in='SA', beta_in=beta_in)
-        [x, mB] = filter(array_result_files, 5, shaper_in='SB', beta_in=beta_in)
-        [x, mC] = filter(array_result_files, 5, shaper_in='SC', beta_in=beta_in)
-        # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Total time')
-
-        fn = base_dir + 'post/' + beta_in + '_total_time.pdf'
-        plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Total time', label_y='Total time (TTS)', filename=fn)
-
-
+        fn = base_dir + 'post/n' + str(n) + '_max_queue.pdf'
+        plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=False, filename=fn)
+        plt.draw()
 
     plt.show()
+
+
+    #
+    # # Here, do neighborgood size, in function of shaper used, in terms of delay/queue/duration
+    # for beta_in in beta_mask:
+    #     [x, s] = filter(array_result_files, 0, shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
+    #     [x, mA] = filter(array_result_files, 3, shaper_in='SA', beta_in=beta_in)
+    #     [x, mB] = filter(array_result_files, 3, shaper_in='SB', beta_in=beta_in)
+    #     [x, mC] = filter(array_result_files, 3, shaper_in='SC', beta_in=beta_in)
+    #     # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop queue')
+    #
+    #     fn = base_dir + 'post/' + beta_in + '_max_queue.pdf'
+    #     plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Maximum hop queue', label_y='Max. queue size', filename=fn)
+    #
+    #     # Delay
+    #     [x, s] = filter(array_result_files, 1, shaper_in='SA', beta_in=beta_in) # If shaping is disabled, sim should be the same for A B or C
+    #     [x, mA] = filter(array_result_files, 4, shaper_in='SA', beta_in=beta_in)
+    #     [x, mB] = filter(array_result_files, 4, shaper_in='SB', beta_in=beta_in)
+    #     [x, mC] = filter(array_result_files, 4, shaper_in='SC', beta_in=beta_in)
+    #     # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Maximum hop delay')
+    #
+    #     fn = base_dir + 'post/' + beta_in + '_max_delay.pdf'
+    #     plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Maximum hop delay', label_y='Max. hop delay (TTS)', filename=fn)
+    #
+    #     # Duration
+    #     [x, s] = filter(array_result_files, 2, shaper_in='SA', beta_in=beta_in)  # If shaping is disabled, sim should be the same for A B or C
+    #     [x, mA] = filter(array_result_files, 5, shaper_in='SA', beta_in=beta_in)
+    #     [x, mB] = filter(array_result_files, 5, shaper_in='SB', beta_in=beta_in)
+    #     [x, mC] = filter(array_result_files, 5, shaper_in='SC', beta_in=beta_in)
+    #     # plot2xy(x, [s, mA, mC], axis_label=['Sim', 'A', 'C'], show=True, title='Total time')
+    #
+    #     fn = base_dir + 'post/' + beta_in + '_total_time.pdf'
+    #     plot_multiple_lines(x, [s, mA, mB, mC], axis_label=shapers_mask, show=True, title='Total time', label_y='Total time (TTS)', filename=fn)
+    #
+    #
+    #
+    # plt.show()

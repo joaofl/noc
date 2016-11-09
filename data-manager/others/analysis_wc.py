@@ -109,7 +109,7 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw, model='A'):
+def resulting_flow(sw, model):
     burstiness = []
     offset = []
     msg_size = []
@@ -134,7 +134,7 @@ def resulting_flow(sw, model='A'):
         burstiness_out = msg_size_out / numpy.max(ms_over_b)
         offset_out = numpy.max(offset) + 1
 
-    elif model == 'A' or model == 'B': # from end to begining of the flow
+    elif model == 'TD' or model == 'TL': # from end to begining of the flow
         bursts_calc = []
         timeline = []
         timeline_norm = []
@@ -168,12 +168,12 @@ def resulting_flow(sw, model='A'):
 
         if burstiness_out >= 1:
             burstiness_out = 1
-            # if model == 'B':
-            #     model = 'C' #in this case it fails, so redirect to model C
+            if model == 'TL':
+                model = 'RL' #in this case it fails, so redirect to model C
 
 
 
-    if model == 'B': #from befining to the end of the flow
+    if model == 'BU': #from befining to the end of the flow
         bursts_calc = []
         timeline = []
 
@@ -205,7 +205,7 @@ def resulting_flow(sw, model='A'):
         if burstiness_out > 1:
             burstiness_out = 1
 
-    if model == 'C': #find the min offset for the nearest beta=1 departure curve
+    if model == 'RL': #find the min offset for the nearest beta=1 departure curve
         timeline = []
 
         for i in range(len(sw)):

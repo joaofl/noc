@@ -978,7 +978,7 @@ if __name__ == '__main__':
     ####### Plotting results
 
     show = bool(options.showplots)
-    show = True
+    show = False
 
     # plot_hist([list_model_max_delay, list_sim_max_delay], filename=fn9)
     # plot_hist([list_model_max_queue, list_sim_max_queue], filename=fn8)
