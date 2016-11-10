@@ -56,15 +56,22 @@ if __name__ == '__main__':
 
     ############################# Global vars and settings #######################
 
-    def plot_bars(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='', label_x='', log=False):
-        x_size = 6
+    def plot_bars(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='',
+                  label_x='', log=False, y_lim=None):
+
+        x_size = 3
         y_size = 3
 
         fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
         fig.canvas.set_window_title(title)
 
-        colours = ['darkgreen', 'darkcyan', 'darkblue', 'burlywood', 'seagreen', 'confotableblue']
+        # http://matplotlib.org/mpl_examples/color/named_colors.pdf
+        colours = [ 'sage', 'darkkhaki' , 'lightslategray','lightgreen', 'lightblue', 'seagreen', 'darkcyan',
+                    'darkgreen', 'darkcyan', 'darkblue', 'burlywood']
         colourcycler = cycle(colours)
+
+        hatches = ['x','/','//']
+        hatchcycler = cycle(hatches)
 
         index = np.arange(len(x))
         # bar_width = 0.35
@@ -72,7 +79,7 @@ if __name__ == '__main__':
         x = np.asarray(x)
 
         dim = len(x)
-        w = 0.60
+        w = 1
         dimw = w / dim
 
         for i in range(len(fx_list)):
@@ -83,9 +90,11 @@ if __name__ == '__main__':
                 # yerr=std_men,
                 # error_kw=error_config,
                 label=axis_label[i],
-                hatch="/"
+                hatch=next(hatchcycler)
                              )
 
+        if y_lim is not None:
+            plt.ylim(y_lim)
 
         plt.xlabel(label_x)
         plt.ylabel(label_y)
@@ -96,9 +105,6 @@ if __name__ == '__main__':
         plt.legend(loc=0, fontsize=11)
 
         plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-
-        plt.ylim([1e1, 16000])
-        # plt.ylim([0, 31])
 
         if filename is not None:
             dir = filename[:filename.rfind("/")]
@@ -138,7 +144,7 @@ if __name__ == '__main__':
             for i in range(len(fx_list)):
                 rects1 = ax.bar3d(
                     x + (i * dimw), n, fx_list[i],
-                    dimw, (n)*dimw, 0,
+                    dimw, dimw, 0,
                     alpha=opacity,
                     # color=next(colourcycler),
                     # yerr=std_men,
@@ -233,6 +239,40 @@ if __name__ == '__main__':
 
         return None
 
+    def compare_routing_protocols():
+
+        base_dir = options.basedir
+
+        protocols = ['XY', 'YX', 'CW']
+        lines = ['N/S', 'E/W']
+
+        #Data anotated from following scenario:
+        #  beta=1, ms = 1, o=dist, nw=21x11, one sink in center (10,5)
+        # ports north and south repost the same values, and also e/w, so they are grouped
+        ns_d = [107,10,57]
+        ns_q = [20,1,10]
+
+        ew_d = [20,112,62]
+        ew_q = [1,10,5]
+
+        x = [i for i in range(len(protocols))]
+
+        ys = [ns_d, ew_d]
+        fn = base_dir + 'post/routing_delay_comparison.pdf'
+        plot_bars(x, ys, axis_label=lines, x_ticks=protocols, log=False,
+                  filename=fn, label_y='Total time (TTS)', label_x='Routing protocol', title='Total time')
+
+        ys = [ns_q, ew_q]
+        fn = base_dir + 'post/routing_max_queue_comparison.pdf'
+        plot_bars(x, ys, axis_label=lines, x_ticks=protocols, log=False,
+                  filename=fn, label_y='Max queue size', label_x='Routing protocol', title='Max queue')
+
+        return None
+
+
+    compare_routing_protocols()
+    plt.show()
+    exit(0)
 
     base_dir = options.basedir
 
@@ -249,22 +289,27 @@ if __name__ == '__main__':
     # 4    sim_total_time,
     # 5    model_total_time
 
-    # Queue
-    # fn = base_dir + 'post/' + shaper
-    # n_size_mask = [2,3,4,5]
-    n_size_mask = [3]
+
+    n_size_mask = [2,3,4,5]
+    # n_size_mask = [3]
     beta_mask = ['0.01', '0.05', '0.10', '0.50', '1.00']
     shapers_mask = ['BU', 'RL', 'TD',  'TL', 'SIM']
-    # shapers_mask_old = ['SA', 'SB', 'SC']
 
 
+    what = 1 # model_total_time
 
+    if what == 5: # TOTAL TIME
+        label_y = 'Total time (TTS)'
+        use_log_scale = True
+        fncontext = 'total_time'
+        y_lim = [10, 16000]
 
-    #Next add from all
-    what = 5 # model_total_time
-    label_y = 'Total time (TTS)'
-    # label_y = 'Max. queue size'
-    use_log_scale = True
+    elif what == 1: # MAX QUEUE
+        label_y = 'Max. queue size'
+        use_log_scale = False
+        fncontext = 'max_queue'
+        y_lim = [0, 31]
+
 
     for n in n_size_mask:
         fx_list = []
@@ -285,9 +330,10 @@ if __name__ == '__main__':
 
         x = [i for i in range(len(shapers_mask))]
 
-        fn = base_dir + 'post/n' + str(n) + 'shaper_vs_total_time.pdf'
+        fn = base_dir + 'post/shaper_vs_' + fncontext + '_n_' + str(n) + '.pdf'
 
-        # plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=use_log_scale, filename=fn, label_y=label_y, label_x='Shaping scheme', title='n=' + str(n))
+        plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=use_log_scale,
+                  filename=fn, label_y=label_y, label_x='Shaping scheme', title='n=' + str(n), y_lim=y_lim)
 
 
     fx3d_list = []
@@ -314,12 +360,13 @@ if __name__ == '__main__':
 
         fx3d_list.append(fx_list)
 
-        fn = base_dir + 'post/n' + str(n) + 'beta_vs_total_time.pdf'
+        fn = base_dir + 'post/beta_vs_' + fncontext + '_n_' + str(n) + '.pdf'
 
-        # plot_bars(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale, filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n))
+        plot_bars(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale,
+                  filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n), y_lim=y_lim)
         # plot_multiple_lines(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale, filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n))
 
-    plot_bars3d(x, fx3d_list, axis_label=shapers_mask, x_ticks=beta_mask, log=use_log_scale, filename=fn, label_y=label_y,
-              label_x='Burstiness (beta)', title='n=' + str(n))
+    # plot_bars3d(x, fx3d_list, axis_label=shapers_mask, x_ticks=beta_mask, log=use_log_scale, filename=fn, label_y=label_y,
+    #           label_x='Burstiness (beta)', title='n=' + str(n))
 
     plt.show()
