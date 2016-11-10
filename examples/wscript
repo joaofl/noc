@@ -11,5 +11,8 @@ def build(bld):
     obj = bld.create_ns3_program('xdense-full', ['noc'])
     obj.source = 'xdense-full.cc'
 
+    obj = bld.create_ns3_program('xdense-routing', ['noc'])
+    obj.source = 'xdense-routing.cc'
+
     obj = bld.create_ns3_program('epiphany-example', ['noc'])
     obj.source = 'epiphany-example.cc'

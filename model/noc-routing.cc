@@ -143,6 +143,9 @@ namespace ns3 {
             case ROUTING_PROTOCOL_YFIRST:
                 out = UnicastFirstY(x_dest,y_dest);
                 break;
+            case ROUTING_PROTOCOL_XFIRST:
+                out = UnicastFirstX(x_dest,y_dest);
+                break;
             default:
                 std::cout << "Unknown protocol" << std::endl;
                 break;
@@ -158,8 +161,8 @@ namespace ns3 {
         
         if (x_dest > 0) dir = DIRECTION_MASK_E;
         else if (x_dest < 0) dir = DIRECTION_MASK_W;
-        else if (y_dest > 0) dir = DIRECTION_MASK_S;
-        else if (y_dest < 0) dir = DIRECTION_MASK_N;
+        else if (y_dest > 0) dir = DIRECTION_MASK_N;
+        else if (y_dest < 0) dir = DIRECTION_MASK_S;
         
         return dir;
     }
