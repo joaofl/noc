@@ -110,6 +110,10 @@ def burst_size(sw):
     return b_out
 
 def resulting_flow(sw, model):
+
+    if model not in ['BU','TD','RL','TL']:
+        model = 'TL'
+
     burstiness = []
     offset = []
     msg_size = []
