@@ -24,6 +24,7 @@ from os.path import expanduser
 import files_io
 import os
 import _thread
+from time import sleep
 
 
 class NOCLauncher(QWidget):
@@ -189,6 +190,9 @@ class NOCLauncher(QWidget):
 
         for item in indexes:
             i = item.row()
+
+            print('Running command {} out of {} ({:0.2f}%)'.format(i, len(indexes), (i * 100) / len(indexes) ))
+
             args = files_io.load_line(self.list_dir_names[i] + 'simulation-info.txt')
 
             j = self.list_vnames[i].rfind('s')
@@ -206,6 +210,11 @@ class NOCLauncher(QWidget):
                 if (launch_thread == True):
                     _thread.start_new_thread(os.system,(cmd,))
                     print('Thread launched with command: ' + cmd)
+                    sleep(1)
+
+                    while _thread._count() >= 2: #how many threads in parallel (usually the number of cores, unless the
+                                                #thread called is multi-thread already
+                        sleep(1)
                 else:
                     print('Wait for command execution: ' + cmd)
                     os.system(cmd)

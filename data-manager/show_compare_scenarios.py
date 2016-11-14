@@ -288,7 +288,9 @@ if __name__ == '__main__':
     # 3    model_max_delay,
     # 4    sim_total_time,
     # 5    model_total_time
-
+    # 6    final_beta
+    # 7    final_offset
+    # 8    final_ms
 
     n_size_mask = [2,3,4,5]
     # n_size_mask = [3]
@@ -309,6 +311,12 @@ if __name__ == '__main__':
         use_log_scale = False
         fncontext = 'max_queue'
         y_lim = [0, 31]
+
+    elif what == 6:
+        label_y = 'Equivalent beta'
+        use_log_scale = False
+        fncontext = 'eq_beta'
+        y_lim = []
 
 
     for n in n_size_mask:

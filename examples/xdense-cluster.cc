@@ -153,15 +153,16 @@ main(int argc, char *argv[]) {
     
     uint32_t size_x = 11; //multiples of 9, to allow r=4 neighborhoods
     uint32_t size_y = 11;
-    uint32_t size_neighborhood = 2; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
 
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
-    string context = "WCA_CLUSTER_b1.0";
-    double_t beta = 1;
+    string context = "WCA_CLUSTER_";
+    
+    double_t beta = 0.08;
         
     string output_data_dir = homedir + "/noc-data";
     
@@ -189,9 +190,11 @@ main(int argc, char *argv[]) {
     stringstream context_dir;
     context_dir << "/";
     context_dir << context;
+    context_dir << "b" << beta;
     context_dir << "nw" << size_x << "x" <<size_y;
 //    context_dir << "s" << sinks_n;
     context_dir << "n" << size_neighborhood;
+    context_dir << "sXX";
     context_dir << "/";
     
     packet_duration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);

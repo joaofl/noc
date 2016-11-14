@@ -670,6 +670,7 @@ if __name__ == '__main__':
             if not os.path.exists(dir):
                 os.makedirs(dir)
             plt.savefig(filename)
+            print("Plot matrix saved in " + filename)
 
         if show == True:
             # plt.show()
@@ -871,8 +872,8 @@ if __name__ == '__main__':
                 [
                     x_arrival_sim, y_arrival_sim,
                     x_departure_sim, y_departure_sim,
-                    # x_arrival_model, y_arrival_model,
-                    # x_departure_model, y_departure_model,
+                    x_arrival_model, y_arrival_model,
+                    x_departure_model, y_departure_model,
                     # x_sim_queue, y_sim_queue,
                     # x_sim_delay, y_sim_delay,
                     # x_model_queue, y_model_queue,
@@ -923,7 +924,10 @@ if __name__ == '__main__':
     str_results += str(max(list_model_max_delay)) + ','
 
     str_results += str(total_time_sim) + ','
-    str_results += str(total_time_model) + ''
+    str_results += str(total_time_model) + ','
+
+    [beta, offset, msg_size] = flow_model_dict_g[node_x, node_y][1]
+    str_results += '{},{},{}'.format(beta, offset, msg_size)
 
     print('Max queue: {}'.format(max(list_sim_max_queue)))
     print('Total time: {}'.format(total_time_sim))
