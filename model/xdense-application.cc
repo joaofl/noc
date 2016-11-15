@@ -125,7 +125,7 @@ namespace ns3 {
                 Simulator::Schedule(t_offset_t + (i * t_step_t), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, addressing);
             }
             else if(protocol == NOCHeader::PROTOCOL_UNICAST_OFFSET){
-                Simulator::Schedule(t_offset_t + (i * t_step_t), &NOCRouter::PacketUnicastOffset, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y);
+                Simulator::Schedule(t_offset_t + (i * t_step_t), &NOCRouter::PacketUnicastOffset, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, addressing);
             }
         }
     }
@@ -171,10 +171,10 @@ namespace ns3 {
         m_router->PacketUnicast(pck,NETWORK_ID_0, 7,-7, ADDRESSING_RELATIVE);
         m_router->PacketUnicast(pck,NETWORK_ID_0, 7, 7, ADDRESSING_RELATIVE);
 
-        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15,-15);
-        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15, 15);
-        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 7,-7);
-        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 7, 7);
+        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15,-15, ADDRESSING_RELATIVE);
+        m_router->PacketUnicastOffset(pck,NETWORK_ID_0,-15, 15, ADDRESSING_RELATIVE);
+        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 7,-7, ADDRESSING_RELATIVE);
+        m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 7, 7, ADDRESSING_RELATIVE);
 //        t_ns += 60 * PacketDuration;        
 //        
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastRadius, this->m_router, pck, NETWORK_ID_0, 7);

@@ -259,8 +259,6 @@ namespace ns3 {
     NOCRouter::PacketUnicast (Ptr<const Packet> pck, uint8_t network_id, 
             int32_t destination_x, int32_t destination_y, bool absolute_address)
     {
-        
-        
         if (absolute_address){
                 destination_x = destination_x - AddressX;
                 destination_y = destination_y - AddressY;
@@ -285,9 +283,16 @@ namespace ns3 {
     
     bool 
     NOCRouter::PacketUnicastOffset (Ptr<const Packet> pck, uint8_t network_id, 
-            int32_t destination_x, int32_t destination_y)
+            int32_t destination_x, int32_t destination_y, bool absolute_address)
     {
-           
+        if (absolute_address){
+                destination_x = destination_x - AddressX;
+                destination_y = destination_y - AddressY;
+        }
+        
+        if (destination_x == 0 && destination_y == 0)
+            return 0; // dont send it to myself
+        
         NOCHeader h;
         h.SetProtocol(NOCHeader::PROTOCOL_UNICAST_OFFSET);
         h.SetSourceAddressXY(0,0);

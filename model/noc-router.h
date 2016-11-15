@@ -109,7 +109,7 @@ namespace ns3 {
                             int32_t destination_y, bool absolute_address);
         
         bool PacketUnicastOffset (Ptr<const Packet> pck, uint8_t network_id, 
-                                    int32_t destination_x, int32_t destination_y);
+                                    int32_t destination_x, int32_t destination_y, bool absolute_address);
 
         bool PacketMulticastRadius (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops);
         bool PacketMulticastArea (Ptr<const Packet> pck, uint8_t network_id, int32_t x_size, int32_t y_size);
