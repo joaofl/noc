@@ -153,7 +153,7 @@ main(int argc, char *argv[]) {
     
     uint32_t size_x = 11; //multiples of 9, to allow r=4 neighborhoods
     uint32_t size_y = 11;
-    uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -162,7 +162,8 @@ main(int argc, char *argv[]) {
     string homedir = pw->pw_dir;
     string context = "WCA_CLUSTER_";
     
-    double_t beta = 0.08;
+//    ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
+    double_t beta = 1.00;
         
     string output_data_dir = homedir + "/noc-data";
     
