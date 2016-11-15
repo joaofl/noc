@@ -827,7 +827,8 @@ if __name__ == '__main__':
     
     # plots_arrival_departure = profile_node(node_x, node_y)
 
-    results = Parallel(n_jobs=-1)(delayed(profile_node)(x, y) for (x, y) in flow_model_dict_g)
+    # results = Parallel(n_jobs=-1)(delayed(profile_node)(x, y) for (x, y) in flow_model_dict_g)
+    results = Parallel(n_jobs=2)(delayed(profile_node)(x, y) for (x, y) in flow_model_dict_g)
 
     for r in results:
         x, y = r[0], r[1]

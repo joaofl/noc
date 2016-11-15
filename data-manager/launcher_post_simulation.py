@@ -157,7 +157,7 @@ class NOCLauncher(QWidget):
         self.label_result.setText(sf)
 
         # l = files_io.load_line(directory + 'post_simulation_config.csv')
-        self.textbox_args_additional.setText('--pos_x=5 --pos_y=6 --port=2 --showplots=True')
+        self.textbox_args_additional.setText('--pos_x=0 --pos_y=1 --port=2 --showplots=True')
 
 
         ############## Load the scripts
@@ -210,11 +210,10 @@ class NOCLauncher(QWidget):
                 if (launch_thread == True):
                     _thread.start_new_thread(os.system,(cmd,))
                     print('Thread launched with command: ' + cmd)
-                    sleep(1)
+                    sleep(2)
 
-                    while _thread._count() >= 2: #how many threads in parallel (usually the number of cores, unless the
-                                                #thread called is multi-thread already
-                        sleep(1)
+                    while _thread._count() >= 4: #how many threads in parallel (usually the number of cores, unless the                  #thread called is multi-thread already
+                        sleep(2)
                 else:
                     print('Wait for command execution: ' + cmd)
                     os.system(cmd)

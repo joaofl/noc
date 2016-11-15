@@ -59,7 +59,7 @@ if __name__ == '__main__':
     def plot_bars(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='',
                   label_x='', log=False, y_lim=None):
 
-        x_size = 3
+        x_size = 6
         y_size = 3
 
         fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
         index = np.arange(len(x))
         # bar_width = 0.35
-        opacity = 0.9
+        opacity = 1
         x = np.asarray(x)
 
         dim = len(x)
@@ -102,7 +102,7 @@ if __name__ == '__main__':
             plt.yscale('log')
 
         plt.xticks(x + w / 2, x_ticks)
-        plt.legend(loc=0, fontsize=11)
+        plt.legend(loc=0, fontsize=10)
 
         plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
 
@@ -246,9 +246,9 @@ if __name__ == '__main__':
         protocols = ['XY', 'YX', 'CW']
         lines = ['N/S', 'E/W']
 
-        #Data anotated from following scenario:
+        #Data manually captured from following scenario:
         #  beta=1, ms = 1, o=dist, nw=21x11, one sink in center (10,5)
-        # ports north and south repost the same values, and also e/w, so they are grouped
+        # ports north and south report the same values, and also e/w, so they are grouped
         ns_d = [107,10,57]
         ns_q = [20,1,10]
 
@@ -270,9 +270,9 @@ if __name__ == '__main__':
         return None
 
 
-    compare_routing_protocols()
-    plt.show()
-    exit(0)
+    # compare_routing_protocols()
+    # plt.show()
+    # exit(0)
 
     base_dir = options.basedir
 
@@ -288,41 +288,39 @@ if __name__ == '__main__':
     # 3    model_max_delay,
     # 4    sim_total_time,
     # 5    model_total_time
-    # 6    final_beta
+    INDEX_RESULTING_BETA = 6
+    INDEX_RESULTING_OFFS = 7
+    INDEX_RESULTING_MSGS = 8
+    # 6    resulting_beta
     # 7    final_offset
     # 8    final_ms
 
-    n_size_mask = [2,3,4,5]
+    n_size_mask = [1,2,3,4,5]
     # n_size_mask = [3]
-    beta_mask = ['0.01', '0.05', '0.10', '0.50', '1.00']
+    # beta_mask = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
+    beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
     shapers_mask = ['BU', 'RL', 'TD',  'TL', 'SIM']
 
 
-    what = 1 # model_total_time
+    what = 5 # model_total_time
 
     if what == 5: # TOTAL TIME
         label_y = 'Total time (TTS)'
         use_log_scale = True
         fncontext = 'total_time'
         y_lim = [10, 16000]
-
+        # y_lim = None
     elif what == 1: # MAX QUEUE
         label_y = 'Max. queue size'
         use_log_scale = False
         fncontext = 'max_queue'
         y_lim = [0, 31]
 
-    elif what == 6:
-        label_y = 'Equivalent beta'
-        use_log_scale = False
-        fncontext = 'eq_beta'
-        y_lim = []
-
 
     for n in n_size_mask:
         fx_list = []
         for b in beta_mask:
-            fxi = []
+            fxi_beta = []
             for s in shapers_mask:
                 if s == 'SIM':
                     index = what - 1
@@ -331,50 +329,58 @@ if __name__ == '__main__':
                     index = what
 
                 results = get_scenario(array_result_files, s, b, n) #return a single value
-                # if results is not None:
-                fxi.append(results[index])
+                if results is not None:
+                    fxi_beta.append(results[index])
 
-            fx_list.append(fxi)
+            fx_list.append(fxi_beta)
 
         x = [i for i in range(len(shapers_mask))]
-
         fn = base_dir + 'post/shaper_vs_' + fncontext + '_n_' + str(n) + '.pdf'
 
-        plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=use_log_scale,
-                  filename=fn, label_y=label_y, label_x='Shaping scheme', title='n=' + str(n), y_lim=y_lim)
+        # plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=use_log_scale,
+        #           filename=fn, label_y=label_y, label_x='Shaping scheme', title='n=' + str(n), y_lim=y_lim)
 
 
-    fx3d_list = []
     for n in n_size_mask:
         fx_list = []
+        fx_list_beta = []
         for s in shapers_mask:
             if s == 'SIM':
                 index = what - 1
                 s = shapers_mask[0] #any other one
             else:
                 index = what
-
+            fxi_beta = []
             fxi = []
 
             for b in beta_mask:
                 results = get_scenario(array_result_files, s, b, n) #return a single value
-
                 if results is not None:
+                    r = results[INDEX_RESULTING_MSGS] / results[index]
+                    # print(r)
                     fxi.append(results[index])
+                    fxi_beta.append(r)
 
             fx_list.append(fxi)
+            fx_list_beta.append(fxi_beta)
 
         x = [i for i in range(len(beta_mask))]
-
-        fx3d_list.append(fx_list)
-
+        # fx3d_list.append(fx_list)
         fn = base_dir + 'post/beta_vs_' + fncontext + '_n_' + str(n) + '.pdf'
-
         plot_bars(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale,
                   filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n), y_lim=y_lim)
-        # plot_multiple_lines(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale, filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n))
+        # plot_multiple_lines(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale,
+        #           filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n))
 
-    # plot_bars3d(x, fx3d_list, axis_label=shapers_mask, x_ticks=beta_mask, log=use_log_scale, filename=fn, label_y=label_y,
-    #           label_x='Burstiness (beta)', title='n=' + str(n))
+        fn = base_dir + 'post/beta_vs_' + 'utilization' + '_n_' + str(n) + '.pdf'
+        plot_bars(x, fx_list_beta, axis_label=shapers_mask,  x_ticks=beta_mask, #log=use_log_scale,
+                  filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[0,1])
+        # plot_multiple_lines(x, fx_list_beta, axis_label=shapers_mask,  x_ticks=beta_mask, #log=use_log_scale,
+        #           filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n=' + str(n))
+
+
+
+
+
 
     plt.show()
