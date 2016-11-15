@@ -304,9 +304,10 @@ class NOCPreLauncher(QWidget):
 
     def on_click_add(self):
         # print('Add to list')
-        t = self.textbox_command.text()
-        self.listbox_batch.addItem(t)
-        self.textbox_command.setText('')
+        # t = self.textbox_command.text()
+        # self.listbox_batch.addItem(t)
+        # self.textbox_command.setText('')
+        self.generate_scenarios()
 
 
     def on_click_run(self):
@@ -333,6 +334,29 @@ class NOCPreLauncher(QWidget):
             print('------------' + 'P' + str(i) + '------------')
             print(output[i][0])
             i+=1
+
+
+    def generate_scenarios(self):
+
+        # dir = '/home/joao/noc-data/input-data'
+        file_to_run = 'src/noc/examples/xdense-full'
+        # context = 'WCA_ALL_'
+        n_size_mask = [1, 2, 3, 4, 5]
+        # n_size_mask = [2, 3]
+        # beta_mask = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
+        beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
+        shapers_mask = ['BU', 'RL', 'TD', 'TL']
+        # beta_mask = ['0.90', '1.00']
+        # shapers_mask = ['BU', 'RL']
+
+
+        for b in beta_mask:
+            for n in n_size_mask:
+                for s in shapers_mask:
+
+                    self.listbox_batch.addItem('./waf --run="{} --beta={} --size_n={} --extra={}" '.format(file_to_run, b,n,s))
+
+
 
 
 

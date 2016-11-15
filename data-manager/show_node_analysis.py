@@ -87,6 +87,9 @@ if __name__ == '__main__':
     if options.verbose: print (time.asctime())
 
     ############################# Global vars and settings #######################
+    recursion_limit_g = 10000
+    sys.setrecursionlimit(recursion_limit_g)
+
     flow_model_list_g = []
     flow_model_dict_g = {}
     counter_iteration_g = 0
@@ -436,6 +439,11 @@ if __name__ == '__main__':
 
         global counter_iteration_g
         counter_iteration_g += 1
+        # print(counter_iteration_g)
+
+        if counter_iteration_g == recursion_limit_g:
+            print('Maximum of {} recursions depth reached'.format(recursion_limit_g))
+            # exit(0)
 
         route_base = flow_model_list_g[f_index][3]
         route_flows_base = flow_model_list_g[f_index][4] # a list containing the resulting flows at that route

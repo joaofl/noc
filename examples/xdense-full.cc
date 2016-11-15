@@ -155,8 +155,8 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 23; //multiples of 9, to allow r=4 neighborhoods
-    uint32_t size_y = 23;
+    uint32_t size_x = 1 + (5*2+1) * 3;
+    uint32_t size_y = 1 + (5*2+1) * 3;
     uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
@@ -168,7 +168,8 @@ main(int argc, char *argv[]) {
 
 
 //    ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']      
-    double_t beta = 0.1;
+//    double_t beta = 0.1;
+    string beta_str = "0.1";
     float_t c_rate = 0.50; //compression rate
 
     string output_data_dir = homedir + "/noc-data";
@@ -176,17 +177,21 @@ main(int argc, char *argv[]) {
     string input_sensors_data_path = "";
     string input_delay_data_path = "";
     string input_shaping_data_path = "";
+    
+    string extra = "XX"; //Contains shaping information
  
     CommandLine cmd;
+    cmd.AddValue("output_data", "Directory for simulations output", output_data_dir);
+    cmd.AddValue("input_data", "Directory for simulations input", input_sensors_data_path);
+    cmd.AddValue("input_delay_data", "Directory with delays measurements", input_delay_data_path);
     cmd.AddValue("context", "String to identify the simulation instance", context);
     cmd.AddValue("size_x", "Network size in the X axe", size_x);
     cmd.AddValue("size_y", "Network size in the Y axe", size_y);
     cmd.AddValue("size_n", "Neighborhood size", size_neighborhood);
     cmd.AddValue("sinks", "Network size in the X axe", sinks_n);
-    cmd.AddValue("baudrate", "The baudrate of the node's communication ports [bbps]", baudrate);
-    cmd.AddValue("output_data", "Directory for simulation's output", output_data_dir);
-    cmd.AddValue("input_data", "Directory for simulation's input", input_sensors_data_path);
-    cmd.AddValue("input_delay_data", "Directory with delays measurements", input_delay_data_path);
+    cmd.AddValue("baudrate", "Communication baudrate (bbps)", baudrate);
+    cmd.AddValue("beta", "Burstiness of nodes individually", beta_str);
+    cmd.AddValue("extra", "Extra context, to be appended to the output dir name", extra);
 
     cmd.Parse(argc, argv);
     
@@ -195,11 +200,11 @@ main(int argc, char *argv[]) {
     stringstream context_dir;
     context_dir << "/";
     context_dir << context;
-    context_dir << "b" << beta;
+    context_dir << "b" << beta_str;
     context_dir << "nw" << size_x << "x" << size_y;
 //    context_dir << "s" << sinks_n;
     context_dir << "n" << size_neighborhood;
-    context_dir << "sXX";
+    context_dir << "s" << extra;
     context_dir << "/";
     
     packet_duration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);
@@ -388,6 +393,11 @@ main(int argc, char *argv[]) {
     
     uint32_t sink_x = 0;
     uint32_t sink_y = 0;
+    
+//    double_t tmp = stod(beta_str) * 100;
+//    tmp = round(tmp);
+//    double_t beta = tmp / 100;
+    double_t beta = stod(beta_str);
 
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
@@ -407,15 +417,10 @@ main(int argc, char *argv[]) {
             if (y == sink_y && x == sink_x){ //The one to trace
                 //sink does not send to itself
             } 
-            
-//            uint8_t offset_x = (x_position + 1) / 2; 
-//            uint8_t offset_y = (y_position + 1) / 2; 
-//
-//            if (abs(x_source) % x_position - offset_x == 0 && abs(y_source) % y_position - offset_y == 0 )
-//              dir = DIRECTION_MASK_L; //It sends the packet inside at the individuals
-            
+             
             else if((dx + size_neighborhood) % (size_neighborhood * 2 + 1) == 0 && 
                     (dy + size_neighborhood) % (size_neighborhood * 2 + 1) == 0){
+                
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, sink_x, sink_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST_OFFSET);                                          
             } 

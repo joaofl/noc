@@ -288,6 +288,7 @@ if __name__ == '__main__':
     # 3    model_max_delay,
     # 4    sim_total_time,
     # 5    model_total_time
+    INDEX_TOTAL_TIME = 5
     INDEX_RESULTING_BETA = 6
     INDEX_RESULTING_OFFS = 7
     INDEX_RESULTING_MSGS = 8
@@ -372,11 +373,10 @@ if __name__ == '__main__':
         # plot_multiple_lines(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale,
         #           filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n))
 
-        fn = base_dir + 'post/beta_vs_' + 'utilization' + '_n_' + str(n) + '.pdf'
-        plot_bars(x, fx_list_beta, axis_label=shapers_mask,  x_ticks=beta_mask, #log=use_log_scale,
-                  filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[0,1])
-        # plot_multiple_lines(x, fx_list_beta, axis_label=shapers_mask,  x_ticks=beta_mask, #log=use_log_scale,
-        #           filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n=' + str(n))
+        if what == INDEX_TOTAL_TIME:
+            fn = base_dir + 'post/beta_vs_' + 'utilization' + '_n_' + str(n) + '.pdf'
+            plot_bars(x, fx_list_beta, axis_label=shapers_mask,  x_ticks=beta_mask, #log=use_log_scale,
+                      filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[0,1])
 
 
 
