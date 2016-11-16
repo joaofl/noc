@@ -24,13 +24,9 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import * #QWidget, QApplication
 from os.path import expanduser
 import files_io
-# import noc_
 import os
-
-import glob
-import threading
 from subprocess import Popen, PIPE, call
-import subprocess
+from joblib import Parallel, delayed
 
 class NOCPreLauncher(QWidget):
 
@@ -310,30 +306,24 @@ class NOCPreLauncher(QWidget):
         self.generate_scenarios()
 
 
-    def on_click_run(self):
-        #self.pbGenerate_clicked()
-        #TODO: replace the fixed string with the appropriated var
-        # self.teCommand.setText('Starting simulation. Please be patient')
-        # cmd = './waf --run "src/noc/examples/example-example $(cat /home/joao/usn-data/config/input-config.c.csv)"'
 
-        process = []
-        output = []
+    def run(self, cmd, dir):
+
+        p = Popen(cmd, cwd=dir, universal_newlines=True, shell=True, stdout=PIPE)
+        return p.communicate()
+
+    def on_click_run(self):
+
         for i in range(0, self.listbox_batch.count()):
             cmd = str(self.listbox_batch.item(i).text())
             cmd_dir = self.textbox_ns3_dir.text()
-            # process.append( subprocess.call(cmd, cwd=cmd_dir, universal_newlines=True, shell=True, stdout=PIPE))
-            process.append( Popen(cmd, cwd=cmd_dir, universal_newlines=True, shell=True, stdout=PIPE) )
-            output.append( process[i].communicate() )
-            # process[i].start()
-            # exit_code = process.wait()
-            # print(output)
 
-        i = 0
-        for p in process:
-            p.wait()
+            output = Parallel(n_jobs=8)(delayed(self.run)(cmd, dir) for (cmd, dir) in flow_model_dict_g)
+
+
+        for l in output:
             print('------------' + 'P' + str(i) + '------------')
-            print(output[i][0])
-            i+=1
+            print(l)
 
 
     def generate_scenarios(self):
@@ -341,10 +331,11 @@ class NOCPreLauncher(QWidget):
         # dir = '/home/joao/noc-data/input-data'
         file_to_run = 'src/noc/examples/xdense-full'
         # context = 'WCA_ALL_'
-        n_size_mask = [1, 2, 3, 4, 5]
+        n_size_mask = [1, 3, 5]
         # n_size_mask = [2, 3]
         # beta_mask = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
-        beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
+        # beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
+        beta_mask = ['{:0.2f}'.format(b/100) for b in range(1,101, 2)]
         shapers_mask = ['BU', 'RL', 'TD', 'TL']
         # beta_mask = ['0.90', '1.00']
         # shapers_mask = ['BU', 'RL']
@@ -353,11 +344,10 @@ class NOCPreLauncher(QWidget):
         for b in beta_mask:
             for n in n_size_mask:
                 for s in shapers_mask:
-
                     self.listbox_batch.addItem('./waf --run="{} --beta={} --size_n={} --extra={}" '.format(file_to_run, b,n,s))
 
 
-
+        print('Total number of sim scenarios: {}'.format(self.listbox_batch.count()))
 
 
 app =  QApplication([])
