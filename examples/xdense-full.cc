@@ -155,8 +155,8 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 1 + (5*2+1) * 3;
-    uint32_t size_y = 1 + (5*2+1) * 3;
+    uint32_t size_x = 1 + (5*2+1) * 2;
+    uint32_t size_y = 1 + (5*2+1) * 2;
     uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps

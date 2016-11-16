@@ -94,7 +94,7 @@ if __name__ == '__main__':
     flow_model_dict_g = {}
     counter_iteration_g = 0
     counter_recursion_g = 0
-    rounding_digits_g = 2
+    rounding_digits_g = 1
 
     inputfile_queue_size = options.inputdir + '/queue-size-trace.csv'
     inputfile_flows = options.inputdir + '/flows-trace.csv'

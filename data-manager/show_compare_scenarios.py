@@ -116,74 +116,76 @@ if __name__ == '__main__':
         if show == True:
             plt.draw()
 
-    def plot_bars3d(x, fx3d_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='', label_x='', log=False):
-        x_size = 6
-        y_size = 3
+    # def plot_bars3d(x, fx3d_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='', label_x='', log=False):
+    #     x_size = 6
+    #     y_size = 3
+    #
+    #     fig = plt.figure()
+    #     ax = fig.add_subplot(111, projection='3d')
+    #
+    #     # fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
+    #     fig.canvas.set_window_title(title)
+    #
+    #     colours = ['darkgreen', 'darkcyan', 'darkblue', 'burlywood', 'seagreen', 'confotableblue']
+    #     colourcycler = cycle(colours)
+    #
+    #     index = np.arange(len(x))
+    #     # bar_width = 0.35
+    #     opacity = 0.9
+    #     x = np.asarray(x)
+    #
+    #     dim = len(x)
+    #     w = 0.60
+    #     dimw = w / dim
+    #
+    #     fx_list = fx3d_list[0]
+    #
+    #     for n in range(len(fx3d_list)):
+    #         for i in range(len(fx_list)):
+    #             rects1 = ax.bar3d(
+    #                 x + (i * dimw), n, fx_list[i],
+    #                 dimw, dimw, 0,
+    #                 alpha=opacity,
+    #                 # color=next(colourcycler),
+    #                 # yerr=std_men,
+    #                 # error_kw=error_config,
+    #                 # label=axis_label[i],
+    #                 # hatch="/"
+    #                              )
+    #
+    #
+    #     plt.xlabel(label_x)
+    #     plt.ylabel('n')
+    #     # if (log):
+    #     #     plt.zscale('log')
+    #
+    #     # plt.xticks(x + w / 2, x_ticks)
+    #     # plt.legend(loc=0, fontsize=11)
+    #
+    #     # plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+    #
+    #     # plt.ylim([1e1, 16000])
+    #     # plt.ylim([0, 31])
+    #
+    #     # if filename is not None:
+    #     #     dir = filename[:filename.rfind("/")]
+    #     #     if not os.path.exists(dir):
+    #     #         os.makedirs(dir)
+    #     #     plt.savefig(filename)
+    #     #     print("Plot saved in " + filename)
+    #
+    #     # if show == True:
+    #     #     plt.draw()
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
+    def plot_multiple_lines(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='',
+                  label_x='', log=False, y_lim=None):
 
-        # fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
-        fig.canvas.set_window_title(title)
-
-        colours = ['darkgreen', 'darkcyan', 'darkblue', 'burlywood', 'seagreen', 'confotableblue']
-        colourcycler = cycle(colours)
-
-        index = np.arange(len(x))
-        # bar_width = 0.35
-        opacity = 0.9
-        x = np.asarray(x)
-
-        dim = len(x)
-        w = 0.60
-        dimw = w / dim
-
-        fx_list = fx3d_list[0]
-
-        for n in range(len(fx3d_list)):
-            for i in range(len(fx_list)):
-                rects1 = ax.bar3d(
-                    x + (i * dimw), n, fx_list[i],
-                    dimw, dimw, 0,
-                    alpha=opacity,
-                    # color=next(colourcycler),
-                    # yerr=std_men,
-                    # error_kw=error_config,
-                    # label=axis_label[i],
-                    # hatch="/"
-                                 )
-
-
-        plt.xlabel(label_x)
-        plt.ylabel('n')
-        # if (log):
-        #     plt.zscale('log')
-
-        # plt.xticks(x + w / 2, x_ticks)
-        # plt.legend(loc=0, fontsize=11)
-
-        # plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-
-        # plt.ylim([1e1, 16000])
-        # plt.ylim([0, 31])
-
-        # if filename is not None:
-        #     dir = filename[:filename.rfind("/")]
-        #     if not os.path.exists(dir):
-        #         os.makedirs(dir)
-        #     plt.savefig(filename)
-        #     print("Plot saved in " + filename)
-
-        # if show == True:
-        #     plt.draw()
-
-    def plot_multiple_lines(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='', label_x='', log=False):
-        label_x = "$n_{size}$"
         x_size = 6
         y_size = 3
         # logscale = True
 
         lines = ["-", "--", "-.", ":"]
+        lines = ["-"]
         linecycler = cycle(lines)
 
         fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
@@ -194,7 +196,7 @@ if __name__ == '__main__':
 
         for i in range(len(fx_list)):
             axi = ax
-            axi.plot(x, fx_list[i], 'o', linestyle=next(linecycler), label=axis_label[i])
+            axi.plot(x, fx_list[i], 'x', linestyle=next(linecycler), label=axis_label[i])
             # axi.plot(axis, data[i], 'o', linestyle=next(linecycler))
 
         ax.set_xlabel(label_x)
@@ -204,6 +206,8 @@ if __name__ == '__main__':
         plt.legend(loc=0, fontsize=11)
         plt.grid(True)
 
+        if y_lim is not None:
+            plt.ylim(y_lim)
 
         # ax = plt.gca()
         # ax.set_xticklabels(axis)
@@ -284,11 +288,12 @@ if __name__ == '__main__':
     # Table of indexes
     # 0    sim_max_queue,
     # 1    model_max_queue,
+    INDEX_MODEL_MAX_QUEUE = 1
     # 2    sim_max_delay,
     # 3    model_max_delay,
     # 4    sim_total_time,
     # 5    model_total_time
-    INDEX_TOTAL_TIME = 5
+    INDEX_MODEL_TOTAL_TIME = 5
     INDEX_RESULTING_BETA = 6
     INDEX_RESULTING_OFFS = 7
     INDEX_RESULTING_MSGS = 8
@@ -296,91 +301,100 @@ if __name__ == '__main__':
     # 7    final_offset
     # 8    final_ms
 
-    n_size_mask = [1,2,3,4,5]
+    # n_size_mask = [1,2,3,4,5]
+    n_size_mask = [1,3,5]
     # n_size_mask = [3]
-    # beta_mask = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
-    beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
-    shapers_mask = ['BU', 'RL', 'TD',  'TL', 'SIM']
+
+    beta_mask = [0.01, 0.02, 0.04, 0.05, 0.06, 0.08, 0.1, 0.5, 1]
+    # beta_mask_str = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
+    beta_mask_str = ['{:0.02f}'.format(b) for b in beta_mask]
 
 
-    what = 5 # model_total_time
-
-    if what == 5: # TOTAL TIME
-        label_y = 'Total time (TTS)'
-        use_log_scale = True
-        fncontext = 'total_time'
-        y_lim = [10, 16000]
-        # y_lim = None
-    elif what == 1: # MAX QUEUE
-        label_y = 'Max. queue size'
-        use_log_scale = False
-        fncontext = 'max_queue'
-        y_lim = [0, 31]
+    # beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
+    shapers_mask_str = ['BU', 'RL', 'TD', 'TL', 'SIM']
 
 
-    for n in n_size_mask:
-        fx_list = []
-        for b in beta_mask:
-            fxi_beta = []
-            for s in shapers_mask:
-                if s == 'SIM':
-                    index = what - 1
-                    s = shapers_mask[0]  # any other one
-                else:
-                    index = what
+    # for n in n_size_mask:
+    #     fx_list = []
+    #     for b in beta_mask:
+    #         fxi_beta = []
+    #         for s in shapers_mask:
+    #             if s == 'SIM':
+    #                 index = what - 1
+    #                 s = shapers_mask[0]  # any other one
+    #             else:
+    #                 index = what
+    #
+    #             results = get_scenario(array_result_files, s, b, n) #return a single value
+    #             if results is not None:
+    #                 fxi_beta.append(results[index])
+    #
+    #         fx_list.append(fxi_beta)
+    #
+    #     x = [i for i in range(len(shapers_mask))]
+    #     fn = base_dir + 'post/shaper_vs_' + fncontext + '_n_' + str(n) + '.pdf'
+    #
+    #     plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=use_log_scale,
+    #               filename=fn, label_y=label_y, label_x='Shaping scheme', title='n=' + str(n), y_lim=y_lim)
 
-                results = get_scenario(array_result_files, s, b, n) #return a single value
-                if results is not None:
-                    fxi_beta.append(results[index])
 
-            fx_list.append(fxi_beta)
-
-        x = [i for i in range(len(shapers_mask))]
-        fn = base_dir + 'post/shaper_vs_' + fncontext + '_n_' + str(n) + '.pdf'
-
-        # plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=use_log_scale,
-        #           filename=fn, label_y=label_y, label_x='Shaping scheme', title='n=' + str(n), y_lim=y_lim)
 
 
     for n in n_size_mask:
-        fx_list = []
-        fx_list_beta = []
-        for s in shapers_mask:
+        fx_list_util = []
+        fx_list_delay = []
+        fx_list_queue = []
+
+        for s in shapers_mask_str:
             if s == 'SIM':
-                index = what - 1
-                s = shapers_mask[0] #any other one
+                i_queue = INDEX_MODEL_MAX_QUEUE - 1
+                i_delay = INDEX_MODEL_TOTAL_TIME -1
+                s = shapers_mask_str[0] #any other one
             else:
-                index = what
-            fxi_beta = []
-            fxi = []
+                i_queue = INDEX_MODEL_MAX_QUEUE
+                i_delay = INDEX_MODEL_TOTAL_TIME
 
-            for b in beta_mask:
+            fxi_util = []
+            fxi_delay = []
+            fxi_queue = []
+
+            for b in beta_mask_str:
                 results = get_scenario(array_result_files, s, b, n) #return a single value
                 if results is not None:
-                    r = results[INDEX_RESULTING_MSGS] / results[index]
-                    # print(r)
-                    fxi.append(results[index])
-                    fxi_beta.append(r)
+                    fxi_delay.append(results[i_delay])
+                    fxi_queue.append(results[i_queue])
+                    fxi_util.append(results[INDEX_RESULTING_MSGS] / results[i_delay])
+                else:
+                    print('Expected scenario beta={}, shaper={}, nsize={} not found'.format(b, s, n))
 
-            fx_list.append(fxi)
-            fx_list_beta.append(fxi_beta)
+            fx_list_util.append(fxi_util)
+            fx_list_delay.append(fxi_delay)
+            fx_list_queue.append(fxi_queue)
 
-        x = [i for i in range(len(beta_mask))]
-        # fx3d_list.append(fx_list)
-        fn = base_dir + 'post/beta_vs_' + fncontext + '_n_' + str(n) + '.pdf'
-        plot_bars(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale,
-                  filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n), y_lim=y_lim)
+        x = [i for i in range(len(beta_mask_str))]
+
+
+
+        # fn = base_dir + 'post/beta_vs_total_time_n_{}.pdf'.format(n)
+        # plot_bars(x, fx_list_delay, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=True,
+        #           filename=fn, label_y='Total time (TTS)', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[10, 16000])
+        #
+        #
+        # fn = base_dir + 'post/beta_vs_max_queue_n_{}.pdf'.format(n)
+        # plot_bars(x, fx_list_queue, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=False,
+        #           filename=fn, label_y='Max. queue size', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[0, 31])
+        #
+        # fn = base_dir + 'post/beta_vs_link_utilization_n_{}.pdf'.format(n)
+        # plot_bars(x, fx_list_util, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=False,
+        #           filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[0,1])
+
+
+        fn = base_dir + 'post/beta_vs_link_utilization_n_{}.pdf'.format(n)
+        plot_multiple_lines(beta_mask, fx_list_util, axis_label=shapers_mask_str, log=False,
+                            filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[0,1])
+
+
         # plot_multiple_lines(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale,
         #           filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n=' + str(n))
-
-        if what == INDEX_TOTAL_TIME:
-            fn = base_dir + 'post/beta_vs_' + 'utilization' + '_n_' + str(n) + '.pdf'
-            plot_bars(x, fx_list_beta, axis_label=shapers_mask,  x_ticks=beta_mask, #log=use_log_scale,
-                      filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[0,1])
-
-
-
-
-
 
     plt.show()
