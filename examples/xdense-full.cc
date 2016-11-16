@@ -43,6 +43,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include <string>
+#include <stdlib.h>
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -64,6 +66,8 @@ NS_LOG_COMPONENT_DEFINE("XDenseWCAnalysis");
 
 using namespace std;
 using namespace ns3;
+
+
 
 //ofstream file_packets_trace_router;
 ofstream file_packet_trace;
@@ -398,6 +402,7 @@ main(int argc, char *argv[]) {
 //    tmp = round(tmp);
 //    double_t beta = tmp / 100;
     double_t beta = stod(beta_str);
+//    double_t beta = 0;
 
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
