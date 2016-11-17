@@ -180,7 +180,7 @@ if __name__ == '__main__':
     def plot_multiple_lines(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='',
                   label_x='', log=False, y_lim=None):
 
-        x_size = 6
+        x_size = 7
         y_size = 3
         # logscale = True
 
@@ -196,25 +196,25 @@ if __name__ == '__main__':
 
         for i in range(len(fx_list)):
             axi = ax
-            axi.plot(x, fx_list[i], 'x', linestyle=next(linecycler), label=axis_label[i])
+            axi.plot(x, fx_list[i], '', linestyle=next(linecycler), label=axis_label[i])
             # axi.plot(axis, data[i], 'o', linestyle=next(linecycler))
 
         ax.set_xlabel(label_x)
         ax.set_ylabel(label_y)
 
         plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-        plt.legend(loc=0, fontsize=11)
-        plt.grid(True)
+        plt.legend(loc=0)#, fontsize=11)
+        plt.grid(False)
 
-        if y_lim is not None:
+        if y_lim != []:
             plt.ylim(y_lim)
 
         # ax = plt.gca()
         # ax.set_xticklabels(axis)
 
-        plt.xlim([x[0]-0.1, x[-1]+0.1])
-        plt.locator_params(axis='x', nbins=len(x))
-        plt.legend(loc=2, fontsize=11)
+        # plt.xlim([x[0]-0.1, x[-1]+0.1])
+        # plt.locator_params(axis='x', nbins=len(x))
+        plt.legend(loc=0, fontsize=11)
 
         if filename is not None:
             dir = filename[:filename.rfind("/")]
@@ -305,9 +305,12 @@ if __name__ == '__main__':
     n_size_mask = [1,3,5]
     # n_size_mask = [3]
 
-    beta_mask = [0.01, 0.02, 0.04, 0.05, 0.06, 0.08, 0.1, 0.5, 1]
+    # beta_mask = [b / 100 for b in range(1, 101, 2)]
+    beta_mask = [b/100 for b in np.logspace(0, 2, 50)]
+    # beta_mask = sorted([(101-b)/100 for b in np.logspace(0, 2, 30)])
+    # beta_mask = [0.01, 0.02, 0.04, 0.05, 0.06, 0.08, 0.1, 0.5, 1]
     # beta_mask_str = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
-    beta_mask_str = ['{:0.02f}'.format(b) for b in beta_mask]
+    beta_mask_str = ['{:0.04f}'.format(b) for b in beta_mask]
 
 
     # beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
@@ -378,11 +381,18 @@ if __name__ == '__main__':
         # fn = base_dir + 'post/beta_vs_total_time_n_{}.pdf'.format(n)
         # plot_bars(x, fx_list_delay, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=True,
         #           filename=fn, label_y='Total time (TTS)', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[10, 16000])
+        fn = base_dir + 'post/beta_vs_total_time_n_{}.pdf'.format(n)
+        plot_multiple_lines(beta_mask, fx_list_delay, axis_label=shapers_mask_str,  x_ticks=[], log=True,
+                  filename=fn, label_y='Total time (TTS)', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[])
         #
         #
         # fn = base_dir + 'post/beta_vs_max_queue_n_{}.pdf'.format(n)
         # plot_bars(x, fx_list_queue, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=False,
         #           filename=fn, label_y='Max. queue size', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[0, 31])
+        fn = base_dir + 'post/beta_vs_max_queue_n_{}.pdf'.format(n)
+        plot_multiple_lines(beta_mask, fx_list_queue, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=False,
+                  filename=fn, label_y='Max. queue size', label_x='Burstiness (beta)', title='n=' + str(n), y_lim=[0, 37])
+
         #
         # fn = base_dir + 'post/beta_vs_link_utilization_n_{}.pdf'.format(n)
         # plot_bars(x, fx_list_util, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=False,

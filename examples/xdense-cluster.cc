@@ -151,9 +151,9 @@ main(int argc, char *argv[]) {
     
     //--pos_x=5 --pos_y=6 --port=2
     
-    uint32_t size_x = 11; //multiples of 9, to allow r=4 neighborhoods
-    uint32_t size_y = 11;
-    uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_x = 6; //multiples of 9, to allow r=4 neighborhoods
+    uint32_t size_y = 6;
+    uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -163,8 +163,7 @@ main(int argc, char *argv[]) {
     string context = "WCA_CLUSTER_";
     
 //    ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
-    double_t beta = 1.00;
-        
+    string beta_str = "0.1";
     string output_data_dir = homedir + "/noc-data";
     
     string input_sensors_data_path = "";
@@ -172,30 +171,34 @@ main(int argc, char *argv[]) {
     
     string input_delay_data_path = "";
     string input_shaping_data_path = "";
+    
+    string extra = "XX"; //Contains shaping information
  
     CommandLine cmd;
+    cmd.AddValue("output_data", "Directory for simulations output", output_data_dir);
+    cmd.AddValue("input_data", "Directory for simulations input", input_sensors_data_path);
+    cmd.AddValue("input_delay_data", "Directory with delays measurements", input_delay_data_path);
     cmd.AddValue("context", "String to identify the simulation instance", context);
     cmd.AddValue("size_x", "Network size in the X axe", size_x);
     cmd.AddValue("size_y", "Network size in the Y axe", size_y);
     cmd.AddValue("size_n", "Neighborhood size", size_neighborhood);
     cmd.AddValue("sinks", "Network size in the X axe", sinks_n);
-    cmd.AddValue("baudrate", "The baudrate of the node's communication ports [bbps]", baudrate);
-    cmd.AddValue("output_data", "Directory for simulation's output", output_data_dir);
-    cmd.AddValue("input_data", "Directory for simulation's input", input_sensors_data_path);
-    cmd.AddValue("input_delay_data", "Directory with delays measurements", input_delay_data_path);
+    cmd.AddValue("baudrate", "Communication baudrate (bbps)", baudrate);
+    cmd.AddValue("beta", "Burstiness of nodes individually", beta_str);
+    cmd.AddValue("extra", "Extra context, to be appended to the output dir name", extra);
 
     cmd.Parse(argc, argv);
     
     ///////////////////////////////////////////////////////////////
-
+    
     stringstream context_dir;
     context_dir << "/";
     context_dir << context;
-    context_dir << "b" << beta;
-    context_dir << "nw" << size_x << "x" <<size_y;
+    context_dir << "b" << beta_str;
+    context_dir << "nw" << size_x << "x" << size_y;
 //    context_dir << "s" << sinks_n;
     context_dir << "n" << size_neighborhood;
-    context_dir << "sXX";
+    context_dir << "s" << extra;
     context_dir << "/";
     
     packet_duration = Time::FromInteger((pck_size * 1e9) / baudrate, Time::NS);
@@ -305,7 +308,8 @@ main(int argc, char *argv[]) {
         my_noc_router->GetAttribute("AddressY", y);
         my_noc_router->SetDataRate(DataRate(baudrate));
         my_noc_router->RoutingDelays = my_router_delay_model; //TODO: use a method set instead, otherwise there will be no default value, and it wont work.
-        my_noc_router->ServerPolicy = NOCRouter::FIFO; //NOCRouter::ROUND_ROBIN //TODO: use a method set instead
+//        my_noc_router->ServerPolicy = NOCRouter::ROUND_ROBIN; //TODO: use a method set instead
+        my_noc_router->ServerPolicy = NOCRouter::FIFO;
         my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_XY_CLOCKWISE);
 //        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_YFIRST);
 	my_router_delay_model->InputData = &my_input_data;
@@ -376,20 +380,13 @@ main(int argc, char *argv[]) {
     
     //////////////////// From here, initialize the application at the nodes ///////////////// 
     uint8_t  initial_delay = 1;
-//    double_t beta;
-    uint32_t ms;
     double_t offset;   
-    
-//    beta = 1 / double( pow(size_neighborhood, 2) + size_neighborhood);
-//    beta = 0.03;
-//    beta = 0.1;
-//    beta = 0.2;
-//    beta = 0.2;
-    
-    ms = 5;
-    
-    uint32_t center_x = (size_x - 1) / 2;
-    uint32_t center_y = (size_y - 1) / 2;
+    uint32_t ms = 5;
+       
+    uint32_t sink_x = 0;
+    uint32_t sink_y = 0;
+
+    double_t beta = stod(beta_str);
 
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
@@ -400,18 +397,21 @@ main(int argc, char *argv[]) {
             Ptr<Packet> pck_out = Create<Packet>();
             pck_out->AddHeader(hd_out);
             
-            uint8_t d = NOCRouting::Distance(center_x, center_y, x, y);
-            uint8_t dx = NOCRouting::DistanceLinear(center_x , x);
-            uint8_t dy = NOCRouting::DistanceLinear(center_y , y);
+            uint8_t d = NOCRouting::Distance(sink_x, sink_y, x, y);
+            uint8_t dx = NOCRouting::DistanceLinear(sink_x , x);
+            uint8_t dy = NOCRouting::DistanceLinear(sink_y , y);
             
             offset = d;
             
-            if (y == center_y && x == center_x){ //The one to trace
-
+            if ( (y == sink_y && x == sink_x) || y == 0){ //The one to trace
+                //sink does not send to itself
             } 
             else if(dx <= size_neighborhood && dy <= size_neighborhood){
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, center_x, center_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, center_x, center_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST);                                          
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->
+                m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
+                
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->
+                SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, sink_x, sink_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST);                                          
             } 
         }
     }

@@ -27,6 +27,8 @@ import files_io
 import os
 from subprocess import Popen, PIPE, call
 from joblib import Parallel, delayed
+import numpy as np
+from time import sleep
 
 class NOCPreLauncher(QWidget):
 
@@ -36,7 +38,7 @@ class NOCPreLauncher(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         # setGeometry(x_pos, y_pos, width, height)
-        self.setGeometry(300, 200, 250, 600)
+        self.setGeometry(300, 200, 600, 600)
 
         font_title = QFont()
         font_title.setBold(True)
@@ -134,36 +136,36 @@ class NOCPreLauncher(QWidget):
         vbox.addWidget(self.textbox_ns3_dir)
         vbox.addWidget(self.textbox_dir_output)
         ##########################################################
-        vbox.addWidget(self.label_input_param)
+        # vbox.addWidget(self.label_input_param)
         hbox = QHBoxLayout()
         hbox.addWidget(self.label_param_network_size)
         hbox.addWidget(self.textbox_param_xsize)
         hbox.addWidget(self.textbox_param_ysize)
-        vbox.addItem(hbox)
+        # vbox.addItem(hbox)
 
         hbox = QHBoxLayout()
         hbox.addSpacing(72)
         hbox.addWidget(self.label_param_sinks)
         hbox.addWidget(self.textbox_param_sinks)
-        vbox.addItem(hbox)
+        # vbox.addItem(hbox)
 
         hbox = QHBoxLayout()
         hbox.addSpacing(30)
         hbox.addWidget(self.label_param_nsize)
         hbox.addWidget(self.textbox_param_nsize)
-        vbox.addItem(hbox)
+        # vbox.addItem(hbox)
 
         hbox = QHBoxLayout()
         hbox.addSpacing(30)
         hbox.addWidget(self.label_param_baudrate)
         hbox.addWidget(self.textbox_param_baudrate)
-        vbox.addItem(hbox)
+        # vbox.addItem(hbox)
 
         hbox = QHBoxLayout()
         hbox.addSpacing(56)
         hbox.addWidget(self.label_param_context)
         hbox.addWidget(self.textbox_param_context)
-        vbox.addItem(hbox)
+        # vbox.addItem(hbox)
         ##########################################################
         vbox.addWidget(self.label_dir)
         vbox.addWidget(self.edit_dir)
@@ -299,6 +301,7 @@ class NOCPreLauncher(QWidget):
         print('Call the other script to do that')
 
     def on_click_add(self):
+        self.listbox_batch.clear()
         # print('Add to list')
         # t = self.textbox_command.text()
         # self.listbox_batch.addItem(t)
@@ -309,33 +312,63 @@ class NOCPreLauncher(QWidget):
 
     def run(self, cmd, dir):
 
-        p = Popen(cmd, cwd=dir, universal_newlines=True, shell=True, stdout=PIPE)
-        return p.communicate()
+        p = Popen(cmd, cwd=dir, shell=True, stdout=PIPE, universal_newlines=True)
+        return p, p.communicate()
 
     def on_click_run(self):
 
+        dir = self.textbox_ns3_dir.text()
+        cmd_list = []
+        process_list = []
+
         for i in range(0, self.listbox_batch.count()):
-            cmd = str(self.listbox_batch.item(i).text())
-            cmd_dir = self.textbox_ns3_dir.text()
+            cmd_list.append(str(self.listbox_batch.item(i).text()))
 
-            output = Parallel(n_jobs=8)(delayed(self.run)(cmd, dir) for (cmd, dir) in flow_model_dict_g)
+        # output = Parallel(n_jobs=8)(delayed(self.run)(cmd, dir) for cmd in cmd_list)
+
+        p = Popen(cmd_list[0], cwd=dir, shell=True)  # , stdout=PIPE, universal_newlines=True)
+        p.wait()
 
 
-        for l in output:
-            print('------------' + 'P' + str(i) + '------------')
-            print(l)
+        for i, cmd in enumerate(cmd_list):
+
+            print('Simulation scenario {} out of {} ({:0.2f}%)'.format(i+1, len(cmd_list), i*100/len(cmd_list)))
+
+            # for cmd in cmds:
+            p = Popen(cmd, cwd=dir, shell=True) #, stdout=PIPE, universal_newlines=True)
+            # sleep(0.2)
+            process_list.append(p)
+
+            for p in process_list:
+                p.wait()
+
+            process_list = []
+            # print(out)
+
+            # for i, p in enumerate(process_list):
+            #     p.wait()
+            #     print('------------' + 'P' + str(i) + '------------')
+            #     print(output_list[i])
+            #
+
+                # output_list = []
 
 
     def generate_scenarios(self):
 
         # dir = '/home/joao/noc-data/input-data'
-        file_to_run = 'src/noc/examples/xdense-full'
+        # file_to_run = 'src/noc/examples/xdense-full'
+        file_to_run = 'src/noc/examples/xdense-cluster'
         # context = 'WCA_ALL_'
         n_size_mask = [1, 3, 5]
-        # n_size_mask = [2, 3]
+        # n_size_mask = [3]
         # beta_mask = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
         # beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
-        beta_mask = ['{:0.2f}'.format(b/100) for b in range(1,101, 2)]
+        # beta_mask = ['{:0.2f}'.format(b/100) for b in range(1,101, 2)]
+        beta_mask = ['{:0.4f}'.format(b/100) for b in np.logspace(0, 2, 50)]
+
+        # beta_num = sorted([(101-b)/100 for b in np.logspace(0, 2, 30)])
+        # beta_mask = ['{:0.04f}'.format(b) for b in beta_num]
         shapers_mask = ['BU', 'RL', 'TD', 'TL']
         # beta_mask = ['0.90', '1.00']
         # shapers_mask = ['BU', 'RL']
