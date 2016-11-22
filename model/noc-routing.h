@@ -81,7 +81,9 @@ namespace ns3 {
         
         enum RoutingProtocols{
             ROUTING_PROTOCOL_XY_CLOCKWISE,
+            ROUTING_PROTOCOL_XY_CLOCKWISE_OFFSET,
             ROUTING_PROTOCOL_XY_CCLOCKWISE,
+            ROUTING_PROTOCOL_XY_CCLOCKWISE_OFFSET,
             ROUTING_PROTOCOL_YFIRST,
             ROUTING_PROTOCOL_XFIRST
         };

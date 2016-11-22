@@ -357,8 +357,8 @@ class NOCPreLauncher(QWidget):
     def generate_scenarios(self):
 
         # dir = '/home/joao/noc-data/input-data'
-        # file_to_run = 'src/noc/examples/xdense-full'
-        file_to_run = 'src/noc/examples/xdense-cluster'
+        file_to_run = 'src/noc/examples/xdense-full'
+        # file_to_run = 'src/noc/examples/xdense-cluster'
         # context = 'WCA_ALL_'
         n_size_mask = [1, 2, 3, 4, 5]
         # n_size_mask = [3]

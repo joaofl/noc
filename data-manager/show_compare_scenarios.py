@@ -57,29 +57,29 @@ if __name__ == '__main__':
     ############################# Global vars and settings #######################
 
     def plot_bars(x, fx_list, axis_label=None, x_ticks='', filename=None, show=False, title='', label_y='',
-                  label_x='', log=False, y_lim=None):
+                  label_x='', log=False, y_lim=[]):
 
-        x_size = 6
+        x_size = 4
         y_size = 3
 
         fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
         fig.canvas.set_window_title(title)
 
         # http://matplotlib.org/mpl_examples/color/named_colors.pdf
-        colours = [ 'sage', 'darkkhaki' , 'lightslategray','lightgreen', 'lightblue', 'seagreen', 'darkcyan',
+        colors = ['green', 'blue', 'seagreen', 'darkcyan',
                     'darkgreen', 'darkcyan', 'darkblue', 'burlywood']
-        colourcycler = cycle(colours)
+        colourcycler = cycle(colors)
 
         hatches = ['x','/','//']
         hatchcycler = cycle(hatches)
 
         index = np.arange(len(x))
         # bar_width = 0.35
-        opacity = 1
+        opacity = 0.9
         x = np.asarray(x)
 
         dim = len(x)
-        w = 1
+        w = 1.5
         dimw = w / dim
 
         for i in range(len(fx_list)):
@@ -93,7 +93,7 @@ if __name__ == '__main__':
                 hatch=next(hatchcycler)
                              )
 
-        if y_lim is not None:
+        if y_lim != []:
             plt.ylim(y_lim)
 
         plt.xlabel(label_x)
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         if (log):
             plt.yscale('log')
 
-        plt.xticks(x + w / 2, x_ticks)
+        plt.xticks(x + w / len(fx_list)/2, x_ticks)
         plt.legend(loc=0, fontsize=10)
 
         plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         y_size = 3
         # logscale = True
 
-        lines = ["-", "--", "-.", ":"]
+        # lines = ["-", "--", "-.", ":"]
         lines = ["-"]
         linecycler = cycle(lines)
 
@@ -174,8 +174,8 @@ if __name__ == '__main__':
             plt.draw()
 
 
-    def plot_multiple_planes(x, y, z, x_ticks='', filename=None, show=False, title='', label_y='',
-                  label_x='', label_z='', log=False, y_lim=None, step=False, mark=''):
+    def plot_multiple_planes(x, y, z_array, x_ticks='', filename=None, show=False, title='', label_y='',
+                  label_x='', label_z='', log=False, y_lim=None, step=False, mark='', color='blue'):
         x_size = 7
         y_size = 3
 
@@ -185,22 +185,22 @@ if __name__ == '__main__':
             plt.xticks(x_ticks)
 
         plt.gca().invert_yaxis()
-        plt.gca().invert_xaxis()
+        # plt.gca().invert_xaxis()
 
         ax.set_xlabel(label_x)
         ax.set_zlabel(label_z)
         ax.set_ylabel(label_y)
 
-        plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-
         x_mesh = [x for _ in y]
         y_mesh = [[y[i] for _ in range(len(x))] for i in range(len(y))]
 
-
-        ax.plot_wireframe(x_mesh, y_mesh, z)
-
+        for z in z_array:
+            ax.plot_wireframe(x_mesh, y_mesh, z, color=color, alpha=0.7)
+            ax.set_zlim(0,2000)
+            # ax.plot_surface(x_mesh, y_mesh, z, color=next(colourcycler), alpha=0.7)
         # ax.plot_wireframe(x_mesh, y_mesh, )
 
+        plt.tight_layout()
         plt.draw()
 
         if filename is not None:
@@ -233,37 +233,37 @@ if __name__ == '__main__':
 
         base_dir = options.basedir
 
-        protocols = ['XY', 'YX', 'CW']
+        protocols = ['XY', 'YX', 'CW', 'CO']
         lines = ['N/S', 'E/W']
 
         #Data manually captured from following scenario:
         #  beta=1, ms = 1, o=dist, nw=21x11, one sink in center (10,5)
         # ports north and south report the same values, and also e/w, so they are grouped
-        ns_d = [107,10,57]
-        ns_q = [20,1,10]
+        ns_d = [107,10,57, 52]
+        ns_q = [20,1,10, 11]
 
-        ew_d = [20,112,62]
-        ew_q = [1,10,5]
+        ew_d = [20,112,62, 61]
+        ew_q = [1,10,5, 6]
 
         x = [i for i in range(len(protocols))]
 
         ys = [ns_d, ew_d]
         fn = base_dir + 'post/routing_delay_comparison.pdf'
-        plot_bars(x, ys, axis_label=lines, x_ticks=protocols, log=False,
+        plot_bars(x, ys, axis_label=lines, x_ticks=protocols, log=False, y_lim=[],
                   filename=fn, label_y='Total time (TTS)', label_x='Routing protocol', title='Total time')
 
         ys = [ns_q, ew_q]
         fn = base_dir + 'post/routing_max_queue_comparison.pdf'
-        plot_bars(x, ys, axis_label=lines, x_ticks=protocols, log=False,
+        plot_bars(x, ys, axis_label=lines, x_ticks=protocols, log=False, y_lim=[0,21],
                   filename=fn, label_y='Max queue size', label_x='Routing protocol', title='Max queue')
 
         return None
 
     ############## SCRIPT FROM HERE ####################################################################################
 
-    # compare_routing_protocols()
-    # plt.show()
-    # exit(0)
+    compare_routing_protocols()
+    plt.show()
+    exit(0)
 
     base_dir = options.basedir
 
@@ -303,7 +303,8 @@ if __name__ == '__main__':
     # beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
     shapers_mask_str = ['BU', 'RL', 'TD', 'TL', 'SIM']
 
-    context_mask_str = ['WCA_CLUSTER_']
+    context_mask_str = ['WCA_CLUSTER_', 'WCA_FULL_']
+    # context_mask_str = ['WCA_FULL_']
 
 
     # for n in n_size_mask:
@@ -317,7 +318,7 @@ if __name__ == '__main__':
     #             else:
     #                 index = what
     #
-    #             results = get_scenario(array_result_files, s, b, n) #return a single value
+    #             results = get_scenario(array_result_files, s, b, n, context_in=context_mask_str[0]) #return a single value
     #             if results is not None:
     #                 fxi_beta.append(results[index])
     #
@@ -336,12 +337,13 @@ if __name__ == '__main__':
     # new_beta_mask_str = ['{:0.04f}'.format(b) for b in new_beta_mask]
 
     i_beta = int(len((beta_mask_str))/3) #pick the beta value to show on the 2d plots
+    i_beta = -1
 
     for s in ['TL']:
     # for each s, a new plot will be generated
-        fx_list_util = []
-        fx_list_delay = []
-        fx_list_queue = []
+        fx_list_util = {s:[] for s in context_mask_str}
+        fx_list_delay = {s:[] for s in context_mask_str}
+        fx_list_queue = {s:[] for s in context_mask_str}
 
         for b in beta_mask_str: #, 'SIM']:
             if s == 'SIM':
@@ -352,40 +354,53 @@ if __name__ == '__main__':
                 i_queue = INDEX_MODEL_MAX_QUEUE
                 i_delay = INDEX_MODEL_TOTAL_TIME
 
-            fxi_util = []
-            fxi_delay = []
-            fxi_queue = []
 
-            for n in n_size_mask:
-                results = get_scenario(array_result_files, s, b, n) #return a single value
-                if results is not None:
-                    fxi_delay.append(results[i_delay])
-                    fxi_queue.append(results[i_queue])
-                    fxi_util.append(results[INDEX_RESULTING_MSGS] / results[i_delay])
-                else:
-                    print('Expected scenario beta={}, shaper={}, nsize={} not found'.format(b, s, n))
+            for context in context_mask_str:
 
-            fx_list_util.append(fxi_util)
-            fx_list_delay.append(fxi_delay)
-            fx_list_queue.append(fxi_queue)
+                fxi_util = []
+                fxi_delay = []
+                fxi_queue = []
+
+                for n in n_size_mask:
+                    results = get_scenario(array_result_files, s, b, n, context_in=context) #return a single value
+                    if results is not None:
+                        fxi_delay.append(results[i_delay])
+                        fxi_queue.append(results[i_queue])
+                        fxi_util.append(results[INDEX_RESULTING_MSGS] / results[i_delay])
+                    else:
+                        print('Expected scenario beta={}, shaper={}, nsize={} not found'.format(b, s, n))
+
+                fx_list_util[context].append(fxi_util)
+                fx_list_delay[context].append(fxi_delay)
+                fx_list_queue[context].append(fxi_queue)
 
         x = [int(n) for n in n_size_mask]
 
+        axis_labels = [context[4:-1] for context in context_mask_str]
+
         # plot it, but for a single value of beta
-        fn = base_dir + 'post/n_size_vs_total_time_b_{}.pdf'.format(b)
-        plot_multiple_lines(x, [fx_list_delay[i_beta]], axis_label=[beta_mask_str[i_beta]], x_ticks=n_size_mask, log=False,
+        fn = base_dir + 'post/n_size_vs_total_time_b_{}.pdf'.format(beta_mask_str[i_beta])
+        lines = [fx_list_delay[context][i_beta] for context in context_mask_str]
+        plot_multiple_lines(x, lines, axis_label=axis_labels, x_ticks=n_size_mask, log=False,
                             filename=fn, label_y='Total time (TTS)', label_x='Neigborhood size $(n_{size})$', title='s={}'.format(s),
                             y_lim=[], mark='o')
 
         #plot it, but for a single value of beta
-        fn = base_dir + 'post/n_size_vs_max_queue_b_{}.pdf'.format(b)
-        plot_multiple_lines(x, [fx_list_queue[i_beta]], axis_label=[beta_mask_str[i_beta]], x_ticks=n_size_mask, log=False,
+        fn = base_dir + 'post/n_size_vs_max_queue_b_{}.pdf'.format(beta_mask_str[i_beta])
+        lines = [fx_list_queue[context][i_beta] for context in context_mask_str]
+        plot_multiple_lines(x, lines, axis_label=axis_labels, x_ticks=n_size_mask, log=False,
                             filename=fn, label_y='Max queue size', label_x='Neigborhood size $(n_{size})$', title='s={}'.format(s),
                             y_lim=[], mark='o')
 
-        fn = base_dir + 'post/n_size_vs_beta_vs_total_time_b_{}.pdf'.format(b)
-        plot_multiple_planes(x, beta_mask, fx_list_delay, x_ticks=x, filename=fn, label_y='Burstiness $(\\beta)$',
-                             label_x='Neigborhood size $(n_{size})$', label_z='Total time (TTS)', title='s={}'.format(s))
+        colors = ['blue', 'green', 'darkblue', 'burlywood']
+        colourcycler = cycle(colors)
+        # fn = base_dir + 'post/n_size_vs_beta_vs_total_time_b_{}.pdf'.format(b)
+        # planes = [fx_list_delay[context] for context in context_mask_str]
+        for context in context_mask_str:
+            fn = base_dir + 'post/n_size_vs_beta_vs_total_time_{}.pdf'.format(context)
+            plot_multiple_planes(x, beta_mask, [fx_list_delay[context]], x_ticks=x, filename=fn, label_y='Burstiness $(\\beta)$',
+                                 label_x='Neigborhood size $(n_{size})$', label_z='Total time (TTS)', title='s={}'.format(s),
+                                 color=next(colourcycler))
 
 
     plt.show()
@@ -411,7 +426,7 @@ if __name__ == '__main__':
             fxi_queue = []
 
             for b in beta_mask_str:
-                results = get_scenario(array_result_files, s, b, n) #return a single value
+                results = get_scenario(array_result_files, s, b, n, context_in=context_mask_str[0]) #return a single value
                 if results is not None:
                     fxi_delay.append(results[i_delay])
                     fxi_queue.append(results[i_queue])

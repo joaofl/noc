@@ -101,6 +101,13 @@ if __name__ == '__main__':
     inputfile_packet_trace = options.inputdir + '/packets-trace-netdevice.csv'
     inputfile_flows_source = options.inputdir + '/flows-source.csv'
 
+    inputfile_results = options.outputdir + 'results.csv'
+
+    input_results = files_io.load_list(inputfile_results)
+    if (len(input_results)) > 0: #simulation has been run on this scenario already, skip it
+        print('Skiping scenario already run.')
+        # exit(1)
+
     trace_packets = files_io.load_list(inputfile_packet_trace)
     if (len(trace_packets)) == 0:
         print('Log file is empty')
