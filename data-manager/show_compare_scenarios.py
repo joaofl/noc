@@ -261,9 +261,9 @@ if __name__ == '__main__':
 
     ############## SCRIPT FROM HERE ####################################################################################
 
-    compare_routing_protocols()
-    plt.show()
-    exit(0)
+    # compare_routing_protocols()
+    # plt.show()
+    # exit(0)
 
     base_dir = options.basedir
 
@@ -404,7 +404,7 @@ if __name__ == '__main__':
 
 
     plt.show()
-    exit(1)
+    # exit(1)
 
 
     for n in n_size_mask:

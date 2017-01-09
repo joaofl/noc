@@ -226,9 +226,9 @@ class Node(QGraphicsItem):
     def valueToColor(self, v, direction):
         if v == 1:
             if direction == 'rx':
-                return QColor("red")
+                return QColor("green")
             elif direction == 'tx':
-                return QColor("blue")
+                return QColor("red")
         elif v == 0:
             return QColor("white")
 
