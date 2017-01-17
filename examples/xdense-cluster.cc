@@ -153,7 +153,7 @@ main(int argc, char *argv[]) {
     
     uint32_t size_x = 6; //multiples of 9, to allow r=4 neighborhoods
     uint32_t size_y = 6;
-    uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -163,7 +163,7 @@ main(int argc, char *argv[]) {
     string context = "WCA_CLUSTER_";
     
 //    ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
-    string beta_str = "0.1";
+    string beta_str = "1.00";
     string output_data_dir = homedir + "/noc-data";
     
     string input_sensors_data_path = "";
@@ -172,7 +172,7 @@ main(int argc, char *argv[]) {
     string input_delay_data_path = "";
     string input_shaping_data_path = "";
     
-    string extra = "XX"; //Contains shaping information
+    string extra = "RL"; //Contains shaping information
  
     CommandLine cmd;
     cmd.AddValue("output_data", "Directory for simulations output", output_data_dir);
@@ -381,7 +381,7 @@ main(int argc, char *argv[]) {
     //////////////////// From here, initialize the application at the nodes ///////////////// 
     uint8_t  initial_delay = 1;
     double_t offset;   
-    uint32_t ms = 4;
+    uint32_t ms = 5;
        
     uint32_t sink_x = 0;
     uint32_t sink_y = 0;
@@ -406,7 +406,7 @@ main(int argc, char *argv[]) {
             if ( (y == sink_y && x == sink_x) || y == 0){ //The one to trace
                 //sink does not send to itself
             } 
-            else if(dx <= size_neighborhood && dy <= size_neighborhood){
+            else if((dx <= size_neighborhood && dy <= size_neighborhood)){
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->
                 m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
                 

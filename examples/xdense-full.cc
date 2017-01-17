@@ -155,7 +155,7 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 1 + (5*2+1) * 2;
+    uint32_t size_x = 1 + (5*2+1) * 2; //This represents a single quadrant
     uint32_t size_y = 1 + (5*2+1) * 2;
     uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
@@ -391,7 +391,7 @@ main(int argc, char *argv[]) {
     
 //    ms = ceil(pow(size_neighborhood + 1, 2) * (1 - c_rate));
     
-    ms = ceil(pow(float_t(size_neighborhood) * 2 + 1, 2) * 4 * 0.055); 
+    ms = ceil(pow(float_t(size_neighborhood) * 2 + 1, 2) * 4 * 0.04); 
     //consider 1 packet per node reduced by the comrpession rate
     
     
