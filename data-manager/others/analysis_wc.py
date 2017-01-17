@@ -113,6 +113,7 @@ def resulting_flow(sw, model):
 
     if model not in ['BU','TD','RL','TL']:
         model = 'TL'
+        print('Model not specified, Top-left used')
 
     burstiness = []
     offset = []
@@ -137,45 +138,6 @@ def resulting_flow(sw, model):
     if model == 'OLD': # or len(sw) == 1:
         burstiness_out = msg_size_out / numpy.max(ms_over_b)
         offset_out = numpy.max(offset) + 1
-
-    elif model == 'TD' or model == 'TL': # from end to begining of the flow
-        bursts_calc = []
-        timeline = []
-        timeline_norm = []
-
-        for i in range(len(sw)):
-            b = burstiness[i]
-            tf = offset[i]
-            ti = (msg_size[i] / b) + tf
-            timeline.append([ti, +b])
-            timeline.append([tf, -b])
-
-        timeline = sorted(timeline, reverse=True)
-
-        local_b = 0
-        total_t = 0
-        total_tb = 0
-        for i in range(len(timeline) - 1):
-            t0 = timeline[i][0]
-            t1 = timeline[i+1][0]
-            dt = t0 - t1
-            local_b += timeline[i][1]
-            local_tb = dt * local_b
-            total_tb += local_tb
-            total_t += dt
-
-            bursts_calc.append( (total_tb) / total_t )
-
-        burstiness_out = max(bursts_calc)
-
-        offset_out = timeline[0][0] - msg_size_out/burstiness_out + 1
-
-        if burstiness_out >= 1:
-            burstiness_out = 1
-            if model == 'TL':
-                model = 'RL' #in this case it fails, so redirect to model C
-
-
 
     if model == 'BU': #from befining to the end of the flow
         bursts_calc = []
@@ -208,6 +170,42 @@ def resulting_flow(sw, model):
 
         if burstiness_out > 1:
             burstiness_out = 1
+
+    if model == 'TD' or model == 'TL': # from end to begining of the flow
+        bursts_calc = []
+        timeline = []
+
+        for i in range(len(sw)):
+            b = burstiness[i]
+            tf = offset[i]
+            ti = (msg_size[i] / b) + tf
+            timeline.append([ti, +b])
+            timeline.append([tf, -b])
+
+        timeline = sorted(timeline, reverse=True)
+
+        local_b = 0
+        total_t = 0
+        total_tb = 0
+        for i in range(len(timeline) - 1):
+            t0 = timeline[i][0]
+            t1 = timeline[i+1][0]
+            dt = t0 - t1
+            local_b += timeline[i][1]
+            local_tb = dt * local_b
+            total_tb += local_tb
+            total_t += dt
+
+            bursts_calc.append( (total_tb) / total_t )
+
+        burstiness_out = max(bursts_calc)
+
+        offset_out = timeline[0][0] - msg_size_out/burstiness_out + 1
+
+        if burstiness_out >= 1:
+            burstiness_out = 1
+            if model == 'TL':
+                model = 'RL' #in this case it fails, so redirect to model C
 
     if model == 'RL': #find the min offset for the nearest beta=1 departure curve
         timeline = []
@@ -243,7 +241,8 @@ def resulting_flow(sw, model):
             t = timeline[i][0]
             p = msg_size_total[i]
 
-            offsets.append((p - t) * -1)
+            # offsets.append((p - t) * -1)
+            offsets.append(t-p)
 
         burstiness_out = 1
         offset_out = max(offsets) + 1
