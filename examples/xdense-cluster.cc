@@ -381,7 +381,7 @@ main(int argc, char *argv[]) {
     //////////////////// From here, initialize the application at the nodes ///////////////// 
     uint8_t  initial_delay = 1;
     double_t offset;   
-    uint32_t ms = 5;
+    uint32_t ms = 4;
        
     uint32_t sink_x = 0;
     uint32_t sink_y = 0;

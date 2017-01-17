@@ -120,12 +120,13 @@ if __name__ == '__main__':
     def plot_multiple_lines(x, fx_list, axis_label=None, x_ticks=[], filename=None, show=False, title='', label_y='',
                   label_x='', log=False, y_lim=None, step=False, mark=''):
 
-        x_size = 7
+        x_size = 3.6
         y_size = 3
         # logscale = True
 
         # lines = ["-", "--", "-.", ":"]
         lines = ["-"]
+        dashes = [8, 4, 2, 4, 2, 4]
         linecycler = cycle(lines)
 
         fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
@@ -137,16 +138,16 @@ if __name__ == '__main__':
         for i in range(len(fx_list)):
             axi = ax
             if step == False:
-                axi.plot(x, fx_list[i], mark, linestyle=next(linecycler), label=axis_label[i])
+                axi.plot(x, fx_list[i], mark, linestyle=next(linecycler), label=axis_label[i], dashes=dashes)
             else:
-                axi.step(x, fx_list[i], mark, linestyle=next(linecycler), label=axis_label[i])
+                axi.step(x, fx_list[i], mark, linestyle=next(linecycler), label=axis_label[i], dashes=dashes)
             # axi.plot(axis, data[i], 'o', linestyle=next(linecycler))
 
         ax.set_xlabel(label_x)
         ax.set_ylabel(label_y)
 
-        plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
-        plt.legend(loc=0)#, fontsize=11)
+        plt.tight_layout(pad=0.5, w_pad=0.3, h_pad=0.3)
+        plt.legend(loc=0, prop={'size':6})#, fontsize=11)
         plt.grid(False)
 
         if y_lim != []:
@@ -289,7 +290,7 @@ if __name__ == '__main__':
     # 8    final_ms
 
     n_size_mask = [1,2,3,4,5]
-    # n_size_mask = [1,3,5]
+    # n_size_mask = [1,5]
     # n_size_mask = [3]
 
     # beta_mask = [b / 100 for b in range(1, 101, 2)]
@@ -406,64 +407,66 @@ if __name__ == '__main__':
     plt.show()
     # exit(1)
 
+    n_size_mask = [1, 5]
 
-    for n in n_size_mask:
-        fx_list_util = []
-        fx_list_delay = []
-        fx_list_queue = []
+    for context in context_mask_str:
+        for n in n_size_mask:
+            fx_list_util = []
+            fx_list_delay = []
+            fx_list_queue = []
 
-        for s in shapers_mask_str:
-            if s == 'SIM':
-                i_queue = INDEX_MODEL_MAX_QUEUE - 1
-                i_delay = INDEX_MODEL_TOTAL_TIME -1
-                s = shapers_mask_str[0] #any other one
-            else:
-                i_queue = INDEX_MODEL_MAX_QUEUE
-                i_delay = INDEX_MODEL_TOTAL_TIME
-
-            fxi_util = []
-            fxi_delay = []
-            fxi_queue = []
-
-            for b in beta_mask_str:
-                results = get_scenario(array_result_files, s, b, n, context_in=context_mask_str[0]) #return a single value
-                if results is not None:
-                    fxi_delay.append(results[i_delay])
-                    fxi_queue.append(results[i_queue])
-                    fxi_util.append(results[INDEX_RESULTING_MSGS] / results[i_delay])
+            for s in shapers_mask_str:
+                if s == 'SIM':
+                    i_queue = INDEX_MODEL_MAX_QUEUE - 1
+                    i_delay = INDEX_MODEL_TOTAL_TIME -1
+                    s = shapers_mask_str[0] #any other one
                 else:
-                    print('Expected scenario beta={}, shaper={}, nsize={} not found'.format(b, s, n))
+                    i_queue = INDEX_MODEL_MAX_QUEUE
+                    i_delay = INDEX_MODEL_TOTAL_TIME
 
-            fx_list_util.append(fxi_util)
-            fx_list_delay.append(fxi_delay)
-            fx_list_queue.append(fxi_queue)
+                fxi_util = []
+                fxi_delay = []
+                fxi_queue = []
 
-        x = [i for i in range(len(beta_mask_str))]
+                for b in beta_mask_str:
+                    results = get_scenario(array_result_files, s, b, n, context_in=context) #return a single value
+                    if results is not None:
+                        fxi_delay.append(results[i_delay])
+                        fxi_queue.append(results[i_queue])
+                        fxi_util.append(results[INDEX_RESULTING_MSGS] / results[i_delay])
+                    else:
+                        print('Expected scenario beta={}, shaper={}, nsize={} not found'.format(b, s, n))
+
+                fx_list_util.append(fxi_util)
+                fx_list_delay.append(fxi_delay)
+                fx_list_queue.append(fxi_queue)
+
+            x = [i for i in range(len(beta_mask_str))]
 
 
 
-        # fn = base_dir + 'post/beta_vs_total_time_n_{}.pdf'.format(n)
-        # plot_bars(x, fx_list_delay, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=True,
-        #           filename=fn, label_y='Total time (TTS)', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[10, 16000])
-        fn = base_dir + 'post/beta_vs_total_time_n_{}.pdf'.format(n)
-        plot_multiple_lines(beta_mask, fx_list_delay, axis_label=shapers_mask_str,  x_ticks=[], log=True,
-                  filename=fn, label_y='Total time (TTS)', label_x='Burstiness $(\\beta)$', title='n={}'.format(n), y_lim=[])
-        #
-        #
-        # fn = base_dir + 'post/beta_vs_max_queue_n_{}.pdf'.format(n)
-        # plot_bars(x, fx_list_queue, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=False,
-        #           filename=fn, label_y='Max. queue size', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[0, 31])
-        fn = base_dir + 'post/beta_vs_max_queue_n_{}.pdf'.format(n)
-        plot_multiple_lines(beta_mask, fx_list_queue, axis_label=shapers_mask_str,  x_ticks=[], log=False,
-                  filename=fn, label_y='Max queue size', label_x='Burstiness $(\\beta)$', title='n={}'.format(n), y_lim=[0, 37], step=True)
+            # fn = base_dir + 'post/beta_vs_total_time_n_{}.pdf'.format(n)
+            # plot_bars(x, fx_list_delay, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=True,
+            #           filename=fn, label_y='Total time (TTS)', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[10, 16000])
+            fn = base_dir + 'post/{}_beta_vs_total_time_n_{}.pdf'.format(context, n)
+            plot_multiple_lines(beta_mask, fx_list_delay, axis_label=shapers_mask_str,  x_ticks=[], log=True,
+                      filename=fn, label_y='Total time (TTS)', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n), y_lim=[])
+            #
+            #
+            # fn = base_dir + 'post/beta_vs_max_queue_n_{}.pdf'.format(n)
+            # plot_bars(x, fx_list_queue, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=False,
+            #           filename=fn, label_y='Max. queue size', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[0, 31])
+            fn = base_dir + 'post/{}_beta_vs_max_queue_n_{}.pdf'.format(context, n)
+            plot_multiple_lines(beta_mask, fx_list_queue, axis_label=shapers_mask_str,  x_ticks=[], log=False,
+                      filename=fn, label_y='Max queue size', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n), y_lim=[0, 37], step=True)
 
-        #
-        # fn = base_dir + 'post/beta_vs_link_utilization_n_{}.pdf'.format(n)
-        # plot_bars(x, fx_list_util, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=False,
-        #           filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[0,1])
-        fn = base_dir + 'post/beta_vs_link_utilization_n_{}.pdf'.format(n)
-        plot_multiple_lines(beta_mask, fx_list_util, axis_label=shapers_mask_str, log=False,
-                            filename=fn, label_y='Link utilization', label_x='Burstiness $(\\beta)$', title='n={}'.format(n), y_lim=[0,1])
+            #
+            # fn = base_dir + 'post/beta_vs_link_utilization_n_{}.pdf'.format(n)
+            # plot_bars(x, fx_list_util, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=False,
+            #           filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[0,1])
+            fn = base_dir + 'post/{}_beta_vs_link_utilization_n_{}.pdf'.format(context, n)
+            plot_multiple_lines(beta_mask, fx_list_util, axis_label=shapers_mask_str, log=False,
+                                filename=fn, label_y='Link utilization', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n).format(n), y_lim=[0,1])
 
 
         # plot_multiple_lines(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale,

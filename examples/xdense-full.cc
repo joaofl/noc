@@ -157,7 +157,7 @@ main(int argc, char *argv[]) {
     
     uint32_t size_x = 1 + (5*2+1) * 2;
     uint32_t size_y = 1 + (5*2+1) * 2;
-    uint32_t size_neighborhood = 5; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -170,7 +170,7 @@ main(int argc, char *argv[]) {
 //    ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']      
 //    double_t beta = 0.1;
     string beta_str = "0.1";
-    float_t c_rate = 0.8; //compression rate
+//    float_t c_rate = 0.05; //compression rate
 
     string output_data_dir = homedir + "/noc-data";
     
@@ -391,7 +391,7 @@ main(int argc, char *argv[]) {
     
 //    ms = ceil(pow(size_neighborhood + 1, 2) * (1 - c_rate));
     
-    ms = ceil(pow(size_neighborhood * 2 + 1, 2) * (1 - c_rate)); 
+    ms = ceil(pow(float_t(size_neighborhood) * 2 + 1, 2) * 4 * 0.055); 
     //consider 1 packet per node reduced by the comrpession rate
     
     

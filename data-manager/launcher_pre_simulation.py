@@ -357,8 +357,9 @@ class NOCPreLauncher(QWidget):
     def generate_scenarios(self):
 
         # dir = '/home/joao/noc-data/input-data'
-        file_to_run = 'src/noc/examples/xdense-full'
+        # file_to_run = 'src/noc/examples/xdense-full'
         # file_to_run = 'src/noc/examples/xdense-cluster'
+        files_to_run = ['src/noc/examples/xdense-cluster', 'src/noc/examples/xdense-full']
         # context = 'WCA_ALL_'
         n_size_mask = [1, 2, 3, 4, 5]
         # n_size_mask = [3]
@@ -374,10 +375,12 @@ class NOCPreLauncher(QWidget):
         # shapers_mask = ['BU', 'RL']
 
 
+
         for b in beta_mask:
             for n in n_size_mask:
                 for s in shapers_mask:
-                    self.listbox_batch.addItem('./waf --run="{} --beta={} --size_n={} --extra={}" '.format(file_to_run, b,n,s))
+                    for file in files_to_run:
+                        self.listbox_batch.addItem('./waf --run="{} --beta={} --size_n={} --extra={}" '.format(file, b,n,s))
 
 
         print('Total number of sim scenarios: {}'.format(self.listbox_batch.count()))

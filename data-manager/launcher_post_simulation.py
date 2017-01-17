@@ -210,10 +210,10 @@ class NOCLauncher(QWidget):
                 if (launch_thread == True):
                     _thread.start_new_thread(os.system,(cmd,))
                     print('Thread launched with command: ' + cmd)
-                    sleep(1)
+                    sleep(0.1)
 
-                    while _thread._count() >= 5: #how many threads in parallel (usually the number of cores, unless the                  #thread called is multi-thread already
-                        sleep(1)
+                    while _thread._count() >= 3: #how many threads in parallel (usually the number of cores, unless the                  #thread called is multi-thread already
+                        sleep(0.1)
                 else:
                     print('Wait for command execution: ' + cmd)
                     os.system(cmd)
