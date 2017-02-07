@@ -1,4 +1,5 @@
 #Author: João Loureiro
+from math import nan
 
 from PIL import Image
 import numpy as np
@@ -12,10 +13,11 @@ import math
 from scipy.interpolate import griddata
 
 
-def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/surface_flow_00015.csv', output_dir ='/home/joao/noc-data/input-data'):
+def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/surface_flow_00015.csv',
+                  output_dir ='/home/joao/noc-data/input-data'):
 
 
-    ns_x, ns_y = 20, 50 #number of sensors in each direction
+    ns_x, ns_y = 15, 35 #number of sensors in each direction
 
     res_x, res_y = 500, 800 #mesh size
     crop_y_top = 0.02
@@ -25,6 +27,10 @@ def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/su
 
 
     temp = files_io.load_list(input_file)
+
+    if temp == []:
+        print('No input file found: {}'.format(input_file))
+        exit(0)
 
     points = []
     x, y, p = [], [], []
@@ -70,6 +76,7 @@ def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/su
             xbottom[1] = x
 
     dx = xbottom[1] - xbottom[0]
+    # Comment the line below if nodes are supposed to fit, or be left
     xtop[1] = xtop[0] + dx
 
     #Now, find each line equation between bottom and top
@@ -103,15 +110,28 @@ def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/su
         xcordsall.append(xcords.copy())
         ix += 1
 
-    plt.subplot(121)
+    # plt.subplot(121)
+    plt.figure('1', figsize=(2.8, 4.2), dpi=120, facecolor='w', edgecolor='w')
     plt.imshow(data, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest') #bicubi,
-    plt.scatter(xtop, [ytop, ytop], s=20, color='red')
-    plt.scatter(xbottom, [ybottom, ybottom], s=20, color='red')
-    for i in range(len(xlinebottom)):
-        plt.scatter(xcordsall[i], ycords, s=5, color='grey')
+    # plt.scatter(xtop, [ytop, ytop], s=20, color='red')
+    # plt.scatter(xbottom, [ybottom, ybottom], s=20, color='red')
 
-    plt.subplot(122)
+    for i in range(len(xlinebottom)):
+        for j,v in enumerate(ycords):
+            tmp_x = xcordsall[i][j]
+            tmp_y = ycords[j]
+            try:
+                if not np.isnan(data[int(tmp_y)][int(tmp_x)]):
+                    plt.scatter(tmp_x, tmp_y, s=2.4, color='grey')
+                    # print(data[int(tmp_y)][int(tmp_x)])
+            except:
+                print('Opa')
+    plt.tight_layout(pad=0.5, w_pad=0.8, h_pad=0.9)
+
+    # plt.subplot(122)
+    plt.figure('2', figsize=(2.8, 4.2), dpi=120, facecolor='w', edgecolor='w')
     plt.imshow(output, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest')
+    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.9)
 
     plt.show()
 
