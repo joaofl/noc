@@ -2,8 +2,7 @@
 sudo apt install python3.5-dev build-essential python3-tk
 wget https://bootstrap.pypa.io/get-pip.py
 sudo python3.5 get-pip.py
-sudo -H pip3.5 install numpy
-sudo -H pip3.5 install matplotlib
+sudo -H pip3.5 install numpy matplotlib
 #sudo -H pip3.5 install pyqt5 ## Wierd interface if not run as sudo
 apt install python3-pyqt5 # do this instead
 apt install python3-pyqt5.qtopengl # and also this one for the animations
