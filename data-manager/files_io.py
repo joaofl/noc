@@ -39,6 +39,23 @@ def load_list(file_name):
 
     return a
 
+def load_numerical_list(file_name, line=None):
+    a = []
+    b = []
+    try:
+        a = numpy.array(list(csv.reader(open(file_name, "rt"), delimiter=',')))
+        if line is not None:
+            a = a[line]
+            for e in a:
+                b.append(int(e))
+        else:
+            for e in a:
+                b.append(int(e[0]))
+
+        return b
+    except:
+        return 0
+
 def load_line(filename):
     file = open(filename)
     data = file.read()
