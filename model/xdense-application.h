@@ -75,6 +75,7 @@ namespace ns3 {
 //        int32_t AbsoluteX, AbsoluteY;
         
         TracedCallback< int32_t, int32_t, int32_t, int32_t, double, double, uint8_t, uint8_t > m_flows_source; //offset, beta, ms
+        TracedCallback< int64_t > m_ping_delay; //offset, beta, ms
         
 
         Ptr <NOCOutputDataSensors> SinkReceivedData;
@@ -103,6 +104,10 @@ namespace ns3 {
 
         void DataSharingRequest();
         void DataSharingRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
+        
+        void Ping(int32_t x_dest, int32_t y_dest);
+        void PingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
+        void PingResponseReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
         void DataAnnouncement(int32_t x_dest, int32_t y_dest);
         bool DataAnnoucementReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);

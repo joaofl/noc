@@ -42,6 +42,11 @@ namespace ns3 {
                 "The packets received by the router of each node",
                 MakeTraceSourceAccessor(&XDenseApp::m_flows_source),
                 "ns3::XDenseApp::FlowSourceTrace")
+
+                .AddTraceSource("PingDelayTrace", 
+                "The packets received by the router of each node",
+                MakeTraceSourceAccessor(&XDenseApp::m_ping_delay),
+                "ns3::XDenseApp::PingDelayTrace")
                 ;
         return tid;
     }
@@ -129,7 +134,8 @@ namespace ns3 {
             }
         }
     }
-
+    
+   
     void
     XDenseApp::RunApplicationWCA(bool trace, bool is_sink) {
         Time t_step = Time::FromInteger(PacketDuration.GetNanoSeconds(), Time::NS);
@@ -152,7 +158,7 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
         
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
         pck->AddHeader(hd);
 //        
         Time t_ns = Time::FromInteger(0,Time::NS);
@@ -205,13 +211,16 @@ namespace ns3 {
         pck_c->RemoveHeader(h);
         
         uint64_t tts_pck;
-        int64x64_t tts_now, tts_total;
+//        int64x64_t tts_now, tts_total;
         
         switch (h.GetXdenseProtocol()){
-            case XDenseHeader::DATA_ANNOUCEMENT:
-                DataAnnoucementReceived(pck, origin_x, origin_y);
+            case XDenseHeader::PING_RESPONSE:
+                PingResponseReceived(pck, origin_x, origin_y);
                 break;
-            case XDenseHeader::DATA_ANNOUCEMENT_REQUEST:
+            case XDenseHeader::PING:
+                PingReceived(pck, origin_x, origin_y);
+                break;
+            case XDenseHeader::DATA_SHARING_REQUEST:
                 DataSharingRequestReceived(pck, origin_x, origin_y);                
                 break;
             case XDenseHeader::CLUSTER_DATA_REQUEST:
@@ -220,11 +229,8 @@ namespace ns3 {
             case XDenseHeader::NETWORK_SETUP:
 //                NetworkSetupReceived(pck, origin_x, origin_y);                
             case XDenseHeader::TRACE:
-//                tts_now = Simulator::Now().GetNanoSeconds() / PacketDuration;
                 tts_pck = h.GetData();
-                cout << "Traced packet received: id=" << pck->GetUid() << "\tdata=" << tts_pck << endl; 
-//                tts_total = tts_now - tts_pck;
-//                cout << "Received at the app layer:" << Simulator::Now().GetNanoSeconds() << " tts:" << tts_total << "\n";            
+                cout << "Traced packet received: id=" << pck->GetUid() << "\tdata=" << tts_pck << endl;            
                 break;
             
         }
@@ -294,7 +300,7 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
         
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT_REQUEST);
+        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING_REQUEST);
         hd.SetData(ClusterSize_x);
         pck->AddHeader(hd);
         
@@ -308,8 +314,8 @@ namespace ns3 {
 //        uint8_t size_x = hd.GetData();
 //        uint8_t size_y = hd.GetData();
         
-        double_t b = 0.1;
-        uint32_t ms = 5;
+        double_t b = 1;
+        uint32_t ms = 1;
         uint8_t o = 0;
         
         int32_t dest_x = origin_x * -1;
@@ -322,7 +328,7 @@ namespace ns3 {
         
         // Construct the packet to be transmitted
         XDenseHeader hd_out;
-        hd_out.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+        hd_out.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
         Ptr<Packet> pck_out = Create<Packet>();
         pck_out->AddHeader(hd_out);
         
@@ -425,7 +431,7 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
 
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_ANNOUCEMENT);
+        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
         pck->AddHeader(hd);
 
         m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 
@@ -436,6 +442,58 @@ namespace ns3 {
 //        Here, the node should build an matrix with the received data
 //        cout << "Data annoucement received" << endl;
         return false;
+    }
+
+    void
+    XDenseApp::Ping(int32_t x_dest, int32_t y_dest) {
+        Ptr<Packet> pck = Create<Packet>();
+
+        XDenseHeader hd;
+        hd.SetXdenseProtocol(XDenseHeader::PING);
+        
+        
+//        int64_t tts_now;
+        int64_t tts_now = Simulator::Now().GetNanoSeconds();
+        
+//        int64_t t = PacketDuration.GetNanoSeconds();
+        
+        hd.SetData(tts_now);
+        
+        pck->AddHeader(hd);
+
+        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 
+    }
+
+    void 
+    XDenseApp::PingReceived(Ptr<const Packet> pck_rcv, int32_t origin_x, int32_t origin_y) {
+        //get the time stamp, and put it back on the response and send it 
+        XDenseHeader hd_in;
+        pck_rcv->PeekHeader(hd_in);
+        
+        Ptr<Packet> pck = Create<Packet>();
+
+        XDenseHeader hd_out;
+        hd_out.SetData(hd_in.GetData());
+        hd_out.SetXdenseProtocol(XDenseHeader::PING_RESPONSE);
+        pck->AddHeader(hd_out);
+
+        m_router->PacketUnicast(pck, NETWORK_ID_0, -origin_x, origin_y, ADDRESSING_RELATIVE);
+    }
+
+    void 
+    XDenseApp::PingResponseReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
+        Ptr<Packet> pck_c = pck->Copy(); 
+        XDenseHeader h;
+        pck_c->RemoveHeader(h);
+        
+        int64_t tts_pck;
+        int64_t tts_now;
+        
+        tts_now = Simulator::Now().GetNanoSeconds();
+        tts_pck = h.GetData();
+                
+        m_ping_delay(tts_now - tts_pck);
+
     }
 
 }

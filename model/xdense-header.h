@@ -38,13 +38,15 @@ namespace ns3 {
     class XDenseHeader : public Header {
     public:
         enum{
-            DATA_ANNOUCEMENT_REQUEST,   
-            DATA_ANNOUCEMENT,
+            DATA_SHARING_REQUEST,   
+            DATA_SHARING,
             CLUSTER_DATA_REQUEST,
             CLUSTER_DATA_RESPONSE,
             CLUSTER_DATA,
             NETWORK_SETUP,
-            TRACE
+            TRACE,
+            PING,
+            PING_RESPONSE
         };
 
         /**
