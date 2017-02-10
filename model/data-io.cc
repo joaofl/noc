@@ -339,16 +339,16 @@ namespace ns3 {
         uint32_t i;
         float v;
 
-        Time t = Time::FromInteger(0, Time::US);
+        Time t = Time::FromInteger(0, Time::NS);
         uint32_t size = InputData->GetArraySize();
         if (size > 0){
-            i = m_random->GetInteger(0, size -1);
+            i = m_random->GetInteger(0, size -2);
             random_counter++;
             
 //            cout << "i=" << random_counter << " n=" << i << "\n";
             
             v = InputData->GetValue(i);
-            t = Time::FromDouble(v, Time::US);            
+            t = Time::FromDouble(v, Time::NS);            
         }        
         return t;
     }

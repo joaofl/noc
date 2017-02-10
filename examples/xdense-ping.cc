@@ -172,7 +172,7 @@ main(int argc, char *argv[]) {
     string dir_output = output_data_dir + context_dir.str() + "out/";
     string dir_input = output_data_dir + context_dir.str() + "in/";     
     
-    input_delay_data_path = output_data_dir + "/input-data/delays/forward-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data.csv";
+    input_delay_data_path = output_data_dir + "/input-data/delays/forward-delay-uc-high-uart-irq-by-node-10ks@3.0Mbps.data.csv";
 
     int status;
     status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -319,13 +319,15 @@ main(int argc, char *argv[]) {
 
     uint32_t x = 0; 
     uint32_t y = 0;
+    uint32_t n_hops = 2;
+    
     
     uint32_t n = GetN(size_x, size_y, x, y);
 
     Ptr<XDenseApp> app = my_xdense_app_container.Get(n)->GetObject<XDenseApp>();
 
-    for (uint16_t i = 1 ; i <= 5903 ; i++) {
-        Simulator::Schedule (Time::FromInteger(10 * i, Time::MS), &XDenseApp::Ping, app, 50, 0);
+    for (uint32_t i = 1 ; i <= 1000000 ; i++) {
+        Simulator::Schedule (Time::FromInteger(100 * i, Time::MS), &XDenseApp::Ping, app, n_hops/2, 0);
     }
     
 

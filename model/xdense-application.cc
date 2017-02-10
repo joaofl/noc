@@ -451,11 +451,7 @@ namespace ns3 {
         XDenseHeader hd;
         hd.SetXdenseProtocol(XDenseHeader::PING);
         
-        
-//        int64_t tts_now;
         int64_t tts_now = Simulator::Now().GetNanoSeconds();
-        
-//        int64_t t = PacketDuration.GetNanoSeconds();
         
         hd.SetData(tts_now);
         

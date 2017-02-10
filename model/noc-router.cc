@@ -21,6 +21,7 @@
 
 
 #include "noc-router.h"
+#include "src/core/model/nstime.h"
 
 
 using namespace std;
@@ -417,6 +418,7 @@ namespace ns3 {
         
         Time t = Time::FromInteger(0, Time::NS);
         t = RoutingDelays->GetDelay();
+            
 
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;
         Simulator::Schedule(t, fp, nd, pck->Copy());
