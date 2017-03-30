@@ -1,9 +1,6 @@
 import math
 import random
-import numpy as np
 import matplotlib.pyplot as plt
-from itertools import cycle
-
 
 def calculate_flow(fs):
 
@@ -35,6 +32,7 @@ def calculate_flow(fs):
         t += step
 
     return t_axis, n_axis
+
 
 def get_fx(value, x, fx):
     fx_out = fx[-1] #start with the maximum produced
@@ -72,7 +70,6 @@ def calculate_delay(t_in, n_in, t_out, n_out):
         t_delay.append(tout - tin)
 
     return t_delay, n_delay
-
 
 b_in1 = random.random()
 b_in2 = random.random()
