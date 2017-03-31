@@ -26,7 +26,7 @@ def calculate_flow(fs):
 
             n += n_l
 
-        if n != n_axis[-1]:
+        if n != n_axis[-1]: #only add new values, since it is a step
             n_axis.append(n)
             t_axis.append(t)
         t += step
@@ -74,14 +74,14 @@ def calculate_delay(t_in, n_in, t_out, n_out):
 b_in1 = random.random()
 b_in2 = random.random()
 
-bb = (b_in1 + b_in2)
+bb = (b_in1 + b_in2) / 2
 if bb > 1:
     bb = 1
 
-b_out = random.random() * bb
+b_out = bb
 
-f_in1 = {'burstness':b_in1, 'offset':0, 'msgsize':20}
-f_in2 = {'burstness':b_in2, 'offset':10, 'msgsize':20}
+f_in1 = {'burstness':b_in1, 'offset':1 * b_in1, 'msgsize':20}
+f_in2 = {'burstness':b_in2, 'offset':10 * b_in2, 'msgsize':20}
 f_out = {'burstness':b_out, 'offset':20, 'msgsize':40}
 
 t_in, n_in = calculate_flow([f_in1, f_in2])
@@ -92,15 +92,37 @@ t_delay, n_delay = calculate_delay(t_in, n_in, t_out, n_out)
 
 
 ######################## Plot #########################
-fig, ax_main = plt.subplots(figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
+fig, ax_main = plt.subplots(figsize=(4.2, 3.5), dpi=120, facecolor='w', edgecolor='w')
+
+# ax_main.step(t_queue, n_queue, '-', where='post', label='Queue')
+# ax_main.step(t_delay, n_delay, '-', where='post', label='Delay')
 
 ax_main.step(t_in, n_in, '-', where='post', label='Arrival')
-
 ax_main.step(t_out, n_out, '-', where='post', label='Departure')
 
-ax_main.step(t_queue, n_queue, '-', where='post', label='Queue')
+for i, n in enumerate(n_delay):
+    xs = [t_in[n], t_out[n]]
+    ys = [n, n]
+    ax_main.plot(xs, ys, color='grey', alpha=0.7)
 
-ax_main.step(t_delay, n_delay, '-', where='post', label='Delay')
+ax_main.set_xlabel("Transmission time slot (TTS)")
+ax_main.set_ylabel("Cumulative packet count")
+
+plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+plt.legend(loc=0, fontsize=11)
+plt.grid(True)
+
+fig, ax_main = plt.subplots(figsize=(4.2, 3.5), dpi=120, facecolor='w', edgecolor='w')
+
+
+ax_main.step(t_in, n_in, '-', where='post', label='Arrival')
+ax_main.step(t_out, n_out, '-', where='post', label='Departure')
+
+for j, t in enumerate(t_queue):
+    s = get_fx(t, t_out, n_out)
+    xs = [t, t]
+    ys = [0 + s, n_queue[j] + s]
+    ax_main.plot(xs, ys, color='grey', alpha=0.7)
 
 ax_main.set_xlabel("Transmission time slot (TTS)")
 ax_main.set_ylabel("Cumulative packet count")
