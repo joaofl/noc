@@ -109,7 +109,7 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw, model):
+def resulting_flow(sw, model='TL'):
 
     if model not in ['BU','TD','RL','TL']:
         model = 'TL'
@@ -121,6 +121,10 @@ def resulting_flow(sw, model):
     ms_over_b = []
     ms_over_b_o = []
     for f in sw: # do it fow all the flows getting into that switch
+
+        if type(f) == dict:
+            f = [f['burstness'], f['offset'], f['msgsize']]
+
         b = f[0]
         o = f[1]
         ms = f[2]
