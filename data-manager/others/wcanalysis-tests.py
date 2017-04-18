@@ -135,19 +135,20 @@ if bb > 1:
 
 b_out = bb
 
-f_in0 = {'burstness':0.2, 'offset':4, 'msgsize':5}
-f_in1 = {'burstness':0.6, 'offset':8, 'msgsize':5}
-f_in2 = {'burstness':0.8, 'offset':6, 'msgsize':5}
-# f_in0 = {'burstness':b_in0, 'offset':1.5 * b_in0, 'msgsize':ceil(12*msg)}
-# f_in1 = {'burstness':b_in1, 'offset':3.3 * b_in1, 'msgsize':ceil(6*msg)}
-# f_in2 = {'burstness':b_in2, 'offset':10 * b_in2, 'msgsize':ceil(15*msg)}
+# f_in0 = {'burstness':0.2, 'offset':4, 'msgsize':5}
+# f_in1 = {'burstness':0.6, 'offset':8, 'msgsize':5}
+# f_in2 = {'burstness':0.8, 'offset':6, 'msgsize':5}
+f_in0 = {'burstness':b_in0, 'offset':1.5 * b_in0, 'msgsize':ceil(12*msg)}
+f_in1 = {'burstness':b_in1, 'offset':3.3 * b_in1, 'msgsize':ceil(6*msg)}
+f_in2 = {'burstness':b_in2, 'offset':10 * b_in2, 'msgsize':ceil(15*msg)}
 # f_in3 = {'burstness':b_in3, 'offset':5 * b_in3, 'msgsize':ceil(7*msg)}
-F = [f_in0, f_in1, f_in2] #, f_in3]
+F = [f_in0, f_in1, f_in2]
 
-b,o,ms = analysis_wc.resulting_flow(F, 'TD')
+b,o,ms = analysis_wc.resulting_flow(F, 'RL')
 f_out = {'burstness':b, 'offset':o, 'msgsize':ms}
 
-print('In: ', F, 'Out: ', f_out)
+print('In: ', F)
+print('Out: ', f_out)
 
 
 # msg_size_total = sum([f['msgsize'] for f in F])
@@ -215,7 +216,7 @@ ax_main.plot(xs, ys, '-.+', color='grey', alpha=0.7, label='Delay')
 
 ax_main.set_xlabel("Transmission time slot (TTS)")
 ax_main.set_ylabel("Cumulative packet count")
-ax_main.set_xlim([3.5,31])
+# ax_main.set_xlim([3.5,31])
 
 plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
 plt.legend(loc=0, fontsize=11)

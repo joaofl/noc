@@ -358,7 +358,7 @@ class NOCPreLauncher(QWidget):
 
         # dir = '/home/joao/noc-data/input-data'
         # file_to_run = 'src/noc/examples/xdense-full'
-        # file_to_run = 'src/noc/examples/xdense-cluster'
+        # files_to_run = ['src/noc/examples/xdense-cluster']
         files_to_run = ['src/noc/examples/xdense-cluster', 'src/noc/examples/xdense-full']
         # context = 'WCA_ALL_'
         n_size_mask = [1, 2, 3, 4, 5]
@@ -370,7 +370,8 @@ class NOCPreLauncher(QWidget):
 
         # beta_num = sorted([(101-b)/100 for b in np.logspace(0, 2, 30)])
         # beta_mask = ['{:0.04f}'.format(b) for b in beta_num]
-        shapers_mask = ['BU', 'RL', 'TD', 'TL']
+        shapers_mask = ['BU', 'TL', 'RL']
+        # shapers_mask = ['BU', 'RL', 'TD', 'TL']
         # beta_mask = ['0.90', '1.00']
         # shapers_mask = ['BU', 'RL']
 

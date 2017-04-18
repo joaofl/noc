@@ -302,7 +302,8 @@ if __name__ == '__main__':
 
 
     # beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
-    shapers_mask_str = ['BU', 'RL', 'TD', 'TL', 'SIM']
+    # shapers_mask_str = ['BU', 'RL', 'TD', 'TL', 'SIM']
+    shapers_mask_str = ['BU', 'TL', 'RL', 'SIM']
 
     context_mask_str = ['WCA_CLUSTER_', 'WCA_FULL_']
     # context_mask_str = ['WCA_FULL_']

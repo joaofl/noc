@@ -1,5 +1,6 @@
 import math
 import numpy
+from scipy import stats
 # Testing the results (Time in TTS)
 
 # def b(cfi, bs):
@@ -240,15 +241,25 @@ def resulting_flow(sw, model='TL'):
             msg_size_total.append(msg_size_cum)
 
 
+        # burstiness_out = 0.7 #LMS here
+        burstiness_out = numpy.mean(burstiness)
+
+        ts = []
+        for i in range(len(timeline)):
+            ts.append(timeline[i][0])
+
+        slope, intercept, r_value, p_value, std_err = stats.linregress(ts, msg_size_total)
+
+        burstiness_out = slope
+
+
         offsets = []
         for i in range(len(timeline)):
             t = timeline[i][0]
-            p = msg_size_total[i]
+            n = msg_size_total[i]
 
-            # offsets.append((p - t) * -1)
-            offsets.append(t-p)
+            offsets.append(-(n/burstiness_out) + t)
 
-        burstiness_out = 1
         offset_out = max(offsets) + 1
 
     return [burstiness_out, offset_out, msg_size_out]
