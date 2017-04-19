@@ -126,7 +126,8 @@ if __name__ == '__main__':
 
         # lines = ["-", "--", "-.", ":"]
         # lines = ["-"]
-        dashes = [ [2, 1],[4,2],[6,3],[8,4] ]
+        # dashes = [ [100,1],[1,1],[4,2],[8,4] ]
+        dashes = ['-']
         linecycler = cycle(dashes)
 
 
@@ -141,9 +142,9 @@ if __name__ == '__main__':
         for i in range(len(fx_list)):
             axi = ax
             if step == False:
-                axi.plot(x, fx_list[i], next(makercycler), label=axis_label[i], dashes=next(linecycler))
+                axi.plot(x, fx_list[i], next(makercycler), label=axis_label[i], markevery=6, markersize=8, linewidth=5)
             else:
-                axi.step(x, fx_list[i], next(makercycler), label=axis_label[i], dashes=next(linecycler))
+                axi.step(x, fx_list[i], next(makercycler), label=axis_label[i], markevery=6, markersize=8, linewidth=5)
             # axi.plot(axis, data[i], 'o', linestyle=next(linecycler))
 
         ax.set_xlabel(label_x)
@@ -368,7 +369,7 @@ if __name__ == '__main__':
                 fxi_queue = []
 
                 for n in n_size_mask:
-                    results = get_scenario(array_result_files, s, b, n, context_in=context) #return a single value
+                    results = get_scenario(array_result_files, s, b, n, context_in=context)
                     if results is not None:
                         fxi_delay.append(results[i_delay])
                         fxi_queue.append(results[i_queue])
@@ -399,7 +400,8 @@ if __name__ == '__main__':
                             filename=fn, label_y='Max queue size', label_x='Neigborhood size $(n_{radius})$', title='s={}'.format(s),
                             y_lim=[], mark=['*', 'x'])
 
-        colors = ['blue', 'green', 'darkblue', 'burlywood']
+        # colors = ['blue', 'green', 'darkblue', 'burlywood']
+        colors = ['black']
         colourcycler = cycle(colors)
         # fn = base_dir + 'post/n_size_vs_beta_vs_total_time_b_{}.pdf'.format(b)
         # planes = [fx_list_delay[context] for context in context_mask_str]
@@ -456,7 +458,7 @@ if __name__ == '__main__':
             #           filename=fn, label_y='Total time (TTS)', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[10, 16000])
             fn = base_dir + 'post/{}_beta_vs_total_time_n_{}.pdf'.format(context, n)
             plot_multiple_lines(beta_mask, fx_list_delay, axis_label=shapers_mask_str_plot,  x_ticks=[], log=True,
-                filename=fn, label_y='Total time (TTS)', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n), y_lim=[1e1,2e4])
+                filename=fn, label_y='Total time (TTS)', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n), y_lim=[1e1,2e4], mark=['o', '^', 'x', '+'])
 
 
             # fn = base_dir + 'post/beta_vs_max_queue_n_{}.pdf'.format(n)
@@ -464,7 +466,7 @@ if __name__ == '__main__':
             #           filename=fn, label_y='Max. queue size', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[0, 31])
             fn = base_dir + 'post/{}_beta_vs_max_queue_n_{}.pdf'.format(context, n)
             plot_multiple_lines(beta_mask, fx_list_queue, axis_label=shapers_mask_str_plot,  x_ticks=[], log=False,
-                filename=fn, label_y='Max queue size', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n), y_lim=[0, 45], step=True)
+                filename=fn, label_y='Max queue size', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n), y_lim=[0, 45], step=True, mark=['o', '^', 'x', '+'])
 
 
             # fn = base_dir + 'post/beta_vs_link_utilization_n_{}.pdf'.format(n)
@@ -472,7 +474,7 @@ if __name__ == '__main__':
             #           filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[0,1])
             fn = base_dir + 'post/{}_beta_vs_link_utilization_n_{}.pdf'.format(context, n)
             plot_multiple_lines(beta_mask, fx_list_util, axis_label=shapers_mask_str_plot, log=False,
-                filename=fn, label_y='Link utilization', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n).format(n), y_lim=[0,1])
+                filename=fn, label_y='Link utilization', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n).format(n), y_lim=[0,1], mark=['o', '^', 'x', '+'])
 
 
         # plot_multiple_lines(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale,
