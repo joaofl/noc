@@ -113,8 +113,9 @@ def burst_size(sw):
 def resulting_flow(sw, model='TL'):
 
     if model not in ['BU','TD','RL','TL']:
-        model = 'TL'
-        print('Model not specified, Top-left used')
+        # model = 'TL'
+        print('Model not specified. Exiting...')
+        exit(-1)
 
     burstiness = []
     offset = []
@@ -176,7 +177,7 @@ def resulting_flow(sw, model='TL'):
         if burstiness_out > 1:
             burstiness_out = 1
 
-    if model == 'TD' or model == 'TL': # from end to begining of the flow
+    if model == 'TL': # from end to begining of the flow
         bursts_calc = []
         timeline = []
 
@@ -240,18 +241,13 @@ def resulting_flow(sw, model='TL'):
 
             msg_size_total.append(msg_size_cum)
 
-
-        # burstiness_out = 0.7 #LMS here
-        burstiness_out = numpy.mean(burstiness)
-
-        ts = []
-        for i in range(len(timeline)):
-            ts.append(timeline[i][0])
+        ts = [timeline[i][0] for i in range(len(timeline))]
 
         slope, intercept, r_value, p_value, std_err = stats.linregress(ts, msg_size_total)
 
         burstiness_out = slope
-
+        if burstiness_out > 1:
+            burstiness_out = 1
 
         offsets = []
         for i in range(len(timeline)):
