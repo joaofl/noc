@@ -4,13 +4,49 @@ from math import nan
 from PIL import Image
 import numpy as np
 from numpy.lib.npyio import savetxt
-# import av
-import matplotlib.pyplot as plt
 import files_io
 import matplotlib.pyplot as plt
 import math
+import csv
 
 from scipy.interpolate import griddata
+
+def ImportFromSU2(input_file):
+
+    #Convert list in dictionary for post processing
+    # Indexes from su2 csv files are:
+    # "Global_Index", "x_coord", "y_coord", "z_coord", "Pressure", "Pressure_Coefficient", "Mach_Number"
+
+    csv_reader = csv.reader(open(input_file, "rt"), delimiter=',')
+    header = next(csv_reader) #grab the header and skip the first line
+
+    INDEX_I = 0
+    INDEX_X = 1
+    INDEX_Y = 2
+    INDEX_Z = 3
+    INDEX_P = 4
+
+    arr_x,arr_y,arr_z,arr_p,arr_xyz = [],[],[],[],[]
+
+    dict_x, dict_y, dict_z, dict_p, dict_xyz = {},{},{},{},{}
+
+
+    for i, e in enumerate(csv_reader):
+        i, x, y, z, p = float(e[INDEX_I]), float(e[INDEX_X]), float(e[INDEX_Y]), float(e[INDEX_Z]), float(e[INDEX_P])
+        arr_xyz.append([x, y, z, p])
+        arr_x.append(x)
+        arr_y.append(y)
+        arr_z.append(z)
+        arr_p.append(p)
+
+    np_arr_xyz = np.array(arr_xyz)
+
+    max_x, min_x = max(arr_x), min(arr_y)
+    max_y, min_y = max(arr_y), min(arr_y)
+
+
+
+
 
 
 def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/surface_flow_00015.csv',
@@ -345,6 +381,10 @@ def findline(xa, ya, xb, yb):
     b = ya - (a * xa)
     return a,b
 
-ImportFromCFD()
+# ImportFromCFD()
+
+
+ImportFromSU2('/home/joao/Programas/su2-5.0.0/TestCases/optimization_euler/pitching_oneram6/surface_flow_00000.csv')
+
 
 exit(0)
