@@ -25,6 +25,7 @@ import time
 import os, optparse
 import files_io
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from itertools import cycle
@@ -52,7 +53,11 @@ if __name__ == '__main__':
     parser.add_option('--size_neighborhood', help='neighborhood size', default=0)
 
     (options, args) = parser.parse_args()
-    if options.verbose: print (time.asctime())
+    # if options.verbose:
+    print (time.asctime())
+
+    # mpl.style.use('grayscale')
+
 
     ############################# Global vars and settings #######################
 
@@ -118,17 +123,19 @@ if __name__ == '__main__':
 
 
     def plot_multiple_lines(x, fx_list, axis_label=None, x_ticks=[], filename=None, show=False, title='', label_y='',
-                  label_x='', log=False, y_lim=None, step=False, mark=['']):
+                  label_x='', log=False, y_lim=None, step=False, mark=[''], markspace=(1)):
 
         x_size = 3.6
         y_size = 3
         # logscale = True
 
-        # lines = ["-", "--", "-.", ":"]
+        lines = ["-", "--", "-.", ":"]
         # lines = ["-"]
         # dashes = [ [100,1],[1,1],[4,2],[8,4] ]
-        dashes = ['-']
-        linecycler = cycle(dashes)
+        # dashes = ['-']
+        linecycler = cycle(lines)
+
+
 
 
         makercycler = cycle(mark)
@@ -142,10 +149,11 @@ if __name__ == '__main__':
         for i in range(len(fx_list)):
             axi = ax
             if step == False:
-                axi.plot(x, fx_list[i], next(makercycler), label=axis_label[i], markevery=6, markersize=8, linewidth=5)
+                axi.plot(x, fx_list[i], next(makercycler), label=axis_label[i], markevery=markspace, markersize=7,
+                         linewidth=1, linestyle=next(linecycler))
             else:
-                axi.step(x, fx_list[i], next(makercycler), label=axis_label[i], markevery=6, markersize=8, linewidth=5)
-            # axi.plot(axis, data[i], 'o', linestyle=next(linecycler))
+                axi.step(x, fx_list[i], next(makercycler), label=axis_label[i], markevery=markspace, markersize=7,
+                         linewidth=1, linestyle=next(linecycler))
 
         ax.set_xlabel(label_x)
         ax.set_ylabel(label_y)
@@ -308,45 +316,17 @@ if __name__ == '__main__':
     # beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
     # shapers_mask_str = ['BU', 'RL', 'TD', 'TL', 'SIM']
     shapers_mask_str = ['BU', 'TL', 'RL', 'SIM']
-    shapers_mask_str_plot = ['Min-O', 'Max-S', 'LQ', 'SIM']
+    shapers_mask_str_plot = ['Min-O', 'Max-S', 'LQ', 'BE']
 
     context_mask_str = ['WCA_CLUSTER_', 'WCA_FULL_']
     # context_mask_str = ['WCA_FULL_']
 
 
-    # for n in n_size_mask:
-    #     fx_list = []
-    #     for b in beta_mask:
-    #         fxi_beta = []
-    #         for s in shapers_mask:
-    #             if s == 'SIM':
-    #                 index = what - 1
-    #                 s = shapers_mask[0]  # any other one
-    #             else:
-    #                 index = what
-    #
-    #             results = get_scenario(array_result_files, s, b, n, context_in=context_mask_str[0]) #return a single value
-    #             if results is not None:
-    #                 fxi_beta.append(results[index])
-    #
-    #         fx_list.append(fxi_beta)
-    #
-    #     x = [i for i in range(len(shapers_mask))]
-    #     fn = base_dir + 'post/shaper_vs_' + fncontext + '_n_' + str(n) + '.pdf'
-    #
-    #     plot_bars(x, fx_list, axis_label=beta_mask, x_ticks=shapers_mask, log=use_log_scale,
-    #               filename=fn, label_y=label_y, label_x='Shaping scheme', title='n={}'.format(n), y_lim=y_lim)
-
-
-
-
-    # new_beta_mask = [ beta_mask[0] , beta_mask[int(len((beta_mask_str))/3)] , beta_mask[-1] ]
-    # new_beta_mask_str = ['{:0.04f}'.format(b) for b in new_beta_mask]
 
     i_beta = int(len((beta_mask_str))/3) #pick the beta value to show on the 2d plots
     i_beta = -1
 
-    for s in ['TL']:
+    for s in ['RL']:
     # for each s, a new plot will be generated
         fx_list_util = {s:[] for s in context_mask_str}
         fx_list_delay = {s:[] for s in context_mask_str}
@@ -391,28 +371,23 @@ if __name__ == '__main__':
         lines = [fx_list_delay[context][i_beta] for context in context_mask_str]
         plot_multiple_lines(x, lines, axis_label=axis_labels, x_ticks=n_size_mask, log=False,
                             filename=fn, label_y='Total time (TTS)', label_x='Neigborhood size $(n_{radius})$', title='s={}'.format(s),
-                            y_lim=[], mark=['*', 'x'])
+                            y_lim=[], mark=['s', '^'])
 
         #plot it, but for a single value of beta
         fn = base_dir + 'post/n_size_vs_max_queue_b_{}.pdf'.format(beta_mask_str[i_beta])
         lines = [fx_list_queue[context][i_beta] for context in context_mask_str]
         plot_multiple_lines(x, lines, axis_label=axis_labels, x_ticks=n_size_mask, log=False,
                             filename=fn, label_y='Max queue size', label_x='Neigborhood size $(n_{radius})$', title='s={}'.format(s),
-                            y_lim=[], mark=['*', 'x'])
+                            y_lim=[], mark=['s', '^'])
 
         # colors = ['blue', 'green', 'darkblue', 'burlywood']
-        colors = ['black']
-        colourcycler = cycle(colors)
-        # fn = base_dir + 'post/n_size_vs_beta_vs_total_time_b_{}.pdf'.format(b)
-        # planes = [fx_list_delay[context] for context in context_mask_str]
         for context in context_mask_str:
             fn = base_dir + 'post/n_size_vs_beta_vs_total_time_{}.pdf'.format(context)
             plot_multiple_planes(x, beta_mask, [fx_list_delay[context]], x_ticks=x, filename=fn, label_y='Burstiness $(\\beta)$',
-                                 label_x='Neigborhood size $(n_{radius})$', label_z='Total time (TTS)', title='s={}'.format(s),
-                                 color=next(colourcycler))
+                                 label_x='Neigborhood size $(n_{radius})$', label_z='Total time (TTS)', title='s={}'.format(s))
 
 
-    plt.show()
+    # plt.show()
     # exit(1)
 
     n_size_mask = [1, 5]
@@ -452,32 +427,25 @@ if __name__ == '__main__':
             x = [i for i in range(len(beta_mask_str))]
 
 
+            marks = ['s', '^', '*', 'x']
+            markspace = [0,12,20,26,29]
 
-            # fn = base_dir + 'post/beta_vs_total_time_n_{}.pdf'.format(n)
-            # plot_bars(x, fx_list_delay, axis_label=shapers_mask_str,  x_ticks=beta_mask_str, log=True,
-            #           filename=fn, label_y='Total time (TTS)', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[10, 16000])
             fn = base_dir + 'post/{}_beta_vs_total_time_n_{}.pdf'.format(context, n)
             plot_multiple_lines(beta_mask, fx_list_delay, axis_label=shapers_mask_str_plot,  x_ticks=[], log=True,
-                filename=fn, label_y='Total time (TTS)', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n), y_lim=[1e1,2e4], mark=['o', '^', 'x', '+'])
+                filename=fn, label_y='Total time (TTS)', label_x='Burstiness $(\\beta)$',
+                                title='n={}_{}'.format(context,n), y_lim=[1e1,2e4],
+                                mark=marks, markspace = markspace)
 
-
-            # fn = base_dir + 'post/beta_vs_max_queue_n_{}.pdf'.format(n)
-            # plot_bars(x, fx_list_queue, axis_label=shapers_mask_str_plot,  x_ticks=beta_mask_str, log=False,
-            #           filename=fn, label_y='Max. queue size', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[0, 31])
             fn = base_dir + 'post/{}_beta_vs_max_queue_n_{}.pdf'.format(context, n)
             plot_multiple_lines(beta_mask, fx_list_queue, axis_label=shapers_mask_str_plot,  x_ticks=[], log=False,
-                filename=fn, label_y='Max queue size', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n), y_lim=[0, 45], step=True, mark=['o', '^', 'x', '+'])
+                filename=fn, label_y='Max queue size', label_x='Burstiness $(\\beta)$',
+                                title='n={}_{}'.format(context,n), y_lim=[0, 45], step=True,
+                                mark=marks, markspace = markspace)
 
-
-            # fn = base_dir + 'post/beta_vs_link_utilization_n_{}.pdf'.format(n)
-            # plot_bars(x, fx_list_util, axis_label=shapers_mask_str_plot,  x_ticks=beta_mask_str, log=False,
-            #           filename=fn, label_y='Link utilization', label_x='Burstiness (beta)', title='n={}'.format(n), y_lim=[0,1])
             fn = base_dir + 'post/{}_beta_vs_link_utilization_n_{}.pdf'.format(context, n)
             plot_multiple_lines(beta_mask, fx_list_util, axis_label=shapers_mask_str_plot, log=False,
-                filename=fn, label_y='Link utilization', label_x='Burstiness $(\\beta)$', title='n={}_{}'.format(context,n).format(n), y_lim=[0,1], mark=['o', '^', 'x', '+'])
-
-
-        # plot_multiple_lines(x, fx_list, axis_label=shapers_mask,  x_ticks=beta_mask, log=use_log_scale,
-        #           filename=fn, label_y=label_y, label_x='Burstiness (beta)', title='n={}'.format(n))
+                filename=fn, label_y='Link utilization', label_x='Burstiness $(\\beta)$',
+                                title='n={}_{}'.format(context,n).format(n), y_lim=[0,1],
+                                mark=marks, markspace = markspace)
 
     plt.show()

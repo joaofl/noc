@@ -517,8 +517,8 @@ if __name__ == '__main__':
             im = ax.imshow(data[m], cmap=plt.get_cmap(cmap), interpolation='nearest',
                            origin='lower', vmin=min_valeu, vmax=max_value)
 
-            plt.yticks(numpy.arange(0, y_size, dtype=numpy.int))
-            plt.xticks(numpy.arange(0, x_size, dtype=numpy.int))
+            plt.yticks(numpy.arange(0, y_size, dtype=numpy.int), fontsize=8)
+            plt.xticks(numpy.arange(0, x_size, dtype=numpy.int), fontsize=8)
 
             # if m == 1:
             # plt.colorbar(im, ticks=numpy.linspace(min_valeu, max_value, num=6))
@@ -541,7 +541,7 @@ if __name__ == '__main__':
         # plt.xlabel(lable_x)
         # plt.ylabel(lable_y)
 
-        plt.tight_layout(pad=2, w_pad=1, h_pad=0.9)
+        plt.tight_layout(pad=0.3, w_pad=1, h_pad=0.9)
 
         if filename != None:
             dir = filename[:filename.rfind("/")]
@@ -871,13 +871,13 @@ if __name__ == '__main__':
 
 
     plot_matrix([model_queue_matrix_g, sim_queue_matrix_g], show=show, title='Maximum per-hop queueing', region=nw_region, filename=fn4)
-    plot_matrix([model_delay_matrix_g, sim_delay_matrix_g], show=show, title='Maximum per-hop delay', region=nw_region, filename=fn5)
+    # plot_matrix([model_delay_matrix_g, sim_delay_matrix_g], show=show, title='Maximum per-hop delay', region=nw_region, filename=fn5)
     # plot_matrix([model_msg_eted_matrix, sim_msg_eted_matrix], show=show, title='Maximum end-to-end delay', region=nw_region, filename=fn6)
     # plot_matrix([model_msg_eted_matrix, sim_flow_trace_eted_matrix], show=show, title='Measured end-to-end delay', region=nw_region, filename=fn7)
-    plot(plots_arrival_departure, filename=fn3, show=show)
+    # plot(plots_arrival_departure, filename=fn3, show=show)
 
-    if show:
-        plt.show()
+    # if show:
+    plt.show()
 
 
     # if options.verbose:
