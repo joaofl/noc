@@ -6,13 +6,19 @@ import numpy as np
 from numpy.lib.npyio import savetxt
 import files_io
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import math
 import csv
-
+from operator import itemgetter, attrgetter, methodcaller
 from scipy.interpolate import griddata
 
-def ImportFromSU2(input_file):
+INDEX_I = 0
+INDEX_X = 1
+INDEX_Y = 2
+INDEX_Z = 3
+INDEX_P = 4
 
+def ImportFromSU2(input_file):
     #Convert list in dictionary for post processing
     # Indexes from su2 csv files are:
     # "Global_Index", "x_coord", "y_coord", "z_coord", "Pressure", "Pressure_Coefficient", "Mach_Number"
@@ -20,33 +26,155 @@ def ImportFromSU2(input_file):
     csv_reader = csv.reader(open(input_file, "rt"), delimiter=',')
     header = next(csv_reader) #grab the header and skip the first line
 
-    INDEX_I = 0
-    INDEX_X = 1
-    INDEX_Y = 2
-    INDEX_Z = 3
-    INDEX_P = 4
-
-    arr_x,arr_y,arr_z,arr_p,arr_xyz = [],[],[],[],[]
-
-    dict_x, dict_y, dict_z, dict_p, dict_xyz = {},{},{},{},{}
 
 
-    for i, e in enumerate(csv_reader):
+    arr_x,arr_y,arr_z,arr_p,arr_xyz, arr_xy = [],[],[],[],[],[]
+
+    for _, e in enumerate(csv_reader):
         i, x, y, z, p = float(e[INDEX_I]), float(e[INDEX_X]), float(e[INDEX_Y]), float(e[INDEX_Z]), float(e[INDEX_P])
-        arr_xyz.append([x, y, z, p])
+        arr_xyz.append( (i, x, y, z, p) )
+        arr_xy.append((x,y))
         arr_x.append(x)
         arr_y.append(y)
         arr_z.append(z)
         arr_p.append(p)
 
-    np_arr_xyz = np.array(arr_xyz)
+    arr_xyz_sorted_y = sorted(arr_xyz, key=itemgetter(INDEX_Y)) #from smaller to greater
 
-    max_x, min_x = max(arr_x), min(arr_y)
-    max_y, min_y = max(arr_y), min(arr_y)
+    #Get the bottom and the tips of the wing
+    y_min = arr_xyz_sorted_y[0][INDEX_Y]
+    y_max = arr_xyz_sorted_y[-1][INDEX_Y]
+    y_range = y_max - y_min
+
+    #Walk a little inside (2%) on both extremes, towards inside the wing
+    k=0
+    while (arr_xyz_sorted_y[k][INDEX_Y] < y_min + y_range*0.005):
+        k+=1
+    y_min_corrected = arr_xyz_sorted_y[k][INDEX_Y]
+
+    j=len(arr_xyz_sorted_y)-1
+    while (arr_xyz_sorted_y[j][INDEX_Y] > y_max - y_range*0.03):
+        j-=1
+    y_max_corrected = arr_xyz_sorted_y[j][INDEX_Y]
+
+    #From this two points, walk to the outmost points on x at the given ymax and ymin
+    arr_xyz_sorted_x = sorted(arr_xyz, key=itemgetter(INDEX_X))
+
+    #Get the right and left extremes of the wing
+    x_min = arr_xyz_sorted_x[0][INDEX_X]
+    x_max = arr_xyz_sorted_x[-1][INDEX_X]
+    x_range = x_max - x_min
 
 
+    extent = (arr_xyz_sorted_x[0][INDEX_X], arr_xyz_sorted_x[-1][INDEX_X],
+              arr_xyz_sorted_y[0][INDEX_Y], arr_xyz_sorted_y[-1][INDEX_Y])
+
+    #The points are
+    point_rb = [0,0,0]
+    point_rt = [0,0,0]
+    point_lb = [x_max,0,0]
+    point_lt = [x_max,0,0]
+    round_digits = 3
+
+    # Approach from left to right to find the lefmost points
+    for e in arr_xyz_sorted_x:
+        current_round_y = round(e[INDEX_Y],round_digits)
+        if current_round_y == round(y_min_corrected, round_digits): #here it should give some flexibility
+            if e[INDEX_X] > point_rb[0]:
+                point_rb = [e[INDEX_X], e[INDEX_Y], e[INDEX_Z]]
+        if current_round_y == round(y_max_corrected, round_digits): #here it should give some flexibility
+            if e[INDEX_X] > point_rt[0]:
+                point_rt = [e[INDEX_X], e[INDEX_Y], e[INDEX_Z]]
+
+    # Approach from right to left and find the rightmost points
+    for e in reversed(arr_xyz_sorted_x):
+        current_round_y = round(e[INDEX_Y], round_digits)
+        if current_round_y == round(y_min_corrected, round_digits):  # here it should give some flexibility
+            if e[INDEX_X] < point_lb[0]:
+                point_lb = [e[INDEX_X], e[INDEX_Y], e[INDEX_Z]]
+        if current_round_y == round(y_max_corrected, round_digits):  # here it should give some flexibility
+            if e[INDEX_X] < point_lt[0]:
+                point_lt = [e[INDEX_X], e[INDEX_Y], e[INDEX_Z]]
 
 
+    #Found the points, now its time to separate the wing in the upper and bottom halfs
+    #by cutting everything below/above the plane defined by the point_xx points...
+    arr_xy_wing_top = []
+    arr_p_wing_top = []
+
+    arr_xy_wing_bottom = []
+    arr_p_wing_bottom = []
+
+    #Find the plane equation to define the separation plane
+    v1 = np.array(point_rb) - np.array(point_rt)
+    v2 = np.array(point_lb) - np.array(point_rt)
+
+    # the cross product is a vector normal to the plane
+    cp = np.cross(v1, v2)
+    a, b, c = cp
+
+    # This evaluates a * x3 + b * y3 + c * z3 which equals d
+    d = np.dot(cp, point_rb)
+    # print('The equation is {0}x + {1}y + {2}z = {3}'.format(a, b, c, d))
+
+    for e in arr_xyz:
+        x = e[INDEX_X]
+        y = e[INDEX_Y]
+        z = e[INDEX_Z]
+
+        z_plane = (d - a*x - b*y) / c
+
+        if z > z_plane:
+            arr_xy_wing_top.append([e[INDEX_X], e[INDEX_Y]])
+            arr_p_wing_top.append(e[INDEX_P])
+        else:
+            arr_xy_wing_bottom.append([e[INDEX_X], e[INDEX_Y]])
+            arr_p_wing_bottom.append(e[INDEX_P])
+
+    lsx = np.linspace(x_min, x_max, res)
+    lsy = np.linspace(y_min, y_max, res)
+    grid_x, grid_y = np.meshgrid(lsx, lsy)
+
+    data_top = griddata(arr_xy_wing_top, arr_p_wing_top, (grid_x, grid_y), method='linear')
+    data_bottom = griddata(arr_xy_wing_bottom, arr_p_wing_bottom, (grid_x, grid_y), method='linear')
+    
+    
+    # x_const = x_res / x_range
+    # y_const = y_res / y_range
+    #
+    # point_rb = [point_rb[0]*x_const, point_rb[1]*y_const, point_rb[2]]
+    # point_rt = [point_rt[0]*x_const, point_rt[1]*y_const, point_rt[2]]
+    # point_lb = [point_lb[0]*x_const, point_lb[1]*y_const, point_lb[2]]
+    # point_lt = [point_lt[0]*x_const, point_lt[1]*y_const, point_lt[2]]
+
+    return [data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, extent]
+
+def DeploySensors(p_lb, p_lt, p_rb, p_rt):
+
+    xs_bottom = np.linspace(p_lb[0], p_rb[0], nw_size_x)
+    xs_top = np.array([e + p_lt[0] - p_lb[0] for e in xs_bottom])
+    ys_left = np.linspace(p_lb[1], p_lt[1], nw_size_y)
+
+    x_interspace = xs_bottom[1] - xs_bottom[0]
+    y_interspace = ys_left[1] - ys_left[0]
+
+    placement = []
+
+    a_r, b_r = findline(p_rb[0], p_rb[1], p_rt[0], p_rt[1])
+    for i,_ in enumerate(xs_bottom):
+        a, b = findline(xs_bottom[i], ys_left[0], xs_top[i], ys_left[-1])
+
+        for j,ye in enumerate(ys_left):
+            # plus half interspace, so it folds down to the bottom surface at the front edge of the wing
+            x_pos = ((ye - b) / a) + (x_interspace/2)
+            y_pos = ye
+
+            #Check if it is inside the wing
+            x_lim = (ye - b_r) / a_r
+            if x_pos < x_lim*0.98:
+                placement.append([i, j, x_pos, y_pos])
+
+    return x_interspace, y_interspace, placement
 
 
 def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/surface_flow_00015.csv',
@@ -139,7 +267,7 @@ def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/su
                 output[iy][ix] = data[vy][vx]
             except:
                 output[iy][ix] = np.NaN
-                print('Error')
+                # print('Error')
 
             iy += 1
 
@@ -161,7 +289,8 @@ def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/su
                     plt.scatter(tmp_x, tmp_y, s=2.4, color='grey')
                     # print(data[int(tmp_y)][int(tmp_x)])
             except:
-                print('Opa')
+                None
+                # print('Opa')
     plt.tight_layout(pad=0.5, w_pad=0.8, h_pad=0.9)
 
     # plt.subplot(122)
@@ -377,14 +506,80 @@ def image_show(data, filename='', label_x="", label_y="", colormap='hot_r', axis
 #################################################################
 
 def findline(xa, ya, xb, yb):
-    a = float(yb - ya) / float(xb - xa)
+    a = float(ya - yb) / float(xa - xb)
     b = ya - (a * xa)
     return a,b
 
-# ImportFromCFD()
+
+def plot(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent):
+    # ext = (extent[0][INDEX_X], extent[1][INDEX_X], extent[0][INDEX_Y], extent[1][INDEX_Y])
+
+    sb[0].scatter(point_rb[0], point_rb[1], s=20, color='black', marker='x')
+    sb[0].scatter(point_rt[0], point_rt[1], s=20, color='black', marker='o')
+    sb[0].scatter(point_lb[0], point_lb[1], s=20, color='black', marker='+')
+    sb[0].scatter(point_lt[0], point_lt[1], s=20, color='black', marker='^')
+
+    for [_, _, x_pos, y_pos] in placement:
+        sb[0].scatter(x_pos, y_pos, s=5, color='grey', alpha=0.6)
+
+    img_top = sb[0].imshow(data_top, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest',
+                              extent=extent)
 
 
-ImportFromSU2('/home/joao/Programas/su2-5.0.0/TestCases/optimization_euler/pitching_oneram6/surface_flow_00000.csv')
+    sb[1].scatter(point_rb[0], point_rb[1], s=20, color='black', marker='x')
+    sb[1].scatter(point_rt[0], point_rt[1], s=20, color='black', marker='o')
+    sb[1].scatter(point_lb[0], point_lb[1], s=20, color='black', marker='+')
+    sb[1].scatter(point_lt[0], point_lt[1], s=20, color='black', marker='^')
+
+    for [_, _, x_pos, y_pos] in placement:
+        sb[1].scatter(x_pos, y_pos, s=5, color='grey', alpha=0.6)
+
+    img_bottom = sb[1].imshow(data_bottom, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest',
+                              extent=extent)
 
 
+    return img_top, img_bottom
+
+#This has to be according to the real size of the wing,
+# so we can use metric interspacing between nodes
+#https://home.aero.polimi.it/freecase/?OpenFOAM_%2B_Code_Aster:Aerodynamic_problems:ONERA_M6_wing
+# y_res = 1196.3 #mm
+#this calcs the base of the wing, till the right top tip
+#0.28 = 15.8 degrees, which is the back angle of the Onera M6
+# x_res = 805.9 + math.tan(0.28) * y_res
+#It gives number of pixels that we want look for values. Its related to the maximum number of sensors deployed.
+#but must give a smooth interpolations at least
+res = 1000
+
+#How many nodes should be deployed
+nw_size_x, nw_size_y = 30, 40 #nodes
+
+#Time step size according to the CFD simulation config file
+t_step = 500 #ns
+
+fig, sb = plt.subplots(1, 2, sharey=True)
+imgs = []
+
+# for i in range(0,1000):
+for i in [100, 110, 120, 130, 140, 150]:
+# for i in [100]:
+    fn = '/home/joao/noc-data/input-data/sensors/sources/su2/pitching_more_angle/surface_flow_{:05d}.csv'.format(i)
+    print('Importing data from SU2 file' + fn)
+
+    [data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, extent] = ImportFromSU2(fn)
+
+    print('Deploying sensors')
+    x_interspace, y_interspace, placement = DeploySensors(point_lb, point_lt, point_rb, point_rt)
+
+    print('Ploting')
+    img_top, img_bottom = plot(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
+
+    imgs.append([img_top, img_bottom])
+    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.9)
+
+print('Done processing. Preparing to plot...')
+ani = animation.ArtistAnimation(fig, imgs, interval=100, blit=False, repeat_delay=0)
+# ani.save('/home/joao/noc-data/input-data/sensors/sources/su2/pitching_oneram6.mp4')
+
+plt.show()
 exit(0)
