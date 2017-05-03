@@ -131,8 +131,9 @@ def ImportFromSU2(input_file):
             arr_xy_wing_bottom.append([e[INDEX_X], e[INDEX_Y]])
             arr_p_wing_bottom.append(e[INDEX_P])
 
-    lsx = np.linspace(x_min, x_max, res)
-    lsy = np.linspace(y_min, y_max, res)
+
+    lsx = np.linspace(x_min, x_max, res * x_range)
+    lsy = np.linspace(y_min, y_max, res * y_range)
     grid_x, grid_y = np.meshgrid(lsx, lsy)
 
     data_top = griddata(arr_xy_wing_top, arr_p_wing_top, (grid_x, grid_y), method='linear')
@@ -151,8 +152,10 @@ def ImportFromSU2(input_file):
 
 def DeploySensors(p_lb, p_lt, p_rb, p_rt):
 
-    xs_bottom = np.linspace(p_lb[0], p_rb[0], nw_size_x)
+    gap = 1.5 * ((p_rb[0] - p_lb[0]) / nw_size_x)
+    xs_bottom = np.linspace(p_lb[0], p_rb[0] - gap, nw_size_x)
     xs_top = np.array([e + p_lt[0] - p_lb[0] for e in xs_bottom])
+
     ys_left = np.linspace(p_lb[1], p_lt[1], nw_size_y)
 
     x_interspace = xs_bottom[1] - xs_bottom[0]
@@ -166,140 +169,15 @@ def DeploySensors(p_lb, p_lt, p_rb, p_rt):
 
         for j,ye in enumerate(ys_left):
             # plus half interspace, so it folds down to the bottom surface at the front edge of the wing
-            x_pos = ((ye - b) / a) + (x_interspace/2)
+            x_pos = ((ye - b) / a) + (x_interspace*0.8)
             y_pos = ye
 
             #Check if it is inside the wing
             x_lim = (ye - b_r) / a_r
-            if x_pos < x_lim*0.98:
+            if x_pos <= x_lim*0.99:
                 placement.append([i, j, x_pos, y_pos])
 
     return x_interspace, y_interspace, placement
-
-
-def ImportFromCFD(input_file ='/home/joao/noc-data/input-data/sensors/sources/surface_flow_00015.csv',
-                  output_dir ='/home/joao/noc-data/input-data'):
-
-
-    ns_x, ns_y = 15, 35 #number of sensors in each direction
-
-    res_x, res_y = 500, 800 #mesh size
-    crop_y_top = 0.02
-    crop_y_bottom = 0.01
-
-    output = np.empty([ns_y, ns_x])
-
-
-    temp = files_io.load_list(input_file)
-
-    if temp == []:
-        print('No input file found: {}'.format(input_file))
-        exit(0)
-
-    points = []
-    x, y, p = [], [], []
-
-
-    for i in range(1, len(temp) - 1):
-        l = temp[i]
-        if float(l[2]) >= 0: #get only the upper part of the wing, without overlaping with the data from the bottom surface
-            points.append([float(l[0]), float(l[1])]) #, float(l[3])]) #x , y, pressure
-            x.append(float(l[0]))
-            y.append(float(l[1]))
-            p.append(float(l[3]))
-
-    xmax = max(x)
-    xmin = min(x)
-    ymax = max(y)
-    ymin = min(y)
-
-    lsx = np.linspace(xmin, xmax, res_x)
-    lsy = np.linspace(ymin, ymax, res_y)
-    grid_x, grid_y = np.meshgrid(lsx, lsy)
-
-    data = griddata(points, p, (grid_x, grid_y), method='linear')
-
-
-    # Find the edges of the wing
-    ytop = int(data.shape[0] * ( 1 - crop_y_top)) #y size
-    ybottom = int(data.shape[0] * crop_y_bottom) #y size
-
-    xtop = [np.NaN, np.NaN]
-    xbottom = [np.NaN, np.NaN]
-
-    for x in range(0, data.shape[1], 1):
-        if math.isnan(data[ytop][x]) == False and math.isnan(xtop[0]) == True:
-            xtop[0] = x
-        if math.isnan(data[ybottom][x]) == False and math.isnan(xbottom[0]) == True:
-            xbottom[0] = x
-
-    for x in range(data.shape[1] - 1, -1, -1):
-        if math.isnan(data[ytop][x]) == False and math.isnan(xtop[1]) == True:
-            xtop[1] = x
-        if math.isnan(data[ybottom][x]) == False and math.isnan(xbottom[1]) == True:
-            xbottom[1] = x
-
-    dx = xbottom[1] - xbottom[0]
-    # Comment the line below if nodes are supposed to fit, or be left
-    xtop[1] = xtop[0] + dx
-
-    #Now, find each line equation between bottom and top
-    xlinetop = np.linspace(xtop[0] + 5, xtop[1] - 5, ns_x)
-    xlinebottom = np.linspace(xbottom[0] + 5, xbottom[1] - 5, ns_x)
-    # xlinetop = xlinebottom
-
-    ycords = np.linspace(ybottom, ytop, ns_y)
-
-    xcordsall = []
-
-    ix, iy = 0,0
-
-    for i in range(len(xlinebottom)):
-        xcords = []
-        a, b = findline(xlinebottom[i], ybottom, xlinetop[i], ytop) #find the line coeffs
-        iy = 0
-        for v in ycords:
-            vy = int(v)
-            vx = int((v - b) / a)
-            # vx = xlinebottom[i]
-            xcords.append(vx)
-            try:
-                output[iy][ix] = data[vy][vx]
-            except:
-                output[iy][ix] = np.NaN
-                # print('Error')
-
-            iy += 1
-
-        xcordsall.append(xcords.copy())
-        ix += 1
-
-    # plt.subplot(121)
-    plt.figure('1', figsize=(2.8, 4.2), dpi=120, facecolor='w', edgecolor='w')
-    plt.imshow(data, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest') #bicubi,
-    # plt.scatter(xtop, [ytop, ytop], s=20, color='red')
-    # plt.scatter(xbottom, [ybottom, ybottom], s=20, color='red')
-
-    for i in range(len(xlinebottom)):
-        for j,v in enumerate(ycords):
-            tmp_x = xcordsall[i][j]
-            tmp_y = ycords[j]
-            try:
-                if not np.isnan(data[int(tmp_y)][int(tmp_x)]):
-                    plt.scatter(tmp_x, tmp_y, s=2.4, color='grey')
-                    # print(data[int(tmp_y)][int(tmp_x)])
-            except:
-                None
-                # print('Opa')
-    plt.tight_layout(pad=0.5, w_pad=0.8, h_pad=0.9)
-
-    # plt.subplot(122)
-    plt.figure('2', figsize=(2.8, 4.2), dpi=120, facecolor='w', edgecolor='w')
-    plt.imshow(output, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest')
-    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.9)
-
-    plt.show()
-
 
 def ImportFromImage(input_file ='/home/joao/noc-data/input-data/sources/images/flow.png', output_dir ='/home/joao/noc-data/input-data'):
     # im_file = str(QFileDialog.getOpenFileName(self, ("Select an image file"), tbWorkingDir.text() + '\..\images'))
@@ -511,32 +389,50 @@ def findline(xa, ya, xb, yb):
     return a,b
 
 
-def plot(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent):
+def plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent):
     # ext = (extent[0][INDEX_X], extent[1][INDEX_X], extent[0][INDEX_Y], extent[1][INDEX_Y])
 
-    sb[0].scatter(point_rb[0], point_rb[1], s=20, color='black', marker='x')
-    sb[0].scatter(point_rt[0], point_rt[1], s=20, color='black', marker='o')
-    sb[0].scatter(point_lb[0], point_lb[1], s=20, color='black', marker='+')
-    sb[0].scatter(point_lt[0], point_lt[1], s=20, color='black', marker='^')
+    #Top
+    img_top = sp[0].imshow(data_top, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest',
+                           extent=extent)
+
+    sp[0].scatter(point_rb[0], point_rb[1], s=20, color='black', marker='x')
+    sp[0].scatter(point_rt[0], point_rt[1], s=20, color='black', marker='o')
+    sp[0].scatter(point_lb[0], point_lb[1], s=20, color='black', marker='+')
+    sp[0].scatter(point_lt[0], point_lt[1], s=20, color='black', marker='^')
 
     for [_, _, x_pos, y_pos] in placement:
-        sb[0].scatter(x_pos, y_pos, s=5, color='grey', alpha=0.6)
+        sp[0].scatter(x_pos, y_pos, s=7, color='grey', alpha=0.6)
 
-    img_top = sb[0].imshow(data_top, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest',
+    # Bottom
+    img_bottom = sp[1].imshow(data_bottom, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest',
                               extent=extent)
 
-
-    sb[1].scatter(point_rb[0], point_rb[1], s=20, color='black', marker='x')
-    sb[1].scatter(point_rt[0], point_rt[1], s=20, color='black', marker='o')
-    sb[1].scatter(point_lb[0], point_lb[1], s=20, color='black', marker='+')
-    sb[1].scatter(point_lt[0], point_lt[1], s=20, color='black', marker='^')
+    sp[1].scatter(point_rb[0], point_rb[1], s=20, color='black', marker='x')
+    sp[1].scatter(point_rt[0], point_rt[1], s=20, color='black', marker='o')
+    sp[1].scatter(point_lb[0], point_lb[1], s=20, color='black', marker='+')
+    sp[1].scatter(point_lt[0], point_lt[1], s=20, color='black', marker='^')
 
     for [_, _, x_pos, y_pos] in placement:
-        sb[1].scatter(x_pos, y_pos, s=5, color='grey', alpha=0.6)
+        sp[1].scatter(x_pos, y_pos, s=7, color='grey', alpha=0.6)
 
-    img_bottom = sb[1].imshow(data_bottom, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest',
-                              extent=extent)
 
+    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.9)
+
+    sp[0].set_autoscaley_on(False)
+    sp[1].set_autoscaley_on(False)
+
+    # sb[0].set_lim(0, 0.5)
+    # sb[1].set_ylim(0, 0.5)
+
+    sp[0].set_xbound(extent[0], extent[1])
+    sp[0].set_ybound(extent[2], extent[3])
+    # sb[1].set_xbound(0, 1.5)
+    # sb[0].set_ylim([0, 2])
+    # sb[0].set_xlim([0, 2])
+    # sb[1].set_xlim([0, 2])
+
+    # plt.axis((-1, 2, 0, 1.25))
 
     return img_top, img_bottom
 
@@ -549,21 +445,24 @@ def plot(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placemen
 # x_res = 805.9 + math.tan(0.28) * y_res
 #It gives number of pixels that we want look for values. Its related to the maximum number of sensors deployed.
 #but must give a smooth interpolations at least
-res = 1000
+res = 500
 
 #How many nodes should be deployed
-nw_size_x, nw_size_y = 30, 40 #nodes
+nw_size_x, nw_size_y = 30, 50 #nodes
 
 #Time step size according to the CFD simulation config file
 t_step = 500 #ns
 
-fig, sb = plt.subplots(1, 2, sharey=True)
+fig, spSensors = plt.subplots(1, 1)
+
 imgs = []
 
-# for i in range(0,1000):
-for i in [100, 110, 120, 130, 140, 150]:
-# for i in [100]:
-    fn = '/home/joao/noc-data/input-data/sensors/sources/su2/pitching_more_angle/surface_flow_{:05d}.csv'.format(i)
+sensors_datas = []
+
+for i in range(0,1500):
+# for i in [100, 110, 120, 130, 140, 150]:
+# for i in [150]:
+    fn = '/home/joao/noc-data/input-data/sensors/sources/su2/pitching_onera_tstep=0.0001s/surface_flow_{:05d}.csv'.format(i)
     print('Importing data from SU2 file' + fn)
 
     [data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, extent] = ImportFromSU2(fn)
@@ -571,15 +470,41 @@ for i in [100, 110, 120, 130, 140, 150]:
     print('Deploying sensors')
     x_interspace, y_interspace, placement = DeploySensors(point_lb, point_lt, point_rb, point_rt)
 
-    print('Ploting')
-    img_top, img_bottom = plot(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
+    sensors_data = [ [np.nan for _ in range(nw_size_x * 2)] for _ in range(nw_size_y)]
 
-    imgs.append([img_top, img_bottom])
-    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.9)
+    for [x_grid, y_grid, x_pos, y_pos] in placement:
+        z = data_top[int(round(y_pos*res))][int(round(x_pos*res))]
+        sensors_data[y_grid][x_grid + nw_size_x] = z
+
+        z = data_bottom[int(round(y_pos*res))][int(round(x_pos*res))]
+        sensors_data[y_grid][(x_grid - nw_size_x + 1) *-1 ] = z
+
+    sensors_datas.append(sensors_data)
+
+
+print('Ploting')
+# min_z = min(sensors_datas, key=methodcaller('flatten'))
+# scale = [, max(sensors_datas)]
+zs = []
+for m in sensors_datas:
+    for l in m:
+       zs += l
+
+z_min = min(zs)
+z_max = max(zs)
+
+for sensors_data in sensors_datas:
+    img = spSensors.imshow(sensors_data, cmap=plt.get_cmap('jet'), origin='lower', vmin=z_min, vmax=z_max)
+    imgs.append([img])
+
+plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.9)
 
 print('Done processing. Preparing to plot...')
-ani = animation.ArtistAnimation(fig, imgs, interval=100, blit=False, repeat_delay=0)
-# ani.save('/home/joao/noc-data/input-data/sensors/sources/su2/pitching_oneram6.mp4')
+ani = animation.ArtistAnimation(fig, imgs, interval=10, blit=False, repeat_delay=0)
+ani.save('/home/joao/noc-data/input-data/sensors/sources/su2/pitching_oneram6.mp4')
+
+# fig, sp = plt.subplots(1, 2, sharey=True, sharex=True)
+# img_top, img_bottom = plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
 
 plt.show()
 exit(0)
