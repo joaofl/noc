@@ -326,23 +326,33 @@ def normalize_data(data):
 
     return np.uint16(data)
 
-def normalize_data_array(data_array, sensor_resolution):
+def normalize_data_array(data_array, sensor_resolution, min_value, max_value):
     #normalize the plot to the sensor resolution and range
 
-    max_value = np.max(data_array)
-    min_value = np.min(data_array)
+    # max_value = np.max(data_array)
+    # min_value = np.min(data_array)
     sens_scale = pow(2, sensor_resolution) - 1
 
-    for i in range(len(data_array)):
-        try:
-            data_array[i] = data_array[i].astype('float') # this conversion does not work when importing from CFD
-        except:
-            data_array[i] = data_array[i]
+    range = max_value - min_value
 
-        data_array[i] = (data_array[i] + min_value * -1) / (np.abs(max_value) + np.abs(min_value))
-        data_array[i] *= sens_scale
+    for t, matrix in enumerate(data_array):
+        for i, line in enumerate(matrix):
+            for j, e in enumerate(line):
+                if not np.isnan(e):
+                    data_array[t][i][j] = int(((e - min_value) / range) * sens_scale)
+                else:
+                    data_array[t][i][j] = -1
 
-    return np.uint16(data_array)
+
+        # for i in range(len(data_array)):
+        #     try:
+        #         data_array[i] = data_array[i].astype('float') # this conversion does not work when importing from CFD
+        #     except:
+        #         data_array[i] = data_array[i]
+        #
+        #     data_array[i] = ((data_array[i] - min_value) / (np.abs(max_value) + np.abs(min_value))) * sens_scale
+
+    return data_array
 
 def translate(value, mino, maxo, mind, maxd):
 
@@ -459,8 +469,8 @@ imgs = []
 
 sensors_datas = []
 
-for i in range(0,1500):
-# for i in [100, 110, 120, 130, 140, 150]:
+# for i in range(0,1500):
+for i in [500, 510]: #, 120, 130, 140, 150]:
 # for i in [150]:
     fn = '/home/joao/noc-data/input-data/sensors/sources/su2/pitching_onera_tstep=0.0001s/surface_flow_{:05d}.csv'.format(i)
     print('Importing data from SU2 file' + fn)
@@ -470,38 +480,50 @@ for i in range(0,1500):
     print('Deploying sensors')
     x_interspace, y_interspace, placement = DeploySensors(point_lb, point_lt, point_rb, point_rt)
 
-    sensors_data = [ [np.nan for _ in range(nw_size_x * 2)] for _ in range(nw_size_y)]
+    frame = [[np.nan for _ in range(nw_size_x * 2)] for _ in range(nw_size_y)]
 
     for [x_grid, y_grid, x_pos, y_pos] in placement:
         z = data_top[int(round(y_pos*res))][int(round(x_pos*res))]
-        sensors_data[y_grid][x_grid + nw_size_x] = z
+        frame[y_grid][x_grid + nw_size_x] = z
 
         z = data_bottom[int(round(y_pos*res))][int(round(x_pos*res))]
-        sensors_data[y_grid][(x_grid - nw_size_x + 1) *-1 ] = z
+        frame[y_grid][(x_grid - nw_size_x + 1) * -1] = z
 
-    sensors_datas.append(sensors_data)
+    sensors_datas.append(frame)
 
-
-print('Ploting')
-# min_z = min(sensors_datas, key=methodcaller('flatten'))
-# scale = [, max(sensors_datas)]
 zs = []
 for m in sensors_datas:
     for l in m:
        zs += l
-
 z_min = min(zs)
 z_max = max(zs)
 
-for sensors_data in sensors_datas:
-    img = spSensors.imshow(sensors_data, cmap=plt.get_cmap('jet'), origin='lower', vmin=z_min, vmax=z_max)
+#normalize
+sens_res = 16
+sensors_normed = normalize_data_array(sensors_datas, sens_res, z_min, z_max)
+
+# zs = []
+# for m in sensors_normed:
+#     for l in m:
+#        zs += l
+z_min = 0
+z_max = pow(2, sens_res)
+
+print('Saving data')
+write_input_data_to_disk('/home/joao/noc-data/input-data/sensors/pitching-onera.csv', sensors_normed)
+
+
+print('Ploting')
+
+for frame in sensors_normed:
+    img = spSensors.imshow(frame, cmap=plt.get_cmap('jet'), origin='lower', vmin=z_min, vmax=z_max)
     imgs.append([img])
 
 plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.9)
 
 print('Done processing. Preparing to plot...')
-ani = animation.ArtistAnimation(fig, imgs, interval=10, blit=False, repeat_delay=0)
-ani.save('/home/joao/noc-data/input-data/sensors/sources/su2/pitching_oneram6.mp4')
+# ani = animation.ArtistAnimation(fig, imgs, interval=10, blit=False, repeat_delay=0)
+# ani.save('/home/joao/noc-data/input-data/sensors/sources/su2/pitching_oneram6.mp4')
 
 # fig, sp = plt.subplots(1, 2, sharey=True, sharex=True)
 # img_top, img_bottom = plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
