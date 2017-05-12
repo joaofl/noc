@@ -11,6 +11,9 @@ import math
 import csv
 from operator import itemgetter, attrgetter, methodcaller
 from scipy.interpolate import griddata
+from copy import copy, deepcopy
+
+import configparser
 
 INDEX_I = 0
 INDEX_X = 1
@@ -292,17 +295,12 @@ def load_data_from_image(file):
 
     return npimg
 
-def write_input_data_to_disk(full_path_id, data):
+def write_input_data_to_disk(full_path_id, data, times):
     with open(full_path_id, 'wb') as output_data:
-        input_data_snapshot_number = 0
-        for frame in data:
-
-            #TODO: check if this functions generates errors
-            separator = '@' + str(input_data_snapshot_number)
+        for i, frame in enumerate(data):
+            separator = '@' + str(times[i] - times[0])
             savetxt(output_data, frame, delimiter=',', fmt='%u')
             savetxt(output_data, [separator], fmt='%s')
-
-            input_data_snapshot_number += 1
 
 def normalize_data(data):
     #normalize the plot to the sensor resolution and range
@@ -326,22 +324,24 @@ def normalize_data(data):
 
     return np.uint16(data)
 
-def normalize_data_array(data_array, sensor_resolution, min_value, max_value):
+def normalize_data_array(data_array_in, sensor_resolution, min_value, max_value):
     #normalize the plot to the sensor resolution and range
 
     # max_value = np.max(data_array)
     # min_value = np.min(data_array)
     sens_scale = pow(2, sensor_resolution) - 1
 
+    data_array_out = deepcopy(data_array_in)
+
     range = max_value - min_value
 
-    for t, matrix in enumerate(data_array):
+    for t, matrix in enumerate(data_array_out):
         for i, line in enumerate(matrix):
             for j, e in enumerate(line):
                 if not np.isnan(e):
-                    data_array[t][i][j] = int(((e - min_value) / range) * sens_scale)
+                    data_array_out[t][i][j] = int(((e - min_value) / range) * sens_scale)
                 else:
-                    data_array[t][i][j] = -1
+                    data_array_out[t][i][j] = -1
 
 
         # for i in range(len(data_array)):
@@ -352,7 +352,7 @@ def normalize_data_array(data_array, sensor_resolution, min_value, max_value):
         #
         #     data_array[i] = ((data_array[i] - min_value) / (np.abs(max_value) + np.abs(min_value))) * sens_scale
 
-    return data_array
+    return data_array_out
 
 def translate(value, mino, maxo, mind, maxd):
 
@@ -412,7 +412,7 @@ def plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_r
     sp[0].scatter(point_lt[0], point_lt[1], s=20, color='black', marker='^')
 
     for [_, _, x_pos, y_pos] in placement:
-        sp[0].scatter(x_pos, y_pos, s=7, color='grey', alpha=0.6)
+        sp[0].scatter(x_pos, y_pos, s=4, color='grey', alpha=0.6)
 
     # Bottom
     img_bottom = sp[1].imshow(data_bottom, cmap=plt.get_cmap('jet'), origin='lower', interpolation='nearest',
@@ -424,7 +424,7 @@ def plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_r
     sp[1].scatter(point_lt[0], point_lt[1], s=20, color='black', marker='^')
 
     for [_, _, x_pos, y_pos] in placement:
-        sp[1].scatter(x_pos, y_pos, s=7, color='grey', alpha=0.6)
+        sp[1].scatter(x_pos, y_pos, s=4, color='grey', alpha=0.6)
 
 
     plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.9)
@@ -445,6 +445,18 @@ def plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_r
     # plt.axis((-1, 2, 0, 1.25))
 
     return img_top, img_bottom
+
+def get_config(fn, config_str):
+
+    file = open(fn, 'r')
+    content = file.read()
+    lines = content.split("\n")  # split it into lines
+    for line in lines:
+        if line.startswith(config_str):
+            v = line.split("=")
+            break
+
+    return float(v[1])
 
 #This has to be according to the real size of the wing,
 # so we can use metric interspacing between nodes
@@ -468,11 +480,24 @@ fig, spSensors = plt.subplots(1, 1)
 imgs = []
 
 sensors_datas = []
+sensors_time = []
+
+#Get the time step from the config file
+dir = '/home/joao/noc-data/input-data/sensors/sources/su2/pitching_onera_euler/'
+fn_cfg = dir + 'pitching_ONERAM6.cfg'
+
+t_step = get_config(fn_cfg, 'UNST_TIMESTEP')
+
+# config = configparser.ConfigParser()
+# config.read(fn_cfg)
+# v = config['UNST_TIMESTEP']
+
 
 # for i in range(0,1500):
-for i in [500, 510]: #, 120, 130, 140, 150]:
+for i in [100, 110]: #, 120, 130, 140, 150]:
 # for i in [150]:
-    fn = '/home/joao/noc-data/input-data/sensors/sources/su2/pitching_onera_tstep=0.0001s/surface_flow_{:05d}.csv'.format(i)
+    fn = dir + 'surface_flow_{:05d}.csv'.format(i)
+
     print('Importing data from SU2 file' + fn)
 
     [data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, extent] = ImportFromSU2(fn)
@@ -490,6 +515,8 @@ for i in [500, 510]: #, 120, 130, 140, 150]:
         frame[y_grid][(x_grid - nw_size_x + 1) * -1] = z
 
     sensors_datas.append(frame)
+    sensors_time.append(i* t_step)
+
 
 zs = []
 for m in sensors_datas:
@@ -506,16 +533,16 @@ sensors_normed = normalize_data_array(sensors_datas, sens_res, z_min, z_max)
 # for m in sensors_normed:
 #     for l in m:
 #        zs += l
-z_min = 0
-z_max = pow(2, sens_res)
+# z_min = 0
+# z_max = pow(2, sens_res)
 
 print('Saving data')
-write_input_data_to_disk('/home/joao/noc-data/input-data/sensors/pitching-onera.csv', sensors_normed)
+write_input_data_to_disk('/home/joao/noc-data/input-data/sensors/pitching-onera.csv', sensors_normed, sensors_time)
 
 
 print('Ploting')
 
-for frame in sensors_normed:
+for frame in sensors_datas:
     img = spSensors.imshow(frame, cmap=plt.get_cmap('jet'), origin='lower', vmin=z_min, vmax=z_max)
     imgs.append([img])
 
@@ -525,8 +552,8 @@ print('Done processing. Preparing to plot...')
 # ani = animation.ArtistAnimation(fig, imgs, interval=10, blit=False, repeat_delay=0)
 # ani.save('/home/joao/noc-data/input-data/sensors/sources/su2/pitching_oneram6.mp4')
 
-# fig, sp = plt.subplots(1, 2, sharey=True, sharex=True)
-# img_top, img_bottom = plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
+fig, sp = plt.subplots(1, 2, sharey=True, sharex=True)
+img_top, img_bottom = plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
 
 plt.show()
 exit(0)
