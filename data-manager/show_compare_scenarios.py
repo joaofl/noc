@@ -129,10 +129,10 @@ if __name__ == '__main__':
         y_size = 3
         # logscale = True
 
-        lines = ["-", "--", "-.", ":"]
-        # lines = ["-"]
-        # dashes = [ [100,1],[1,1],[4,2],[8,4] ]
-        # dashes = ['-']
+        # lines = ["-", "--", "-.", ":"]
+        lines = ["-"]
+        dashes = [ (5,2),(2,2),(8,4),(8,2,2,2),(16,2,2,2) ] #lenght of the (dash, space, dash, space)
+        dashecycler = cycle(dashes)
         linecycler = cycle(lines)
 
 
@@ -150,10 +150,10 @@ if __name__ == '__main__':
             axi = ax
             if step == False:
                 axi.plot(x, fx_list[i], next(makercycler), label=axis_label[i], markevery=markspace, markersize=7,
-                         linewidth=1, linestyle=next(linecycler))
+                         linewidth=1, linestyle=next(linecycler), dashes=next(dashecycler))
             else:
                 axi.step(x, fx_list[i], next(makercycler), label=axis_label[i], markevery=markspace, markersize=7,
-                         linewidth=1, linestyle=next(linecycler))
+                         linewidth=1, linestyle=next(linecycler), dashes=next(dashecycler))
 
         ax.set_xlabel(label_x)
         ax.set_ylabel(label_y)
@@ -390,9 +390,13 @@ if __name__ == '__main__':
     # plt.show()
     # exit(1)
 
-    n_size_mask = [1, 5]
+    n_size_mask = [1, 2, 3, 4, 5]
 
     for context in context_mask_str:
+        fx_list_util_lq = []
+        fx_list_delay_lq = []
+        fx_list_queue_lq = []
+
         for n in n_size_mask:
             fx_list_util = []
             fx_list_delay = []
@@ -424,10 +428,15 @@ if __name__ == '__main__':
                 fx_list_delay.append(fxi_delay)
                 fx_list_queue.append(fxi_queue)
 
+                if (s == 'RL'):
+                    fx_list_util_lq.append(fxi_util)
+                    fx_list_delay_lq.append(fxi_delay)
+                    fx_list_queue_lq.append(fxi_queue)
+
             x = [i for i in range(len(beta_mask_str))]
 
 
-            marks = ['s', '^', '*', 'x']
+            marks = ['s', '^', '*', 'x', 'v']
             markspace = [0,12,20,26,29]
 
             fn = base_dir + 'post/{}_beta_vs_total_time_n_{}.pdf'.format(context, n)
@@ -448,4 +457,26 @@ if __name__ == '__main__':
                                 title='n={}_{}'.format(context,n).format(n), y_lim=[0,1],
                                 mark=marks, markspace = markspace)
 
-    plt.show()
+        ################################################################################################################
+
+        fn = base_dir + 'post/{}_beta_vs_total_time_LQ_n_[1...5].pdf'.format(context)
+        plot_multiple_lines(beta_mask, fx_list_delay_lq, axis_label=n_size_mask, x_ticks=[], log=True,
+                            filename=fn, label_y='Total time (TTS)', label_x='Burstiness $(\\beta)$',
+                            title='{}_LQ'.format(context), y_lim=[1e1, 2e4],
+                            mark=marks, markspace=markspace)
+
+        fn = base_dir + 'post/{}_beta_vs_max_queue_LQ_n_[1...5].pdf'.format(context)
+        plot_multiple_lines(beta_mask, fx_list_queue_lq, axis_label=n_size_mask, x_ticks=[], log=False,
+                            filename=fn, label_y='Max queue size', label_x='Burstiness $(\\beta)$',
+                            title='{}_LQ'.format(context), y_lim=[0, 45], step=True,
+                            mark=marks, markspace=markspace)
+
+        fn = base_dir + 'post/{}_beta_vs_link_utilization_LQ_n_[1...5].pdf'.format(context)
+        plot_multiple_lines(beta_mask, fx_list_util_lq, axis_label=n_size_mask, log=False,
+                            filename=fn, label_y='Link utilization', label_x='Burstiness $(\\beta)$',
+                            title='{}_LQ'.format(context), y_lim=[0, 1],
+                            mark=marks, markspace=markspace)
+
+
+
+    # plt.show()
