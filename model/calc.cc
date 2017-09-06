@@ -23,7 +23,93 @@
 #define DEBUG 0
 
 namespace ns3 {
+    std::vector<double_t> 
+    NOCCalc::GetRandomBinsDouble(double_t value_min, double_t value_max, uint16_t n_bins, double_t sum) {
+        Ptr<UniformRandomVariable> m_random;
+        m_random = CreateObject<UniformRandomVariable> ();
+        std::vector<double_t> bins(n_bins, 0);
+        
+        double sum_n = 0;
+        double n;
+        
+        for (int i = 0 ; i < n_bins ; i++){
+            n = m_random->GetValue(value_min, value_max);
+            bins[i] = n;
+            sum_n += n;
+        }
+        
+        double_t factor = sum / sum_n;
 
+        bool invalid = true;
+        while (invalid){
+            sum_n = 0;
+            for (int i = 0 ; i < n_bins ; i++){
+                n = bins[i] * factor;
+                
+                if(n > value_max)
+                    n= value_max;
+                if(n < value_min)
+                    n=value_min;
+                
+                bins[i] = n;
+                sum_n += n;
+            }            
+            factor = sum / sum_n;
+            if (fabs(factor) > 0.98 && fabs(factor) < 1.02)
+                invalid = false;
+        }
+        
+        return bins;
+    }
+    
+    std::vector<uint32_t> 
+    NOCCalc::GetRandomBinsInt(uint32_t value_min, uint32_t value_max, uint32_t n_bins, uint32_t sum) {
+        Ptr<UniformRandomVariable> m_random;
+        m_random = CreateObject<UniformRandomVariable> ();
+        std::vector<uint32_t> bins(n_bins, 0);
+        
+        uint32_t sum_n = 0;
+        uint32_t n;
+        
+        for (uint16_t i = 0 ; i < n_bins ; i++){
+            n = m_random->GetInteger(value_min, value_max);
+            bins[i] = n;
+            sum_n += n;
+        }
+        
+        double_t factor = (double_t) sum / sum_n;
+
+        bool invalid = true;
+        while (invalid){
+            uint16_t j = m_random->GetInteger(0, n_bins-1);
+            
+            if (factor > 1)
+                n = bins[j] + 1;
+            if (factor < 1)
+                n = bins[j] - 1;
+
+            if(n > value_max)
+                n= value_max;
+            if(n < value_min)
+                n=value_min;
+            
+            bins[j] = n;
+            
+            sum_n = 0;
+            for (uint16_t i = 0 ; i < n_bins ; i++){
+                sum_n += bins[i];
+            }
+            
+            factor = (double_t) sum / sum_n;
+            if (fabs(factor) == 1)
+                invalid = false;
+        }
+        
+        return bins;
+    }
+
+
+    
     NodeRef
     NOCCalc::FindMax(std::vector<NodeRef> * nl) { //neighbor list
         NodeRef found;

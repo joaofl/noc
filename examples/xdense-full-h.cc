@@ -58,6 +58,7 @@
 #include "src/network/model/packet.h"
 #include "src/noc/model/xdense-application.h"
 #include "src/noc/model/noc-routing.h"
+#include "src/noc/model/calc.h"
 
 
 
@@ -232,7 +233,7 @@ main(int argc, char *argv[]) {
     DataIO my_input_data;
     
     if ( my_input_data.LoadArray(input_delay_data_path)  == 0){
-        cout << "Error loading the input data file at " << input_delay_data_path << "\n";
+//        cout << "Error loading the input data file at " << input_delay_data_path << "\n";
     }
     else{
         cout << "Delay's data sucessfully loaded:  " << input_delay_data_path << "\n";
@@ -240,7 +241,7 @@ main(int argc, char *argv[]) {
 
     NOCRouterShapingConf my_shaping_data;
     if ( my_shaping_data.LoadData(input_shaping_data_path)  == 0){
-        cout << "Error loading traffic shaping information at " << input_shaping_data_path << "\n";
+//        cout << "Error loading traffic shaping information at " << input_shaping_data_path << "\n";
     }
     else{
         cout << "Traffic shaping information loaded from " << input_shaping_data_path << "\n";
@@ -424,53 +425,14 @@ main(int argc, char *argv[]) {
     }
     
     
-    int COUNT = ch,    // X
-        MAX_VAL = 20,  // Y
-        MAX_SUM = ch * ms; // Z
-
-    std::vector<int> bucket_ms(COUNT, 0);
-    srand(time(0));
-    int remaining = MAX_SUM;
-    while (remaining > 0)
-    {
-        int rndBucketIdx = irand(0, COUNT-1);
-        if (bucket_ms[rndBucketIdx] == MAX_VAL)
-            continue;                       // this bucket is already full
-        bucket_ms[rndBucketIdx]++;
-        remaining--;
-    }
-    
-    uint32_t m_factor = 10 * ch;
-    COUNT = ch;    // X
-    MAX_VAL = 1*m_factor;  // Y
-    MAX_SUM = (beta * ch) * m_factor; // Z
-
-    std::vector<double> bucket_beta(COUNT, 0);
-    srand(time(0));
-    remaining = MAX_SUM;
-    while (remaining > 0)
-    {
-        int rndBucketIdx = irand(0, COUNT-1);
-        if (bucket_beta[rndBucketIdx] == MAX_VAL)
-            continue;                       // this bucket is already full
-        bucket_beta[rndBucketIdx] += 1;
-        remaining--;
-    }
-
-    std::cout << "Printing sequence: \n"; 
-    int sum_ms = 0;
-    double_t sum_beta = 0;
-    for (int i = 0; i < COUNT; ++i)
-    {
-//        std::cout << bucket_ms[i] << ' ';
-        sum_ms+= bucket_ms[i];
-        sum_beta+= bucket_beta[i] / m_factor;
-    }
-    std::cout << sum_ms << " = " << (ch * ms) << "\n";
-    std::cout << sum_beta << " = " << (ch * beta);
-//    
-
+    //Min value, max value, number of bins to create, maximum that they can sum up to
+    std::vector<double> bucket_beta = NOCCalc::GetRandomBinsDouble(beta/10, 1, ch, ch * beta);
+    std::vector<uint32_t> bucket_ms = NOCCalc::GetRandomBinsInt(0, ms * 2, ch, ch * ms);
+ 
+    double_t beta_new = 0;
     int i = 0;
+//    double_t min_beta = beta / (double_t) 10;
+    
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
             
@@ -492,12 +454,13 @@ main(int argc, char *argv[]) {
             else if((dx + size_neighborhood) % (size_neighborhood * 2 + 1) == 0 && 
                     (dy + size_neighborhood) % (size_neighborhood * 2 + 1) == 0){
                 
-                beta = (double_t) bucket_beta[i] / (double_t) m_factor;
+                beta_new = bucket_beta[i];
                 ms = bucket_ms[i];
+                
                 i++;
                 
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, sink_x, sink_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST_OFFSET);                                          
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta_new, ms, NOCHeader::PROTOCOL_UNICAST);
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta_new, offset, ms, pck_out, sink_x, sink_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST_OFFSET);                                          
             } 
         }
     }
