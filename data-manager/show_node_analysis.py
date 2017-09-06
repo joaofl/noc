@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
     trace_packets = files_io.load_list(inputfile_packet_trace)
     if (len(trace_packets)) == 0:
-        print('Log file is empty')
+        print('Log file {} is empty'.format(inputfile_packet_trace))
         exit(1)
 
     trace_queue_size = files_io.load_list(inputfile_queue_size)

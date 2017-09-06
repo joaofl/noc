@@ -156,7 +156,11 @@ def resulting_flow(sw, model='TL'):
             total_tb += local_tb
             total_t += t1 - t0
 
-            bursts_calc.append( (total_tb) / total_t )
+            try:
+                bursts_calc.append( (total_tb) / total_t )
+            except:
+                print("Exception division by zero")
+                exit(-1)
 
         burstiness_out = min(bursts_calc)
         offset_out = timeline[0][0] + 1
