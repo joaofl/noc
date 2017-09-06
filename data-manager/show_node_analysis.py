@@ -779,8 +779,12 @@ if __name__ == '__main__':
         (x, y) = e
         beta = flow_model_dict_g[e][0][0][0]
         msg_size = flow_model_dict_g[e][0][0][2]
-        sim_msg_eted_matrix[y][x] += msg_size / beta
-        model_msg_eted_matrix[y][x] += msg_size / beta
+        try:
+            sim_msg_eted_matrix[y][x] += msg_size / beta
+            model_msg_eted_matrix[y][x] += msg_size / beta
+        except:
+            sim_msg_eted_matrix[y][x] += 0
+            model_msg_eted_matrix[y][x] += 0
 
     ####### Gethering eted from logfiles
 
@@ -874,7 +878,7 @@ if __name__ == '__main__':
     # plot_matrix([model_delay_matrix_g, sim_delay_matrix_g], show=show, title='Maximum per-hop delay', region=nw_region, filename=fn5)
     # plot_matrix([model_msg_eted_matrix, sim_msg_eted_matrix], show=show, title='Maximum end-to-end delay', region=nw_region, filename=fn6)
     # plot_matrix([model_msg_eted_matrix, sim_flow_trace_eted_matrix], show=show, title='Measured end-to-end delay', region=nw_region, filename=fn7)
-    # plot(plots_arrival_departure, filename=fn3, show=show)
+    plot(plots_arrival_departure, filename=fn3, show=show)
 
     # if show:
     plt.show()
