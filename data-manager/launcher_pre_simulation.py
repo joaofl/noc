@@ -26,6 +26,8 @@ from os.path import expanduser
 import files_io
 import os
 from subprocess import Popen, PIPE, call
+import select
+import time
 from joblib import Parallel, delayed
 import numpy as np
 from time import sleep
@@ -319,39 +321,39 @@ class NOCPreLauncher(QWidget):
 
         dir = self.textbox_ns3_dir.text()
         cmd_list = []
-        process_list = []
+        # cmd_list.append("./waf shell")
 
         for i in range(0, self.listbox_batch.count()):
-            cmd_list.append(str(self.listbox_batch.item(i).text()))
+            cmd_list.append(str(self.listbox_batch.item(i).text()) + " &\n")
 
         # output = Parallel(n_jobs=8)(delayed(self.run)(cmd, dir) for cmd in cmd_list)
 
-        p = Popen(cmd_list[0], cwd=dir, shell=True)  # , stdout=PIPE, universal_newlines=True)
-        p.wait()
+        p = Popen("./waf shell; ", cwd=dir, shell=True, stdin=PIPE, stdout=PIPE) #, universal_newlines=True)
 
+        # out = select.poll()
+        # out.register(p.stdout)
 
         for i, cmd in enumerate(cmd_list):
-
             print('Simulation scenario {} out of {} ({:0.2f}%)'.format(i+1, len(cmd_list), i*100/len(cmd_list)))
 
-            # for cmd in cmds:
-            p = Popen(cmd, cwd=dir, shell=True) #, stdout=PIPE, universal_newlines=True)
-            # sleep(0.2)
-            process_list.append(p)
+            p.stdin.write(cmd.encode())
+            p.stdin.flush()
+            # p.stdout.flush()
+            sleep(0.1)
 
-            for p in process_list:
-                p.wait()
+        p.stdin.close()
 
-            process_list = []
-            # print(out)
+        nothing = 0;
+        while nothing < 20:
+            l = p.stdout.readline().decode().split('\n')[0]
 
-            # for i, p in enumerate(process_list):
-            #     p.wait()
-            #     print('------------' + 'P' + str(i) + '------------')
-            #     print(output_list[i])
-            #
+            if l == "":
+                nothing += 1;
+            else:
+                print(l)
+                nothing = 0;
 
-                # output_list = []
+
 
 
     def generate_scenarios(self):
@@ -359,14 +361,16 @@ class NOCPreLauncher(QWidget):
         # dir = '/home/joao/noc-data/input-data'
         # file_to_run = 'src/noc/examples/xdense-full'
         # files_to_run = ['src/noc/examples/xdense-cluster']
-        files_to_run = ['src/noc/examples/xdense-cluster-h', 'src/noc/examples/xdense-full-h']
+        dir = "./build/src/noc/examples/"
+        files_to_run = ['xdense-cluster-h', 'xdense-full-h']
         # context = 'WCA_ALL_'
-        # n_size_mask = [1, 2, 3, 4, 5]
-        n_size_mask = [3]
-        beta_mask = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
+        n_size_mask = [1, 2, 3, 4, 5]
+        # n_size_mask = [3]
+        # beta_mask = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
         # beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
         # beta_mask = ['{:0.2f}'.format(b/100) for b in range(1,101, 2)]
-        # beta_mask = ['{:0.4f}'.format(b/100) for b in np.logspace(0, 2, 30)]
+
+        beta_mask = ['{:0.4f}'.format(b/100) for b in np.logspace(0, 2, 30)]
 
         # beta_num = sorted([(101-b)/100 for b in np.logspace(0, 2, 30)])
         # beta_mask = ['{:0.04f}'.format(b) for b in beta_num]
@@ -376,12 +380,14 @@ class NOCPreLauncher(QWidget):
         # shapers_mask = ['BU', 'RL']
 
 
-
+        i = 0
         for b in beta_mask:
             for n in n_size_mask:
                 for s in shapers_mask:
                     for file in files_to_run:
-                        self.listbox_batch.addItem('./waf --run="{} --beta={} --size_n={} --extra={}" '.format(file, b,n,s))
+                        # self.listbox_batch.addItem('./waf --run="{} --beta={} --size_n={} --extra={}" '.format(file, b,n,s))
+                        self.listbox_batch.addItem('{}ns3-dev-{}-debug --beta={} --size_n={} --extra={} --RngRun={}'.format(dir, file, b, n, s, i))
+                        i += 1
 
 
         print('Total number of sim scenarios: {}'.format(self.listbox_batch.count()))

@@ -204,7 +204,10 @@ def resulting_flow(sw, model='TL'):
             total_tb += local_tb
             total_t += dt
 
-            bursts_calc.append( (total_tb) / total_t )
+            try:
+                bursts_calc.append( (total_tb) / total_t )
+            except:
+                print("Division by zero at TL calculation")
 
         burstiness_out = max(bursts_calc)
 
