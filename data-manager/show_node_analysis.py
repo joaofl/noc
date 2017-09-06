@@ -733,7 +733,7 @@ if __name__ == '__main__':
         # list_model_max_queue.append(model_max_queue)
         list_model_max_queue += y_model_queue
 
-        sim_queue_matrix_g[y+1][x] = sim_max_queue
+        sim_queue_matrix_g[y][x] = sim_max_queue
         # list_sim_max_queue.append(sim_max_queue)
         list_sim_max_queue += y_sim_queue
         #I'm actually apending arrays to each other, containing the whole queue size over time
@@ -881,7 +881,7 @@ if __name__ == '__main__':
     plot(plots_arrival_departure, filename=fn3, show=show)
 
     # if show:
-    plt.show()
+    # plt.show()
 
 
     # if options.verbose:
