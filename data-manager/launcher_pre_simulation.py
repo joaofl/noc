@@ -359,14 +359,14 @@ class NOCPreLauncher(QWidget):
         # dir = '/home/joao/noc-data/input-data'
         # file_to_run = 'src/noc/examples/xdense-full'
         # files_to_run = ['src/noc/examples/xdense-cluster']
-        files_to_run = ['src/noc/examples/xdense-cluster', 'src/noc/examples/xdense-full']
+        files_to_run = ['src/noc/examples/xdense-cluster-h', 'src/noc/examples/xdense-full-h']
         # context = 'WCA_ALL_'
-        n_size_mask = [1, 2, 3, 4, 5]
-        # n_size_mask = [3]
-        # beta_mask = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
+        # n_size_mask = [1, 2, 3, 4, 5]
+        n_size_mask = [3]
+        beta_mask = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
         # beta_mask = ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']
         # beta_mask = ['{:0.2f}'.format(b/100) for b in range(1,101, 2)]
-        beta_mask = ['{:0.4f}'.format(b/100) for b in np.logspace(0, 2, 30)]
+        # beta_mask = ['{:0.4f}'.format(b/100) for b in np.logspace(0, 2, 30)]
 
         # beta_num = sorted([(101-b)/100 for b in np.logspace(0, 2, 30)])
         # beta_mask = ['{:0.04f}'.format(b) for b in beta_num]
