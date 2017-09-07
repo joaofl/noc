@@ -25,12 +25,13 @@ from PyQt5.QtWidgets import * #QWidget, QApplication
 from os.path import expanduser
 import files_io
 import os
-from subprocess import Popen, PIPE, call
-import select
+import sys
+import subprocess
+import pexpect
 import time
 from joblib import Parallel, delayed
 import numpy as np
-from time import sleep
+
 
 class NOCPreLauncher(QWidget):
 
@@ -317,6 +318,15 @@ class NOCPreLauncher(QWidget):
         p = Popen(cmd, cwd=dir, shell=True, stdout=PIPE, universal_newlines=True)
         return p, p.communicate()
 
+    def wait_process(self, p):
+        while True:
+            out = p.stderr.read(1).decode()
+            if out == '' and p.poll() != None:
+                break
+            if out != '':
+                sys.stdout.write(out)
+                sys.stdout.flush()
+
     def on_click_run(self):
 
         dir = self.textbox_ns3_dir.text()
@@ -328,7 +338,7 @@ class NOCPreLauncher(QWidget):
 
         # output = Parallel(n_jobs=8)(delayed(self.run)(cmd, dir) for cmd in cmd_list)
 
-        p = Popen("./waf shell; ", cwd=dir, shell=True, stdin=PIPE, stdout=PIPE) #, universal_newlines=True)
+        p = subprocess.Popen("./waf shell", cwd=dir, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) #, universal_newlines=True)
 
         # out = select.poll()
         # out.register(p.stdout)
@@ -339,9 +349,25 @@ class NOCPreLauncher(QWidget):
             p.stdin.write(cmd.encode())
             p.stdin.flush()
             # p.stdout.flush()
-            sleep(0.1)
+            # self.wait_process(p)
 
         p.stdin.close()
+
+
+
+        #################### Another approach ### seems better
+        # p = pexpect.spawnu("/bin/bash", logfile=sys.stdout)  #
+        #
+        # p.sendline("cd /home/joao/Repositorios/ns-3-dev/")
+        # p.sendline("./waf shell")
+        # time.sleep(2)
+        #
+        # # print(p.read_nonblocking(2000, 2000))
+        #
+        # p.expect('ns-3-dev $', timeout=1000)
+        # print(p.read())
+        ####################
+
 
         nothing = 0;
         while nothing < 20:
@@ -352,6 +378,7 @@ class NOCPreLauncher(QWidget):
             else:
                 print(l)
                 nothing = 0;
+
 
 
 
@@ -387,7 +414,7 @@ class NOCPreLauncher(QWidget):
                 for s in shapers_mask:
                     for file in files_to_run:
                         # self.listbox_batch.addItem('./waf --run="{} --beta={} --size_n={} --extra={}" '.format(file, b,n,s))
-                        self.listbox_batch.addItem('{}ns3-dev-{}-debug --beta={} --size_n={} --extra={} --RngRun={}'.format(dir, file, b, n, s, i))
+                        self.listbox_batch.addItem('{}ns3-dev-{}-debug --beta={} --size_n={} --extra={}'.format(dir, file, b, n, s, i)) # --RngRun={} to seed different random numbers
                         i += 1
 
 
