@@ -699,18 +699,19 @@ if __name__ == '__main__':
         ##Start the caclulation
 
         ######## MODEL
-        t_in, n_in = wca_new.calculate_flow(sw_in)
-        t_out, n_out = wca_new.calculate_flow([sw_out])
+        # t_in, n_in = wca_new.calculate_flow(sw_in)
+        # t_out, n_out = wca_new.calculate_flow([sw_out])
 
-        t_queue, n_queue = wca_new.calculate_queue(t_in, n_in, t_out, n_out)
-        t_delay, n_delay = wca_new.calculate_delay(t_in, n_in, t_out, n_out)
+        # t_queue, n_queue = wca_new.calculate_queue(t_in, n_in, t_out, n_out)
+        # t_delay, n_delay = wca_new.calculate_delay(t_in, n_in, t_out, n_out)
+
+
 
         t_math_in, n_math_in = wca_new.get_points(sw_in)
         t_math_out, n_math_out = wca_new.get_points([sw_out])
 
-        # wca_new.plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out)
-        max_queue = max(n_queue)
-        max_delay = max(t_delay)
+        max_queue = max(wca_new.calculate_queue_model(t_math_in, n_math_in, t_math_out, n_math_out))
+        max_delay = max(wca_new.calculate_delay_model(t_math_in, n_math_in, t_math_out, n_math_out))
 
         # model_results = [
         #     max_queue, max_delay,
@@ -746,11 +747,12 @@ if __name__ == '__main__':
         list_sim_max_queue.append(max_queue_sim)
         list_sim_max_delay.append(max_delay_sim)
 
-
+        # wca_new.plot(t_in_sim, n_in_sim, t_out_sim, n_out_sim, t_math_in, n_math_in, t_math_out, n_math_out)
+        # exit()
 
         if [x, y] == [node_x, node_y]:
             plots_arrival_departure = \
-            total_time_model = t_out[-1]
+            total_time_model = t_math_out[-1]
             total_time_sim = t_out_sim[-1]
 
 

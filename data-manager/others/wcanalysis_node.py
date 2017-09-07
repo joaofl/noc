@@ -72,6 +72,31 @@ def calculate_delay(t_in, n_in, t_out, n_out):
     return t_delay, n_delay
 
 
+def calculate_delay_model(t_math_in, n_math_in, t_math_out, n_math_out):
+    delays = []
+    for i,n in enumerate(n_math_in):
+        #Horizontal distances
+        t = get_t(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], n)
+        # xs = [t_math_in[i], t]
+        # ys = [n, n]
+        delays.append(t_math_in[i] - t)
+
+    return delays
+
+
+def calculate_queue_model(t_math_in, n_math_in, t_math_out, n_math_out):
+    queues = []
+    for i, n in enumerate(n_math_in):
+        #Vertical distances
+        n_calc = get_n(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], t_math_in[i])
+        # xs = [t_math_in[i], t_math_in[i]]
+        # ys = [n, n_calc]
+        queues.append(n - n_calc)
+
+    return queues
+
+
+
 
 def get_points(F):
     timeline = []
