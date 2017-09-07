@@ -159,8 +159,8 @@ def resulting_flow(sw, model='TL'):
             try:
                 bursts_calc.append( (total_tb) / total_t )
             except:
-                print("Exception division by zero")
-                exit(-1)
+                print("Exception division by zero BU calculation")
+                # exit(-1)
 
         burstiness_out = min(bursts_calc)
         offset_out = timeline[0][0] + 1
@@ -208,17 +208,19 @@ def resulting_flow(sw, model='TL'):
                 bursts_calc.append( (total_tb) / total_t )
             except:
                 print("Division by zero at TL calculation")
+                # exit(-1)
 
-        burstiness_out = max(bursts_calc)
+        try:
+            burstiness_out = max(bursts_calc)
+        except:
+            print("Empty burstiness TL")
 
         offset_out = timeline[0][0] - ms_out/burstiness_out + 1
 
         if burstiness_out >= 1:
             burstiness_out = 1
-            if model == 'TL':
-                model = 'RL' #in this case it fails, so redirect to model C
-        else:
-            return [burstiness_out, offset_out, ms_out]
+
+        return [burstiness_out, offset_out, ms_out]
 
 
     ###################################################################################################################
@@ -261,10 +263,8 @@ def resulting_flow(sw, model='TL'):
 
         ts = [timeline[i][0] for i in range(len(timeline))]
 
-        try:
-            slope, intercept, r_value, p_value, std_err = stats.linregress(ts, msg_size_total)
-        except:
-            print('Pau')
+        slope, intercept, r_value, p_value, std_err = stats.linregress(ts, msg_size_total)
+
 
         burstiness_out = slope
         if burstiness_out > 1:
@@ -287,7 +287,7 @@ def arrival_departure(sw):
     if not isinstance(sw[0], list): #if it is a single flow, make it switch-like
         sw = [sw]
 
-    step = 0.02
+    step = 1
     ############# Input #############################################
     x = []
     y = []
