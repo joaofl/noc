@@ -62,14 +62,14 @@ namespace ns3 {
         return bins;
     }
     
-    std::vector<uint32_t> 
-    NOCCalc::GetRandomBinsInt(uint32_t value_min, uint32_t value_max, uint32_t n_bins, uint32_t sum) {
+    std::vector<int32_t> 
+    NOCCalc::GetRandomBinsInt(int32_t value_min, int32_t value_max, int32_t n_bins, int32_t sum) {
         Ptr<UniformRandomVariable> m_random;
         m_random = CreateObject<UniformRandomVariable> ();
-        std::vector<uint32_t> bins(n_bins, 0);
+        std::vector<int32_t> bins(n_bins, 0);
         
-        uint32_t sum_n = 0;
-        uint32_t n;
+        int32_t sum_n = 0;
+        int32_t n;
         
         for (uint16_t i = 0 ; i < n_bins ; i++){
             n = m_random->GetInteger(value_min, value_max);

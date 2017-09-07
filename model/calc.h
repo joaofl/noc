@@ -34,7 +34,7 @@ namespace ns3 {
         
         static std::vector<double_t> GetRandomBinsDouble(double_t value_min, double_t value_max, uint16_t bins, double_t sum);
 
-        static std::vector<uint32_t> GetRandomBinsInt(uint32_t value_min, uint32_t value_max, uint32_t n_bins, uint32_t sum);
+        static std::vector<int32_t> GetRandomBinsInt(int32_t value_min, int32_t value_max, int32_t n_bins, int32_t sum);
         
         static NodeRef FindMax(std::vector<NodeRef> * sn);
         

@@ -163,7 +163,7 @@ main(int argc, char *argv[]) {
     
     uint32_t size_x = 1 + (5*2+1) * 2; //This represents a single quadrant
     uint32_t size_y = 1 + (5*2+1) * 2;
-    uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
+    uint32_t size_neighborhood = 2; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -175,7 +175,7 @@ main(int argc, char *argv[]) {
 
 //    ['0.10', '0.20', '0.30', '0.40', '0.50', '0.60', '0.70', '0.80', '0.90', '1.00']      
 //    double_t beta = 0.1;
-    string beta_str = "0.01";
+    string beta_str = "0.1";
 //    float_t c_rate = 0.05; //compression rate
 
     string output_data_dir = homedir + "/noc-data";
@@ -184,7 +184,7 @@ main(int argc, char *argv[]) {
     string input_delay_data_path = "";
     string input_shaping_data_path = "";
     
-    string extra = "XX"; //Contains shaping information
+    string extra = "TESTS"; //Contains shaping information
  
     CommandLine cmd;
     cmd.AddValue("output_data", "Directory for simulations output", output_data_dir);
@@ -425,9 +425,49 @@ main(int argc, char *argv[]) {
     }
     
     
+    /////////// Message size
+    
+    uint32_t sum_ms = 0;
+    uint32_t sum_ms_zeros = 0;
+    
     //Min value, max value, number of bins to create, maximum that they can sum up to
-    std::vector<double> bucket_beta = NOCCalc::GetRandomBinsDouble(beta/10, 1, ch, ch * beta);
-    std::vector<uint32_t> bucket_ms = NOCCalc::GetRandomBinsInt(0, ms * 2, ch, ch * ms);
+    std::vector<int32_t> bucket_ms = NOCCalc::GetRandomBinsInt(0, ms * 3, ch, ch * ms);
+    
+     for (uint16_t i = 0 ; i < ch ; i++){
+        sum_ms += bucket_ms[i];
+        if (bucket_ms[i] == 0){
+            sum_ms_zeros++;
+        }
+        cout << bucket_ms[i] << ", ";
+    }   
+    cout << "\nSum of ms expected: " << ch * ms << " got: " << sum_ms << " zeros: "<< sum_ms_zeros <<"\n";
+
+    /////////// Beta
+    double_t sum_beta = 0;
+    double_t variability = 0.2;
+    double_t max_beta = beta * (1 + variability);
+    double_t min_beta = beta * (1 - variability);
+    if (max_beta > 1)
+        max_beta = 1;
+    
+    std::vector<double> temp_bucket_beta = NOCCalc::GetRandomBinsDouble(min_beta, 1, (ch - sum_ms_zeros), ch * beta);  
+    std::vector<double_t> bucket_beta(ch, 0);
+    
+    uint16_t j = 0;
+    for (uint16_t i = 0 ; i < ch ; i++){
+        if (bucket_ms[i] != 0){
+            bucket_beta[i] = temp_bucket_beta[j];
+            j++;
+        }
+    }
+    
+    for (uint16_t i = 0 ; i < ch ; i++){
+        sum_beta += bucket_beta[i];
+//        cout << bucket_beta[i] << ", ";
+    }   
+    cout << "\nSum of betas expected: " << ch * beta << " got: " << sum_beta << " zeros: "<< sum_ms_zeros <<"\n"; 
+    
+//    exit(0);
  
     double_t beta_new = 0;
     int i = 0;
