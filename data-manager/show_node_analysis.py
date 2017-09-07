@@ -32,6 +32,7 @@ from joblib import Parallel, delayed
 #My stuff
 import packet_structure as HEADER
 import others.analysis_wc as wca
+import others.wcanalysis_node as wca_new
 import files_io
 
 import others.analysis_wc
@@ -94,10 +95,10 @@ if __name__ == '__main__':
     flow_model_dict_g = {}
     counter_iteration_g = 0
     counter_recursion_g = 0
-    rounding_digits_g = 1
+    rounding_digits_g = 3
 
-    inputfile_queue_size = options.inputdir + '/queue-size-trace.csv'
-    inputfile_flows = options.inputdir + '/flows-trace.csv'
+    # inputfile_queue_size = options.inputdir + '/queue-size-trace.csv'
+    # inputfile_flows = options.inputdir + '/flows-trace.csv'
     inputfile_packet_trace = options.inputdir + '/packets-trace-netdevice.csv'
     inputfile_flows_source = options.inputdir + '/flows-source.csv'
 
@@ -113,26 +114,23 @@ if __name__ == '__main__':
         print('Log file {} is empty'.format(inputfile_packet_trace))
         exit(1)
 
-    trace_queue_size = files_io.load_list(inputfile_queue_size)
-    if (len(trace_queue_size)) == 0:
-        print('Queue size trace is empty or not found.')
-        # exit(1)
-
-    trace_flows = files_io.load_list(inputfile_flows)
-    if (len(trace_flows)) == 0:
-        print('Flows trace is empty or not found.')
-        # exit(1
-
     trace_flows_source = files_io.load_list(inputfile_flows_source)
     if (len(trace_flows_source)) == 0:
         print('Flows source trace is empty or not found.')
+        exit(1)
 
-    # Could get it from the config file
-    # max_x = max(trace_packets[:, HEADER.x_absolute].astype(int)) + 1
-    # max_y = max(trace_packets[:, HEADER.y_absolute].astype(int)) + 1
+    # trace_queue_size = files_io.load_list(inputfile_queue_size)
+    # if (len(trace_queue_size)) == 0:
+    #     print('Queue size trace is empty or not found.')
+    #     # exit(1)
+
+    # trace_flows = files_io.load_list(inputfile_flows)
+    # if (len(trace_flows)) == 0:
+    #     print('Flows trace is empty or not found.')
+    #     # exit(1
+
 
     pck_duration = ( float(options.packet_size) / float(options.baudrate) ) * 1e9
-
     ################################## FUNCTIONS ###############################
 
     def distance(x1,y1,x2,y2):
@@ -248,12 +246,12 @@ if __name__ == '__main__':
 
         return x_arrival, y_arrival, x_departure, y_departure
 
-    def model_arrival_departure(sw_in, sw_out):
-        [x_arrival, y_arrival] = wca.arrival_departure(sw_in)
-        [x_departure, y_departure] = wca.arrival_departure(sw_out)
-
-        return [x_arrival, y_arrival, x_departure, y_departure] #, x_queue, y_queue, x_eted, y_eted]
-
+    # def model_arrival_departure(sw_in, sw_out):
+    #     [x_arrival, y_arrival] = wca.arrival_departure(sw_in)
+    #     [x_departure, y_departure] = wca.arrival_departure(sw_out)
+    #
+    #     return [x_arrival, y_arrival, x_departure, y_departure] #, x_queue, y_queue, x_eted, y_eted]
+    #
     def subtract(x_f1, y_f1, x_f2, y_f2, inverted=False):
         def f(value, x_f, y_f):
             if inverted == False:
@@ -292,8 +290,8 @@ if __name__ == '__main__':
                 x_fs.append(diff)
 
         return x_fs, y_fs
-
-
+    #
+    #
 
 
     def model_propagate(f_index=0): #the list with the flows and the index of the one we are looking for
@@ -364,56 +362,56 @@ if __name__ == '__main__':
         return
 
 
-    def profile_node(x,y):
-
-        # print(x,y, sim_delay_matrix_g, sim_queue_matrix_g, model_delay_matrix_g, model_queue_matrix_g)
-
-        sw_in = flow_model_dict_g[x,y][0]
-        sw_out = flow_model_dict_g[x,y][1]
-
-        ####### SIMULATION
-        [x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim] = simulation_arrival_departure(x, y)
-
-        x_arrival_sim = round_array(x_arrival_sim, rounding_digits_g)
-        x_departure_sim = round_array(x_departure_sim, rounding_digits_g)
-
-        x_sim_queue, y_sim_queue = subtract(x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim)
-        x_sim_delay, y_sim_delay  = subtract(x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim, inverted=True)
-
-        sim_max_queue = max(y_sim_queue)
-        sim_max_delay = max(x_sim_delay)
-
-        sim_results = [
-            sim_max_queue, sim_max_delay,
-            x_arrival_sim, y_arrival_sim,
-            x_departure_sim, y_departure_sim,
-            x_sim_queue, y_sim_queue,
-            x_sim_delay, y_sim_delay
-        ]
-
-
-        ####### MODEL
-        [x_arrival_model, y_arrival_model, x_departure_model, y_departure_model] = model_arrival_departure(sw_in, sw_out)
-
-        x_arrival_model = round_array(x_arrival_model, rounding_digits_g)
-        x_departure_model = round_array(x_departure_model, rounding_digits_g)
-
-        x_model_queue, y_model_queue = subtract(x_arrival_model, y_arrival_model, x_departure_model, y_departure_model)
-        x_model_delay, y_model_delay = subtract(x_arrival_model, y_arrival_model, x_departure_model, y_departure_model, inverted=True)
-
-        model_max_queue = max(y_model_queue)
-        model_max_delay = max(x_model_delay)
-
-        model_results = [
-            model_max_queue, model_max_delay,
-            x_arrival_model, y_arrival_model,
-            x_departure_model, y_departure_model,
-            x_model_queue, y_model_queue,
-            x_model_delay, y_model_delay
-        ]
-
-
-        return [x, y, sim_results, model_results]
+    # def profile_node(x,y):
+    #
+    #     # print(x,y, sim_delay_matrix_g, sim_queue_matrix_g, model_delay_matrix_g, model_queue_matrix_g)
+    #
+    #     sw_in = flow_model_dict_g[x,y][0]
+    #     sw_out = flow_model_dict_g[x,y][1]
+    #
+    #     ####### SIMULATION
+    #     [x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim] = simulation_arrival_departure(x, y)
+    #
+    #     x_arrival_sim = round_array(x_arrival_sim, rounding_digits_g)
+    #     x_departure_sim = round_array(x_departure_sim, rounding_digits_g)
+    #
+    #     x_sim_queue, y_sim_queue = subtract(x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim)
+    #     x_sim_delay, y_sim_delay  = subtract(x_arrival_sim, y_arrival_sim, x_departure_sim, y_departure_sim, inverted=True)
+    #
+    #     sim_max_queue = max(y_sim_queue)
+    #     sim_max_delay = max(x_sim_delay)
+    #
+    #     sim_results = [
+    #         sim_max_queue, sim_max_delay,
+    #         x_arrival_sim, y_arrival_sim,
+    #         x_departure_sim, y_departure_sim,
+    #         x_sim_queue, y_sim_queue,
+    #         x_sim_delay, y_sim_delay
+    #     ]
+    #
+    #
+    #     ####### MODEL
+    #     [x_arrival_model, y_arrival_model, x_departure_model, y_departure_model] = model_arrival_departure(sw_in, sw_out)
+    #
+    #     x_arrival_model = round_array(x_arrival_model, rounding_digits_g)
+    #     x_departure_model = round_array(x_departure_model, rounding_digits_g)
+    #
+    #     x_model_queue, y_model_queue = subtract(x_arrival_model, y_arrival_model, x_departure_model, y_departure_model)
+    #     x_model_delay, y_model_delay = subtract(x_arrival_model, y_arrival_model, x_departure_model, y_departure_model, inverted=True)
+    #
+    #     model_max_queue = max(y_model_queue)
+    #     model_max_delay = max(x_model_delay)
+    #
+    #     model_results = [
+    #         model_max_queue, model_max_delay,
+    #         x_arrival_model, y_arrival_model,
+    #         x_departure_model, y_departure_model,
+    #         x_model_queue, y_model_queue,
+    #         x_model_delay, y_model_delay
+    #     ]
+    #
+    #
+    #     return [x, y, sim_results, model_results]
 
     def plot_hist(data, filename=None):
         fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
@@ -622,6 +620,7 @@ if __name__ == '__main__':
     node_x = int(options.pos_x)
     node_y = int(options.pos_y)
     port = int(options.port)
+    pck_duration = ( float(options.packet_size) / float(options.baudrate) ) * 1e9
 
     if [nw_size_x, nw_size_y] == [0,0]:
         print('Invalid network size {}'.format([nw_size_x, nw_size_y]))
@@ -678,123 +677,206 @@ if __name__ == '__main__':
             p = mask_to_port(p)
             shaping_dict[x, y, p] = f[4][i+1]
 
+    ############## Going through the calculations to present the data
 
-
-    ####### MODEL ARRIVAL / DEPARTURE
-    nw_matrix = [[0 for x in range(nw_size_x)] for y in range(nw_size_y)]
-
-    model_queue_matrix_g = copy.deepcopy(nw_matrix)
-    model_delay_matrix_g = copy.deepcopy(nw_matrix)
-
-    sim_queue_matrix_g = copy.deepcopy(nw_matrix)
-    sim_delay_matrix_g = copy.deepcopy(nw_matrix)
-
-    sim_eted_matrix = copy.deepcopy(nw_matrix)
-    model_eted_matrix = copy.deepcopy(nw_matrix)
-
-    ####### FIND OUT THE MAXIMUM
-
-    nw_region_list_x = []
-    nw_region_list_y = []
     list_model_max_queue = []
     list_model_max_delay = []
     list_sim_max_queue = []
     list_sim_max_delay = []
     total_time_model = 0
     total_time_sim = 0
+
+    for (x, y) in flow_model_dict_g:
+
+        sw_in = flow_model_dict_g[x,y][0]
+        sw_out = flow_model_dict_g[x,y][1]
+
+        ## Convert list in dict
+        for i, f in enumerate(sw_in):
+            sw_in[i] = {'burstness': f[0], 'offset': f[1], 'msgsize': f[2]}
+        sw_out = {'burstness': sw_out[0], 'offset': sw_out[1], 'msgsize': sw_out[2]}
+
+        ##Start the caclulation
+
+        ######## MODEL
+        t_in, n_in = wca_new.calculate_flow(sw_in)
+        t_out, n_out = wca_new.calculate_flow([sw_out])
+
+        t_queue, n_queue = wca_new.calculate_queue(t_in, n_in, t_out, n_out)
+        t_delay, n_delay = wca_new.calculate_delay(t_in, n_in, t_out, n_out)
+
+        t_math_in, n_math_in = wca_new.get_points(sw_in)
+        t_math_out, n_math_out = wca_new.get_points([sw_out])
+
+        # wca_new.plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out)
+        max_queue = max(n_queue)
+        max_delay = max(t_delay)
+
+        # model_results = [
+        #     max_queue, max_delay,
+        #     t_in, n_in,
+        #     t_out, n_out,
+        #     t_queue, n_queue,
+        #     t_delay, n_delay
+        # ]
+
+        list_model_max_queue.append(max_queue)
+        list_model_max_delay.append(max_delay)
+
+        ####### SIMULATION
+        [t_in_sim, n_in_sim, t_out_sim, n_out_sim] = simulation_arrival_departure(x, y)
+
+        # x_arrival_sim = round_array(t_in_sim, rounding_digits_g)
+        # x_departure_sim = round_array(t_out_sim, rounding_digits_g)
+
+        t_queue_sim, n_queue_sim = subtract(t_in_sim, n_in_sim, t_out_sim, n_out_sim)
+        t_delay_sim, n_delay_sim  = subtract(t_in_sim, n_in_sim, t_out_sim, n_out_sim, inverted=True)
+
+        max_queue_sim = max(n_queue_sim)
+        max_delay_sim = max(t_delay_sim)
+
+        # sim_results = [
+        #     max_queue_sim, max_delay_sim,
+        #     t_in_sim, n_in_sim,
+        #     t_out_sim, n_out_sim,
+        #     t_queue_sim, n_queue_sim,
+        #     t_delay_sim, n_delay_sim
+        # ]
+
+        list_sim_max_queue.append(max_queue_sim)
+        list_sim_max_delay.append(max_delay_sim)
+
+
+
+        if [x, y] == [node_x, node_y]:
+            plots_arrival_departure = \
+            total_time_model = t_out[-1]
+            total_time_sim = t_out_sim[-1]
+
+
+
+
+
+
+
+
+
+
+    ####### MODEL ARRIVAL / DEPARTURE
+    # nw_matrix = [[0 for x in range(nw_size_x)] for y in range(nw_size_y)]
+    #
+    # model_queue_matrix_g = copy.deepcopy(nw_matrix)
+    # model_delay_matrix_g = copy.deepcopy(nw_matrix)
+    #
+    # sim_queue_matrix_g = copy.deepcopy(nw_matrix)
+    # sim_delay_matrix_g = copy.deepcopy(nw_matrix)
+    #
+    # sim_eted_matrix = copy.deepcopy(nw_matrix)
+    # model_eted_matrix = copy.deepcopy(nw_matrix)
+
+    ####### FIND OUT THE MAXIMUM
+
+    # nw_region_list_x = []
+    # nw_region_list_y = []
+    # list_model_max_queue = []
+    # list_model_max_delay = []
+    # list_sim_max_queue = []
+    # list_sim_max_delay = []
+    # total_time_model = 0
+    # total_time_sim = 0
     
     # plots_arrival_departure = profile_node(node_x, node_y)
 
     # results = Parallel(n_jobs=-1)(delayed(profile_node)(x, y) for (x, y) in flow_model_dict_g)
-    results = Parallel(n_jobs=2)(delayed(profile_node)(x, y) for (x, y) in flow_model_dict_g)
-
-    for r in results:
-        x, y = r[0], r[1]
-        nw_region_list_x.append(x)
-        nw_region_list_y.append(y)
-
-        [
-            sim_max_queue, sim_max_delay,
-            x_arrival_sim, y_arrival_sim,
-            x_departure_sim, y_departure_sim,
-            x_sim_queue, y_sim_queue,
-            x_sim_delay, y_sim_delay
-        ] = r[2]
-
-        [
-            model_max_queue, model_max_delay,
-            x_arrival_model, y_arrival_model,
-            x_departure_model, y_departure_model,
-            x_model_queue, y_model_queue,
-            x_model_delay, y_model_delay
-        ] = r[3]
-
-        model_queue_matrix_g[y][x] = model_max_queue
-        # list_model_max_queue.append(model_max_queue)
-        list_model_max_queue += y_model_queue
-
-        sim_queue_matrix_g[y][x] = sim_max_queue
-        # list_sim_max_queue.append(sim_max_queue)
-        list_sim_max_queue += y_sim_queue
-        #I'm actually apending arrays to each other, containing the whole queue size over time
-
-
-        model_delay_matrix_g[y][x] = model_max_delay
-        # list_model_max_delay.append(model_max_delay)
-        list_model_max_delay += x_model_delay
-        sim_delay_matrix_g[y][x] = sim_max_delay
-        # list_sim_max_delay.append(sim_max_delay)
-        list_sim_max_delay += x_sim_delay
-
-        if [x, y] == [node_x, node_y]:
-            plots_arrival_departure = \
-                [
-                    x_arrival_sim, y_arrival_sim,
-                    x_departure_sim, y_departure_sim,
-                    x_arrival_model, y_arrival_model,
-                    x_departure_model, y_departure_model,
-                    # x_sim_queue, y_sim_queue,
-                    # x_sim_delay, y_sim_delay,
-                    # x_model_queue, y_model_queue,
-                    # x_model_delay, y_model_delay
-                ]
-            total_time_model = x_departure_model[-1]
-            total_time_sim = x_departure_sim[-1]
-
-    nw_region = [min(nw_region_list_x), max(nw_region_list_x), min(nw_region_list_y), max(nw_region_list_y)]
-
-
-    ####### Calcultate max end-to-end delay by summing max per hop delay
-    for f in flow_model_list_g:
-        xo, yo, po = f[3][0]
-        for i in range(len(f[3])):
-            [x, y, p] = f[3][i]
-            model_eted_matrix[yo][xo] += model_delay_matrix_g[y][x]
-            sim_eted_matrix[yo][xo] += sim_delay_matrix_g[y][x]
-
-    sim_msg_eted_matrix = copy.deepcopy(sim_eted_matrix)
-    model_msg_eted_matrix = copy.deepcopy(model_eted_matrix)
-
-    for e in flow_model_dict_g:
-        (x, y) = e
-        beta = flow_model_dict_g[e][0][0][0]
-        msg_size = flow_model_dict_g[e][0][0][2]
-        try:
-            sim_msg_eted_matrix[y][x] += msg_size / beta
-            model_msg_eted_matrix[y][x] += msg_size / beta
-        except:
-            sim_msg_eted_matrix[y][x] += 0
-            model_msg_eted_matrix[y][x] += 0
-
-    ####### Gethering eted from logfiles
-
-    flow_trace_dict = simulation_measure_eted()
-    sim_flow_trace_eted_matrix = copy.deepcopy(nw_matrix)
-
-    for f in flow_trace_dict:
-        [xo, yo] = flow_trace_dict[f][2:4] #get elements 2 and 3
-        dt = float(flow_trace_dict[f][1] - flow_trace_dict[f][0]) / pck_duration
-        sim_flow_trace_eted_matrix[yo][xo] = dt
+    # results = Parallel(n_jobs=2)(delayed(profile_node)(x, y) for (x, y) in flow_model_dict_g)
+    #
+    # for r in results:
+    #     x, y = r[0], r[1]
+    #     nw_region_list_x.append(x)
+    #     nw_region_list_y.append(y)
+    #
+    #     [
+    #         sim_max_queue, sim_max_delay,
+    #         x_arrival_sim, y_arrival_sim,
+    #         x_departure_sim, y_departure_sim,
+    #         x_sim_queue, y_sim_queue,
+    #         x_sim_delay, y_sim_delay
+    #     ] = r[2]
+    #
+    #     [
+    #         model_max_queue, model_max_delay,
+    #         x_arrival_model, y_arrival_model,
+    #         x_departure_model, y_departure_model,
+    #         x_model_queue, y_model_queue,
+    #         x_model_delay, y_model_delay
+    #     ] = r[3]
+    #
+    #     model_queue_matrix_g[y][x] = model_max_queue
+    #     # list_model_max_queue.append(model_max_queue)
+    #     list_model_max_queue += y_model_queue
+    #
+    #     sim_queue_matrix_g[y][x] = sim_max_queue
+    #     # list_sim_max_queue.append(sim_max_queue)
+    #     list_sim_max_queue += y_sim_queue
+    #     #I'm actually apending arrays to each other, containing the whole queue size over time
+    #
+    #
+    #     model_delay_matrix_g[y][x] = model_max_delay
+    #     # list_model_max_delay.append(model_max_delay)
+    #     list_model_max_delay += x_model_delay
+    #     sim_delay_matrix_g[y][x] = sim_max_delay
+    #     # list_sim_max_delay.append(sim_max_delay)
+    #     list_sim_max_delay += x_sim_delay
+    #
+    #     if [x, y] == [node_x, node_y]:
+    #         plots_arrival_departure = \
+    #             [
+    #                 x_arrival_sim, y_arrival_sim,
+    #                 x_departure_sim, y_departure_sim,
+    #                 x_arrival_model, y_arrival_model,
+    #                 x_departure_model, y_departure_model,
+    #                 # x_sim_queue, y_sim_queue,
+    #                 # x_sim_delay, y_sim_delay,
+    #                 # x_model_queue, y_model_queue,
+    #                 # x_model_delay, y_model_delay
+    #             ]
+    #         total_time_model = x_departure_model[-1]
+    #         total_time_sim = x_departure_sim[-1]
+    #
+    # nw_region = [min(nw_region_list_x), max(nw_region_list_x), min(nw_region_list_y), max(nw_region_list_y)]
+    #
+    #
+    # ####### Calcultate max end-to-end delay by summing max per hop delay
+    # for f in flow_model_list_g:
+    #     xo, yo, po = f[3][0]
+    #     for i in range(len(f[3])):
+    #         [x, y, p] = f[3][i]
+    #         model_eted_matrix[yo][xo] += model_delay_matrix_g[y][x]
+    #         sim_eted_matrix[yo][xo] += sim_delay_matrix_g[y][x]
+    #
+    # sim_msg_eted_matrix = copy.deepcopy(sim_eted_matrix)
+    # model_msg_eted_matrix = copy.deepcopy(model_eted_matrix)
+    #
+    # for e in flow_model_dict_g:
+    #     (x, y) = e
+    #     beta = flow_model_dict_g[e][0][0][0]
+    #     msg_size = flow_model_dict_g[e][0][0][2]
+    #     try:
+    #         sim_msg_eted_matrix[y][x] += msg_size / beta
+    #         model_msg_eted_matrix[y][x] += msg_size / beta
+    #     except:
+    #         sim_msg_eted_matrix[y][x] += 0
+    #         model_msg_eted_matrix[y][x] += 0
+    #
+    # ####### Gethering eted from logfiles
+    #
+    # flow_trace_dict = simulation_measure_eted()
+    # sim_flow_trace_eted_matrix = copy.deepcopy(nw_matrix)
+    #
+    # for f in flow_trace_dict:
+    #     [xo, yo] = flow_trace_dict[f][2:4] #get elements 2 and 3
+    #     dt = float(flow_trace_dict[f][1] - flow_trace_dict[f][0]) / pck_duration
+    #     sim_flow_trace_eted_matrix[yo][xo] = dt
 
 
 
@@ -820,7 +902,7 @@ if __name__ == '__main__':
     sw_out_f = flow_model_dict_g[node_x, node_y][1]
     sw_in_f = []
     for i in range(len(sw_in)):
-        ff = [float('%.2f' % elem) for elem in sw_in[i]]
+        ff = [float('%.2f' % elem) for elem in sw_in[i].values()]
         if ff != [0.0, 0.0, 0.0]:
             sw_in_f.append(ff)
 
@@ -846,39 +928,39 @@ if __name__ == '__main__':
     files_io.write(str_out, fn1)
     print('Traffic shaping parameters saved at ' + fn1)
 
-    fn2 = fn1.replace('shaping_config.csv', 'flows_model.csv')
+    fn2 = options.outputdir + 'flows_model.csv'
     files_io.write(output_tx, fn2)
     print('Flows model saved at ' + fn2)
 
-    fn10 = fn1.replace('shaping_config.csv', 'results.csv')
-    files_io.write(str_results, fn10)
-    print('Results saved at ' + fn10)
+    fn3 = options.outputdir + 'results.csv'
+    files_io.write(str_results, fn3)
+    print('Results saved at ' + fn3)
 
-    fn = options.outputdir + 'CC[' + str(node_x) + ',' + str(node_y) + ']sw' + str(sw_in_f).replace(' ', '') + '=' + str(sw_out_f).replace(' ', '') + '.pdf'
-    fn3 = fn.replace('CC', 'cumulative-ad')
-    fn4 = fn.replace('CC', 'matrix-max-queue')
-    fn5 = fn.replace('CC', 'matrix-max-delay')
-    fn6 = fn.replace('CC', 'matrix-max-eted')
-    fn7 = fn.replace('CC', 'matrix-measured-eted')
-    fn8 = fn.replace('CC', 'dist-delay')
-    fn9 = fn.replace('CC', 'dist-queue')
+    # fn = options.outputdir + 'CC[' + str(node_x) + ',' + str(node_y) + ']sw' + str(sw_in_f).replace(' ', '') + '=' + str(sw_out_f).replace(' ', '') + '.pdf'
+    # fn3 = fn.replace('CC', 'cumulative-ad')
+    # fn4 = fn.replace('CC', 'matrix-max-queue')
+    # fn5 = fn.replace('CC', 'matrix-max-delay')
+    # fn6 = fn.replace('CC', 'matrix-max-eted')
+    # fn7 = fn.replace('CC', 'matrix-measured-eted')
+    # fn8 = fn.replace('CC', 'dist-delay')
+    # fn9 = fn.replace('CC', 'dist-queue')
 
 
     ####### Plotting results
 
-    show = bool(options.showplots)
-    show = False
+    # show = bool(options.showplots)
+    # show = False
 
     # plot_hist([list_model_max_delay, list_sim_max_delay], filename=fn9)
     # plot_hist([list_model_max_queue, list_sim_max_queue], filename=fn8)
     # plt.show()
 
 
-    plot_matrix([model_queue_matrix_g, sim_queue_matrix_g], show=show, title='Maximum per-hop queueing', region=nw_region, filename=fn4)
+    # plot_matrix([model_queue_matrix_g, sim_queue_matrix_g], show=show, title='Maximum per-hop queueing', region=nw_region, filename=fn4)
     # plot_matrix([model_delay_matrix_g, sim_delay_matrix_g], show=show, title='Maximum per-hop delay', region=nw_region, filename=fn5)
     # plot_matrix([model_msg_eted_matrix, sim_msg_eted_matrix], show=show, title='Maximum end-to-end delay', region=nw_region, filename=fn6)
     # plot_matrix([model_msg_eted_matrix, sim_flow_trace_eted_matrix], show=show, title='Measured end-to-end delay', region=nw_region, filename=fn7)
-    plot(plots_arrival_departure, filename=fn3, show=show)
+    # plot(plots_arrival_departure, filename=fn3, show=show)
 
     # if show:
     # plt.show()
