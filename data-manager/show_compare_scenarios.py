@@ -310,6 +310,7 @@ if __name__ == '__main__':
     # beta_mask = sorted([(101-b)/100 for b in np.logspace(0, 2, 30)])
     # beta_mask = [0.01, 0.02, 0.04, 0.05, 0.06, 0.08, 0.1, 0.5, 1]
     # beta_mask_str = ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
+
     beta_mask_str = ['{:0.04f}'.format(b) for b in beta_mask]
 
 
@@ -355,7 +356,7 @@ if __name__ == '__main__':
                         fxi_queue.append(results[i_queue])
                         fxi_util.append(results[INDEX_RESULTING_MSGS] / results[i_delay])
                     else:
-                        print('Expected scenario beta={}, shaper={}, nsize={} not found'.format(b, s, n))
+                        print('Expected scenario {} beta={}, shaper={}, nsize={} not found'.format(context, b, s, n))
 
                 fx_list_util[context].append(fxi_util)
                 fx_list_delay[context].append(fxi_delay)
@@ -422,7 +423,7 @@ if __name__ == '__main__':
                         fxi_queue.append(results[i_queue])
                         fxi_util.append(results[INDEX_RESULTING_MSGS] / results[i_delay])
                     else:
-                        print('Expected scenario beta={}, shaper={}, nsize={} not found'.format(b, s, n))
+                        print('Expected scenario {} beta={}, shaper={}, nsize={} not found'.format(context, b, s, n))
 
                 fx_list_util.append(fxi_util)
                 fx_list_delay.append(fxi_delay)
