@@ -1,5 +1,6 @@
 import math
 import numpy
+import copy
 from scipy import stats
 # Testing the results (Time in TTS)
 
@@ -110,20 +111,23 @@ def burst_size(sw):
 
     return b_out
 
-def resulting_flow(sw, model='TL'):
+def resulting_flow(sw_in, model='TL'):
 
     if model not in ['BU','TD','RL','TL']:
         # model = 'TL'
         print('Model not specified. Exiting...')
         exit(-1)
 
+    sw = []
+
+    if type(sw_in[0]) == dict:
+        for i, f in enumerate(sw_in):# do it fow all the flows getting into that switch
+            sw.append([f['burstness'], f['offset'], f['msgsize']])
+    else:
+        sw = copy.deepcopy(sw_in)
+
     if len(sw) == 1:
         return [sw[0][0], sw[0][1] + 1, sw[0][2]]
-
-
-    # for f in sw: # do it fow all the flows getting into that switch
-    #     if type(f) == dict:
-    #         f = [f['burstness'], f['offset'], f['msgsize']]
 
 
     if model == 'BU': #from befining to the end of the flow
