@@ -362,7 +362,8 @@ class NOCPreLauncher(QWidget):
         # file_to_run = 'src/noc/examples/xdense-full'
         # files_to_run = ['src/noc/examples/xdense-cluster']
         dir = "./build/src/noc/examples/"
-        files_to_run = ['xdense-cluster-h', 'xdense-full-h']
+        files_to_run = ['xdense-cluster', 'xdense-full']
+        # files_to_run = ['xdense-cluster-h', 'xdense-full-h']
         # context = 'WCA_ALL_'
         n_size_mask = [1, 2, 3, 4, 5]
         # n_size_mask = [3]
