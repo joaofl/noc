@@ -411,9 +411,8 @@ main(int argc, char *argv[]) {
     }
     
     //Min value, max value, number of bins to create, maximum that they can sum up to
-    std::vector<double> bucket_beta = NOCCalc::GetRandomBinsDouble(beta/10, 1, ch, ch * beta);
-    std::vector<uint32_t> bucket_ms = NOCCalc::GetRandomBinsInt(0, ms * 2, ch, ch * ms);
-    
+    std::vector<uint32_t> bucket_ms = NOCCalc::GetRandomBinsInt(0, ms * 4, ch, ch * ms);
+    std::vector<double> bucket_beta = NOCCalc::GetRandomBinsDouble(beta/4, 1, ch, ch * beta);    
    
 //    
     int i = 0;
@@ -444,9 +443,12 @@ main(int argc, char *argv[]) {
                 ms = bucket_ms[i];
                 i++;
                 
-                 cout << beta_new << "\n";
-                 cout << ms << "\n";
+                if (ms == 0)
+                    continue;
                 
+//                 cout << beta_new << "\n";
+//                 cout << ms << "\n";
+//                
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta_new, ms, NOCHeader::PROTOCOL_UNICAST);
                 
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->
