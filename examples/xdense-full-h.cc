@@ -456,8 +456,9 @@ main(int argc, char *argv[]) {
                 
                 beta_new = bucket_beta[i];
                 ms = bucket_ms[i];
-                
                 i++;
+                if (ms == 0)
+                    continue;
                 
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta_new, ms, NOCHeader::PROTOCOL_UNICAST);
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta_new, offset, ms, pck_out, sink_x, sink_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST_OFFSET);                                          
