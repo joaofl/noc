@@ -30,28 +30,37 @@ from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPen
 from PyQt5.QtCore import QTimer, Qt, QRectF
 from collections import namedtuple
 import _thread
+import random
 
 
 class Node(QGraphicsItem):
 
     #This should be private
+
+    __alpha = 150
+    __white = QColor(255, 255, 255, __alpha) #r,g,b,alpha
+    __green = QColor(0  , 255,   0, __alpha)
+    __red =   QColor(255,   0,   0, __alpha)
+
     __upToDate = False
 
     __text = ''
     __led = 0
-    __led_on_brush, __led_off_brush = QColor("green"), QColor("white")
+    __led_on_brush, __led_off_brush = __green, __white
 
+    __sensor_value = 0
     __core_rx, __core_tx = 0,0
     __north_rx, __north_tx = 0,0
     __south_rx, __south_tx = 0,0
     __east_rx, __east_tx = 0,0
     __west_rx, __west_tx = 0,0
 
-    __core_rx_brush, __core_tx_brush = QColor("white"),QColor("white")
-    __north_rx_brush, __north_tx_brush = QColor("white"),QColor("white")
-    __south_rx_brush, __south_tx_brush = QColor("white"),QColor("white")
-    __east_rx_brush, __east_tx_brush = QColor("white"),QColor("white")
-    __west_rx_brush, __west_tx_brush = QColor("white"),QColor("white")
+    __sensor_value_brush = __white
+    __core_rx_brush, __core_tx_brush = __white, __white
+    __north_rx_brush, __north_tx_brush = __white, __white
+    __south_rx_brush, __south_tx_brush = __white, __white
+    __east_rx_brush, __east_tx_brush = __white, __white
+    __west_rx_brush, __west_tx_brush = __white, __white
 
     port = {
         'east'  :   0b00000001,
@@ -82,19 +91,22 @@ class Node(QGraphicsItem):
 
         self.setPos(self.__x, self.__y)
 
-        self.__north_tx_rect = QRectF(m, -2 * m, 2 * m, 3 * m)
+        # QRectF(qreal x, qreal y, qreal width, qreal height)
+        self.__north_tx_rect = QRectF(    m, -2 * m, 2 * m, 3 * m)
         self.__north_rx_rect = QRectF(3 * m, -2 * m, 2 * m, 3 * m)
 
         self.__south_tx_rect = QRectF(3 * m, 5 * m, 2 * m, 3 * m)
-        self.__south_rx_rect = QRectF(m, 5 * m, 2 * m, 3 * m)
+        self.__south_rx_rect = QRectF(    m, 5 * m, 2 * m, 3 * m)
 
         self.__east_tx_rect = QRectF(5 * m, 3 * m, 3 * m, 2 * m)
-        self.__east_rx_rect = QRectF(5 * m, m, 3 * m, 2 * m)
+        self.__east_rx_rect = QRectF(5 * m,     m, 3 * m, 2 * m)
 
-        self.__west_tx_rect = QRectF(-2 * m, m, 3 * m, 2 * m)
+        self.__west_tx_rect = QRectF(-2 * m,     m, 3 * m, 2 * m)
         self.__west_rx_rect = QRectF(-2 * m, 3 * m, 3 * m, 2 * m)
 
         self.__core_rect = QRectF(m, m, 4 * m, 4 * m)
+
+        self.__sensor_rect = QRectF(-2 * m, -2 * m, 10 * m, 10 * m)
         # self.__core_rect.setX(self.__x)
         # self.__core_rect.setY(self.__y)
 
@@ -159,78 +171,76 @@ class Node(QGraphicsItem):
 
     def setProperty(self, core_rx=None, core_tx=None, north_rx=None, north_tx=None,
                     south_tx=None, south_rx=None, east_tx=None, east_rx=None, west_rx=None, west_tx=None,
-                    text = None, led = None):
+                    text = None, led = None, sensor_value=None):
 
         if text is not None:
             self.__text = text
-
         if led is not None:
             self.__led = led
-
         if core_rx is not None:
             if core_rx != self.__core_rx:
                 self.__core_rx = core_rx
-                self.__core_rx_brush = self.valueToColor(core_rx, 'rx')
-                # self.__upToDate = False
+                self.__core_rx_brush = self.directionToColor(core_rx, 'rx')
         if core_tx is not None:
             if core_tx != self.__core_tx:
                 self.__core_tx = core_tx
-                self.__core_tx_brush = self.valueToColor(core_tx, 'tx')
-                # self.__upToDate = False
-
+                self.__core_tx_brush = self.directionToColor(core_tx, 'tx')
         if north_rx is not None:
             if north_rx != self.__north_rx:
                 self.__north_rx = north_rx
-                self.__north_rx_brush = self.valueToColor(north_rx, 'rx')
-                # self.__upToDate = False
+                self.__north_rx_brush = self.directionToColor(north_rx, 'rx')
         if north_tx is not None:
             if north_tx != self.__north_tx:
                 self.__north_tx = north_tx
-                self.__north_tx_brush = self.valueToColor(north_tx, 'tx')
-                # self.__upToDate = False
-
+                self.__north_tx_brush = self.directionToColor(north_tx, 'tx')
         if south_rx is not None:
             if south_rx != self.__south_rx:
                 self.__south_rx = south_rx
-                self.__south_rx_brush = self.valueToColor(south_rx, 'rx')
-                # self.__upToDate = False
+                self.__south_rx_brush = self.directionToColor(south_rx, 'rx')
         if south_tx is not None:
             if south_tx != self.__south_tx:
                 self.__south_tx = south_tx
-                self.__south_tx_brush = self.valueToColor(south_tx, 'tx')
-                # self.__upToDate = False
-
+                self.__south_tx_brush = self.directionToColor(south_tx, 'tx')
         if east_rx is not None:
             if east_rx != self.__east_rx:
                 self.__east_rx = east_rx
-                self.__east_rx_brush = self.valueToColor(east_rx, 'rx')
-                # self.__upToDate = False
+                self.__east_rx_brush = self.directionToColor(east_rx, 'rx')
         if east_tx is not None:
             if east_tx != self.__east_tx:
                 self.__east_tx = east_tx
-                self.__east_tx_brush = self.valueToColor(east_tx, 'tx')
-                # self.__upToDate = False
-
+                self.__east_tx_brush = self.directionToColor(east_tx, 'tx')
         if west_rx is not None:
             if west_rx != self.__west_rx:
                 self.__west_rx = west_rx
-                self.__west_rx_brush = self.valueToColor(west_rx, 'rx')
-                # self.__upToDate = False
+                self.__west_rx_brush = self.directionToColor(west_rx, 'rx')
         if west_tx is not None:
             if west_tx != self.__west_tx:
                 self.__west_tx = west_tx
-                self.__west_tx_brush = self.valueToColor(west_tx, 'tx')
-                # self.__upToDate = False
+                self.__west_tx_brush = self.directionToColor(west_tx, 'tx')
+        if sensor_value is not None:
+            # if sensor_value != self.__sensor_value:
+            self.__sensor_value = sensor_value
+            self.__sensor_value_brush = self.sensorValueToColor(sensor_value)
 
 
-    def valueToColor(self, v, direction):
+    def directionToColor(self, v, direction):
         if v == 1:
             if direction == 'rx':
-                return QColor("green")
+                return self.__green
             elif direction == 'tx':
-                return QColor("red")
+                return self.__red
         elif v == 0:
-            return QColor("white")
+            return self.__white
+
+    def sensorValueToColor(self, v):
+        #TODO: do the conversion depending on the colormap
+        # random.seed()
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
+        c = QColor(r, g, b, 255)
+        return c
+
 
     def translateXY(self, c):
         # offset_x = (0 * self.m * ((self.x_size - 1) / 1) ) * -1
@@ -247,12 +257,15 @@ class Node(QGraphicsItem):
         return x_t, y_t
 
     def paint(self, qp, QStyleOptionGraphicsItem, QWidget_widget=None):
-        # qp.setBrush(QColor("white"))
+        # qp.setBrush(white)
         qp.setPen(QColor("lightgrey"))
 
         m = self.__m
         # x = 0
         # y = 0
+
+        qp.setBrush(self.__sensor_value_brush)
+        qp.drawRect(self.__sensor_rect)
 
         qp.setBrush(self.__north_tx_brush)
         qp.drawRect(self.__north_tx_rect) #draw netdev north rx e tx
@@ -276,7 +289,7 @@ class Node(QGraphicsItem):
 
 
         qp.setPen(QColor("darkgrey"))
-        qp.setBrush(QColor("white"))
+        qp.setBrush(self.__white)
 
         # rect = MyRect(x + c, self.__y + c, 4 * c, 4 * c)
         # rect.setActive(True)
@@ -289,12 +302,12 @@ class Node(QGraphicsItem):
 
         qp.drawRect(self.__core_rect)
 
-        qp.setBrush(QColor("white"))
+        qp.setBrush(self.__white)
         qp.setBrush( self.__led_off_brush)
-        # qp.setPen(QColor("white"))
+        # qp.setPen(white)
         if (self.__led == 1):
             qp.setBrush( self.__led_on_brush)
-            # qp.setPen(QColor("green"))
+            # qp.setPen(self.__green)
         qp.drawEllipse(3.3 * m, 3.3 * m, 1.3 * m, 1.3 * m)  # draw the node
         # if (self.__led == 0):
         #     qp.setBrush( self.__led_off_brush)
@@ -527,6 +540,8 @@ class NOCAnim(QWidget):
                     node.setProperty(led = 1)
                 # else:
                 #     node.setProperty(led = 0)
+
+                node.setProperty(sensor_value= 0)
 
                 if current_trans[trace.operation] == 'c':
                     node.setProperty(core_rx = 1)

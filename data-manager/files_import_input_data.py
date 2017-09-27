@@ -494,7 +494,7 @@ t_step = get_config(fn_cfg, 'UNST_TIMESTEP')
 
 
 # for i in range(0,1500):
-for i in [100, 110]: #, 120, 130, 140, 150]:
+for i in [100, 110, 120, 130, 140, 150]:
 # for i in [150]:
     fn = dir + 'surface_flow_{:05d}.csv'.format(i)
 
