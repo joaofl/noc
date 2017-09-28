@@ -26,7 +26,7 @@ from os.path import expanduser
 
 from PyQt5.QtWidgets import * #QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
 from PyQt5.QtOpenGL import *
-from PyQt5.QtGui import QPainter, QColor, QBrush, QFont, QPen
+from PyQt5.QtGui import *
 from PyQt5.QtCore import QTimer, Qt, QRectF
 from collections import namedtuple
 import _thread
@@ -646,6 +646,7 @@ if __name__ == '__main__':
         if options.verbose: print (time.asctime())
 
         app = QApplication(sys.argv)
+        app.setWindowIcon(QIcon('others/grid2.png'))
         ex = NOCAnim()
 
         if options.verbose: print (time.asctime())

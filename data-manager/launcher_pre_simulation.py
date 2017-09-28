@@ -422,6 +422,7 @@ class NOCPreLauncher(QWidget):
 
 
 app =  QApplication([])
+app.setWindowIcon(QIcon('others/grid2.png'))
 mfl = NOCPreLauncher()
 mfl.show()
 

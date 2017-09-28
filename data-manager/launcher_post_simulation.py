@@ -20,6 +20,7 @@
 __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 from os.path import expanduser
 import files_io
 import os
@@ -35,6 +36,7 @@ class NOCLauncher(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         # setGeometry(x_pos, y_pos, width, height)
+
         self.setGeometry(300, 200, 300, 630)
 
         self.setWindowTitle('NoC4ns3 Launcher')
@@ -232,6 +234,7 @@ class NOCLauncher(QWidget):
 
 
 app =  QApplication([])
+app.setWindowIcon(QIcon('others/grid2.png'))
 mfl = NOCLauncher()
 mfl.show()
 
