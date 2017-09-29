@@ -167,7 +167,7 @@ main(int argc, char *argv[]) {
     string context = "WCA_CLUSTER_";
     
 //    ['0.01', '0.02', '0.04', '0.05', '0.06', '0.08', '0.10', '0.50', '1.00']
-    string beta_str = "0.01";
+    string beta_str = "1";
     string output_data_dir = homedir + "/noc-data";
     
     string input_sensors_data_path = "";
@@ -428,11 +428,11 @@ main(int argc, char *argv[]) {
         }
 //        cout << bucket_ms[i] << ", ";
     }   
-    cout << "\nSum of ms expected: " << ch * ms << " got: " << sum_ms << " zeros: "<< sum_ms_zeros <<"\n";
+    cout << "Sum of ms expected: " << ch * ms << " got: " << sum_ms << " zeros: "<< sum_ms_zeros <<"\n";
 
     /////////// Beta
     double_t sum_beta = 0;
-    double_t variability = 0.2;
+    double_t variability = 0.5;
     double_t max_beta = beta * (1 + variability);
     double_t min_beta = beta * (1 - variability);
     if (max_beta > 1)
@@ -453,7 +453,7 @@ main(int argc, char *argv[]) {
         sum_beta += bucket_beta[i];
 //        cout << bucket_beta[i] << ", ";
     }   
-    cout << "\nSum of betas expected: " << ch * beta << " got: " << sum_beta << " zeros: "<< sum_ms_zeros <<"\n";    
+    cout << "Sum of betas expected: " << ch * beta << " got: " << sum_beta << " zeros: "<< sum_ms_zeros <<"\n";    
     
 //    exit(0);
 //    
@@ -522,8 +522,11 @@ main(int argc, char *argv[]) {
     file_flows_source.close();
     file_simulation_info.close(); //it is only modified here, so can be closed
     
-    cout << "Log files saved" << endl;
-
     Simulator::Destroy();
+    
+    cout << "Log files saved" << endl;
+    cout << "Simulation completed" << endl;
+    cout << "----------" << endl;
+    
     return 0;
 }

@@ -440,11 +440,11 @@ main(int argc, char *argv[]) {
         }
         cout << bucket_ms[i] << ", ";
     }   
-    cout << "\nSum of ms expected: " << ch * ms << " got: " << sum_ms << " zeros: "<< sum_ms_zeros <<"\n";
+    cout << "Sum of ms expected: " << ch * ms << " got: " << sum_ms << " zeros: "<< sum_ms_zeros <<"\n";
 
     /////////// Beta
     double_t sum_beta = 0;
-    double_t variability = 0.2;
+    double_t variability = 0.5;
     double_t max_beta = beta * (1 + variability);
     double_t min_beta = beta * (1 - variability);
     if (max_beta > 1)
@@ -465,7 +465,7 @@ main(int argc, char *argv[]) {
         sum_beta += bucket_beta[i];
 //        cout << bucket_beta[i] << ", ";
     }   
-    cout << "\nSum of betas expected: " << ch * beta << " got: " << sum_beta << " zeros: "<< sum_ms_zeros <<"\n"; 
+    cout << "Sum of betas expected: " << ch * beta << " got: " << sum_beta << " zeros: "<< sum_ms_zeros <<"\n"; 
     
 //    exit(0);
  
@@ -510,23 +510,26 @@ main(int argc, char *argv[]) {
     //**************** Simulation Setup **************************
 
     
-    cout << endl << "Simulation started, please wait..." << endl ;
+    cout << "Simulation started, please wait..." << endl ;
     
     Simulator::Stop(Seconds(1));
     Simulator::Run();
 
     //**************** Output Printing ***************************
 
-    cout << "Simulation completed successfully" << endl ;
+//    cout << "Simulation completed successfully" << endl ;
     
     file_packet_trace.close();
 //    file_queue_size_trace.close();
 //    file_flow_trace.close();
     file_flows_source.close();
     file_simulation_info.close(); //it is only modified here, so can be closed
-    
-    cout << "Log files saved" << endl;
 
     Simulator::Destroy();
+    
+    cout << "Log files saved" << endl;
+    cout << "Simulation completed" << endl;
+    cout << "----------" << endl;
+    
     return 0;
 }

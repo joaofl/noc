@@ -331,53 +331,60 @@ class NOCPreLauncher(QWidget):
 
         dir = self.textbox_ns3_dir.text()
         cmd_list = []
-        # cmd_list.append("./waf shell")
 
         for i in range(0, self.listbox_batch.count()):
-            cmd_list.append(str(self.listbox_batch.item(i).text()) + " &\n")
+            cmd_list.append(str(self.listbox_batch.item(i).text()))
 
         # output = Parallel(n_jobs=8)(delayed(self.run)(cmd, dir) for cmd in cmd_list)
-
-        p = subprocess.Popen("./waf shell", cwd=dir, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) #, universal_newlines=True)
-
+        # p = subprocess.Popen("./waf shell", cwd=dir, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) #, universal_newlines=True)
         # out = select.poll()
         # out.register(p.stdout)
 
-        for i, cmd in enumerate(cmd_list):
+        p = pexpect.spawnu("/bin/bash", logfile=sys.stdout)  #
+
+        p.sendline("cd " + dir)
+        p.sendline("./waf shell")
+        time.sleep(2)
+
+        # print(p.read_nonblocking(2000, 2000))
+
+        if p.expect('$', timeout=5) == 0:
+            p.read_nonblocking(2000,3)
+            print("--------Entered NS3 shell-----------\n\n")
+
+
+        for i, cmd in enumerate(reversed(cmd_list)):
             print('Simulation scenario {} out of {} ({:0.2f}%)'.format(i+1, len(cmd_list), i*100/len(cmd_list)))
 
-            p.stdin.write(cmd.encode())
-            p.stdin.flush()
-            # p.stdout.flush()
-            # self.wait_process(p)
+            p.sendline(cmd)
+            p.expect("----------")  # , timeout=100)
 
-        p.stdin.close()
+            # if (i+1) % 4 == 0:
+            #     p.sendline(cmd_list[i-0])
+            #     p.sendline(cmd_list[i-1])
+            #     p.sendline(cmd_list[i-2])
+            #     p.sendline(cmd_list[i-3])
+            #
+            #     p.expect("----------") #, timeout=100)
+            #     p.expect("----------") #, timeout=100)
+            #     p.expect("----------") #, timeout=100)
+            #     p.expect("----------") #, timeout=100)
+
+            # print(p.read_nonblocking(10000))
+            # p.read_nonblocking(10000)
+
+            # exit(0)
 
 
-
-        #################### Another approach ### seems better
-        # p = pexpect.spawnu("/bin/bash", logfile=sys.stdout)  #
+        # nothing = 0;
+        # while nothing < 20:
+        #     l = p.stdout.readline().decode().split('\n')[0]
         #
-        # p.sendline("cd /home/joao/Repositorios/ns-3-dev/")
-        # p.sendline("./waf shell")
-        # time.sleep(2)
-        #
-        # # print(p.read_nonblocking(2000, 2000))
-        #
-        # p.expect('ns-3-dev $', timeout=1000)
-        # print(p.read())
-        ####################
-
-
-        nothing = 0;
-        while nothing < 20:
-            l = p.stdout.readline().decode().split('\n')[0]
-
-            if l == "":
-                nothing += 1;
-            else:
-                print(l)
-                nothing = 0;
+        #     if l == "":
+        #         nothing += 1;
+        #     else:
+        #         print(l)
+        #         nothing = 0;
 
 
 
@@ -389,8 +396,8 @@ class NOCPreLauncher(QWidget):
         # file_to_run = 'src/noc/examples/xdense-full'
         # files_to_run = ['src/noc/examples/xdense-cluster']
         dir = "./build/src/noc/examples/"
-        files_to_run = ['xdense-cluster', 'xdense-full']
-        # files_to_run = ['xdense-cluster-h', 'xdense-full-h']
+        # files_to_run = ['xdense-cluster', 'xdense-full']
+        files_to_run = ['xdense-cluster-h', 'xdense-full-h']
         # context = 'WCA_ALL_'
         n_size_mask = [1, 2, 3, 4, 5]
         # n_size_mask = [3]
