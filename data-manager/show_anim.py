@@ -220,6 +220,8 @@ class Node(QGraphicsItem):
         if sensor_value is not None:
             # if sensor_value != self.__sensor_value:
             self.__sensor_value = sensor_value
+            if sensor_value == -1:
+                print(sensor_value)
             self.__sensor_value_brush = self.sensorValueToColor(sensor_value)
 
 
@@ -243,7 +245,7 @@ class Node(QGraphicsItem):
         # return c
 
         if v == -1:
-            return QColor(255, 255, 255, 0)
+            return QColor("white")
 
         ######################### Convert to RGB ########################
         def interpolate(val, y0, x0, y1, x1):
@@ -591,7 +593,7 @@ class NOCAnim(QWidget):
                 node = self.network[y][x]
 
                 if current_trans[trace.operation] == 's':
-                    v = current_trans[trace.sensor_value]
+                    v = int(current_trans[trace.sensor_value])
                     node.setProperty(sensor_value=v)
                     continue
 

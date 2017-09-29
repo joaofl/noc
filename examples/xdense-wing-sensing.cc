@@ -144,12 +144,15 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 30; //This represents a single quadrant
+    uint32_t size_x = 30*2; //This represents a single quadrant
     uint32_t size_y = 50;
     uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
+    uint32_t sink_x = 30;
+    uint32_t sink_y = 0;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
+    
     string beta_str;
     
     struct passwd *pw = getpwuid(getuid());
@@ -181,6 +184,8 @@ main(int argc, char *argv[]) {
     
     ///////////////////////////////////////////////////////////////
     
+    
+    //Context, which is the string used to create the folder the files will be placed
     stringstream context_dir;
     context_dir << "/";
     context_dir << context;
@@ -202,7 +207,7 @@ main(int argc, char *argv[]) {
     input_shaping_data_path = dir_output + "post/shaping_config.csv.---DONT_LOAD---";
     
     int status;
-    status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    status = mkpath(dir_output.c_str());
     //TODO: threat possible errors here
     if (status != 0) {
         cout << "Error creating the directory " << dir_output << "\n";
@@ -302,8 +307,14 @@ main(int argc, char *argv[]) {
         my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_XY_CLOCKWISE);
 	
         //Setup app
+        
+        int64_t v = my_sensors_input_data.GetValue3D(0,x.Get(),y.Get());
+        if (v == -1)
+            my_xdense_app->IsActive = false; //Disable nodes which are non existent, which are "outside" the wing
+        else
+            my_xdense_app->IsActive = true;
+                
         my_xdense_app->IsSink = false;
-        my_xdense_app->IsActive = true;
         //TODO: Believe it should be get from the packet header itself, or ask the router
         my_xdense_app->PacketDuration = packet_duration;  //nano seconds
         my_xdense_app->ClusterSize_x = size_neighborhood;
@@ -373,52 +384,33 @@ main(int argc, char *argv[]) {
 
     
     //////////////////// From here, initialize the application at the nodes ///////////////// 
-//    uint8_t  initial_delay = 1;
-//    double_t offset = 0;   
-//    uint32_t ms = 1;
-    
-    uint32_t sink_x = 0;
-    uint32_t sink_y = 0;
-    
-//    double_t beta = 1;
 
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
             
             uint32_t n = GetN(size_x, size_y, x, y);
-            uint16_t d = NOCRouting::Distance(sink_x, sink_y, x, y);
-
-            XDenseHeader hd_out;
-            hd_out.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
-            Ptr<Packet> pck_out = Create<Packet>();
-            pck_out->AddHeader(hd_out);
-            
+//            uint16_t d = NOCRouting::Distance(sink_x, sink_y, x, y);
+          
             if (y == sink_y && x == sink_x){
                 //sink does not send to itself
+                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
                 continue;
             } 
-            
-            //TODO: This should move from here to the actual application, at the time it generates the flow (after the request)
             //my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
-//            my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(
-//                    initial_delay, beta, offset, ms, pck_out, sink_x, sink_y, 
-//                    XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST_OFFSET);   
             Ptr<XDenseApp> app = my_xdense_app_container.Get(n)->GetObject<XDenseApp>();
-            Simulator::Schedule(packet_duration * d , &XDenseApp::DataAnnouncement, app, sink_x, sink_y);
+            
+            for (uint16_t n = 1 ; n <= 5 ; n++){
+                Simulator::Schedule(n * packet_duration * 100 , &XDenseApp::DataAnnouncement, app, sink_x, sink_y);
+            }
         }
     }
 
 
-    //**************** Simulation Setup **************************
 
-    
     cout << endl << "Simulation started, please wait..." << endl ;
-    
     Simulator::Stop(Seconds(1));
     Simulator::Run();
-
     //**************** Output Printing ***************************
-
     cout << "Simulation completed successfully" << endl ;
     
     file_packet_trace.close();

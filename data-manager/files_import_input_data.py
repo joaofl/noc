@@ -483,7 +483,8 @@ sensors_datas = []
 sensors_time = []
 
 #Get the time step from the config file
-dir = '/home/joao/noc-data/input-data/sensors/sources/su2/pitching_onera_euler/'
+# dir = '/home/joao/noc-data/input-data/sensors/sources/su2/pitching_onera_euler/'
+dir = '/mnt/hd/joao/noc-data NS/pitching_oneram6_fine_step_greater_angle/'
 fn_cfg = dir + 'pitching_ONERAM6.cfg'
 
 t_step = get_config(fn_cfg, 'UNST_TIMESTEP')
@@ -494,8 +495,8 @@ t_step = get_config(fn_cfg, 'UNST_TIMESTEP')
 
 
 # for i in range(0,1500):
-for i in [100, 110, 120, 130, 140, 150]:
-# for i in [150]:
+# for i in [100, 110, 120, 130, 140, 150]:
+for i in [35, 62, 132, 211, 262, 344, 696]:
     fn = dir + 'surface_flow_{:05d}.csv'.format(i)
 
     print('Importing data from SU2 file' + fn)
