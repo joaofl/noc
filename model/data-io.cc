@@ -53,8 +53,9 @@ int do_mkdir(const char *path, mode_t mode)
 ** each directory in path exists, rather than optimistically creating
 ** the last element and working backwards.
 */
-int mkpath(const char *path, mode_t mode)
+int mkpath(const char *path)
 {
+    mode_t mode = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
     char           *pp;
     char           *sp;
     int             status;

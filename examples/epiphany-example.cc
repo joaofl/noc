@@ -123,7 +123,7 @@ main(int argc, char *argv[]) {
     dir_input = dir_base + "/in/";
     
     int status;
-    status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    status = mkpath(dir_output.c_str());
     if (status != 0) {
         cout << "Error creating the directory " << dir_output << "\n. The program will terminate now.";
         exit(0);

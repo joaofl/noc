@@ -46,7 +46,7 @@
 using namespace std;    
 
 int do_mkdir(const char *path, mode_t mode);
-int mkpath(const char *path, mode_t mode);
+int mkpath(const char *path);
 
 //TODO: make it static maybe.. Make different classes?. Improve it!
 namespace ns3 {

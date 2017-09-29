@@ -430,13 +430,13 @@ namespace ns3 {
         int64_t data = Sensor->ReadSensor();
         m_sensed_data(data , 0);
         
-        Ptr<Packet> pck = Create<Packet>();
-        XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
-        hd.SetData(data);
-        pck->AddHeader(hd);
-
-        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_ABSOLUTE); 
+//        Ptr<Packet> pck = Create<Packet>();
+//        XDenseHeader hd;
+//        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
+//        hd.SetData(data);
+//        pck->AddHeader(hd);
+//
+//        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_ABSOLUTE); 
     }
     
     bool

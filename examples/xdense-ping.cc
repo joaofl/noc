@@ -175,7 +175,7 @@ main(int argc, char *argv[]) {
     input_delay_data_path = output_data_dir + "/input-data/delays/forward-delay-uc-high-uart-irq-by-node-10ks@3.0Mbps.data.csv";
 
     int status;
-    status = mkpath(dir_output.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    status = mkpath(dir_output.c_str());
     //TODO: threat possible errors here
     if (status != 0) {
         cout << "Error creating the directory " << dir_output << "\n";
