@@ -67,10 +67,9 @@ using namespace ns3;
 
 //ofstream file_packets_trace_router;
 ofstream file_packet_trace;
-ofstream file_queue_size_trace;
-ofstream file_flow_trace;
 ofstream file_simulation_info;
 ofstream file_flows_source;
+ofstream file_sensed_data;
 
 Time start_offset, packet_duration;
 
@@ -102,29 +101,19 @@ log_netdevice_packets(string context, Ptr<const Packet> pck_r)
 }
 
 void
-log_flows(string context, Ptr<const Packet> pck_r){
+log_sensed_data(string context, int64_t data, uint32_t n){
+    
     uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
     
-    Ptr<Packet> pck = pck_r->Copy();
-    
-    NOCHeader hdnoc;
-    pck->RemoveHeader(hdnoc);
-    
-    XDenseHeader hdxd;
-    pck->RemoveHeader(hdxd);
-    
-    file_flow_trace
+    file_packet_trace
 //  Context info
     << now << ","
     << context << "," //[ i, x, y, port, event ];
-    << 0 << ","
-//  Packet info
-    << pck->GetUid() << ",";
-    hdnoc.Print(file_flow_trace);
-    file_flow_trace << ",";
-    hdxd.Print(file_flow_trace);
-    file_flow_trace << "\n";    
-}
+    << n << "," << data << '\n';
+    
+    
+    
+} 
 
 void
 log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, 
@@ -146,11 +135,6 @@ GetN(uint32_t size_x, uint32_t size_y, uint32_t x, uint32_t y){
     return (size_x * size_y) - ((y + 1) * size_x - x);
 }
 
-void
-log_sensed_data(){
-    
-}
-
 int
 main(int argc, char *argv[]) {
 
@@ -160,20 +144,21 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 20; //This represents a single quadrant
-    uint32_t size_y = 40;
+    uint32_t size_x = 30; //This represents a single quadrant
+    uint32_t size_y = 50;
     uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
-
+    string beta_str;
+    
     struct passwd *pw = getpwuid(getuid());
     string homedir = pw->pw_dir;
     string context = "WING_";
 
     string output_data_dir = homedir + "/noc-data";
     
-    string input_sensors_data_path = "";
+    string input_sensors_data_path = "/home/joao/noc-data/input-data/sensors/pitching-onera.csv";
     string input_delay_data_path = "";
     string input_shaping_data_path = "";
     
@@ -199,7 +184,7 @@ main(int argc, char *argv[]) {
     stringstream context_dir;
     context_dir << "/";
     context_dir << context;
-    context_dir << "b" << beta_str;
+//    context_dir << "b" << beta_str;
     context_dir << "nw" << size_x << "x" << size_y;
 //    context_dir << "s" << sinks_n;
     context_dir << "n" << size_neighborhood;
@@ -223,13 +208,14 @@ main(int argc, char *argv[]) {
         cout << "Error creating the directory " << dir_output << "\n";
     }
     
-    DataIO my_input_data;
+    DataIO my_sensors_input_data;
     
-    if ( my_input_data.LoadArray(input_delay_data_path)  == 0){
-        cout << "Error loading the input data file at " << input_delay_data_path << "\n";
+    if ( my_sensors_input_data.LoadArray3D(input_sensors_data_path)  == 0){
+        cout << "Error loading the input data file at " << input_sensors_data_path << "\n";
+        exit(1);
     }
     else{
-        cout << "Delay's data sucessfully loaded:  " << input_delay_data_path << "\n";
+        cout << "Sensors data sucessfully loaded:  " << input_sensors_data_path << "\n";
     }
 
     NOCRouterShapingConf my_shaping_data;
@@ -251,22 +237,24 @@ main(int argc, char *argv[]) {
             << " --size_neighborhood=" << size_neighborhood
             << " --sinks_n=" << sinks_n
             << " --baudrate=" << baudrate
-            << " --packet_size=" << pck_size;
-    cout << "Log file created at " << filename << endl;
-    
+            << " --beta=" << beta_str
+            << " --packet_size=" << pck_size
+            << " --output_data=" << output_data_dir
+            << " --input_data=" << input_sensors_data_path
+            << " --input_delay_data=" << input_delay_data_path
+            << " --context=" << context
+            << " --extra=" << extra;
+        cout << "Log file created at " << filename << endl;
+        
+    file_simulation_info.close(); //it is only modified here, so can be closed
 
     filename = dir_output + "packets-trace-netdevice.csv";
     file_packet_trace.open(filename.c_str(), ios::out);
     cout << "Log file created at " << filename << endl;
 
-//    filename = dir_output + "queue-size-trace.csv";
-//    file_queue_size_trace.open(filename.c_str(), ios::out);
-//    cout << "Log file created at " << filename << endl;
-
-//    filename = dir_output + "flows-trace.csv";
-//    file_flow_trace.open(filename.c_str(), ios::out);
-//    cout << "Log file created at " << filename << endl;
-    
+    filename = dir_output + "sensed-data-trace.csv";
+    file_sensed_data.open(filename.c_str(), ios::out);
+    cout << "Log file created at " << filename << endl;    
 
     filename = dir_output + "flows-source.csv";
     file_flows_source.open(filename.c_str(), ios::out);
@@ -285,9 +273,6 @@ main(int argc, char *argv[]) {
     my_grid_network_helper.SetDeviceAttribute("DataRate", DataRateValue(DataRate(baudrate)));
     my_grid_network_helper.SetDeviceAttribute("InterframeGap", TimeValue(MilliSeconds(0)));
     my_grid_network_helper.SetDeviceAttribute("SerialComm", BooleanValue(true));
-    //If the connection is not serial, then the packet size defines the link width,
-    //and one packet is transmitted in one tick of a given baudrate
-    //my_grid_network.SetDeviceAttribute("PacketSize", IntegerValue(4)); //in bytes
     
     my_grid_network_helper.SetChannelAttribute("Delay", TimeValue(MilliSeconds(0)));
     
@@ -304,7 +289,8 @@ main(int argc, char *argv[]) {
         
     for (uint32_t i = 0; i < n_nodes; i++) {
         Ptr<XDenseApp> my_xdense_app = CreateObject<XDenseApp> ();
-        Ptr<NOCRouterDelayModel> my_router_delay_model = CreateObject<NOCRouterDelayModel> ();
+//        Ptr<NOCRouterDelayModel> my_router_delay_model = CreateObject<NOCRouterDelayModel> ();
+        Ptr<XDenseSensorModel> my_sensor_model = CreateObject<XDenseSensorModel> ();
         
         //Setup router
         Ptr<NOCRouter> my_noc_router = my_node_container.Get(i)->GetApplication(INSTALLED_NOC_ROUTER)->GetObject<NOCRouter>();
@@ -312,35 +298,39 @@ main(int argc, char *argv[]) {
         my_noc_router->GetAttribute("AddressX", x);
         my_noc_router->GetAttribute("AddressY", y);
         my_noc_router->SetDataRate(DataRate(baudrate));
-        my_noc_router->RoutingDelays = my_router_delay_model; //TODO: use a method set instead, otherwise there will be no default value, and it wont work.
-//        my_noc_router->ServerPolicy = NOCRouter::ROUND_ROBIN; //TODO: use a method set instead
         my_noc_router->ServerPolicy = NOCRouter::FIFO;
         my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_XY_CLOCKWISE);
-//        my_noc_router->SetRoutingProtocolUnicast(NOCRouting::ROUTING_PROTOCOL_YFIRST);
-	my_router_delay_model->InputData = &my_input_data;
-
+	
         //Setup app
         my_xdense_app->IsSink = false;
         my_xdense_app->IsActive = true;
         //TODO: Believe it should be get from the packet header itself, or ask the router
         my_xdense_app->PacketDuration = packet_duration;  //nano seconds
         my_xdense_app->ClusterSize_x = size_neighborhood;
-        my_xdense_app->ClusterSize_y = size_neighborhood;      
+        my_xdense_app->ClusterSize_y = size_neighborhood;
+        
+        my_sensor_model->SensorPosition.x = x.Get();
+        my_sensor_model->SensorPosition.y = y.Get();
+        my_sensor_model->InputData = &my_sensors_input_data;
+        my_xdense_app->Sensor = my_sensor_model;
         
         
         ostringstream context[4];
         
         context[0] << i << "," << x.Get() << "," << y.Get();
-        my_xdense_app->TraceConnect("FlowSourceTrace", context[0].str(), MakeCallback(&log_flows_source));  
+        my_xdense_app->TraceConnect("FlowSourceTrace", context[0].str(), MakeCallback(&log_flows_source));
+        
+        context[3] << i << "," << x.Get() << "," << y.Get() << ",0,s";
+        my_xdense_app->TraceConnect("SensedDataTrace", context[3].str(), MakeCallback(&log_sensed_data));  
 
         
         context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
         my_noc_router->TraceConnect("RouterCxTrace", context[1].str(), MakeCallback(&log_netdevice_packets));
-        my_noc_router->TraceConnect("RouterCxTrace", context[1].str(), MakeCallback(&log_flows));
+//        my_noc_router->TraceConnect("RouterCxTrace", context[1].str(), MakeCallback(&log_flows));
         
         context[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",g";
         my_noc_router->TraceConnect("RouterGxTrace", context[2].str(), MakeCallback(&log_netdevice_packets));
-        my_noc_router->TraceConnect("RouterGxTrace", context[2].str(), MakeCallback(&log_flows));
+//        my_noc_router->TraceConnect("RouterGxTrace", context[2].str(), MakeCallback(&log_flows));
         
         
         //Setup NetDevice's Callback
@@ -363,7 +353,6 @@ main(int argc, char *argv[]) {
 //            context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
 //            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues)); 
             
-            
             if (my_shaping_data.IsShaped(x.Get(), y.Get(), direction)){
                 float b = my_shaping_data.GetBurstiness(x.Get(), y.Get(), direction);
                 float o = my_shaping_data.GetOffset(x.Get(), y.Get(), direction);
@@ -374,59 +363,48 @@ main(int argc, char *argv[]) {
 
         //Should be installed in this order!!!
         my_node_container.Get(i)->AddApplication(my_noc_router);
-        my_node_container.Get(i)->AddApplication(my_router_delay_model);
+        my_node_container.Get(i)->AddApplication(my_sensor_model);
         my_node_container.Get(i)->AddApplication(my_xdense_app);
 
         my_xdense_app_container.Add(my_xdense_app);
-        my_xdense_data_io_container.Add(my_router_delay_model);
+        my_xdense_data_io_container.Add(my_sensor_model);
         my_xdense_app->AddRouter(my_noc_router);
     }
 
     
     //////////////////// From here, initialize the application at the nodes ///////////////// 
-    uint8_t  initial_delay = 1;
-    double_t offset;   
-    uint32_t ms;
-    
-//    ms = ceil(pow(size_neighborhood + 1, 2) * (1 - c_rate));
-    
-    ms = ceil(pow(float_t(size_neighborhood) * 2 + 1, 2) * 4 * 0.04); 
-    //consider 1 packet per node reduced by the comrpession rate
-    
+//    uint8_t  initial_delay = 1;
+//    double_t offset = 0;   
+//    uint32_t ms = 1;
     
     uint32_t sink_x = 0;
     uint32_t sink_y = 0;
     
-//    double_t tmp = stod(beta_str) * 100;
-//    tmp = round(tmp);
-//    double_t beta = tmp / 100;
-    double_t beta = stod(beta_str);
+//    double_t beta = 1;
 
     for (uint32_t x = 0; x < size_x; x++) {
         for (uint32_t y = 0; y < size_y; y++) {
             
             uint32_t n = GetN(size_x, size_y, x, y);
+            uint16_t d = NOCRouting::Distance(sink_x, sink_y, x, y);
+
             XDenseHeader hd_out;
             hd_out.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
             Ptr<Packet> pck_out = Create<Packet>();
             pck_out->AddHeader(hd_out);
             
-            uint8_t d = NOCRouting::Distance(sink_x, sink_y, x, y);
-            uint8_t dx = NOCRouting::DistanceLinear(sink_x , x);
-            uint8_t dy = NOCRouting::DistanceLinear(sink_y , y);
-            
-            offset = d;
-            
-            if (y == sink_y && x == sink_x){ //The one to trace
+            if (y == sink_y && x == sink_x){
                 //sink does not send to itself
+                continue;
             } 
-             
-            else if((dx + size_neighborhood) % (size_neighborhood * 2 + 1) == 0 && 
-                    (dy + size_neighborhood) % (size_neighborhood * 2 + 1) == 0){
-                
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, sink_x, sink_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST_OFFSET);                                          
-            } 
+            
+            //TODO: This should move from here to the actual application, at the time it generates the flow (after the request)
+            //my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
+//            my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(
+//                    initial_delay, beta, offset, ms, pck_out, sink_x, sink_y, 
+//                    XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST_OFFSET);   
+            Ptr<XDenseApp> app = my_xdense_app_container.Get(n)->GetObject<XDenseApp>();
+            Simulator::Schedule(packet_duration * d , &XDenseApp::DataAnnouncement, app, sink_x, sink_y);
         }
     }
 
@@ -444,10 +422,8 @@ main(int argc, char *argv[]) {
     cout << "Simulation completed successfully" << endl ;
     
     file_packet_trace.close();
-//    file_queue_size_trace.close();
-//    file_flow_trace.close();
     file_flows_source.close();
-    file_simulation_info.close(); //it is only modified here, so can be closed
+    file_sensed_data.close(); 
     
     cout << "Log files saved" << endl;
 

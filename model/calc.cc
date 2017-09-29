@@ -39,7 +39,7 @@ namespace ns3 {
         }
         
         double_t factor = sum / sum_n;
-
+        uint16_t max_itr = 10;
         bool invalid = true;
         while (invalid){
             sum_n = 0;
@@ -57,6 +57,9 @@ namespace ns3 {
             factor = sum / sum_n;
             if (fabs(factor) > 0.98 && fabs(factor) < 1.02)
                 invalid = false;
+            if (max_itr == 0)
+                invalid = false;
+            max_itr--;
         }
         
         return bins;

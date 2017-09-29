@@ -44,9 +44,14 @@ namespace ns3 {
                 "ns3::XDenseApp::FlowSourceTrace")
 
                 .AddTraceSource("PingDelayTrace", 
-                "The packets received by the router of each node",
+                "Ping delay",
                 MakeTraceSourceAccessor(&XDenseApp::m_ping_delay),
                 "ns3::XDenseApp::PingDelayTrace")
+
+                .AddTraceSource("SensedDataTrace", 
+                "Sense data",
+                MakeTraceSourceAccessor(&XDenseApp::m_sensed_data),
+                "ns3::XDenseApp::SensedDataTrace")
                 ;
         return tid;
     }
@@ -182,20 +187,14 @@ namespace ns3 {
         m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 7,-7, ADDRESSING_RELATIVE);
         m_router->PacketUnicastOffset(pck,NETWORK_ID_0, 7, 7, ADDRESSING_RELATIVE);
 //        t_ns += 60 * PacketDuration;        
-//        
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastRadius, this->m_router, pck, NETWORK_ID_0, 7);
 //        t_ns += 60 * PacketDuration;
-//        
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastArea, this->m_router, pck, NETWORK_ID_0, 7, 7);
 //        t_ns += 60 * PacketDuration;
-//        
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastIndividuals, this->m_router, pck, NETWORK_ID_0, ClusterSize, ClusterSize);
 //        t_ns += 60 * PacketDuration;
-
-//        
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketBroadcast, this->m_router, pck, NETWORK_ID_0);
 //        t_ns += 60 * PacketDuration;
-//        
 //        m_router->PacketBroadcast(pck, 0);
     }
     
@@ -428,13 +427,16 @@ namespace ns3 {
     void
     XDenseApp::DataAnnouncement(int32_t x_dest, int32_t y_dest) {
 
+        int64_t data = Sensor->ReadSensor();
+        m_sensed_data(data , 0);
+        
         Ptr<Packet> pck = Create<Packet>();
-
         XDenseHeader hd;
         hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
+        hd.SetData(data);
         pck->AddHeader(hd);
 
-        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 
+        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_ABSOLUTE); 
     }
     
     bool

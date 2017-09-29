@@ -417,7 +417,9 @@ namespace ns3 {
             return false;
         
         Time t = Time::FromInteger(0, Time::NS);
-        t = RoutingDelays->GetDelay();
+        
+        if (RoutingDelays != NULL)
+            t = RoutingDelays->GetDelay();
             
 
         int8_t (NOCNetDevice::*fp)(Ptr<Packet>) = &NOCNetDevice::Send;

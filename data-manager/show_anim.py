@@ -233,12 +233,66 @@ class Node(QGraphicsItem):
             return self.__white
 
     def sensorValueToColor(self, v):
-        #TODO: do the conversion depending on the colormap
+        # TODO: do the conversion depending on the colormap
         # random.seed()
-        r = random.randint(0, 255)
-        g = random.randint(0, 255)
-        b = random.randint(0, 255)
-        c = QColor(r, g, b, 255)
+
+        # r = random.randint(0, 255)
+        # g = random.randint(0, 255)
+        # b = random.randint(0, 255)
+        # c = QColor(r, g, b, 255)
+        # return c
+
+        if v == -1:
+            return QColor(255, 255, 255, 0)
+
+        ######################### Convert to RGB ########################
+        def interpolate(val, y0, x0, y1, x1):
+            return (val - x0) * (y1 - y0) / (x1 - x0) + y0
+
+        def base(val):
+            if val <= -0.75:
+                return 0
+            elif val <= -0.25:
+                return interpolate(val, 0.0, -0.75, 1.0, -0.25)
+            elif val <= 0.25:
+                return 1.0
+            elif val <= 0.75:
+                return interpolate(val, 1.0, 0.25, 0.0, 0.75)
+            else:
+                return 0.0
+
+        def red(gray):
+            gray = (gray * 2) - 1
+            return base(gray - 0.5)
+
+        def green(gray):
+            gray = (gray * 2) - 1
+            return base(gray)
+
+        def blue(gray):
+            gray = (gray * 2) - 1
+            return base(gray + 0.5)
+
+        # if sensor_choice == packet_defines.APP_RESOURCE_SENSOR_LIGHT:
+        #     if value > 1500: value = 1500
+        #     value = float(value) / 1500
+        #
+        # if sensor_choice == packet_defines.APP_RESOURCE_SENSOR_TEMPERATURE:
+        #     if value - 10 > 30: value = 40
+        #     value = float(value - 10) / 40
+        #
+        # if sensor_choice == packet_defines.APP_RESOURCE_SENSOR_PRESSURE:
+        #     if value - 980 > 50: value = 1030
+        #     value = float(value - 980) / 50
+
+        value = int(v) / pow(2,16)
+
+        r = red(value)
+        g = green(value)
+        b = blue(value)
+
+        c = QColor.fromRgbF(r, g, b)
+
         return c
 
 
@@ -517,6 +571,7 @@ class NOCAnim(QWidget):
                 # self.network[y][x].updateSize(self.nodes_size)
 
     def timerEvent(self):
+
         lastT = int (self.packetTrace[-1][trace.time])
 
         self.resetNetwork()
@@ -535,13 +590,10 @@ class NOCAnim(QWidget):
                 # print(x, y)
                 node = self.network[y][x]
 
-
-                if current_trans[trace.app_protocol] == '6':
-                    node.setProperty(led = 1)
-                # else:
-                #     node.setProperty(led = 0)
-
-                node.setProperty(sensor_value= 0)
+                if current_trans[trace.operation] == 's':
+                    v = current_trans[trace.sensor_value]
+                    node.setProperty(sensor_value=v)
+                    continue
 
                 if current_trans[trace.operation] == 'c':
                     node.setProperty(core_rx = 1)
@@ -570,6 +622,8 @@ class NOCAnim(QWidget):
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
                         node.setProperty(west_tx = 1)
 
+                if current_trans[trace.app_protocol] == '6':
+                    node.setProperty(led = 1)
 
 
             else:
@@ -617,11 +671,18 @@ def lauch_external(x, y, port):
         os.system(cmd)
 
 
+class my_optparse(optparse.OptionParser):
+    def error(self, msg):
+        print("Error parsing some of the input arguments:")
+        print(msg)
+        pass
+
+
 if __name__ == '__main__':
 
     try:
         start_time = time.time()
-        parser = optparse.OptionParser(formatter=optparse.TitledHelpFormatter(), usage=globals()['__doc__'], version='$Id$')
+        parser = my_optparse(formatter=optparse.TitledHelpFormatter(), usage=globals()['__doc__'], version='$Id$')
 
         parser.add_option('--verbose', action='store_true', default=False, help='verbose output')
         parser.add_option('--inputdir', help='Dir containing the logs', default=None)

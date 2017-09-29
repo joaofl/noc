@@ -130,16 +130,16 @@ namespace ns3 {
             getline(file, tmp_a, '@');
             getline(file, tmp_t, '\n');
             stringstream n_matrix(tmp_a);
-            vector < vector<uint32_t> > matrix_value;
+            vector < vector<int64_t> > matrix_value;
 
             while (n_matrix.good()) {
                 getline(n_matrix, tmp_b, '\n');
                 stringstream n_line(tmp_b);
-                vector<uint32_t> line_value;
+                vector<int64_t> line_value;
                 
                 while (n_line.good()) {
                     getline(n_line, tmp_c, ',');
-                    uint32_t item = atof(tmp_c.c_str());
+                    int64_t item = atof(tmp_c.c_str());
                     line_value.push_back(item);
                 }
                 matrix_value.push_back(line_value);
@@ -157,7 +157,7 @@ namespace ns3 {
         return m_data_delay.size();
     }
     
-    uint32_t 
+    int64_t 
     DataIO::GetValue3D(uint32_t t, uint32_t x, uint32_t y) {
         //
         //        vector<uint32_t> line;
@@ -167,8 +167,8 @@ namespace ns3 {
         //        data = line.at(x);
         //        return data;
         
-        vector< vector <uint32_t> > matrix = m_data_sensors_on_time.at(t);
-        vector<uint32_t> line = matrix.at(y);
+        vector< vector <int64_t> > matrix = m_data_sensors_on_time.at(t);
+        vector<int64_t> line = matrix.at(y);
         return line.at(x);
     }
     
@@ -298,10 +298,10 @@ namespace ns3 {
         m_time_instant = 0;
     }
     
-    uint32_t 
+    int64_t 
     XDenseSensorModel::ReadSensor(void){
         
-        uint32_t r = InputData->GetValue3D(m_time_instant, SensorPosition.x, SensorPosition.y);
+        int64_t r = InputData->GetValue3D(m_time_instant, SensorPosition.x, SensorPosition.y);
         m_time_instant++;
         
         return r;

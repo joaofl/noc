@@ -55,7 +55,7 @@ namespace ns3 {
     public:
         uint8_t LoadArray3D(string);
         uint32_t GetArraySize3D(void);
-        uint32_t GetValue3D(uint32_t t, uint32_t x, uint32_t y);
+        int64_t GetValue3D(uint32_t t, uint32_t x, uint32_t y);
         
         
         bool LoadArray(string file_name);
@@ -68,8 +68,8 @@ namespace ns3 {
 
         vector<float> m_data_delay;
 
-        vector< vector<uint32_t> > m_data_sensors;
-        vector< vector< vector <uint32_t> > > m_data_sensors_on_time;
+//        vector< vector<uint32_t> > m_data_sensors;
+        vector< vector< vector <int64_t> > > m_data_sensors_on_time;
     };
 
     /**************************************************************************/
@@ -141,8 +141,8 @@ namespace ns3 {
         
         DataIO * InputData;
         
-        uint32_t ReadSensor(void);
-//        Time GetDelay(void);
+        int64_t ReadSensor(void);
+        Time GetData(void);
         
         XDenseSensorModel();
         virtual ~XDenseSensorModel();

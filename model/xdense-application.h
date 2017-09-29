@@ -74,8 +74,11 @@ namespace ns3 {
         double_t AggregationRate;
 //        int32_t AbsoluteX, AbsoluteY;
         
+        Ptr<XDenseSensorModel> Sensor;
+        
         TracedCallback< int32_t, int32_t, int32_t, int32_t, double, double, uint8_t, uint8_t > m_flows_source; //offset, beta, ms
         TracedCallback< int64_t > m_ping_delay; //offset, beta, ms
+        TracedCallback< int64_t, uint32_t > m_sensed_data; //offset, beta, ms
         
 
         Ptr <NOCOutputDataSensors> SinkReceivedData;
@@ -135,9 +138,6 @@ namespace ns3 {
 //        typedef struct {
 //            int32_t x, y;
 //        } node_ref;
-        
-
-
 
         virtual void StartApplication(void);
         virtual void StopApplication(void);
@@ -151,9 +151,6 @@ namespace ns3 {
 //        uint32_t m_packetDuration;
         Ptr<NOCRouter> m_router;
 //        std::vector<NodeRef> m_sinksList;
-        
-
-        
         
 //        std::vector<NodeRef> m_neighborsList;
 //        uint32_t m_nPackets;
