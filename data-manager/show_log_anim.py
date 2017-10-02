@@ -31,7 +31,7 @@ from PyQt5.QtCore import QTimer, Qt, QRectF
 from collections import namedtuple
 import _thread
 import random
-import show_sensor_data
+import show_data_viewer
 from node_graphics import Node
 
 
@@ -161,7 +161,7 @@ class NOCAnim(QWidget):
 
     def doActionOpenView(self):
         # self.viewers = []
-        self.viewers.append(show_sensor_data.SensorAnim(self.networkSize))
+        self.viewers.append(show_data_viewer.SensorAnim(self.networkSize))
         self.viewers[-1].show()
 
     def timerEvent(self):
@@ -183,42 +183,47 @@ class NOCAnim(QWidget):
                 y = int(current_trans[trace.y_absolute])
 
                 if current_trans[trace.operation] == 's':
-                    v = int(current_trans[trace.sensor_value])
-                    # self.anim_aux.setProperty(x, y, sensor_value=v)
-                    [vw.setProperty(x, y, sensor_value=v) for vw in self.viewers]
+                    # v = int(current_trans[trace.sensor_value])
+                    # self.viewers[1].setNode(x, y, sensor_value=v)
+                    # [viewer.setNode(x, y, core_tx = 1) for viewer in self.viewers]
                     continue
-                # else:
-                #     continue
+                elif current_trans[trace.operation] == 'S':
+                    v = int(current_trans[trace.sensor_value])
+                    x_origin = int(current_trans[trace.sensor_value + 1])
+                    y_origin = int(current_trans[trace.sensor_value + 2])
+                    # self.viewers[2].setNode(x_origin, y_origin, sensor_value=v)
+                    [viewer.setNode(x, y, sensor_value=v) for viewer in self.viewers]
+                    continue
 
-                if current_trans[trace.operation] == 'c':
-                    [viewer.setProperty(x, y, core_rx = 1) for viewer in self.viewers]
+                elif current_trans[trace.operation] == 'c':
+                    [viewer.setNode(x, y, core_rx = 1) for viewer in self.viewers]
                 elif current_trans[trace.operation] == 'g':
-                    [viewer.setProperty(x, y, core_tx = 1) for viewer in self.viewers]
+                    [viewer.setNode(x, y, core_tx = 1) for viewer in self.viewers]
 
                 elif current_trans[trace.operation] == 'r':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:
-                        [viewer.setProperty(x, y, north_rx=1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, north_rx=1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
-                        [viewer.setProperty(x, y, south_rx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, south_rx = 1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_E:
-                        [viewer.setProperty(x, y, east_rx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, east_rx = 1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
-                        [viewer.setProperty(x, y, west_rx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, west_rx = 1) for viewer in self.viewers]
 
-                    [viewer.setProperty(x, y, text=current_trans[trace.queue_size]) for viewer in self.viewers]
+                    [viewer.setNode(x, y, text=current_trans[trace.queue_size]) for viewer in self.viewers]
 
                 elif current_trans[trace.operation] == 't':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:
-                        [viewer.setProperty(x, y, north_tx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, north_tx = 1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
-                        [viewer.setProperty(x, y, south_tx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, south_tx = 1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_E:
-                        [viewer.setProperty(x, y, east_tx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, east_tx = 1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
-                        [viewer.setProperty(x, y, west_tx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, west_tx = 1) for viewer in self.viewers]
 
                 if current_trans[trace.app_protocol] == '6':
-                    [viewer.setProperty(x, y, led = 1) for viewer in self.viewers]
+                    [viewer.setNode(x, y, led = 1) for viewer in self.viewers]
 
 
             else:

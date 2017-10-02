@@ -33,20 +33,45 @@ class Node(QGraphicsItem):
     __east_rx_brush, __east_tx_brush = __white, __white
     __west_rx_brush, __west_tx_brush = __white, __white
 
-    port = {
-        'east_rx'  :   0b0000000000000001,
-        'east_tx'  :   0b0000000000000010,
-        'south_rx' :   0b0000000000000100,
-        'south_tx' :   0b0000000000001000,
-        'west_rx'  :   0b0000000000010000,
-        'west_tx'  :   0b0000000000100000,
-        'north_rx' :   0b0000000001000000,
-        'north_tx' :   0b0000000010000000,
-        'core_rx'  :   0b0000000100000000,
-        'core_tx'  :   0b0000001000000000,
-        'all'      :   0b0000001111111111,
-        'none'     :   0b0000000000000000,
-    }
+
+    class port():
+        __alpha = 150
+        __white = QColor(255, 255, 255, __alpha)  # r,g,b,alpha
+        __green = QColor(0, 255, 0, __alpha)
+        __red = QColor(255, 0, 0, __alpha)
+
+        def __init__(self, rect, io, node_x, node_y):
+            self.brush = self.__white
+            self.rect = rect
+            self.io = io
+
+        def directionToColor(self, v):
+            if v == 0:
+                return self.__white
+            if v == 1:
+                if self.io == 1:
+                    return self.__green
+                elif self.io == 0:
+                    return self.__red
+
+        def set_value(self, v):
+
+
+
+    # port = {
+    #     'east_rx'  :   0b0000000000000001,
+    #     'east_tx'  :   0b0000000000000010,
+    #     'south_rx' :   0b0000000000000100,
+    #     'south_tx' :   0b0000000000001000,
+    #     'west_rx'  :   0b0000000000010000,
+    #     'west_tx'  :   0b0000000000100000,
+    #     'north_rx' :   0b0000000001000000,
+    #     'north_tx' :   0b0000000010000000,
+    #     'core_rx'  :   0b0000000100000000,
+    #     'core_tx'  :   0b0000001000000000,
+    #     'all'      :   0b0000001111111111,
+    #     'none'     :   0b0000000000000000,
+    # }
 
     # direction = {
     #     0 : 'out',
@@ -72,10 +97,10 @@ class Node(QGraphicsItem):
     def rescale(self, node_size):
         self.__x_pos = self.position[0]
         self.__y_pos = self.position[1]
-        self.__x_size, self.__y_size = self.nw_size
+        # self.__x_size, self.__y_size = self.nw_size
         self.__m = node_size / 10
 
-        self.__x, self.__y = self.translateXY(self.position, self.nw_size, self.__m)
+        self.__x, self.__y = self.translateXY(self.position, self.__m)
 
         self.setPos(self.__x, self.__y)
         m = self.__m
@@ -98,8 +123,8 @@ class Node(QGraphicsItem):
         self.__sensor_rect = QRectF(-2 * m, -2 * m, 10 * m, 10 * m)
 
 
-    def translateXY(self, position, size, ratio):
-        side = ratio * 10
+    def translateXY(self, position, ratio):
+        side = ratio * 10 #1o is the total size of a node
 
         x = position[0]
         y = position[1]
@@ -138,32 +163,32 @@ class Node(QGraphicsItem):
         # r.adjust(self, 1,1,1,1)
         return r
 
-    def get_who(self, pos):
-        who = None
-        if self.__core_rect.contains(pos):
-            who = self.port['core']
-
-        elif self.__east_rx_rect.contains(pos):
-            who = self.port['east']
-        elif self.__east_tx_rect.contains(pos):
-            who = self.port['east']
-
-        elif self.__west_rx_rect.contains(pos):
-            who = self.port['west']
-        elif self.__west_tx_rect.contains(pos):
-            who = self.port['west']
-
-        elif self.__north_rx_rect.contains(pos):
-            who = self.port['north']
-        elif self.__north_tx_rect.contains(pos):
-            who = self.port['north']
-
-        elif self.__south_rx_rect.contains(pos):
-            who = self.port['south']
-        elif self.__south_tx_rect.contains(pos):
-            who = self.port['south']
-
-        return who
+    # def get_who(self, pos):
+    #     who = None
+    #     if self.__core_rect.contains(pos):
+    #         who = self.port['core']
+    #
+    #     elif self.__east_rx_rect.contains(pos):
+    #         who = self.port['east']
+    #     elif self.__east_tx_rect.contains(pos):
+    #         who = self.port['east']
+    #
+    #     elif self.__west_rx_rect.contains(pos):
+    #         who = self.port['west']
+    #     elif self.__west_tx_rect.contains(pos):
+    #         who = self.port['west']
+    #
+    #     elif self.__north_rx_rect.contains(pos):
+    #         who = self.port['north']
+    #     elif self.__north_tx_rect.contains(pos):
+    #         who = self.port['north']
+    #
+    #     elif self.__south_rx_rect.contains(pos):
+    #         who = self.port['south']
+    #     elif self.__south_tx_rect.contains(pos):
+    #         who = self.port['south']
+    #
+    #     return who
 
     # def reset(self):
 
@@ -181,56 +206,46 @@ class Node(QGraphicsItem):
     #             self.__north_rx_brush = self.directionToColor(north_rx, 'rx')
 
 
-    def setPropertyBitwise(self, bitmask):
-
-        # self.property_ports |=
-
-        return
-
-
-
-    def setProperty(self, core_rx=None, core_tx=None, north_rx=None, north_tx=None,
-                    south_tx=None, south_rx=None, east_tx=None, east_rx=None, west_rx=None, west_tx=None,
-                    text = None, led = None, sensor_value=None):
-
-        self.updated = True
-
-        if text is not None:
-            self.__text = text
-        if led is not None:
-            self.__led = led
-        if core_rx is not None:
-            self.__core_rx_brush = self.directionToColor(core_rx, 'rx')
-        if core_tx is not None:
-            self.__core_tx_brush = self.directionToColor(core_tx, 'tx')
-        if north_rx is not None:
-            self.__north_rx_brush = self.directionToColor(north_rx, 'rx')
-        if north_tx is not None:
-            self.__north_tx_brush = self.directionToColor(north_tx, 'tx')
-        if south_rx is not None:
-            self.__south_rx_brush = self.directionToColor(south_rx, 'rx')
-        if south_tx is not None:
-            self.__south_tx_brush = self.directionToColor(south_tx, 'tx')
-        if east_rx is not None:
-            self.__east_rx_brush = self.directionToColor(east_rx, 'rx')
-        if east_tx is not None:
-            self.__east_tx_brush = self.directionToColor(east_tx, 'tx')
-        if west_rx is not None:
-            self.__west_rx_brush = self.directionToColor(west_rx, 'rx')
-        if west_tx is not None:
-            self.__west_tx_brush = self.directionToColor(west_tx, 'tx')
-        if sensor_value is not None:
-            self.__sensor_value_brush = self.sensorValueToColor(sensor_value)
+    # def setPropertyBitwise(self, bitmask):
+    #
+    #     # self.property_ports |=
+    #
+    #     return
 
 
-    def directionToColor(self, v, direction):
-        if v == 0:
-            return self.__white
-        if v == 1:
-            if direction == 'rx':
-                return self.__green
-            elif direction == 'tx':
-                return self.__red
+
+    # def setProperty(self, core_rx=None, core_tx=None, north_rx=None, north_tx=None,
+    #                 south_tx=None, south_rx=None, east_tx=None, east_rx=None, west_rx=None, west_tx=None,
+    #                 text = None, led = None, sensor_value=None):
+    #
+    #     self.updated = True
+    #
+    #     if text is not None:
+    #         self.__text = text
+    #     if led is not None:
+    #         self.__led = led
+    #     if core_rx is not None:
+    #         self.__core_rx_brush = self.directionToColor(core_rx, 'rx')
+    #     if core_tx is not None:
+    #         self.__core_tx_brush = self.directionToColor(core_tx, 'tx')
+    #     if north_rx is not None:
+    #         self.__north_rx_brush = self.directionToColor(north_rx, 'rx')
+    #     if north_tx is not None:
+    #         self.__north_tx_brush = self.directionToColor(north_tx, 'tx')
+    #     if south_rx is not None:
+    #         self.__south_rx_brush = self.directionToColor(south_rx, 'rx')
+    #     if south_tx is not None:
+    #         self.__south_tx_brush = self.directionToColor(south_tx, 'tx')
+    #     if east_rx is not None:
+    #         self.__east_rx_brush = self.directionToColor(east_rx, 'rx')
+    #     if east_tx is not None:
+    #         self.__east_tx_brush = self.directionToColor(east_tx, 'tx')
+    #     if west_rx is not None:
+    #         self.__west_rx_brush = self.directionToColor(west_rx, 'rx')
+    #     if west_tx is not None:
+    #         self.__west_tx_brush = self.directionToColor(west_tx, 'tx')
+    #     if sensor_value is not None:
+    #         self.__sensor_value_brush = self.sensorValueToColor(sensor_value)
 
     def sensorValueToColor(self, v):
         # TODO: do the conversion depending on the colormap

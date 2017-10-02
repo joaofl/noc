@@ -123,26 +123,55 @@ class SensorAnim(QWidget):
         self.scene.update()
         return
 
-    def setProperty(self, x, y, core_rx=None, core_tx=None, north_rx=None, north_tx=None,
+    def setNode(self, x, y, core_rx=None, core_tx=None, north_rx=None, north_tx=None,
                     south_tx=None, south_rx=None, east_tx=None, east_rx=None, west_rx=None, west_tx=None,
                     text = None, led = None, sensor_value=None):
 
         n = self.network[y][x]
-        n.setProperty(core_rx, core_tx, north_rx, north_tx,
-                    south_tx, south_rx, east_tx, east_rx, west_rx, west_tx,
-                    text, led, sensor_value)
+        # n.setProperty(core_rx, core_tx, north_rx, north_tx,
+        #             south_tx, south_rx, east_tx, east_rx, west_rx, west_tx,
+        #             text, led, sensor_value)
+
+        # n.updated = True
+
+        if text is not None:
+            n.__text = text
+        if led is not None:
+            n.__led = led
+        if core_rx is not None:
+            n.__core_rx_brush = n.directionToColor(core_rx, 'rx')
+        if core_tx is not None:
+            n.__core_tx_brush = n.directionToColor(core_tx, 'tx')
+        if north_rx is not None:
+            n.__north_rx_brush = n.directionToColor(north_rx, 'rx')
+        if north_tx is not None:
+            n.__north_tx_brush = n.directionToColor(north_tx, 'tx')
+        if south_rx is not None:
+            n.__south_rx_brush = n.directionToColor(south_rx, 'rx')
+        if south_tx is not None:
+            n.__south_tx_brush = n.directionToColor(south_tx, 'tx')
+        if east_rx is not None:
+            n.__east_rx_brush = n.directionToColor(east_rx, 'rx')
+        if east_tx is not None:
+            n.__east_tx_brush = n.directionToColor(east_tx, 'tx')
+        if west_rx is not None:
+            n.__west_rx_brush = n.directionToColor(west_rx, 'rx')
+        if west_tx is not None:
+            n.__west_tx_brush = n.directionToColor(west_tx, 'tx')
+        if sensor_value is not None:
+            n.__sensor_value_brush = n.sensorValueToColor(sensor_value)
 
 
     def resetNetwork(self):
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
-                self.network[y][x].setProperty(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1)
+                self.setNode(x,y,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1)
                 # self.network[y][x].updateSize(self.nodes_size)
 
     def resetPorts(self):
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
-                self.network[y][x].setProperty(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                self.setNode(x,y,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
     def wheelEvent(self, event):
         # """
