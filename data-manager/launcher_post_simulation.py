@@ -174,11 +174,7 @@ class NOCLauncher(QWidget):
 
         self.listbox_scripts.clear()
         self.listbox_scripts.addItems(self.list_scripts_vnames)
-
-
-        pass
-
-
+        # pass
 
 
     def on_click_run(self):
