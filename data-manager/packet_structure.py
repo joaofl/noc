@@ -12,7 +12,7 @@ direction = 4
 operation = 5  # r (received), t (transmitted), c (consumed)
 queue_size = 6
 id = 7
-sensor_value = 7
+sensor_value = 6
 
 # packet data
 control_bits = 8

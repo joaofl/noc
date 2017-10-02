@@ -33,6 +33,8 @@ import _thread
 import random
 
 
+
+
 class Node(QGraphicsItem):
 
     #This should be private
@@ -594,7 +596,15 @@ class NOCAnim(QWidget):
 
                 if current_trans[trace.operation] == 's':
                     v = int(current_trans[trace.sensor_value])
-                    node.setProperty(sensor_value=v)
+                    # node.setProperty(sensor_value=v)
+                    continue
+
+                if current_trans[trace.operation] == 'S':
+                    v = int(current_trans[trace.sensor_value])
+                    x_origin = int(current_trans[trace.sensor_value+1])
+                    y_origin = int(current_trans[trace.sensor_value+2])
+                    # node.setProperty(sensor_value=v)
+                    self.network[y_origin][x_origin].setProperty(sensor_value=v)
                     continue
 
                 if current_trans[trace.operation] == 'c':
