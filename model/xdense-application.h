@@ -78,10 +78,11 @@ namespace ns3 {
         
         TracedCallback< int32_t, int32_t, int32_t, int32_t, double, double, uint8_t, uint8_t > m_flows_source; //offset, beta, ms
         TracedCallback< int64_t > m_ping_delay; //offset, beta, ms
-        TracedCallback< int64_t, uint32_t > m_sensed_data; //offset, beta, ms
+        TracedCallback< int64_t > m_sensed_data; //own sensor value
+        TracedCallback< int64_t, int32_t, int32_t > m_sensed_data_received; //received data, and origin
         
 
-        Ptr <NOCOutputDataSensors> SinkReceivedData;
+//        Ptr <NOCOutputDataSensors> SinkReceivedData;
         
         XDenseApp();
         virtual ~XDenseApp();
@@ -112,8 +113,8 @@ namespace ns3 {
         void PingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         void PingResponseReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
-        void DataAnnouncement(int32_t x_dest, int32_t y_dest);
-        bool DataAnnoucementReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
+        void DataSharing(int32_t x_dest, int32_t y_dest);
+        bool DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
         void ClusterDataRequest();
         void ClusterDataResponse(int32_t x_dest, int32_t y_dest);

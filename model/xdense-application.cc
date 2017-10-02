@@ -49,9 +49,14 @@ namespace ns3 {
                 "ns3::XDenseApp::PingDelayTrace")
 
                 .AddTraceSource("SensedDataTrace", 
-                "Sense data",
+                "Sensed data",
                 MakeTraceSourceAccessor(&XDenseApp::m_sensed_data),
                 "ns3::XDenseApp::SensedDataTrace")
+
+                .AddTraceSource("SensedDataReceivedTrace", 
+                "Sensed data received",
+                MakeTraceSourceAccessor(&XDenseApp::m_sensed_data_received),
+                "ns3::XDenseApp::SensedDataReceivedTrace")
                 ;
         return tid;
     }
@@ -221,6 +226,9 @@ namespace ns3 {
                 break;
             case XDenseHeader::DATA_SHARING_REQUEST:
                 DataSharingRequestReceived(pck, origin_x, origin_y);                
+                break;
+            case XDenseHeader::DATA_SHARING:
+                DataSharingReceived(pck, origin_x, origin_y);                
                 break;
             case XDenseHeader::CLUSTER_DATA_REQUEST:
                 ClusterDataRequestReceived(pck, origin_x, origin_y, dest_x, dest_y);                
@@ -425,24 +433,32 @@ namespace ns3 {
 
     
     void
-    XDenseApp::DataAnnouncement(int32_t x_dest, int32_t y_dest) {
+    XDenseApp::DataSharing(int32_t x_dest, int32_t y_dest) {
 
         int64_t data = Sensor->ReadSensor();
-        m_sensed_data(data , 0);
+        m_sensed_data(data);
         
-//        Ptr<Packet> pck = Create<Packet>();
-//        XDenseHeader hd;
-//        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
-//        hd.SetData(data);
-//        pck->AddHeader(hd);
-//
-//        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_ABSOLUTE); 
+        Ptr<Packet> pck = Create<Packet>();
+        XDenseHeader hd;
+        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
+        hd.SetData(data);
+        pck->AddHeader(hd);
+
+        if (IsActive)
+            m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_ABSOLUTE); 
     }
     
     bool
-    XDenseApp::DataAnnoucementReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
+    XDenseApp::DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
 //        Here, the node should build an matrix with the received data
 //        cout << "Data annoucement received" << endl;
+        Ptr<Packet> pck_c = pck->Copy();
+        XDenseHeader h;
+        pck_c->RemoveHeader(h);
+        
+        int64_t data = h.GetData();     
+        m_sensed_data_received(data, origin_x *-1 + m_router->AddressX, origin_y * -1 + m_router->AddressY);
+        
         return false;
     }
 

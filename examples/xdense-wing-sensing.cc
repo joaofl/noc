@@ -101,18 +101,29 @@ log_netdevice_packets(string context, Ptr<const Packet> pck_r)
 }
 
 void
-log_sensed_data(string context, int64_t data, uint32_t n){
-    
+log_sensed_data(string context, int64_t data){
     uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
     
-    file_packet_trace
+    file_packet_trace //put in the same file
 //  Context info
     << now << ","
     << context << "," //[ i, x, y, port, event ];
-    << n << "," << data << '\n';
+    << data << '\n';
+} 
+
+void
+log_sensed_data_received(string context, int64_t data, int32_t cord_x, int32_t cord_y){
+    uint64_t now = (Simulator::Now() - start_offset).GetNanoSeconds();
     
+    file_packet_trace //put in the same file
+//  Context info
+    << now << ","
+    << context << "," //[ i, x, y, port, event ];
+    << data << ","
+    << cord_x << ","
+    << cord_y << '\n';
     
-    
+//    cout << "Data received\n";
 } 
 
 void
@@ -326,13 +337,16 @@ main(int argc, char *argv[]) {
         my_xdense_app->Sensor = my_sensor_model;
         
         
-        ostringstream context[4];
+        ostringstream context[5];
         
         context[0] << i << "," << x.Get() << "," << y.Get();
         my_xdense_app->TraceConnect("FlowSourceTrace", context[0].str(), MakeCallback(&log_flows_source));
         
         context[3] << i << "," << x.Get() << "," << y.Get() << ",0,s";
         my_xdense_app->TraceConnect("SensedDataTrace", context[3].str(), MakeCallback(&log_sensed_data));  
+
+        context[4] << i << "," << x.Get() << "," << y.Get() << ",0,S";
+        my_xdense_app->TraceConnect("SensedDataReceivedTrace", context[4].str(), MakeCallback(&log_sensed_data_received));  
 
         
         context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
@@ -364,12 +378,12 @@ main(int argc, char *argv[]) {
 //            context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
 //            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues)); 
             
-            if (my_shaping_data.IsShaped(x.Get(), y.Get(), direction)){
-                float b = my_shaping_data.GetBurstiness(x.Get(), y.Get(), direction);
-                float o = my_shaping_data.GetOffset(x.Get(), y.Get(), direction);
-                uint8_t ms = my_shaping_data.GetMsgSize(x.Get(), y.Get(), direction);; //message size, in case shaping have to be applied cyclic
-                my_net_device->SetShaper(b,o,ms);
-            }
+//            if (my_shaping_data.IsShaped(x.Get(), y.Get(), direction)){
+//                float b = my_shaping_data.GetBurstiness(x.Get(), y.Get(), direction);
+//                float o = my_shaping_data.GetOffset(x.Get(), y.Get(), direction);
+//                uint8_t ms = my_shaping_data.GetMsgSize(x.Get(), y.Get(), direction);; //message size, in case shaping have to be applied cyclic
+//                my_net_device->SetShaper(b,o,ms);
+//            }
         }
 
         //Should be installed in this order!!!
@@ -399,8 +413,8 @@ main(int argc, char *argv[]) {
             //my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
             Ptr<XDenseApp> app = my_xdense_app_container.Get(n)->GetObject<XDenseApp>();
             
-            for (uint16_t n = 1 ; n <= 5 ; n++){
-                Simulator::Schedule(n * packet_duration * 100 , &XDenseApp::DataAnnouncement, app, sink_x, sink_y);
+            for (uint16_t n = 1 ; n <= 1 ; n++){
+                Simulator::Schedule(n * packet_duration * 100 , &XDenseApp::DataSharing, app, sink_x, sink_y);
             }
         }
     }
