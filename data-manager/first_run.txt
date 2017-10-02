@@ -6,6 +6,12 @@ sudo pip3.5 install numpy matplotlib joblib scipy
 sudo apt install python3-pyqt5 # do this instead
 sudo apt install python3-pyqt5.qtopengl # and also this one for the animations
 
+
+On Linux:
+sudo easy_install pyopengl
+As well as:
+sudo apt-get install python python-numpy python-opengl
+
 #For data importing
 sudo apt-get install ffmpeg
 sudo -H pip3.5 install pyopengl
