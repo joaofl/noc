@@ -31,7 +31,7 @@ from PyQt5.QtCore import QTimer, Qt, QRectF
 from collections import namedtuple
 import _thread
 import random
-import show_data_viewer
+import data_viewer
 from node_graphics import Node
 
 
@@ -161,7 +161,7 @@ class NOCAnim(QWidget):
 
     def doActionOpenView(self):
         # self.viewers = []
-        self.viewers.append(show_data_viewer.SensorAnim(self.networkSize))
+        self.viewers.append(data_viewer.SensorAnim(self.networkSize))
         self.viewers[-1].show()
 
     def timerEvent(self):

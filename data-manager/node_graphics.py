@@ -12,14 +12,8 @@ class Port():
 
     def __init__(self, rect, scale, io):
         self.__rect_base = rect
-
-        self.set_scale(scale)
-
-        ###
-        self.__io = io
-        # self.__value = 0
         self.__color = self.__white
-
+        self.set_scale(scale)
         ###
         self.color_off = self.__white
         if io == 1:
@@ -35,19 +29,18 @@ class Port():
         return self.__color
 
     def set_scale(self, scale):
+        self.hold_value = True
         self.__scale = scale
         self.__rect_scaled = [ self.__rect_base[0] * scale,
                                self.__rect_base[1] * scale,
                                self.__rect_base[2] * scale,
                                self.__rect_base[3] * scale ]
-    # def get_scale(self):
-    #     return self.__scale
 
     def set_value(self, v):
-        if v == 0:
-            self.__color = self.color_off
         if v == 1:
             self.__color = self.color_on
+        elif v == 0:
+            self.__color = self.color_off
 
     def reset(self):
         self.__color = self.color_off
@@ -58,90 +51,92 @@ class Sensor():
 
     def __init__(self, rect, scale):
         self.__rect_base = rect
-
+        self.updated = True
         self.set_scale(scale)
 
-        ###
         self.reset()
 
     def get_rect(self):
+        self.updated = False
         return QRectF(self.__rect_scaled[0],self.__rect_scaled[1],
                       self.__rect_scaled[2],self.__rect_scaled[3])
 
     def set_value(self, v):
-        self.__value = v
-        self.value_changed = True
+
+        if self.__value == v:
+            self.updated == False
+        else:
+            self.__value = v
+            self.color = self.__value_to_color(v)
 
     def get_value(self):
         return self.__value
 
     def set_scale(self, scale):
+        self.updated = True
         self.__scale = scale
         self.__rect_scaled = [ self.__rect_base[0] * scale,
                                self.__rect_base[1] * scale,
                                self.__rect_base[2] * scale,
                                self.__rect_base[3] * scale ]
     def reset(self):
+        self.updated = True
         self.__value = -1
-        # self.__color = self.__white
-        self.value_changed = True
 
     def get_color(self):
-        if self.value_changed == False:
-            return self.color
-        else:
-            ######################### Convert to RGB ########################
-            def interpolate(val, y0, x0, y1, x1):
-                return (val - x0) * (y1 - y0) / (x1 - x0) + y0
+        self.updated = False
+        return self.color
 
-            def base(val):
-                if val <= -0.75:
-                    return 0
-                elif val <= -0.25:
-                    return interpolate(val, 0.0, -0.75, 1.0, -0.25)
-                elif val <= 0.25:
-                    return 1.0
-                elif val <= 0.75:
-                    return interpolate(val, 1.0, 0.25, 0.0, 0.75)
-                else:
-                    return 0.0
+    def __value_to_color(self, value):
+        ######################### Convert to RGB ########################
+        def interpolate(val, y0, x0, y1, x1):
+            return (val - x0) * (y1 - y0) / (x1 - x0) + y0
 
-            def red(gray):
-                gray = (gray * 2) - 1
-                return base(gray - 0.5)
+        def base(val):
+            if val <= -0.75:
+                return 0
+            elif val <= -0.25:
+                return interpolate(val, 0.0, -0.75, 1.0, -0.25)
+            elif val <= 0.25:
+                return 1.0
+            elif val <= 0.75:
+                return interpolate(val, 1.0, 0.25, 0.0, 0.75)
+            else:
+                return 0.0
 
-            def green(gray):
-                gray = (gray * 2) - 1
-                return base(gray)
+        def red(gray):
+            gray = (gray * 2) - 1
+            return base(gray - 0.5)
 
-            def blue(gray):
-                gray = (gray * 2) - 1
-                return base(gray + 0.5)
+        def green(gray):
+            gray = (gray * 2) - 1
+            return base(gray)
 
-            # if sensor_choice == packet_defines.APP_RESOURCE_SENSOR_LIGHT:
-            #     if value > 1500: value = 1500
-            #     value = float(value) / 1500
-            #
-            # if sensor_choice == packet_defines.APP_RESOURCE_SENSOR_TEMPERATURE:
-            #     if value - 10 > 30: value = 40
-            #     value = float(value - 10) / 40
-            #
-            # if sensor_choice == packet_defines.APP_RESOURCE_SENSOR_PRESSURE:
-            #     if value - 980 > 50: value = 1030
-            #     value = float(value - 980) / 50
+        def blue(gray):
+            gray = (gray * 2) - 1
+            return base(gray + 0.5)
 
-            if self.__value == -1:
-                return QColor("white")
+        # if sensor_choice == packet_defines.APP_RESOURCE_SENSOR_LIGHT:
+        #     if value > 1500: value = 1500
+        #     value = float(value) / 1500
+        #
+        # if sensor_choice == packet_defines.APP_RESOURCE_SENSOR_TEMPERATURE:
+        #     if value - 10 > 30: value = 40
+        #     value = float(value - 10) / 40
+        #
+        # if sensor_choice == packet_defines.APP_RESOURCE_SENSOR_PRESSURE:
+        #     if value - 980 > 50: value = 1030
+        #     value = float(value - 980) / 50
 
-            value = int(self.__value) / pow(2, 16)
+        if value == -1:
+            return QColor("white")
 
-            r = red(value)
-            g = green(value)
-            b = blue(value)
-            self.color = QColor.fromRgbF(r, g, b)
+        value = int(value) / pow(2, 16)
 
-            self.value_changed = False
-            return self.color
+        r = red(value)
+        g = green(value)
+        b = blue(value)
+        return QColor.fromRgbF(r, g, b)
 
 
 
@@ -266,13 +261,17 @@ class Node(QGraphicsItem):
             if type(e) == Port:
                 e.reset()
 
+    def reset(self):
+        for key, e in self.elements.items():
+                e.reset()
 
     def paint(self, qp, QStyleOptionGraphicsItem, QWidget_widget=None):
         if self.show_sensors == True:
             if self.sensor.get_value() != -1:
-                qp.setPen(QColor('white'))
-                qp.setBrush(self.sensor.get_color())
-                qp.drawRect(self.sensor.get_rect())
+                # if self.sensor.updated:
+                    qp.setPen(QColor('white'))
+                    qp.setBrush(self.sensor.get_color())
+                    qp.drawRect(self.sensor.get_rect())
 
         if self.show_ports == True:
             qp.setPen(QColor("lightgrey"))
