@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import * #QWidget, QProgressBar,QPushButton, QApplication, 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import QTimer, Qt, QRectF
 
-from node_graphics import Node
+from node_graphics import *
 
 class SensorAnim(QWidget):
     def __init__(self, networkSize, parent=None):
@@ -54,7 +54,6 @@ class SensorAnim(QWidget):
         self.tb_zoom.setFont(QFont("Monospace", 10, QFont.Bold))
 
         self.zoom_slider = QSlider(Qt.Horizontal)
-        self.zoom_slider.setRange(0,100)
         self.zoom_slider.setValue(0) #Initial value
         self.zoom_slider.setTickInterval(1)
 
@@ -78,26 +77,29 @@ class SensorAnim(QWidget):
         self.scene.clear()
 
         self.networkSize = networkSize
-        #Calculate node size based on canvas size
+        # Calculate node size based on canvas size
         g = self.graphics.geometry().getRect()[2:4]
-        sx = g[1] / self.networkSize[0]
-        sy = g[0] / self.networkSize[1]
-        if sx < sy: self.nodes_size = round(sx*1.1, 0)
-        else:       self.nodes_size = round(sy*1.1, 0)
+        sx = (g[0]+50) / self.networkSize[0]
+        sy = (g[1]+50) / self.networkSize[1]
+        if sx < sy: nodes_size = round(sx)
+        else:       nodes_size = round(sy)
 
         self.network = [[Node] * self.networkSize[0] for i in range(self.networkSize[1])]
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
-                n = Node([x,y], self.networkSize, node_size=self.nodes_size) #set on the existing one instead of creating another
-                self.network[y][x] = n
+                n = Node(x, y, node_side=nodes_size) #set on the existing one instead of creating another
+                self.network[-y-1][x] = n
                 self.scene.addItem(n)
 
         # if self.zoom_slider.value() == 0:
-        self.zoom_slider.setValue(self.nodes_size)
-        self.tb_zoom.setText(str(self.nodes_size))
+        self.zoom_slider.setRange(nodes_size*0.1, nodes_size*10)
+        self.zoom_slider.setValue(nodes_size)
+        self.tb_zoom.setText(str(nodes_size))
+        self.tb_zoom.setText(str(nodes_size))
         self.zoom_slider.valueChanged.connect(self.doZoom)
 
         self.show()
+        self.scene.update()
 
         return
 
@@ -116,64 +118,32 @@ class SensorAnim(QWidget):
             for y in range(self.networkSize[1]):
                 self.network[y][x].rescale(self.nodes_size)
 
-        # x, y = self.network[0][0].getPos()
-        # xf, yf = self.network[-1][-1].getPos()
-        # self.scene.setSceneRect( QRectF(x, y, xf, yf) )
-
         self.scene.update()
         return
 
-    def setNode(self, x, y, core_rx=None, core_tx=None, north_rx=None, north_tx=None,
-                    south_tx=None, south_rx=None, east_tx=None, east_rx=None, west_rx=None, west_tx=None,
-                    text = None, led = None, sensor_value=None):
+    def setNode(self, x, y, port, value):
 
         n = self.network[y][x]
-        # n.setProperty(core_rx, core_tx, north_rx, north_tx,
-        #             south_tx, south_rx, east_tx, east_rx, west_rx, west_tx,
-        #             text, led, sensor_value)
+        element = n.elements[port].set_value(value)
 
-        # n.updated = True
-
-        if text is not None:
-            n.__text = text
-        if led is not None:
-            n.__led = led
-        if core_rx is not None:
-            n.__core_rx_brush = n.directionToColor(core_rx, 'rx')
-        if core_tx is not None:
-            n.__core_tx_brush = n.directionToColor(core_tx, 'tx')
-        if north_rx is not None:
-            n.__north_rx_brush = n.directionToColor(north_rx, 'rx')
-        if north_tx is not None:
-            n.__north_tx_brush = n.directionToColor(north_tx, 'tx')
-        if south_rx is not None:
-            n.__south_rx_brush = n.directionToColor(south_rx, 'rx')
-        if south_tx is not None:
-            n.__south_tx_brush = n.directionToColor(south_tx, 'tx')
-        if east_rx is not None:
-            n.__east_rx_brush = n.directionToColor(east_rx, 'rx')
-        if east_tx is not None:
-            n.__east_tx_brush = n.directionToColor(east_tx, 'tx')
-        if west_rx is not None:
-            n.__west_rx_brush = n.directionToColor(west_rx, 'rx')
-        if west_tx is not None:
-            n.__west_tx_brush = n.directionToColor(west_tx, 'tx')
-        if sensor_value is not None:
-            n.__sensor_value_brush = n.sensorValueToColor(sensor_value)
+        # if type(element) == Port:
+        #
+        # elif type(element) == Sensor:
 
 
-    def resetNetwork(self):
-        for x in range(self.networkSize[0]):
-            for y in range(self.networkSize[1]):
-                self.setNode(x,y,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1)
-                # self.network[y][x].updateSize(self.nodes_size)
 
+    # def resetNetwork(self):
+    #     for x in range(self.networkSize[0]):
+    #         for y in range(self.networkSize[1]):
+    #             self.setNode(x,y,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1)
+    #             # self.network[y][x].updateSize(self.nodes_size)
+    #
     def resetPorts(self):
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
-                self.setNode(x,y,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                self.network[y][x].resetPorts()
 
-    def wheelEvent(self, event):
+    # def wheelEvent(self, event):
         # """
         # Zoom in or out of the view.
         # """
@@ -197,12 +167,13 @@ class SensorAnim(QWidget):
         # # Move scene to old position
         # delta = newPos - oldPos
         # self.graphics.translate(delta.x(), delta.y())
-        return
+        # return
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('others/grid2.png'))
-    ex = SensorAnim([100,100])
+    ex = SensorAnim([200,20])
+
 
     sys.exit(app.exec_())

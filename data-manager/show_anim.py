@@ -183,47 +183,45 @@ class NOCAnim(QWidget):
                 y = int(current_trans[trace.y_absolute])
 
                 if current_trans[trace.operation] == 's':
-                    # v = int(current_trans[trace.sensor_value])
-                    # self.viewers[1].setNode(x, y, sensor_value=v)
-                    # [viewer.setNode(x, y, core_tx = 1) for viewer in self.viewers]
+                    v = int(current_trans[trace.sensor_value])
+                    # [viewer.setNode(x, y, 'sensor', v) for viewer in self.viewers]
                     continue
                 elif current_trans[trace.operation] == 'S':
                     v = int(current_trans[trace.sensor_value])
                     x_origin = int(current_trans[trace.sensor_value + 1])
                     y_origin = int(current_trans[trace.sensor_value + 2])
-                    # self.viewers[2].setNode(x_origin, y_origin, sensor_value=v)
-                    [viewer.setNode(x, y, sensor_value=v) for viewer in self.viewers]
+                    [viewer.setNode(x_origin, y_origin, 'sensor', v) for viewer in self.viewers]
                     continue
 
                 elif current_trans[trace.operation] == 'c':
-                    [viewer.setNode(x, y, core_rx = 1) for viewer in self.viewers]
+                    [viewer.setNode(x, y, 'core',  1) for viewer in self.viewers]
                 elif current_trans[trace.operation] == 'g':
-                    [viewer.setNode(x, y, core_tx = 1) for viewer in self.viewers]
+                    [viewer.setNode(x, y, 'core',  1) for viewer in self.viewers]
 
                 elif current_trans[trace.operation] == 'r':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:
-                        [viewer.setNode(x, y, north_rx=1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, 'north_rx', 1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
-                        [viewer.setNode(x, y, south_rx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, 'south_rx', 1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_E:
-                        [viewer.setNode(x, y, east_rx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, 'east_rx',  1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
-                        [viewer.setNode(x, y, west_rx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, 'west_rx',  1) for viewer in self.viewers]
 
-                    [viewer.setNode(x, y, text=current_trans[trace.queue_size]) for viewer in self.viewers]
+                    # [viewer.setNode(x, y, text=current_trans[trace.queue_size]) for viewer in self.viewers]
 
                 elif current_trans[trace.operation] == 't':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:
-                        [viewer.setNode(x, y, north_tx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, 'north_tx',  1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_S:
-                        [viewer.setNode(x, y, south_tx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, 'south_tx',  1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_E:
-                        [viewer.setNode(x, y, east_tx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, 'east_tx',  1) for viewer in self.viewers]
                     elif int(current_trans[trace.direction]) == trace.DIRECTION_W:
-                        [viewer.setNode(x, y, west_tx = 1) for viewer in self.viewers]
+                        [viewer.setNode(x, y, 'west_tx',  1) for viewer in self.viewers]
 
-                if current_trans[trace.app_protocol] == '6':
-                    [viewer.setNode(x, y, led = 1) for viewer in self.viewers]
+                # if current_trans[trace.app_protocol] == '6':
+                #     [viewer.setNode(x, y, led = 1) for viewer in self.viewers]
 
 
             else:
