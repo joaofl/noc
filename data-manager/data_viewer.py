@@ -143,6 +143,11 @@ class SensorAnim(QWidget):
             for y in range(self.networkSize[1]):
                 self.network[y][x].resetPorts()
 
+    def resetNetwork(self):
+        for x in range(self.networkSize[0]):
+            for y in range(self.networkSize[1]):
+                self.network[y][x].reset()
+
     # def wheelEvent(self, event):
         # """
         # Zoom in or out of the view.
