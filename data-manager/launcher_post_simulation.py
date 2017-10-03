@@ -159,7 +159,7 @@ class NOCLauncher(QWidget):
         self.label_result.setText(sf)
 
         # l = files_io.load_line(directory + 'post_simulation_config.csv')
-        self.textbox_args_additional.setText('--pos_x=0 --pos_y=1 --port=2 --showplots=True')
+        # self.textbox_args_additional.setText('--pos_x=0 --pos_y=1 --port=2 --showplots=True')
 
 
         ############## Load the scripts
