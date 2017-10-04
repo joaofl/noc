@@ -43,7 +43,8 @@ namespace ns3 {
             CLUSTER_DATA_REQUEST,
             CLUSTER_DATA_RESPONSE,
             CLUSTER_DATA,
-            NETWORK_SETUP,
+            ACTION_NODES_DATA_TO_CLUSTER_HEADS,
+            ACTION_NETWORK_SETUP,
             TRACE,
             PING,
             PING_RESPONSE

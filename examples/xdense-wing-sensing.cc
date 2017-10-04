@@ -155,11 +155,11 @@ main(int argc, char *argv[]) {
     
     // Default values
     
-    uint32_t size_x = 30*2; //This represents a single quadrant
-    uint32_t size_y = 50;
+    uint32_t size_x = 20*2; //This represents a single quadrant
+    uint32_t size_y = 30;
     uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
-    uint32_t sink_x = 30;
+    uint32_t sink_x = 20;
     uint32_t sink_y = 0;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
@@ -203,7 +203,7 @@ main(int argc, char *argv[]) {
 //    context_dir << "b" << beta_str;
     context_dir << "nw" << size_x << "x" << size_y;
 //    context_dir << "s" << sinks_n;
-    context_dir << "n" << size_neighborhood;
+//    context_dir << "n" << size_neighborhood;
     context_dir << "s" << extra;
     context_dir << "/";
     
@@ -215,7 +215,7 @@ main(int argc, char *argv[]) {
     
 //  input_sensors_data_path = "/home/joao/noc-data/input-data/mixing_layer.csv";
 //  input_delay_data_path = output_data_dir + "/input-data/delays/forward-delay-fpga-10.0ks@3.0Mbps.data.csv";
-    input_shaping_data_path = dir_output + "post/shaping_config.csv.---DONT_LOAD---";
+//    input_shaping_data_path = dir_output + "post/shaping_config.csv.---DONT_LOAD---";
     
     int status;
     status = mkpath(dir_output.c_str());
@@ -234,13 +234,13 @@ main(int argc, char *argv[]) {
         cout << "Sensors data sucessfully loaded:  " << input_sensors_data_path << "\n";
     }
 
-    NOCRouterShapingConf my_shaping_data;
-    if ( my_shaping_data.LoadData(input_shaping_data_path)  == 0){
-        cout << "Error loading traffic shaping information at " << input_shaping_data_path << "\n";
-    }
-    else{
-        cout << "Traffic shaping information loaded from " << input_shaping_data_path << "\n";
-    }
+//    NOCRouterShapingConf my_shaping_data;
+//    if ( my_shaping_data.LoadData(input_shaping_data_path)  == 0){
+//        cout << "Error loading traffic shaping information at " << input_shaping_data_path << "\n";
+//    }
+//    else{
+//        cout << "Traffic shaping information loaded from " << input_shaping_data_path << "\n";
+//    }
     
     /////////////////////// Create logfiles ///////////////////////
     string filename;
@@ -302,10 +302,10 @@ main(int argc, char *argv[]) {
     
     uint32_t n_nodes = my_node_container.GetN();
     
+    Ptr<XDenseApp> my_xdense_sink_app;
         
     for (uint32_t i = 0; i < n_nodes; i++) {
         Ptr<XDenseApp> my_xdense_app = CreateObject<XDenseApp> ();
-//        Ptr<NOCRouterDelayModel> my_router_delay_model = CreateObject<NOCRouterDelayModel> ();
         Ptr<XDenseSensorModel> my_sensor_model = CreateObject<XDenseSensorModel> ();
         
         //Setup router
@@ -324,8 +324,14 @@ main(int argc, char *argv[]) {
             my_xdense_app->IsActive = false; //Disable nodes which are non existent, which are "outside" the wing
         else
             my_xdense_app->IsActive = true;
-                
-        my_xdense_app->IsSink = false;
+        if (y.Get() != sink_y || x.Get() != sink_x){
+            my_xdense_app->IsSink = false;
+        }
+        else {
+            my_xdense_app->IsSink = true;
+            my_xdense_sink_app = my_xdense_app;
+        }
+        
         //TODO: Believe it should be get from the packet header itself, or ask the router
         my_xdense_app->PacketDuration = packet_duration;  //nano seconds
         my_xdense_app->ClusterSize_x = size_neighborhood;
@@ -348,7 +354,6 @@ main(int argc, char *argv[]) {
         context[4] << i << "," << x.Get() << "," << y.Get() << ",0,S";
         my_xdense_app->TraceConnect("SensedDataReceivedTrace", context[4].str(), MakeCallback(&log_sensed_data_received));  
 
-        
         context[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) NOCRouting::DIRECTION_L << ",c";
         my_noc_router->TraceConnect("RouterCxTrace", context[1].str(), MakeCallback(&log_netdevice_packets));
 //        my_noc_router->TraceConnect("RouterCxTrace", context[1].str(), MakeCallback(&log_flows));
@@ -366,24 +371,12 @@ main(int argc, char *argv[]) {
             my_net_device = my_noc_router->GetNetDevice(j);
             direction = my_noc_router->GetNetDeviceInfo(my_net_device).direction; 
             
-            ostringstream context_nd[4];
+            ostringstream context_nd[2];
                
             context_nd[0] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
             my_net_device->TraceConnect("MacRx", context_nd[0].str(), MakeCallback(&log_netdevice_packets));
             context_nd[1] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
             my_net_device->TraceConnect("MacTx", context_nd[1].str(), MakeCallback(&log_netdevice_packets));            
-
-//            context_nd[2] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",r";
-//            my_net_device->TraceConnect("MacRxQueue", context_nd[2].str(), MakeCallback(&log_queues)); //Since there is a FIFO at the output port only
-//            context_nd[3] << i << "," << x.Get() << "," << y.Get() << "," << (int) direction << ",t";
-//            my_net_device->TraceConnect("MacTxQueue", context_nd[3].str(), MakeCallback(&log_queues)); 
-            
-//            if (my_shaping_data.IsShaped(x.Get(), y.Get(), direction)){
-//                float b = my_shaping_data.GetBurstiness(x.Get(), y.Get(), direction);
-//                float o = my_shaping_data.GetOffset(x.Get(), y.Get(), direction);
-//                uint8_t ms = my_shaping_data.GetMsgSize(x.Get(), y.Get(), direction);; //message size, in case shaping have to be applied cyclic
-//                my_net_device->SetShaper(b,o,ms);
-//            }
         }
 
         //Should be installed in this order!!!
@@ -397,27 +390,30 @@ main(int argc, char *argv[]) {
     }
 
     
+    Simulator::Schedule(packet_duration , &XDenseApp::NodesDataToClusterDataRequest, my_xdense_sink_app);
+    
+    
     //////////////////// From here, initialize the application at the nodes ///////////////// 
 
-    for (uint32_t x = 0; x < size_x; x++) {
-        for (uint32_t y = 0; y < size_y; y++) {
-            
-            uint32_t n = GetN(size_x, size_y, x, y);
-//            uint16_t d = NOCRouting::Distance(sink_x, sink_y, x, y);
-          
-            if (y == sink_y && x == sink_x){
-                //sink does not send to itself
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
-                continue;
-            } 
-            //my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
-            Ptr<XDenseApp> app = my_xdense_app_container.Get(n)->GetObject<XDenseApp>();
-            
-            for (uint16_t n = 1 ; n <= 1 ; n++){
-                Simulator::Schedule(n * packet_duration * 100 , &XDenseApp::DataSharing, app, sink_x, sink_y);
-            }
-        }
-    }
+//    for (uint32_t x = 0; x < size_x; x++) {
+//        for (uint32_t y = 0; y < size_y; y++) {
+//            
+//            uint32_t n = GetN(size_x, size_y, x, y);
+////            uint16_t d = NOCRouting::Distance(sink_x, sink_y, x, y);
+//          
+//            if (y == sink_y && x == sink_x){
+//                //sink does not send to itself
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
+//                continue;
+//            } 
+//            //my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
+//            Ptr<XDenseApp> app = my_xdense_app_container.Get(n)->GetObject<XDenseApp>();
+//            
+//            for (uint16_t n = 1 ; n <= 1 ; n++){
+//                Simulator::Schedule(n * packet_duration * 100 , &XDenseApp::DataSharing, app, sink_x, sink_y);
+//            }
+//        }
+//    }
 
 
 

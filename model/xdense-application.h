@@ -116,6 +116,10 @@ namespace ns3 {
         void DataSharing(int32_t x_dest, int32_t y_dest);
         bool DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
+        
+        void NodesDataToClusterDataRequest();
+        bool NodesDataToClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y);
+        
         void ClusterDataRequest();
         void ClusterDataResponse(int32_t x_dest, int32_t y_dest);
         bool ClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y);

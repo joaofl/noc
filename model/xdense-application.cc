@@ -20,10 +20,10 @@
 
 #include "xdense-application.h"
 #include "xdense-header.h"
+#include "noc-routing.h"
 #include "src/core/model/simulator.h"
 #include "src/network/model/packet.h"
-#include "noc-routing.h"
-#include "ns3/xdense-application.h"
+
 
 
 
@@ -233,7 +233,10 @@ namespace ns3 {
             case XDenseHeader::CLUSTER_DATA_REQUEST:
                 ClusterDataRequestReceived(pck, origin_x, origin_y, dest_x, dest_y);                
                 break;
-            case XDenseHeader::NETWORK_SETUP:
+            case XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS:
+                NodesDataToClusterDataRequestReceived(pck, origin_x, origin_y, dest_x, dest_y);                
+                break;
+            case XDenseHeader::ACTION_NETWORK_SETUP:
 //                NetworkSetupReceived(pck, origin_x, origin_y);                
             case XDenseHeader::TRACE:
                 tts_pck = h.GetData();
@@ -256,6 +259,8 @@ namespace ns3 {
             this->m_router->PacketMulticastIndividuals(pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
 //        this->ClusterDataRequestReceived(pck, 0, 0, ClusterSize_x, ClusterSize_y);
     }
+
+
     
     bool 
     XDenseApp::ClusterDataRequestReceived(Ptr<const Packet> pck_r, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y) {
@@ -301,7 +306,59 @@ namespace ns3 {
         this->SetFlowGenerator(0, b, o, ms, pck_out, dest_x, dest_y, ADDRESSING_RELATIVE, NOCHeader::PROTOCOL_UNICAST_OFFSET);        
     }
 
-    
+    //////////////////////////////////////////////////////////////////////////
+
+    void 
+    XDenseApp::NodesDataToClusterDataRequest() {
+        Ptr<Packet> pck = Create<Packet>();
+
+//        ClusterSize_x, ClusterSize_y shoule be this ones
+        uint8_t n_size_x = 5;
+        uint8_t n_size_y = 5;
+        
+        XDenseHeader hd;
+        hd.SetXdenseProtocol(XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS);
+        hd.SetData( n_size_x << 8 | n_size_y);
+        pck->AddHeader(hd);
+
+        this->m_router->PacketBroadcast(pck, NETWORK_ID_0);
+    }
+
+    bool 
+    XDenseApp::NodesDataToClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y) {
+        XDenseHeader hd;
+        pck->PeekHeader(hd);        
+        
+        //Grab the 8bit data from the 64bit variable
+        uint8_t n_size_x = (hd.GetData() & 0b1111111100000000) >> 8;
+        uint8_t n_size_y = (hd.GetData() & 0b0000000011111111) >> 0;
+        //Calculate the nearest cluster head here.
+        
+//        n_size_x = n_size_y;
+//        n_size_y = n_size_x;
+        
+        //Equation that return the nearest cluste head from the node that who received this req
+        
+        int16_t my_x = (origin_x * -1); 
+        int16_t my_y = (origin_y * -1); 
+        
+        //Find in which quadrant I am
+        int8_t nx = (( abs(my_x) + (floor((n_size_x-1) / 2))) / n_size_x) * (-my_x / abs(my_x));        
+        int8_t ny = (( abs(my_y) + (floor((n_size_y-1) / 2))) / n_size_y) * (-my_y / abs(my_y));     
+        
+        //Find the coordinades of the nearest cluster head.
+        int16_t dest_x = nx * n_size_x;
+        int16_t dest_y = ny * n_size_y;
+        
+        
+        std::cout << int(nx) << ", " << int(ny) << "\n";
+        
+        DataSharing(dest_x,dest_y);
+        return 0;
+    }
+
+        
+        
     void
     XDenseApp::DataSharingRequest() {
         Ptr<Packet> pck = Create<Packet>();
@@ -457,6 +514,7 @@ namespace ns3 {
         pck_c->RemoveHeader(h);
         
         int64_t data = h.GetData();     
+        //TODO this should use relative addresses so we can see what each node receives.
         m_sensed_data_received(data, origin_x *-1 + m_router->AddressX, origin_y * -1 + m_router->AddressY);
         
         return false;
