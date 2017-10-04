@@ -320,10 +320,12 @@ main(int argc, char *argv[]) {
         //Setup app
         
         int64_t v = my_sensors_input_data.GetValue3D(0,x.Get(),y.Get());
-        if (v == -1)
-            my_xdense_app->IsActive = false; //Disable nodes which are non existent, which are "outside" the wing
+        if (v != -1)
+            my_noc_router->IsActive = true; //Disable nodes which are non existent, which are "outside" the wing
         else
-            my_xdense_app->IsActive = true;
+            my_noc_router->IsActive = false;
+            
+        
         if (y.Get() != sink_y || x.Get() != sink_x){
             my_xdense_app->IsSink = false;
         }

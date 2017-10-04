@@ -55,7 +55,6 @@ namespace ns3 {
         uint8_t m_EC, m_WC, m_SC, m_NC, m_LC;
         
         
-
         void Start(void);
         void NextPort(void);
     private:
@@ -93,6 +92,8 @@ namespace ns3 {
         
         
         int32_t AddressX, AddressY;
+        
+        bool IsActive = true;
         
         
         NOCRouter();

@@ -83,23 +83,6 @@ namespace ns3 {
         m_router->GetAttribute("AddressX", x);
         m_router->GetAttribute("AddressY", y);
         m_router->SetReceiveCallback(MakeCallback(&XDenseApp::DataReceived, this));
-        
-//        XDenseHeader h1;
-//        NOCHeader h2;
-        
-//        m_packetSize = h1.GetSerializedSize() + h2.GetSerializedSize();
-//        m_baudrate = NOCNetDevice.
-//        m_packetSize = 16; //bytes
-//        m_packetDuration = (m_packetSize * 10) / m_baudrate; //10 bits per byte
-        
-
-//        if (IsSink == true) {
-////            Tests();
-////            ClusterDataRequest();
-//        }
-        
-//        Time t_ns = Time::FromInteger(0,Time::NS);
-//        Simulator::Schedule(t_ns, &XDenseApp::GenerateFlow, this);
     }
     
     void
@@ -209,6 +192,7 @@ namespace ns3 {
     XDenseApp::DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x, int32_t origin_y, int32_t dest_x,int32_t dest_y) {
         //TODO: here, at this layer, we remove the XDense header and see what to do with the packet.
         //the NOC Header here is no longer in the packet
+        
         Ptr<Packet> pck_c = pck->Copy();
         
         XDenseHeader h;
@@ -314,11 +298,11 @@ namespace ns3 {
 
 //        ClusterSize_x, ClusterSize_y shoule be this ones
         uint8_t n_size_x = 5;
-        uint8_t n_size_y = 5;
+        uint8_t n_size_y = 2;
         
         XDenseHeader hd;
         hd.SetXdenseProtocol(XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS);
-        hd.SetData( n_size_x << 8 | n_size_y);
+        hd.SetData( n_size_x << 8 | n_size_y << 0);
         pck->AddHeader(hd);
 
         this->m_router->PacketBroadcast(pck, NETWORK_ID_0);
@@ -332,29 +316,38 @@ namespace ns3 {
         //Grab the 8bit data from the 64bit variable
         uint8_t n_size_x = (hd.GetData() & 0b1111111100000000) >> 8;
         uint8_t n_size_y = (hd.GetData() & 0b0000000011111111) >> 0;
-        //Calculate the nearest cluster head here.
         
-//        n_size_x = n_size_y;
-//        n_size_y = n_size_x;
-        
-        //Equation that return the nearest cluste head from the node that who received this req
-        
-        int16_t my_x = (origin_x * -1); 
-        int16_t my_y = (origin_y * -1); 
+        //Equation that return the nearest cluster head from the node that who received this req
+        int16_t my_x = (origin_x * 1); 
+        int16_t my_y = (origin_y * 1); 
         
         //Find in which quadrant I am
-        int8_t nx = (( abs(my_x) + (floor((n_size_x-1) / 2))) / n_size_x) * (-my_x / abs(my_x));        
-        int8_t ny = (( abs(my_y) + (floor((n_size_y-1) / 2))) / n_size_y) * (-my_y / abs(my_y));     
+        int8_t nx = (( abs(my_x) + (floor((n_size_x-1) / 2))) / n_size_x) * (my_x / abs(my_x));        
+        int8_t ny = (( abs(my_y) + (floor((n_size_y-1) / 2))) / n_size_y) * (my_y / abs(my_y));     
         
         //Find the coordinades of the nearest cluster head.
-        int16_t dest_x = nx * n_size_x;
-        int16_t dest_y = ny * n_size_y;
+        int16_t clusterhead_x = nx * n_size_x;
+        int16_t clusterhead_y = ny * n_size_y;
         
+        //Calculate the relative position from to another
+        int16_t dest_x = clusterhead_x - my_x;
+        int16_t dest_y = clusterhead_y - my_y;
         
-        std::cout << int(nx) << ", " << int(ny) << "\n";
+        //Check if I am a cluster head. In this case sample the sensor and do not send any packet.
+        if (dest_x == 0 && dest_y == 0){
+//            int64_t data = Sensor->ReadSensor();
+//            m_sensed_data(data);
+//            m_sensed_data_received(data, m_router->AddressX, m_router->AddressY);
+            return 1;
+        }
+            
         
-        DataSharing(dest_x,dest_y);
-        return 0;
+        //Debug string
+//      std::cout << my_x << ",\t" << my_y << ",\t" << int(nx) << ",\t" << int(ny) << ",\t" << dest_x << ",\t" << dest_y << "\n";
+        
+        Simulator::Schedule(PacketDuration * 30 , &XDenseApp::DataSharing, this, dest_x,dest_y);
+//        DataSharing(dest_x,dest_y);
+        return 1;
     }
 
         
@@ -501,8 +494,7 @@ namespace ns3 {
         hd.SetData(data);
         pck->AddHeader(hd);
 
-        if (IsActive)
-            m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_ABSOLUTE); 
+        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 
     }
     
     bool

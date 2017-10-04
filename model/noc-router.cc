@@ -454,6 +454,9 @@ namespace ns3 {
     
     void
     NOCRouter::PacketServe(Ptr<const Packet> pck_rcv, NOCRouting::Directions input) {
+        if (IsActive == false)
+            return;
+        
         m_routerRxTrace(pck_rcv);  
         
 //        if (this->m_addressX == 1 && this->m_addressY == 1)
