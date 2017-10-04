@@ -194,9 +194,9 @@ class NOCAnim(QWidget):
                     continue
 
                 elif current_trans[trace.operation] == 'c':
-                    [viewer.setNode(x, y, 'core',  1) for viewer in self.viewers]
+                    [viewer.setNode(x, y, 'core_rx',  1) for viewer in self.viewers]
                 elif current_trans[trace.operation] == 'g':
-                    [viewer.setNode(x, y, 'core',  1) for viewer in self.viewers]
+                    [viewer.setNode(x, y, 'core_tx',  1) for viewer in self.viewers]
 
                 elif current_trans[trace.operation] == 'r':
                     if int(current_trans[trace.direction]) == trace.DIRECTION_N:

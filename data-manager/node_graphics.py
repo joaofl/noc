@@ -162,7 +162,7 @@ class Node(QGraphicsItem):
         # self.__x, self.__y = self.translateXY(cordinate, scale)
         self.setPos(self.x_orig, self.y_orig) #this sets the origin of the object relative to the scenario
 
-        self.port_n_rx = Port([2, 0, 1, 2], scale, 1)
+        self.port_n_rx = Port([2, 0, 1, 2], scale, 1) #1 for input, 0 for output
         self.port_n_tx = Port([3, 0, 1, 2], scale, 0) #(xorig,yorig, w,l)
 
         self.port_s_tx = Port([2, 4, 1, 2], scale, 0)
@@ -174,7 +174,8 @@ class Node(QGraphicsItem):
         self.port_w_tx = Port([0, 2, 2, 1], scale, 0)
         self.port_w_rx = Port([0, 3, 2, 1], scale, 1)
 
-        self.core = Port([2, 2, 2, 2], scale, 2)
+        self.core_rx = Port([2, 2, 2, 2], scale, 1)
+        self.core_tx = Port([2, 2, 2, 2], scale, 0)
         self.sensor = Sensor([0, 0, 6, 6], scale)
 
         # self.rescale(node_size)
@@ -187,7 +188,8 @@ class Node(QGraphicsItem):
                         'east_tx':  self.port_e_tx,
                         'west_rx':  self.port_w_rx,
                         'west_tx':  self.port_w_tx,
-                        'core':     self.core,
+                        'core_rx':  self.core_rx,
+                        'core_tx':  self.core_tx,
                         'sensor':   self.sensor}
 
     def rescale(self, node_side):

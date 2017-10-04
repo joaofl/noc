@@ -470,10 +470,7 @@ def get_config(fn, config_str):
 res = 500
 
 #How many nodes should be deployed
-nw_size_x, nw_size_y = 30, 50 #nodes
-
-#Time step size according to the CFD simulation config file
-t_step = 500 #ns
+nw_size_x, nw_size_y = 20, 30 #nodes
 
 fig, spSensors = plt.subplots(1, 1)
 
@@ -484,7 +481,7 @@ sensors_time = []
 
 #Get the time step from the config file
 # dir = '/home/joao/noc-data/input-data/sensors/sources/su2/pitching_onera_euler/'
-dir = '/mnt/hd/joao/noc-data NS/pitching_oneram6_fine_step_greater_angle/'
+dir = '/home/joao/noc-data/input-data/sensors/sources/pitching_oneram6_fine_step_greater_angle/'
 fn_cfg = dir + 'pitching_ONERAM6.cfg'
 
 t_step = get_config(fn_cfg, 'UNST_TIMESTEP')
@@ -494,9 +491,9 @@ t_step = get_config(fn_cfg, 'UNST_TIMESTEP')
 # v = config['UNST_TIMESTEP']
 
 
-# for i in range(0,1500):
+for i in range(100,151,1):
 # for i in [100, 110, 120, 130, 140, 150]:
-for i in [35, 62, 132, 211, 262, 344, 696]:
+# for i in [35, 62, 132, 211, 262, 344, 696]:
     fn = dir + 'surface_flow_{:05d}.csv'.format(i)
 
     print('Importing data from SU2 file' + fn)
@@ -550,11 +547,12 @@ for frame in sensors_datas:
 plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.9)
 
 print('Done processing. Preparing to plot...')
-# ani = animation.ArtistAnimation(fig, imgs, interval=10, blit=False, repeat_delay=0)
-# ani.save('/home/joao/noc-data/input-data/sensors/sources/su2/pitching_oneram6.mp4')
+ani = animation.ArtistAnimation(fig, imgs, interval=120, blit=False, repeat_delay=0)
+ani.save('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram.mp4')
 
 fig, sp = plt.subplots(1, 2, sharey=True, sharex=True)
 img_top, img_bottom = plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
 
+plt.savefig('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram.png')
 plt.show()
 exit(0)

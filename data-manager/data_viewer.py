@@ -88,7 +88,7 @@ class SensorAnim(QWidget):
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
                 n = Node(x, y, node_side=nodes_size) #set on the existing one instead of creating another
-                self.network[-y-1][x] = n
+                self.network[-y-1][x] = n # flips the y so that the (0,0) shows on the bottom left instead of top-left
                 self.scene.addItem(n)
 
         # if self.zoom_slider.value() == 0:
@@ -124,20 +124,8 @@ class SensorAnim(QWidget):
     def setNode(self, x, y, port, value):
 
         n = self.network[y][x]
-        element = n.elements[port].set_value(value)
+        n.elements[port].set_value(value)
 
-        # if type(element) == Port:
-        #
-        # elif type(element) == Sensor:
-
-
-
-    # def resetNetwork(self):
-    #     for x in range(self.networkSize[0]):
-    #         for y in range(self.networkSize[1]):
-    #             self.setNode(x,y,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1)
-    #             # self.network[y][x].updateSize(self.nodes_size)
-    #
     def resetPorts(self):
         for x in range(self.networkSize[0]):
             for y in range(self.networkSize[1]):
