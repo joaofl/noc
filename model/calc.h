@@ -25,7 +25,9 @@
 #include "noc-types.h"
 #include <math.h>
 #include <stdio.h>
-//#include <armadillo>
+#include <armadillo>
+
+using namespace arma;
 
 namespace ns3 {
 

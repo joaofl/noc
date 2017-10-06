@@ -4,11 +4,11 @@
 #     pass
 
 def configure(conf):
-    conf.env['armadillo'] = conf.check(mandatory=False, lib='armadillo', uselib_store='ARMADILLO')
+    conf.env['armadillo'] = conf.check(mandatory=True, lib='armadillo', uselib_store='ARMADILLO')
     conf.env['opencv'] = conf.check(mandatory=False, lib='opencv', libpath="/usr/local/lib", uselib_store='OPENCV')
 
-#    conf.env.append_value("CXXFLAGS", ["-O3", "-larmadillo"])
-#     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
+    conf.env.append_value("CXXFLAGS", ["-O2", "-larmadillo"])
+#    conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
     module = bld.create_ns3_module('noc', ['core', 'mobility', 'network', 'mpi'])
@@ -30,7 +30,6 @@ def build(bld):
         'model/epiphany-header.cc',
         'model/epiphany-application.cc',
 
-        #'model/sensor.cc',
         'model/data-io.cc',        
 
         'model/calc.cc',
@@ -63,7 +62,6 @@ def build(bld):
         'model/epiphany-header.h',
         'model/epiphany-application.h',
 
-        #'model/sensor.h',
         'model/data-io.h',
 
         'model/calc.h',

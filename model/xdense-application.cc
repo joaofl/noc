@@ -334,19 +334,26 @@ namespace ns3 {
         int16_t dest_y = clusterhead_y - my_y;
         
         //Check if I am a cluster head. In this case sample the sensor and do not send any packet.
+        //Also schedule after some 'timeout' to send the data received after processing it
         if (dest_x == 0 && dest_y == 0){
-//            int64_t data = Sensor->ReadSensor();
-//            m_sensed_data(data);
-//            m_sensed_data_received(data, m_router->AddressX, m_router->AddressY);
+            int64_t data = Sensor->ReadSensor();
+            m_sensed_data(data);
+            m_sensed_data_received(data, m_router->AddressX, m_router->AddressY);
+            
+            //2x the distance to the farther node on the cluster + the time to receive all packets
+            //this is pessimistic, but upper bounds the time required (check further)
+            uint16_t timeout = 2 * (ceil(n_size_x/2) + ceil(n_size_y/2)) + (size_x * size_y - 1); 
+            //Send processed data it to the sink
+            Simulator::Schedule(PacketDuration * timeout , &XDenseApp::ClusterDataResponse, this, 0,0); 
+            
             return 1;
         }
-            
-        
+
         //Debug string
 //      std::cout << my_x << ",\t" << my_y << ",\t" << int(nx) << ",\t" << int(ny) << ",\t" << dest_x << ",\t" << dest_y << "\n";
         
-        Simulator::Schedule(PacketDuration * 30 , &XDenseApp::DataSharing, this, dest_x,dest_y);
-//        DataSharing(dest_x,dest_y);
+//        Simulator::Schedule(PacketDuration * 30 , &XDenseApp::DataSharing, this, dest_x,dest_y);
+        DataSharing(dest_x,dest_y);
         return 1;
     }
 
@@ -412,7 +419,7 @@ namespace ns3 {
         int8_t last_alt;
         int8_t delta_long;
         int8_t delta_alt;
-        int8_t pos_long;
+        int8_t pos_long=0;
         int8_t pos_alt;        
         
         //Do the axe translation to get all quadrants computed as the same
@@ -500,12 +507,19 @@ namespace ns3 {
     bool
     XDenseApp::DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
 //        Here, the node should build an matrix with the received data
-//        cout << "Data annoucement received" << endl;
         Ptr<Packet> pck_c = pck->Copy();
         XDenseHeader h;
         pck_c->RemoveHeader(h);
+        int64_t data = h.GetData(); 
         
-        int64_t data = h.GetData();     
+        NodeRef n;
+        n.value = data;
+        n.x = origin_x;
+        n.y = origin_y;
+        //Check if it already there, then push it to the back
+        m_neighborsList.push_back(n);
+        
+                
         //TODO this should use relative addresses so we can see what each node receives.
         m_sensed_data_received(data, origin_x *-1 + m_router->AddressX, origin_y * -1 + m_router->AddressY);
         
@@ -522,7 +536,6 @@ namespace ns3 {
         int64_t tts_now = Simulator::Now().GetNanoSeconds();
         
         hd.SetData(tts_now);
-        
         pck->AddHeader(hd);
 
         m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 

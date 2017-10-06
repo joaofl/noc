@@ -57,7 +57,7 @@ enum SearchParam {
 
 typedef struct {
     int32_t x, y;
-    uint32_t value;
+    int64_t value;
     uint32_t serial_number; 
     bool updated;
 } NodeRef;

@@ -157,7 +157,7 @@ namespace ns3 {
         Ptr<NOCRouter> m_router;
 //        std::vector<NodeRef> m_sinksList;
         
-//        std::vector<NodeRef> m_neighborsList;
+        std::vector<NodeRef> m_neighborsList;
 //        uint32_t m_nPackets;
 //        vector <uint32_t> m_SerialNumber; //Serial NUmber
 //        DataRate m_dataRate;

@@ -36,6 +36,8 @@ Dependencies of the GUI (you need to install them before executing the user inte
 
 - python-joblib
 
+-libarmadillo-dev
+
 
 # Who do I talk to? #
 
@@ -43,4 +45,4 @@ Authors:
 João Loureiro
 
 Team members:
-Pedro Santos, Michele Albano, Tiago Cerqueira
+Pedro Santos

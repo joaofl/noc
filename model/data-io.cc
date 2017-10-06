@@ -414,7 +414,7 @@ namespace ns3 {
                 for (int8_t y = n_size*-1 ; y <= n_size ; y++){
                     
                     if (abs(x) + abs(y) <= n_size) {
-                        int32_t z;
+                        int32_t z=0;
                         double dz;
                         if (p.type == EV_PLANE)
                             z = x * p.a + y * p.b + p.c;
