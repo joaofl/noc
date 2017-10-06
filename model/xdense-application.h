@@ -34,13 +34,13 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 
-#include "ns3/xdense-header.h"
-#include "ns3/noc-router.h"
-#include "ns3/noc-routing.h"
-#include "ns3/calc.h"
-#include "ns3/data-io.h"
-#include "ns3/noc-net-device.h"
+#include "xdense-header.h"
+#include "noc-router.h"
 #include "noc-routing.h"
+#include "noc-net-device.h"
+#include "calc.h"
+#include "data-io.h"
+
 
 
 //#define USE_ABSOLUTE_ADDRESS true

@@ -74,7 +74,7 @@ typedef struct {
 
 typedef struct {
     EventType type;
-    int32_t a, b, c;
+    int64_t a, b, c;
     int64_t time;
     int16_t x, y;
 } DataFit;

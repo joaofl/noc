@@ -507,7 +507,11 @@ namespace ns3 {
         Ptr<const Packet> pck_e, pck_n, pck_w, pck_s, pck_l;
         Ptr<NOCNetDevice> nd; 
         
-        uint8_t out_from_e, out_from_n, out_from_w, out_from_s, out_from_l;
+        uint8_t out_from_e = 0;
+        uint8_t out_from_n = 0;
+        uint8_t out_from_w = 0;
+        uint8_t out_from_s = 0;
+        uint8_t out_from_l = 0;
         
         uint8_t queue_e, queue_n, queue_w, queue_s, queue_l;
         uint16_t queue_total;

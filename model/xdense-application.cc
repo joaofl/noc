@@ -23,6 +23,7 @@
 #include "noc-routing.h"
 #include "src/core/model/simulator.h"
 #include "src/network/model/packet.h"
+#include "ns3/noc-types.h"
 
 
 
@@ -226,7 +227,6 @@ namespace ns3 {
                 tts_pck = h.GetData();
                 cout << "Traced packet received: id=" << pck->GetUid() << "\tdata=" << tts_pck << endl;            
                 break;
-            
         }
     }
     
@@ -269,25 +269,30 @@ namespace ns3 {
         
 //            Simulator::Schedule(t_ns, &NOCRouter::PacketUnicastOffset, this->m_router, pck, NETWORK_ID_0, x_dest, y_dest);
         
-        double_t b = 1;
-        uint32_t ms = (ClusterSize_x + 1) * (ClusterSize_x + 1) * (1 - AggregationRate) * 5 / 4;
-        uint8_t o = 0;
+//        double_t b = 1;
+//        uint32_t ms = (ClusterSize_x + 1) * (ClusterSize_x + 1) * (1 - AggregationRate) * 5 / 4;
+//        uint8_t o = 0;
         
-        int32_t orig_x_log = m_router->AddressX;
-        int32_t orig_y_log = m_router->AddressY;
-        int32_t dest_x_log = m_router->AddressX + dest_x;
-        int32_t dest_y_log = m_router->AddressY + dest_y;
+//        int32_t orig_x_log = m_router->AddressX;
+//        int32_t orig_y_log = m_router->AddressY;
+//        int32_t dest_x_log = m_router->AddressX + dest_x;
+//        int32_t dest_y_log = m_router->AddressY + dest_y;
         
+            
+        DataFit plane = NOCCalc::FindPlane(&m_neighborsList);
+        
+        cout << plane.a;
+            
         // Construct the packet to be transmitted
         XDenseHeader hd_out;
         hd_out.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA_RESPONSE);
         Ptr<Packet> pck_out = Create<Packet>();
         pck_out->AddHeader(hd_out);
         
-        double offset_log = (Simulator::Now().GetNanoSeconds() / PacketDuration.GetNanoSeconds()) + o - 1; //get the absolute offset
+//        double offset_log = (Simulator::Now().GetNanoSeconds() / PacketDuration.GetNanoSeconds()) + o - 1; //get the absolute offset
 
-        m_flows_source(orig_x_log, orig_y_log, dest_x_log, dest_y_log, offset_log, b, ms, NOCHeader::PROTOCOL_UNICAST_OFFSET);
-        this->SetFlowGenerator(0, b, o, ms, pck_out, dest_x, dest_y, ADDRESSING_RELATIVE, NOCHeader::PROTOCOL_UNICAST_OFFSET);        
+//        m_flows_source(orig_x_log, orig_y_log, dest_x_log, dest_y_log, offset_log, b, ms, NOCHeader::PROTOCOL_UNICAST_OFFSET);
+//        this->SetFlowGenerator(0, b, o, ms, pck_out, dest_x, dest_y, ADDRESSING_RELATIVE, NOCHeader::PROTOCOL_UNICAST_OFFSET);        
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -322,12 +327,12 @@ namespace ns3 {
         int16_t my_y = (origin_y * 1); 
         
         //Find in which quadrant I am
-        int8_t nx = (( abs(my_x) + (floor((n_size_x-1) / 2))) / n_size_x) * (my_x / abs(my_x));        
-        int8_t ny = (( abs(my_y) + (floor((n_size_y-1) / 2))) / n_size_y) * (my_y / abs(my_y));     
+        int8_t my_qx = (( abs(my_x) + (floor((n_size_x-1) / 2))) / n_size_x) * (my_x / abs(my_x));        
+        int8_t my_qy = (( abs(my_y) + (floor((n_size_y-1) / 2))) / n_size_y) * (my_y / abs(my_y));     
         
         //Find the coordinades of the nearest cluster head.
-        int16_t clusterhead_x = nx * n_size_x;
-        int16_t clusterhead_y = ny * n_size_y;
+        int16_t clusterhead_x = my_qx * n_size_x;
+        int16_t clusterhead_y = my_qy * n_size_y;
         
         //Calculate the relative position from to another
         int16_t dest_x = clusterhead_x - my_x;
@@ -419,8 +424,8 @@ namespace ns3 {
         int8_t last_alt;
         int8_t delta_long;
         int8_t delta_alt;
-        int8_t pos_long=0;
-        int8_t pos_alt;        
+        int8_t pos_long = 0;
+        int8_t pos_alt = 0;        
         
         //Do the axe translation to get all quadrants computed as the same
        

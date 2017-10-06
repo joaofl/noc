@@ -268,7 +268,7 @@ namespace ns3 {
         sumx = 0;
         sumy = 0;
         sumz = 0;
-        uint8_t n = sn->size();
+        uint16_t n = sn->size();
         
         for (uint8_t i = 0; i < n; i++)
         {
@@ -301,14 +301,17 @@ namespace ns3 {
         DataFit p;
         
         p.type = EV_PLANE;
-        p.a = (int32_t)vplane.at(0);
-        p.b = (int32_t)vplane.at(1);
-        p.c = (int32_t)vplane.at(2);
+        p.a = (int64_t)vplane.at(0);
+        p.b = (int64_t)vplane.at(1);
+        p.c = (int64_t)vplane.at(2);
+        
+        p.time = -1;
+        p.x = 0;
+        p.y = 0;
         
         return p;
         
 //        NOCCalc::CalculatePlane(sumxx, sumxy, sumyy, sumxz, sumyz, sumzz, sumx, sumy, sumz, sn->size(), a, b, c);
-//        
         //http://www.had2know.com/academics/least-squares-plane-regression.html
     }
 

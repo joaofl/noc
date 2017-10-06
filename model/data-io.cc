@@ -388,7 +388,8 @@ namespace ns3 {
         
     }
     
-    uint8_t NOCOutputDataSensors::WriteToFile(string filename, uint8_t n_size){
+    uint8_t 
+    NOCOutputDataSensors::WriteToFile(string filename, uint8_t n_size){
         
 //        DataFit p_sink;
 //        p_sink.x = 0; p_sink.y = 0; 
@@ -424,8 +425,6 @@ namespace ns3 {
                             dz = (double)p.a /100 + (double)p.b / 1000000000000000 * x + (double)p.c / 1000000000000000 * y;
                             z = (int32_t)exp(dz);
                         }
-                            
-                        
                         int16_t x_m = p.x + x + ceil(float(x_size-1)/2) ;
                         int16_t y_m = p.y + y + ceil(float(y_size-1)/2) ;
                         
