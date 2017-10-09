@@ -41,7 +41,6 @@ namespace ns3 {
             DATA_SHARING_REQUEST,   
             DATA_SHARING,
             CLUSTER_DATA_REQUEST,
-            CLUSTER_DATA_RESPONSE,
             CLUSTER_DATA,
             ACTION_NODES_DATA_TO_CLUSTER_HEADS,
             ACTION_NETWORK_SETUP,
@@ -72,32 +71,23 @@ namespace ns3 {
         virtual uint32_t Deserialize(Buffer::Iterator start);
         virtual uint32_t GetSerializedSize(void) const;
 
-        /**
-         * \brief Set the protocol type carried by this PPP packet
-         *
-         * The type numbers to be used are defined in \RFC{3818}
-         *
-         * \param protocol the protocol type being carried
-         */
-//        void SetProtocol(uint16_t protocol);
 
-        void SetData(uint64_t);
-        
+        void SetData(int64_t);
         uint64_t GetData(void);
         
+        void SetDataChunk(int64_t data, uint8_t n, uint8_t n_bits);
+        int64_t GetDataChunk(int64_t data, uint8_t n, uint8_t n_bits);
+        
+        
         /**
-         * \brief Set the protocol type carried by this PPP packet
-         *
-         * The type numbers to be used are defined in \RFC{3818}
+         * \brief Set the protocol type carried by the packet
          *
          * \param protocol the protocol type being carried
          */
         void SetXdenseProtocol(uint8_t protocol);
 
         /**
-         * \brief Get the protocol type carried by this PPP packet
-         *
-         * The type numbers to be used are defined in \RFC{3818}
+         * \brief Get the protocol type carried by this packet
          *
          * \return the protocol type being carried
          */
@@ -106,12 +96,9 @@ namespace ns3 {
 
     private:
 
-        /**
-         * \brief The PPP protocol type of the payload packet
-         */
         uint8_t m_protocol;
 //        uint8_t m_data[PAYLOAD_SIZE - 1];
-        uint64_t m_data;
+        int64_t m_data;
     };
 
 } // namespace ns3

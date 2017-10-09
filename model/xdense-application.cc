@@ -83,7 +83,7 @@ namespace ns3 {
         AggregationRate = 0.8;
         m_router->GetAttribute("AddressX", x);
         m_router->GetAttribute("AddressY", y);
-        m_router->SetReceiveCallback(MakeCallback(&XDenseApp::DataReceived, this));
+        m_router->SetReceiveCallback(MakeCallback(&XDenseApp::PacketReceived, this));
     }
     
     void
@@ -190,7 +190,7 @@ namespace ns3 {
     
 
     void 
-    XDenseApp::DataReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x, int32_t origin_y, int32_t dest_x,int32_t dest_y) {
+    XDenseApp::PacketReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x, int32_t origin_y, int32_t dest_x,int32_t dest_y) {
         //TODO: here, at this layer, we remove the XDense header and see what to do with the packet.
         //the NOC Header here is no longer in the packet
         
@@ -217,6 +217,9 @@ namespace ns3 {
                 break;
             case XDenseHeader::CLUSTER_DATA_REQUEST:
                 ClusterDataRequestReceived(pck, origin_x, origin_y, dest_x, dest_y);                
+                break;
+            case XDenseHeader::CLUSTER_DATA:
+                ClusterDataReceived(pck, origin_x, origin_y, dest_x, dest_y);                
                 break;
             case XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS:
                 NodesDataToClusterDataRequestReceived(pck, origin_x, origin_y, dest_x, dest_y);                
@@ -285,7 +288,10 @@ namespace ns3 {
             
         // Construct the packet to be transmitted
         XDenseHeader hd_out;
-        hd_out.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA_RESPONSE);
+        
+        hd_out.SetDataChunk(plane.a, 0, 32); //data, index, number of bits
+        
+        hd_out.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA);
         Ptr<Packet> pck_out = Create<Packet>();
         pck_out->AddHeader(hd_out);
         
@@ -294,6 +300,17 @@ namespace ns3 {
 //        m_flows_source(orig_x_log, orig_y_log, dest_x_log, dest_y_log, offset_log, b, ms, NOCHeader::PROTOCOL_UNICAST_OFFSET);
 //        this->SetFlowGenerator(0, b, o, ms, pck_out, dest_x, dest_y, ADDRESSING_RELATIVE, NOCHeader::PROTOCOL_UNICAST_OFFSET);        
     }
+        
+
+
+    bool 
+    XDenseApp::ClusterDataReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y) {
+
+        
+        
+        return true;
+    }
+
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -347,7 +364,7 @@ namespace ns3 {
             
             //2x the distance to the farther node on the cluster + the time to receive all packets
             //this is pessimistic, but upper bounds the time required (check further)
-            uint16_t timeout = 2 * (ceil(n_size_x/2) + ceil(n_size_y/2)) + (size_x * size_y - 1); 
+            uint16_t timeout = 2 * (ceil(n_size_x/2) + ceil(n_size_y/2)) + (n_size_x * n_size_y - 1); 
             //Send processed data it to the sink
             Simulator::Schedule(PacketDuration * timeout , &XDenseApp::ClusterDataResponse, this, 0,0); 
             

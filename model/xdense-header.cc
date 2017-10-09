@@ -115,8 +115,13 @@ namespace ns3 {
                 
         return m_data;
     }
+    
+    
+//        uint8_t n_size_x = (hd.GetData8() & 0b1111111100000000) >> 8;
+//        uint8_t n_size_y = (hd.GetData8() & 0b0000000011111111) >> 0;
+    
     void
-    XDenseHeader::SetData(uint64_t data) {
+    XDenseHeader::SetData(int64_t data) {
         
         m_data = data;
         
@@ -133,6 +138,17 @@ namespace ns3 {
 //        m_data[6] = data >> 48;
 //        m_data[7] = data >> 56;
     }
+
+    void 
+    XDenseHeader::SetDataChunk(int64_t data, uint8_t n, uint8_t n_bits) {
+
+    }
+    int64_t 
+    XDenseHeader::GetDataChunk(int64_t data, uint8_t n, uint8_t n_bits) {
+
+        return 1;
+    }
+
 
 
 
