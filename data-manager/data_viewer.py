@@ -123,8 +123,11 @@ class SensorAnim(QWidget):
 
     def setNode(self, x, y, port, value):
 
-        n = self.network[y][x]
-        n.elements[port].set_value(value)
+        try:
+            n = self.network[y][x]
+            n.elements[port].set_value(value)
+        except:
+            print('Node {},{} is ouside the network'.format(x,y))
 
     def resetPorts(self):
         for x in range(self.networkSize[0]):

@@ -305,10 +305,10 @@ namespace ns3 {
         plane.b = hd.GetData24(1);
         plane.c = hd.GetData24(2);
         
-        cout << plane.a;
+//        cout << plane.a;
 
-        int32_t lim_y = -ceil(ClusterSize_y)/2 +1;
-        int32_t lim_x = -ceil(ClusterSize_x)/2;
+        int32_t lim_y = -floor(ClusterSize_y)/2;
+        int32_t lim_x = -floor(ClusterSize_x)/2;
         
         for (int32_t y = lim_y ; y < lim_y + ClusterSize_y ; y++){
            for (int32_t x = lim_x ; x < lim_x + ClusterSize_x ; x++){
@@ -316,7 +316,7 @@ namespace ns3 {
 //            NodeRef node = m_neighborsList[i];
                
                int64_t v = x * plane.a + y * plane.b + plane.c;
-               m_sensed_data_received(v, origin_x*-1 + x  + m_router->AddressX, origin_y*-1 + y  + m_router->AddressY);
+               m_sensed_data_received(v, -origin_x + x + m_router->AddressX, -origin_y + y + m_router->AddressY + 1);
            }        
         }
         
@@ -331,13 +331,13 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
 
 //        ClusterSize_x, ClusterSize_y shoule be this ones
-        ClusterSize_x = 1;
-        ClusterSize_y = 4;
+        ClusterSize_x = 2;
+        ClusterSize_y = 1;
         
         XDenseHeader hd;
         hd.SetXDenseProtocol(XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS);
-        hd.SetData8(ClusterSize_x, 1);
-        hd.SetData8(ClusterSize_y, 0);
+        hd.SetData8(ClusterSize_x, 0);
+        hd.SetData8(ClusterSize_y, 1);
         pck->AddHeader(hd);
 
         this->m_router->PacketBroadcast(pck, NETWORK_ID_0);
@@ -349,8 +349,8 @@ namespace ns3 {
         pck->PeekHeader(hd);        
         
         //Grab the 8bit data from the 64bit variable
-        uint8_t n_size_x = hd.GetData8(1);
-        uint8_t n_size_y = hd.GetData8(0);
+        uint8_t n_size_x = hd.GetData8(0);
+        uint8_t n_size_y = hd.GetData8(1);
         
         //Equation that return the nearest cluster head from the node that who received this req
         int16_t my_x = current_x; 
@@ -496,7 +496,6 @@ namespace ns3 {
         uint8_t dist = NOCRouting::Distance(pos_long, pos_alt, last_long, last_alt);
         
         double_t b      = double(1) / double(abs(last_long) * (abs(last_alt) + 1));
-//        double_t b      = double(1) / double(ClusterSize_x * (ClusterSize_y -1));
         uint32_t ms     = 5;
         uint8_t rd      = dist + 1; // all nodes send together. First wait for the last
         rd = 0; //send the response as soon as the request is received
