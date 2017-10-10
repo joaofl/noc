@@ -21,7 +21,10 @@
 
 
 
+#include <assert.h>
+
 #include "xdense-header.h"
+#include "src/core/model/int64x64-128.h"
 //#include "noc-types.h"
 
 
@@ -59,95 +62,98 @@ namespace ns3 {
     XDenseHeader::Print(std::ostream &os) const {
         os << (int) this->m_protocol;    
         os << ",";
-        os << this->m_data;       
+        for (uint8_t i = 0 ; i < HEADER_SIZE-1 ; i++){
+            os <<  (int) m_data[i];
+        }
+        
+//        os << this->m_data;       
     }
 
     uint32_t
     XDenseHeader::GetSerializedSize(void) const {
-        return PAYLOAD_SIZE;
+        return HEADER_SIZE;
     }
     
     void
     XDenseHeader::Serialize(Buffer::Iterator start) const {
 
         start.WriteU8(m_protocol);
-        start.WriteU64(m_data);
-//        start.Write(m_data, PAYLOAD_SIZE - 1);
-        
+        start.Write(m_data, HEADER_SIZE-1);
     }
 
     uint32_t
     XDenseHeader::Deserialize(Buffer::Iterator start) {
         
-        (m_protocol) = start.ReadU8();
-        (m_data) = start.ReadU64();
-//        
-//        for (uint8_t i = 0 ; i < PAYLOAD_SIZE ; i++)
-//        {
-//            m_data[i] = start.ReadU8();
-//        start.Read(m_data, PAYLOAD_SIZE - 1);
-//        }
-//            default:
-//                std::cout << "Error while deserializing data into the buffer. No known protocol defined in the header.\n";
-//                exit(1);
-//        }
+        (m_protocol) = start.ReadU8(); // 1 byte
+        start.Read(m_data, HEADER_SIZE-1); //10 bytes
         return GetSerializedSize();
     }
 
     void
-    XDenseHeader::SetXdenseProtocol(uint8_t protocol) {
+    XDenseHeader::SetXDenseProtocol(uint8_t protocol) {
         m_protocol = protocol;
     }
 
     uint8_t
-    XDenseHeader::GetXdenseProtocol(void) {
+    XDenseHeader::GetXDenseProtocol(void) {
         return m_protocol;
     }
-
-    uint64_t
-    XDenseHeader::GetData(void) {
-//        uint64_t data = 0;
-        
-//        data = m_data[7]
-//        for (uint8_t i = 0 ; i < 8 ; i++){
-//            data &= m_data[i] << (i * 8);
-//        }
-                
-        return m_data;
+    
+    void 
+    XDenseHeader::SetData64(int64_t data, uint8_t index) { //8 bytes out of 11
+        for (uint8_t i = 0 ; i < HEADER_SIZE-1 ; i++){
+            m_data[i] = data >> (i*8);
+        }
     }
     
-    
-//        uint8_t n_size_x = (hd.GetData8() & 0b1111111100000000) >> 8;
-//        uint8_t n_size_y = (hd.GetData8() & 0b0000000011111111) >> 0;
+    int64_t 
+    XDenseHeader::GetData64(uint8_t index) {        
+        int64_t data = 0;
+        
+        for (uint8_t i = 0 ; i < 8 ; i++){
+            data |= ( (m_data[i] << (i*8)) );
+        }
+        return data;
+    }
+    void 
+    XDenseHeader::SetData24(int32_t data, uint8_t index) {
+        uint8_t rooms = floor(float(HEADER_SIZE-1) / float(3));
+        assert(index < rooms); // 3 bytes
+        
+        m_data[index*3+0] = data >> (0*8);
+        m_data[index*3+1] = data >> (1*8);
+        m_data[index*3+2] = data >> (2*8);
+    }
+    int32_t
+    XDenseHeader::GetData24(uint8_t index) {
+        uint8_t rooms = floor(float(HEADER_SIZE-1) / float(3)); //3 bytes = 24bits
+        assert(index < rooms); // 3 bytes
+        
+        int32_t data = 0;
+        
+        data |= m_data[index*3+0] << (8) ;
+        data |= m_data[index*3+1] << (16) ;
+        data |= m_data[index*3+2] << (24) ;
+        data = data >> 8;
+
+        return data;
+    }
     
     void
-    XDenseHeader::SetData(int64_t data) {
+    XDenseHeader::SetData8(int8_t data, uint8_t index) {
+        uint8_t rooms = (HEADER_SIZE-1);
+        assert(index < rooms); // 10 bytes
         
-        m_data = data;
+        m_data[index] = data;
+    }
+    int8_t
+    XDenseHeader::GetData8(uint8_t index) {
+        uint8_t rooms = (HEADER_SIZE-1); //10 bytes = 80bits
+        assert(index < rooms); // 3 bytes
         
-//        for (uint8_t i = 0 ; i < 8 ; i++){
-//            m_data[i] = data >> (i * 8);
-//        }
-        
-//        m_data[0] = data >> 0;
-//        m_data[1] = data >> 8;
-//        m_data[2] = data >> 16;
-//        m_data[3] = data >> 24;
-//        m_data[4] = data >> 32;
-//        m_data[5] = data >> 40;
-//        m_data[6] = data >> 48;
-//        m_data[7] = data >> 56;
+        return m_data[index];
     }
 
-    void 
-    XDenseHeader::SetDataChunk(int64_t data, uint8_t n, uint8_t n_bits) {
-
-    }
-    int64_t 
-    XDenseHeader::GetDataChunk(int64_t data, uint8_t n, uint8_t n_bits) {
-
-        return 1;
-    }
 
 
 

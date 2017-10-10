@@ -446,7 +446,7 @@ namespace ns3 {
         XDenseHeader hxd;
         pck_c->PeekHeader(hxd);
         
-        if (hxd.GetXdenseProtocol() == XDenseHeader::TRACE)
+        if (hxd.GetXDenseProtocol() == XDenseHeader::TRACE)
             cout << "Received at:" << Simulator::Now().GetNanoSeconds() 
                  << " tts:" << Simulator::Now().GetNanoSeconds() / packet_duration
                  << " Q:" << nd->GetInputQueueSize() << "\n";  

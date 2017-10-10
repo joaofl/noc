@@ -28,7 +28,7 @@
 #include "ns3/header.h"
 #include "src/network/model/buffer.h"
 
-#define PAYLOAD_SIZE 11
+#define HEADER_SIZE 11 //5 from the NOCHeader, and 11 here, total 16 bytes
 
 namespace ns3 {
     /*
@@ -50,20 +50,15 @@ namespace ns3 {
         };
 
         /**
-         * \brief Construct a PPP header.
+         * \brief Construct the header.
          */
         XDenseHeader();
 
         /**
-         * \brief Destroy a PPP header.
+         * \brief Destroy the header.
          */
         virtual ~XDenseHeader();
         
-//        uint8_t Data[PAYLOAD_SIZE];   
-//        int8_t Protocol;
-     
-        
-
         static TypeId GetTypeId(void);
         virtual TypeId GetInstanceTypeId(void) const;
         virtual void Print(std::ostream &os) const;
@@ -71,12 +66,20 @@ namespace ns3 {
         virtual uint32_t Deserialize(Buffer::Iterator start);
         virtual uint32_t GetSerializedSize(void) const;
 
-
-        void SetData(int64_t);
-        uint64_t GetData(void);
+        void SetData64(int64_t data, uint8_t index); //max 1 byte
+        int64_t GetData64(uint8_t index);
         
-        void SetDataChunk(int64_t data, uint8_t n, uint8_t n_bits);
-        int64_t GetDataChunk(int64_t data, uint8_t n, uint8_t n_bits);
+        void SetData32(int32_t data, uint8_t index); //max 2 
+        int32_t GetData32(uint8_t index);
+        
+        void SetData24(int32_t data, uint8_t index); //max 3 
+        int32_t GetData24(uint8_t index);
+        
+        void SetData16(int16_t data, uint8_t index); //max 5 
+        int16_t GetData16(uint8_t index);
+
+        void SetData8(int8_t data, uint8_t index); //max 10
+        int8_t GetData8(uint8_t index);
         
         
         /**
@@ -84,21 +87,21 @@ namespace ns3 {
          *
          * \param protocol the protocol type being carried
          */
-        void SetXdenseProtocol(uint8_t protocol);
+        void SetXDenseProtocol(uint8_t protocol);
 
         /**
          * \brief Get the protocol type carried by this packet
          *
          * \return the protocol type being carried
          */
-        uint8_t GetXdenseProtocol(void);
+        uint8_t GetXDenseProtocol(void);
 
 
     private:
 
         uint8_t m_protocol;
-//        uint8_t m_data[PAYLOAD_SIZE - 1];
-        int64_t m_data;
+        uint8_t m_data[HEADER_SIZE];
+//        int8_t m_data;
     };
 
 } // namespace ns3

@@ -393,7 +393,7 @@ main(int argc, char *argv[]) {
             
             uint32_t n = GetN(size_x, size_y, x, y);
             XDenseHeader hd_out;
-            hd_out.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
+            hd_out.SetXDenseProtocol(XDenseHeader::DATA_SHARING);
             Ptr<Packet> pck_out = Create<Packet>();
             pck_out->AddHeader(hd_out);
             

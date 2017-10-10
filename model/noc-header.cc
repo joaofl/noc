@@ -63,13 +63,6 @@ namespace ns3 {
 
     void
     NOCHeader::Print(std::ostream &os) const {
-//        uint8_t i;
-//        
-//        for (i = 0 ; i < m_packetSize ; i++){
-//            os << "[" << i << "] " << m_data[i];
-//        }
-//        std::cout << std::endl;
-        
         os << (int) this->m_controlBits << ",";
         os << (int) this->m_protocol << ",";
         os << this->m_srcAddressX << "," << this->m_srcAddressY << ",";
@@ -79,43 +72,21 @@ namespace ns3 {
 
     uint32_t
     NOCHeader::GetSerializedSize(void) const {
-
         return m_headerSize;
-
     }
     
     void
     NOCHeader::Serialize(Buffer::Iterator start) const {
-
-        /*
-         * [0:1]    0       relative addressing
-         *          1       absolute addressing
-         * 
-         * [4:7]    0000     broadcast
-         *          0001     multicast to a predefined given radius (n_hops)
-         *          0010     unicast from a single node to another
-         */
-       
-//        start.WriteU8((ADDRESS_BITSHIFT << m_controlBits) | 
-//                (PROTOCOL_BITSHIFT << m_protocol));
-        
         start.WriteU8(m_protocol);
-        
         start.WriteU8(m_destAddressX);
         start.WriteU8(m_destAddressY);
-                        
         start.WriteU8(m_srcAddressX);        
         start.WriteU8(m_srcAddressY);        
     }
 
     uint32_t
     NOCHeader::Deserialize(Buffer::Iterator start) {
- 
-        m_protocol = start.ReadU8();
-        
-//        m_controlBits = (d & ADDRESS_BITMASK) >> ADDRESS_BITSHIFT;
-//        m_protocol = (d & PROTOCOL_BITMASK) >> PROTOCOL_BITSHIFT;
-        
+        m_protocol = start.ReadU8();        
         m_destAddressX  =  (int8_t) start.ReadU8();
         m_destAddressY  =  (int8_t) start.ReadU8();
         m_srcAddressX   =  (int8_t) start.ReadU8();
