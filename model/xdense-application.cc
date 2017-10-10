@@ -117,7 +117,7 @@ namespace ns3 {
             Ptr<Packet> pck_c = pck->Copy();
             XDenseHeader hd;
             pck_c->RemoveHeader(hd);
-            hd.SetData(i);
+            hd.SetData64(i,0);
             pck_c->AddHeader(hd);
             
             if (protocol == NOCHeader::PROTOCOL_UNICAST) {
@@ -152,7 +152,7 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
         
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
+        hd.SetXDenseProtocol(XDenseHeader::DATA_SHARING);
         pck->AddHeader(hd);
 //        
         Time t_ns = Time::FromInteger(0,Time::NS);
@@ -202,7 +202,7 @@ namespace ns3 {
         uint64_t tts_pck;
 //        int64x64_t tts_now, tts_total;
         
-        switch (h.GetXdenseProtocol()){
+        switch (h.GetXDenseProtocol()){
             case XDenseHeader::PING_RESPONSE:
                 PingResponseReceived(pck, origin_x, origin_y);
                 break;
@@ -227,7 +227,7 @@ namespace ns3 {
             case XDenseHeader::ACTION_NETWORK_SETUP:
 //                NetworkSetupReceived(pck, origin_x, origin_y);                
             case XDenseHeader::TRACE:
-                tts_pck = h.GetData();
+                tts_pck = h.GetData64(0);
                 cout << "Traced packet received: id=" << pck->GetUid() << "\tdata=" << tts_pck << endl;            
                 break;
         }
@@ -238,7 +238,7 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
 
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA_REQUEST);
+        hd.SetXDenseProtocol(XDenseHeader::CLUSTER_DATA_REQUEST);
         pck->AddHeader(hd);
 
 //        Time t_ns = Time::FromInteger(0,Time::NS);
@@ -270,30 +270,20 @@ namespace ns3 {
         void 
     XDenseApp::ClusterDataResponse(int32_t dest_x, int32_t dest_y) {
         
-//            Simulator::Schedule(t_ns, &NOCRouter::PacketUnicastOffset, this->m_router, pck, NETWORK_ID_0, x_dest, y_dest);
-        
-//        double_t b = 1;
-//        uint32_t ms = (ClusterSize_x + 1) * (ClusterSize_x + 1) * (1 - AggregationRate) * 5 / 4;
-//        uint8_t o = 0;
-        
-//        int32_t orig_x_log = m_router->AddressX;
-//        int32_t orig_y_log = m_router->AddressY;
-//        int32_t dest_x_log = m_router->AddressX + dest_x;
-//        int32_t dest_y_log = m_router->AddressY + dest_y;
-        
-            
         DataFit plane = NOCCalc::FindPlane(&m_neighborsList);
-        
-        cout << plane.a;
-            
+        //TODO check the size of the coeficients, to see in how many packets to send them
         // Construct the packet to be transmitted
         XDenseHeader hd_out;
         
-        hd_out.SetDataChunk(plane.a, 0, 32); //data, index, number of bits
+        hd_out.SetData24(plane.a,0); //data, index, number of bits
+        hd_out.SetData24(plane.b,1); //data, index, number of bits
+        hd_out.SetData24(plane.c,2); //data, index, number of bits
         
-        hd_out.SetXdenseProtocol(XDenseHeader::CLUSTER_DATA);
+        hd_out.SetXDenseProtocol(XDenseHeader::CLUSTER_DATA);
         Ptr<Packet> pck_out = Create<Packet>();
         pck_out->AddHeader(hd_out);
+        
+        m_router->PacketUnicast(pck_out, NETWORK_ID_0, m_sink_x, m_sink_y, ADDRESSING_RELATIVE); 
         
 //        double offset_log = (Simulator::Now().GetNanoSeconds() / PacketDuration.GetNanoSeconds()) + o - 1; //get the absolute offset
 
@@ -305,8 +295,30 @@ namespace ns3 {
 
     bool 
     XDenseApp::ClusterDataReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y) {
-
         
+        XDenseHeader hd;
+        pck->PeekHeader(hd);
+        
+        DataFit plane;
+        
+        plane.a = hd.GetData24(0);
+        plane.b = hd.GetData24(1);
+        plane.c = hd.GetData24(2);
+        
+        cout << plane.a;
+
+        int32_t lim_y = -ceil(ClusterSize_y)/2 +1;
+        int32_t lim_x = -ceil(ClusterSize_x)/2;
+        
+        for (int32_t y = lim_y ; y < lim_y + ClusterSize_y ; y++){
+           for (int32_t x = lim_x ; x < lim_x + ClusterSize_x ; x++){
+            
+//            NodeRef node = m_neighborsList[i];
+               
+               int64_t v = x * plane.a + y * plane.b + plane.c;
+               m_sensed_data_received(v, origin_x*-1 + x  + m_router->AddressX, origin_y*-1 + y  + m_router->AddressY);
+           }        
+        }
         
         return true;
     }
@@ -319,29 +331,30 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
 
 //        ClusterSize_x, ClusterSize_y shoule be this ones
-        uint8_t n_size_x = 5;
-        uint8_t n_size_y = 2;
+        ClusterSize_x = 1;
+        ClusterSize_y = 4;
         
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS);
-        hd.SetData( n_size_x << 8 | n_size_y << 0);
+        hd.SetXDenseProtocol(XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS);
+        hd.SetData8(ClusterSize_x, 1);
+        hd.SetData8(ClusterSize_y, 0);
         pck->AddHeader(hd);
 
         this->m_router->PacketBroadcast(pck, NETWORK_ID_0);
     }
 
     bool 
-    XDenseApp::NodesDataToClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y) {
+    XDenseApp::NodesDataToClusterDataRequestReceived(Ptr<const Packet> pck, int32_t current_x, int32_t current_y, int32_t size_x, int32_t size_y) {
         XDenseHeader hd;
         pck->PeekHeader(hd);        
         
         //Grab the 8bit data from the 64bit variable
-        uint8_t n_size_x = (hd.GetData() & 0b1111111100000000) >> 8;
-        uint8_t n_size_y = (hd.GetData() & 0b0000000011111111) >> 0;
+        uint8_t n_size_x = hd.GetData8(1);
+        uint8_t n_size_y = hd.GetData8(0);
         
         //Equation that return the nearest cluster head from the node that who received this req
-        int16_t my_x = (origin_x * 1); 
-        int16_t my_y = (origin_y * 1); 
+        int16_t my_x = current_x; 
+        int16_t my_y = current_y; 
         
         //Find in which quadrant I am
         int8_t my_qx = (( abs(my_x) + (floor((n_size_x-1) / 2))) / n_size_x) * (my_x / abs(my_x));        
@@ -354,13 +367,24 @@ namespace ns3 {
         //Calculate the relative position from to another
         int16_t dest_x = clusterhead_x - my_x;
         int16_t dest_y = clusterhead_y - my_y;
+
+        //Grab the location of the sink just in case
+        m_sink_x = current_x * -1;
+        m_sink_y = current_y * -1;
         
         //Check if I am a cluster head. In this case sample the sensor and do not send any packet.
         //Also schedule after some 'timeout' to send the data received after processing it
         if (dest_x == 0 && dest_y == 0){
             int64_t data = Sensor->ReadSensor();
             m_sensed_data(data);
-            m_sensed_data_received(data, m_router->AddressX, m_router->AddressY);
+//            m_sensed_data_received(data, m_router->AddressX, m_router->AddressY);
+            
+            NodeRef n;
+            n.value = data;
+            n.x = 0;
+            n.y = 0;
+            //TODO: Check if it already there, then push it to the back
+            m_neighborsList.push_back(n);
             
             //2x the distance to the farther node on the cluster + the time to receive all packets
             //this is pessimistic, but upper bounds the time required (check further)
@@ -378,16 +402,13 @@ namespace ns3 {
         DataSharing(dest_x,dest_y);
         return 1;
     }
-
-        
-        
     void
     XDenseApp::DataSharingRequest() {
         Ptr<Packet> pck = Create<Packet>();
         
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING_REQUEST);
-        hd.SetData(ClusterSize_x);
+        hd.SetXDenseProtocol(XDenseHeader::DATA_SHARING_REQUEST);
+        hd.SetData64(ClusterSize_x,0);
         pck->AddHeader(hd);
         
         m_router->PacketMulticastArea(pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
@@ -414,7 +435,7 @@ namespace ns3 {
         
         // Construct the packet to be transmitted
         XDenseHeader hd_out;
-        hd_out.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
+        hd_out.SetXDenseProtocol(XDenseHeader::DATA_SHARING);
         Ptr<Packet> pck_out = Create<Packet>();
         pck_out->AddHeader(hd_out);
         
@@ -431,8 +452,8 @@ namespace ns3 {
         XDenseHeader hd;
         pck->PeekHeader(hd);
         
-        uint8_t size_x = hd.GetData();
-        uint8_t size_y = hd.GetData();
+        uint8_t size_x = hd.GetData64(0);
+        uint8_t size_y = hd.GetData64(0);
         
         int32_t dest_x = origin_x * -1;
         int32_t dest_y = origin_y * -1;
@@ -479,6 +500,7 @@ namespace ns3 {
         uint32_t ms     = 5;
         uint8_t rd      = dist + 1; // all nodes send together. First wait for the last
         rd = 0; //send the response as soon as the request is received
+        
         //At each node rd = 0, but relatively to origin, at the time the request was made,
         // rd = do + 1, where do is distance to the origin
         rd = rd;
@@ -519,8 +541,8 @@ namespace ns3 {
         
         Ptr<Packet> pck = Create<Packet>();
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::DATA_SHARING);
-        hd.SetData(data);
+        hd.SetXDenseProtocol(XDenseHeader::DATA_SHARING);
+        hd.SetData64(data,0);
         pck->AddHeader(hd);
 
         m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 
@@ -532,7 +554,13 @@ namespace ns3 {
         Ptr<Packet> pck_c = pck->Copy();
         XDenseHeader h;
         pck_c->RemoveHeader(h);
-        int64_t data = h.GetData(); 
+        int64_t data = h.GetData64(0); 
+        
+        if (IsSink){
+            m_sensed_data_received(data, origin_x*-1  + m_router->AddressX, origin_y*-1  + m_router->AddressY);            
+            return true;
+        }
+            
         
         NodeRef n;
         n.value = data;
@@ -543,7 +571,7 @@ namespace ns3 {
         
                 
         //TODO this should use relative addresses so we can see what each node receives.
-        m_sensed_data_received(data, origin_x *-1 + m_router->AddressX, origin_y * -1 + m_router->AddressY);
+//        m_sensed_data_received(data, origin_x *-1 + m_router->AddressX, origin_y * -1 + m_router->AddressY);
         
         return false;
     }
@@ -553,11 +581,11 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
 
         XDenseHeader hd;
-        hd.SetXdenseProtocol(XDenseHeader::PING);
+        hd.SetXDenseProtocol(XDenseHeader::PING);
         
         int64_t tts_now = Simulator::Now().GetNanoSeconds();
         
-        hd.SetData(tts_now);
+        hd.SetData64(tts_now, 0);
         pck->AddHeader(hd);
 
         m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 
@@ -572,8 +600,8 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
 
         XDenseHeader hd_out;
-        hd_out.SetData(hd_in.GetData());
-        hd_out.SetXdenseProtocol(XDenseHeader::PING_RESPONSE);
+        hd_out.SetData64(hd_in.GetData64(0),0);
+        hd_out.SetXDenseProtocol(XDenseHeader::PING_RESPONSE);
         pck->AddHeader(hd_out);
 
         m_router->PacketUnicast(pck, NETWORK_ID_0, -origin_x, origin_y, ADDRESSING_RELATIVE);
@@ -589,7 +617,7 @@ namespace ns3 {
         int64_t tts_now;
         
         tts_now = Simulator::Now().GetNanoSeconds();
-        tts_pck = h.GetData();
+        tts_pck = h.GetData64(0);
                 
         m_ping_delay(tts_now - tts_pck);
 

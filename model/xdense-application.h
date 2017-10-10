@@ -158,6 +158,12 @@ namespace ns3 {
         Ptr<NOCRouter> m_router;
 //        std::vector<NodeRef> m_sinksList;
         
+        int32_t m_sink_x;
+        int32_t m_sink_y;
+        
+//        uint8_t n_size_x;
+//        uint8_t n_size_y; 
+        
         std::vector<NodeRef> m_neighborsList;
 //        uint32_t m_nPackets;
 //        vector <uint32_t> m_SerialNumber; //Serial NUmber

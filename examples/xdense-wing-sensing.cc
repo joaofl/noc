@@ -120,26 +120,26 @@ log_sensed_data_received(string context, int64_t data, int32_t cord_x, int32_t c
     << now << ","
     << context << "," //[ i, x, y, port, event ];
     << data << ","
-    << cord_x << ","
+    << cord_x << "," 
     << cord_y << '\n';
     
 //    cout << "Data received\n";
 } 
 
-void
-log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, 
-        double offset, double burstness, uint8_t ms, uint8_t protocol){
-    string route;
-    
-    if (protocol == NOCHeader::PROTOCOL_UNICAST){
-      route = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);  
-    }
-    else if (protocol == NOCHeader::PROTOCOL_UNICAST_OFFSET){
-        route = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST_OFFSET); 
-    }
-    
-    file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << route << endl;
-}
+//void
+//log_flows_source(string context, int32_t ox, int32_t oy, int32_t dx, int32_t dy, 
+//        double offset, double burstness, uint8_t ms, uint8_t protocol){
+//    string route;
+//    
+//    if (protocol == NOCHeader::PROTOCOL_UNICAST){
+//      route = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST);  
+//    }
+//    else if (protocol == NOCHeader::PROTOCOL_UNICAST_OFFSET){
+//        route = NOCRouting::EndToEndRoute(ox, oy,dx, dy, NOCHeader::PROTOCOL_UNICAST_OFFSET); 
+//    }
+//    
+//    file_flows_source << context << "," << burstness << "," << offset << "," << (int) ms << "," << route << endl;
+//}
 
 uint32_t 
 GetN(uint32_t size_x, uint32_t size_y, uint32_t x, uint32_t y){
@@ -347,8 +347,8 @@ main(int argc, char *argv[]) {
         
         ostringstream context[5];
         
-        context[0] << i << "," << x.Get() << "," << y.Get();
-        my_xdense_app->TraceConnect("FlowSourceTrace", context[0].str(), MakeCallback(&log_flows_source));
+//        context[0] << i << "," << x.Get() << "," << y.Get();
+//        my_xdense_app->TraceConnect("FlowSourceTrace", context[0].str(), MakeCallback(&log_flows_source));
         
         context[3] << i << "," << x.Get() << "," << y.Get() << ",0,s";
         my_xdense_app->TraceConnect("SensedDataTrace", context[3].str(), MakeCallback(&log_sensed_data));  
