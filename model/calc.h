@@ -58,6 +58,8 @@ namespace ns3 {
         
 
         static int32_t FindPoly(double * x1, double *x2, double *y, int32_t n, double * returned_b, double * returned_sse);
+        
+        static int32_t FindNodeCluster(int32_t my_cord, uint8_t cluster_size);
 
         
     private:

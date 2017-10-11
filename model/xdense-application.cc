@@ -24,6 +24,7 @@
 #include "src/core/model/simulator.h"
 #include "src/network/model/packet.h"
 #include "ns3/noc-types.h"
+#include "ns3/calc.h"
 
 
 
@@ -310,37 +311,21 @@ namespace ns3 {
         int32_t lim_y = -floor(ClusterSize_y)/2;
         int32_t lim_x = -floor(ClusterSize_x)/2;
         
-        int8_t signal_x;
-        int8_t signal_y;
-        
-        if (origin_x < 0) signal_x = -1;
-        else              signal_x =  1;
-        if (origin_y < 0) signal_y = -1;
-        else              signal_y =  1;
-        
-        int8_t my_qx = (( abs(origin_x) + (ceil((ClusterSize_x) / 2))) / ClusterSize_x) * signal_x;        
-        int8_t my_qy = (( abs(origin_y) + (ceil((ClusterSize_y) / 2))) / ClusterSize_y) * signal_y;  
-
+        int8_t origin_cluster_x = NOCCalc::FindNodeCluster(origin_x, ClusterSize_x);
+        int8_t origin_cluster_y = NOCCalc::FindNodeCluster(origin_y, ClusterSize_y);
         
         for (int32_t y = lim_y ; y < lim_y + ClusterSize_y ; y++){
-           for (int32_t x = lim_x ; x < lim_x + ClusterSize_x ; x++){
+            for (int32_t x = lim_x ; x < lim_x + ClusterSize_x ; x++){
                
-                if (x < 0) signal_x = -1;
-                else       signal_x =  1;
-                if (y < 0) signal_y = -1;
-                else       signal_y =  1;
-            
-                int8_t current_qx = (( abs(x) + (ceil((ClusterSize_x) / 2))) / ClusterSize_x) * signal_x;        
-                int8_t current_qy = (( abs(y) + (ceil((ClusterSize_y) / 2))) / ClusterSize_y) * signal_y; 
+                int8_t node_cluster_x = NOCCalc::FindNodeCluster(origin_x + x, ClusterSize_x);
+                int8_t node_cluster_y = NOCCalc::FindNodeCluster(origin_y + y, ClusterSize_y);
 //                
-                if (current_qx == my_qx && current_qy == my_qy){
+                if (node_cluster_x == origin_cluster_x && node_cluster_y == origin_cluster_y){
                     int64_t v = x * plane.a + y * plane.b + plane.c;
-                    m_sensed_data_received(v, -origin_x + x + m_router->AddressX, -origin_y + y + m_router->AddressY);
-                }
-               
-           }        
+                    m_sensed_data_received(v, -origin_x - x + m_router->AddressX, -origin_y - y + m_router->AddressY);
+                }     
+            }        
         }
-        
         return true;
     }
 
@@ -353,7 +338,7 @@ namespace ns3 {
 
 //        ClusterSize_x, ClusterSize_y shoule be this ones
         ClusterSize_x = 3;
-        ClusterSize_y = 3;
+        ClusterSize_y = 6;
         
         XDenseHeader hd;
         hd.SetXDenseProtocol(XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS);
@@ -370,19 +355,16 @@ namespace ns3 {
         pck->PeekHeader(hd);        
         //Following equations return the nearest cluster head from the node that who received this req
         
-        //Grab the 8bit data from the 64bit variable
+        //Grab the 8bit data from the 64bit variablez
         uint8_t n_size_x = hd.GetData8(0);
         uint8_t n_size_y = hd.GetData8(1);
         
         int16_t my_x = current_x; 
         int16_t my_y = current_y; 
         
-        //Find in which quadrant I am
-//        int8_t my_qx = ceil(( abs(my_x) + (floor((n_size_x-1) / 2))) / n_size_x) * (my_x / abs(my_x));        
-//        int8_t my_qy = ceil(( abs(my_y) + (floor((n_size_y-1) / 2))) / n_size_y) * (my_y / abs(my_y));   
-        //This eq actually leads to division by 0. For some reason not happening here
-        int8_t my_qx = (( abs(my_x) + (floor((n_size_x-1) / 2))) / n_size_x) * (my_x / abs(my_x));        
-        int8_t my_qy = (( abs(my_y) + (floor((n_size_y-1) / 2))) / n_size_y) * (my_y / abs(my_y)); 
+        //Find in which cluster I am
+        int8_t my_qx = NOCCalc::FindNodeCluster(my_x, n_size_x);
+        int8_t my_qy = NOCCalc::FindNodeCluster(my_y, n_size_y);
         
         //Find the coordinades of the nearest cluster head.
         int16_t chead_x = my_qx * n_size_x;
@@ -392,7 +374,7 @@ namespace ns3 {
         int16_t dest_x = chead_x - my_x;
         int16_t dest_y = chead_y - my_y;
         
-        m_sensed_data_received( abs(my_qx *9000 + my_qy*3000), m_router->AddressX, m_router->AddressY);
+//        m_sensed_data_received( abs(my_qx *9000 + my_qy*3000), m_router->AddressX, m_router->AddressY);
 
         //Save the location of the sink just in case
         m_sink_x = -current_x;
@@ -421,8 +403,6 @@ namespace ns3 {
             return 1;
         }
         
-        
-
         //Debug string
 //      std::cout << my_x << ",\t" << my_y << ",\t" << int(my_qx) << ",\t" << int(my_qy) << ",\t" << dest_x << ",\t" << dest_y << "\n";
         
@@ -475,6 +455,50 @@ namespace ns3 {
         this->SetFlowGenerator(0, b, o, ms, pck_out, dest_x, dest_y, ADDRESSING_RELATIVE, NOCHeader::PROTOCOL_UNICAST);
     }
 
+    
+    void
+    XDenseApp::DataSharing(int32_t x_dest, int32_t y_dest) {
+
+        int64_t data = Sensor->ReadSensor();
+        m_sensed_data(data);
+        
+        Ptr<Packet> pck = Create<Packet>();
+        XDenseHeader hd;
+        hd.SetXDenseProtocol(XDenseHeader::DATA_SHARING);
+        hd.SetData64(data,0);
+        pck->AddHeader(hd);
+
+        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 
+    }
+    
+    bool
+    XDenseApp::DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
+//        Here, the node should build an matrix with the received data
+        Ptr<Packet> pck_c = pck->Copy();
+        XDenseHeader h;
+        pck_c->RemoveHeader(h);
+        int64_t data = h.GetData64(0); 
+        
+//        if (IsSink){
+//            m_sensed_data_received(data, origin_x*-1  + m_router->AddressX, origin_y*-1  + m_router->AddressY);            
+//            return true;
+//        }
+            
+        
+        NodeRef n;
+        n.value = data;
+        n.x = origin_x;
+        n.y = origin_y;
+        //Check if it already there, then push it to the back
+        m_neighborsList.push_back(n);
+        
+                
+        //TODO this should use relative addresses so we can see what each node receives.
+//        m_sensed_data_received(data, origin_x *-1 + m_router->AddressX, origin_y * -1 + m_router->AddressY);
+        
+        return false;
+    }
+    
     void XDenseApp::CalculateShaper(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
         
         XDenseHeader hd;
@@ -559,49 +583,6 @@ namespace ns3 {
 //        }
     }
 
-    
-    void
-    XDenseApp::DataSharing(int32_t x_dest, int32_t y_dest) {
-
-        int64_t data = Sensor->ReadSensor();
-        m_sensed_data(data);
-        
-        Ptr<Packet> pck = Create<Packet>();
-        XDenseHeader hd;
-        hd.SetXDenseProtocol(XDenseHeader::DATA_SHARING);
-        hd.SetData64(data,0);
-        pck->AddHeader(hd);
-
-        m_router->PacketUnicast(pck, NETWORK_ID_0, x_dest, y_dest, ADDRESSING_RELATIVE); 
-    }
-    
-    bool
-    XDenseApp::DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y) {
-//        Here, the node should build an matrix with the received data
-        Ptr<Packet> pck_c = pck->Copy();
-        XDenseHeader h;
-        pck_c->RemoveHeader(h);
-        int64_t data = h.GetData64(0); 
-        
-        if (IsSink){
-            m_sensed_data_received(data, origin_x*-1  + m_router->AddressX, origin_y*-1  + m_router->AddressY);            
-            return true;
-        }
-            
-        
-        NodeRef n;
-        n.value = data;
-        n.x = origin_x;
-        n.y = origin_y;
-        //Check if it already there, then push it to the back
-        m_neighborsList.push_back(n);
-        
-                
-        //TODO this should use relative addresses so we can see what each node receives.
-//        m_sensed_data_received(data, origin_x *-1 + m_router->AddressX, origin_y * -1 + m_router->AddressY);
-        
-        return false;
-    }
 
     void
     XDenseApp::Ping(int32_t x_dest, int32_t y_dest) {

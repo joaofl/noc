@@ -24,6 +24,19 @@
 
 
 namespace ns3 {
+
+    int32_t 
+    NOCCalc::FindNodeCluster(int32_t my_cord, uint8_t cluster_size) {
+        
+        if (my_cord >= 0){
+            return floor( abs(my_cord) + floor(cluster_size / 2) ) / cluster_size;
+        }
+        else{
+            return -(floor( abs(my_cord) + floor((cluster_size-1) / 2) ) / cluster_size);
+        }
+//        return 0;
+    }
+
     
     std::vector<double_t> 
     NOCCalc::GetRandomBinsDouble(double_t value_min, double_t value_max, uint16_t n_bins, double_t sum) {
