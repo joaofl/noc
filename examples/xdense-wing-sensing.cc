@@ -160,7 +160,7 @@ main(int argc, char *argv[]) {
     uint32_t size_neighborhood = 1; //radius. includes all nodes up to 2 hops away (5x5 square area)
     uint32_t sinks_n = 1;
     uint32_t sink_x = 20;
-    uint32_t sink_y = 0;
+    uint32_t sink_y = 10;
     uint32_t baudrate = 3000000; //30000 kbps =  3 Mbps
     uint32_t pck_size = 16 * 10; //16 bytes... But this is not a setting, since it 2 stop bits
     
