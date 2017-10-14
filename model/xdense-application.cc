@@ -187,8 +187,32 @@ namespace ns3 {
 //        t_ns += 60 * PacketDuration;
 //        m_router->PacketBroadcast(pck, 0);
     }
+
+
+    void
+    XDenseApp::UpdateList(NodeRef n, std::vector<NodeRef> &m_neighborsList) {
+        //Update if present, add if absent
+        bool present = false;
+        uint8_t i;
+        for (i = 0  ; i < m_neighborsList.size() ; i++){
+            if (m_neighborsList.at(i).x == n.x && m_neighborsList.at(i).y == n.y){
+                present = true;
+                break;
+            }
+        }
+        if (present){
+            m_neighborsList.at(i) = n;
+        }
+        else{
+            m_neighborsList.push_back(n);            
+        }
+    }    
     
-    
+    uint16_t
+    XDenseApp::CalcTimeout(uint8_t cluster_size_x, uint8_t cluster_size_y) {
+        return 2 * (ceil(cluster_size_x/2) + ceil(cluster_size_y/2)) + (cluster_size_x * cluster_size_y - 1); 
+    }
+
 
     void 
     XDenseApp::PacketReceived(Ptr<const Packet> pck, uint8_t protocol, int32_t origin_x, int32_t origin_y, int32_t dest_x,int32_t dest_y) {
@@ -284,8 +308,13 @@ namespace ns3 {
         Ptr<Packet> pck_out = Create<Packet>();
         pck_out->AddHeader(hd_out);
         
-        m_router->PacketUnicast(pck_out, NETWORK_ID_0, m_sink_x, m_sink_y, ADDRESSING_RELATIVE); 
-        
+        if (IsSink){
+            ClusterDataReceived(pck_out, 0, 0, 0, 0);
+        }
+        else{
+            m_router->PacketUnicast(pck_out, NETWORK_ID_0, m_sink_x, m_sink_y, ADDRESSING_RELATIVE); 
+        }
+            
 //        double offset_log = (Simulator::Now().GetNanoSeconds() / PacketDuration.GetNanoSeconds()) + o - 1; //get the absolute offset
 
 //        m_flows_source(orig_x_log, orig_y_log, dest_x_log, dest_y_log, offset_log, b, ms, NOCHeader::PROTOCOL_UNICAST_OFFSET);
@@ -311,19 +340,11 @@ namespace ns3 {
         int32_t lim_y = -floor(ClusterSize_y)/2;
         int32_t lim_x = -floor(ClusterSize_x)/2;
         
-        int8_t origin_cluster_x = NOCCalc::FindNodeCluster(origin_x, ClusterSize_x);
-        int8_t origin_cluster_y = NOCCalc::FindNodeCluster(origin_y, ClusterSize_y);
-        
         for (int32_t y = lim_y ; y < lim_y + ClusterSize_y ; y++){
             for (int32_t x = lim_x ; x < lim_x + ClusterSize_x ; x++){
                
-                int8_t node_cluster_x = NOCCalc::FindNodeCluster(origin_x + x, ClusterSize_x);
-                int8_t node_cluster_y = NOCCalc::FindNodeCluster(origin_y + y, ClusterSize_y);
-//                
-                if (node_cluster_x == origin_cluster_x && node_cluster_y == origin_cluster_y){
-                    int64_t v = x * plane.a + y * plane.b + plane.c;
-                    m_sensed_data_received(v, -origin_x - x + m_router->AddressX, -origin_y - y + m_router->AddressY);
-                }     
+                int64_t v = x * plane.a + y * plane.b + plane.c;
+                m_sensed_data_received(v, -origin_x - x + m_router->AddressX, -origin_y - y + m_router->AddressY);
             }        
         }
         return true;
@@ -331,14 +352,14 @@ namespace ns3 {
 
 
     //////////////////////////////////////////////////////////////////////////
-
+    //The sink asks all nodes to send their sensed data to their closest cluster head
     void 
     XDenseApp::NodesDataToClusterDataRequest() {
         Ptr<Packet> pck = Create<Packet>();
 
 //        ClusterSize_x, ClusterSize_y shoule be this ones
-        ClusterSize_x = 3;
-        ClusterSize_y = 6;
+        ClusterSize_x = 4; //Only the sink has it set here
+        ClusterSize_y = 2;
         
         XDenseHeader hd;
         hd.SetXDenseProtocol(XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS);
@@ -347,6 +368,8 @@ namespace ns3 {
         pck->AddHeader(hd);
 
         this->m_router->PacketBroadcast(pck, NETWORK_ID_0);
+        uint16_t timeout = CalcTimeout(ClusterSize_x, ClusterSize_y); 
+        Simulator::Schedule(PacketDuration * timeout , &XDenseApp::ClusterDataResponse, this, 0,0); 
     }
 
     bool 
@@ -356,19 +379,19 @@ namespace ns3 {
         //Following equations return the nearest cluster head from the node that who received this req
         
         //Grab the 8bit data from the 64bit variablez
-        uint8_t n_size_x = hd.GetData8(0);
-        uint8_t n_size_y = hd.GetData8(1);
+        uint8_t cluster_size_x = hd.GetData8(0);
+        uint8_t cluster_size_y = hd.GetData8(1);
         
         int16_t my_x = current_x; 
         int16_t my_y = current_y; 
         
         //Find in which cluster I am
-        int8_t my_qx = NOCCalc::FindNodeCluster(my_x, n_size_x);
-        int8_t my_qy = NOCCalc::FindNodeCluster(my_y, n_size_y);
+        int8_t my_qx = NOCCalc::FindNodeCluster(my_x, cluster_size_x);
+        int8_t my_qy = NOCCalc::FindNodeCluster(my_y, cluster_size_y);
         
         //Find the coordinades of the nearest cluster head.
-        int16_t chead_x = my_qx * n_size_x;
-        int16_t chead_y = my_qy * n_size_y;
+        int16_t chead_x = my_qx * cluster_size_x;
+        int16_t chead_y = my_qy * cluster_size_y;
         
         //Calculate the relative position from one to another
         int16_t dest_x = chead_x - my_x;
@@ -392,11 +415,11 @@ namespace ns3 {
             n.x = 0;
             n.y = 0;
             //TODO: Check if it already there, before push it to the back
-            m_neighborsList.push_back(n);
+            UpdateList(n, m_neighborsList);
             
             //2x the distance to the farther node on the cluster + the time to receive all packets
             //this is pessimistic, but upper bounds the time required (check further)
-            uint16_t timeout = 2 * (ceil(n_size_x/2) + ceil(n_size_y/2)) + (n_size_x * n_size_y - 1); 
+            uint16_t timeout = CalcTimeout(cluster_size_x, cluster_size_y); 
             //Send processed data it to the sink
             Simulator::Schedule(PacketDuration * timeout , &XDenseApp::ClusterDataResponse, this, 0,0); 
             
@@ -484,14 +507,12 @@ namespace ns3 {
 //            return true;
 //        }
             
-        
         NodeRef n;
         n.value = data;
         n.x = origin_x;
         n.y = origin_y;
         //Check if it already there, then push it to the back
-        m_neighborsList.push_back(n);
-        
+        UpdateList(n, m_neighborsList);
                 
         //TODO this should use relative addresses so we can see what each node receives.
 //        m_sensed_data_received(data, origin_x *-1 + m_router->AddressX, origin_y * -1 + m_router->AddressY);
@@ -583,7 +604,7 @@ namespace ns3 {
 //        }
     }
 
-
+    
     void
     XDenseApp::Ping(int32_t x_dest, int32_t y_dest) {
         Ptr<Packet> pck = Create<Packet>();

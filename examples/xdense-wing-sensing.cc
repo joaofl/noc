@@ -392,31 +392,12 @@ main(int argc, char *argv[]) {
     }
 
     
-    Simulator::Schedule(packet_duration , &XDenseApp::NodesDataToClusterDataRequest, my_xdense_sink_app);
     
-    
-    //////////////////// From here, initialize the application at the nodes ///////////////// 
-
-//    for (uint32_t x = 0; x < size_x; x++) {
-//        for (uint32_t y = 0; y < size_y; y++) {
-//            
-//            uint32_t n = GetN(size_x, size_y, x, y);
-////            uint16_t d = NOCRouting::Distance(sink_x, sink_y, x, y);
-//          
-//            if (y == sink_y && x == sink_x){
-//                //sink does not send to itself
-//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->IsSink = true;
-//                continue;
-//            } 
-//            //my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, sink_x, sink_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
-//            Ptr<XDenseApp> app = my_xdense_app_container.Get(n)->GetObject<XDenseApp>();
-//            
-//            for (uint16_t n = 1 ; n <= 1 ; n++){
-//                Simulator::Schedule(n * packet_duration * 100 , &XDenseApp::DataSharing, app, sink_x, sink_y);
-//            }
-//        }
-//    }
-
+    for (uint8_t i = 0 ; i < 100 ; i++){
+        //Starts at t=packet duration, otherwise there were some negative timings on 
+        //the bigining... dont know why
+        Simulator::Schedule(packet_duration + (packet_duration*i*100) , &XDenseApp::NodesDataToClusterDataRequest, my_xdense_sink_app);
+    }
 
 
     cout << endl << "Simulation started, please wait..." << endl ;

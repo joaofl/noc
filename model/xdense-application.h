@@ -111,11 +111,9 @@ namespace ns3 {
         void DataSharing(int32_t x_dest, int32_t y_dest);
         bool DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         
-        
         void Ping(int32_t x_dest, int32_t y_dest);
         void PingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
         void PingResponseReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
-        
         
         void NodesDataToClusterDataRequest();
         bool NodesDataToClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y);
@@ -124,20 +122,13 @@ namespace ns3 {
         void ClusterDataResponse(int32_t x_dest, int32_t y_dest);
         bool ClusterDataRequestReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y);
         bool ClusterDataReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y, int32_t size_x, int32_t size_y);
-        
-//        void DataSharingSchedule(uint8_t n_times, Time period);
-//        void DataSharing();
-//        bool DataSharingReceived(Ptr<const Packet> pck, int32_t origin_x, int32_t origin_y);
-        //        
+      
         void AddRouter(Ptr<NOCRouter> r);
-//        NodeRef NearestClusterHead(void);
-//        void ScheduleTransmission(Ptr<const Packet> pck, uint8_t destination_port);
-//        NodeRef GetSinkAt(uint8_t);
-//        uint8_t GetSinkN(void);
-//        NodeRef GetNeighborAt(uint8_t);
-//        uint8_t GetNeighborN(void);
-//        IsPresent(vector<m_sink_type> *, m_sink_type *);
-//        uint32_t packetsReceived;
+
+        void UpdateList(NodeRef n, std::vector<NodeRef> &m_neighborsList);
+        
+        uint16_t CalcTimeout(uint8_t, uint8_t);
+//                    uint16_t timeout = 2 * (ceil(n_size_x/2) + ceil(n_size_y/2)) + (n_size_x * n_size_y - 1); 
 
     private:
         
