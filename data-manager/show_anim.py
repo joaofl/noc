@@ -24,6 +24,8 @@ import files_io
 import packet_structure as trace
 from os.path import expanduser
 
+import matplotlib.pyplot as plt
+
 from PyQt5.QtWidgets import * #QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
 from PyQt5.QtOpenGL import *
 from PyQt5.QtGui import *
@@ -182,15 +184,17 @@ class NOCAnim(QWidget):
                 x = int(current_trans[trace.x_absolute])
                 y = int(current_trans[trace.y_absolute])
 
-                if current_trans[trace.operation] == 's':
+                if current_trans[trace.operation] == 's': #Data sensed at the source
                     v = int(current_trans[trace.sensor_value])
                     # [viewer.setNode(x, y, 'sensor', v) for viewer in self.viewers]
                     continue
-                elif current_trans[trace.operation] == 'S':
+                elif current_trans[trace.operation] == 'S': #Sensed data as calculated by the sink
                     v = int(current_trans[trace.sensor_value])
                     x_origin = int(current_trans[trace.sensor_value + 1])
                     y_origin = int(current_trans[trace.sensor_value + 2])
                     [viewer.setNode(x_origin, y_origin, 'sensor', v) for viewer in self.viewers]
+
+                    data_matrix[(x_origin, y_origin)] = v
                     continue
 
                 elif current_trans[trace.operation] == 'c':
@@ -240,8 +244,6 @@ class NOCAnim(QWidget):
 
         if self.previous_index == len(self.packetTrace) - 1:
             self.doActionStartStop()
-            # self.doActionReload()
-            # self.doActionStartStop()
 
         if self.cb.isChecked():
             self.doActionStartStop()
@@ -249,8 +251,64 @@ class NOCAnim(QWidget):
         # self.graphics.update()
         # self.anim_aux.scene.update()
 
+        plot_data_profile()
+
         [v.scene.update() for v in self.viewers]
         #self.update()
+
+
+
+data_matrix = {}
+
+plt.ion()
+ax = plt.gca()
+ax.set_autoscale_on(True)
+
+p1, = ax.plot([], [])
+p2, = ax.plot([], [])
+# p2, = plt.subplot([], [])
+plt.show()
+
+def plot_data_profile():
+    lines = []
+    values = []
+
+    for y in range(0,40):
+        line_top = []
+        value_top = []
+        line_bottom = []
+        value_bottom = []
+        for x in range(0,50): # get the top only (righ only +0 if sink is centered)
+            v = data_matrix.get( (x, y) )
+            if v != None:
+                if x > 20:
+                    line_top.append(x-20)
+                    value_top.append(v)
+                else:
+                    line_bottom.append(x)
+                    value_bottom.append(v)
+
+        lines.append(line_top)
+        values.append(value_top)
+
+        lines.append(line_bottom)
+        values.append(value_bottom)
+
+
+
+    if len(lines) > 0 and len(values) > 0:
+        # plt.plot(lines[0], values[0])
+        p1.set_xdata(list(reversed(lines[0])))
+        p1.set_ydata(list(reversed(values[0])))
+
+        p2.set_xdata(lines[1])
+        p2.set_ydata(values[1])
+
+        ax.relim()
+        ax.autoscale_view(True, True, True)
+        plt.draw()
+        plt.pause(0.0001)
+
 
 
 def lauch_external(x, y, port):
