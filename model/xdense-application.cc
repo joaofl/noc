@@ -190,21 +190,21 @@ namespace ns3 {
 
 
     void
-    XDenseApp::UpdateList(NodeRef n, std::vector<NodeRef> &m_neighborsList) {
+    XDenseApp::UpdateList(NodeRef n, std::vector<NodeRef> &nodes_list) {
         //Update if present, add if absent
         bool present = false;
         uint8_t i;
-        for (i = 0  ; i < m_neighborsList.size() ; i++){
-            if (m_neighborsList.at(i).x == n.x && m_neighborsList.at(i).y == n.y){
+        for (i = 0  ; i < nodes_list.size() ; i++){
+            if (nodes_list.at(i).x == n.x && nodes_list.at(i).y == n.y){
                 present = true;
                 break;
             }
         }
         if (present){
-            m_neighborsList.at(i) = n;
+            nodes_list.at(i) = n;
         }
         else{
-            m_neighborsList.push_back(n);            
+            nodes_list.push_back(n);            
         }
     }    
     
@@ -295,6 +295,8 @@ namespace ns3 {
         void 
     XDenseApp::ClusterDataResponse(int32_t dest_x, int32_t dest_y) {
         
+//        DataFit curve = NOCCalc::FindCurve(&m_neighborsList);
+//        curve = curve;
         DataFit plane = NOCCalc::FindPlane(&m_neighborsList);
         //TODO check the size of the coeficients, to see in how many packets to send them
         // Construct the packet to be transmitted
@@ -344,9 +346,21 @@ namespace ns3 {
             for (int32_t x = lim_x ; x < lim_x + ClusterSize_x ; x++){
                
                 int64_t v = x * plane.a + y * plane.b + plane.c;
-                m_sensed_data_received(v, -origin_x - x + m_router->AddressX, -origin_y - y + m_router->AddressY);
+                int32_t translated_x = -origin_x - x + m_router->AddressX;
+                int32_t translated_y = -origin_y - y + m_router->AddressY;
+                
+                m_sensed_data_received(v, translated_x, translated_y);
+                
+//                NodeRef n;
+//                n.value = v;
+//                n.x = translated_x;
+//                n.y = translated_y;
+//                UpdateList(n, m_sinkNetworkData);
             }        
         }
+        
+        //Here, provide the data (data fits) already received to be visualized
+        
         return true;
     }
 
@@ -358,8 +372,8 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
 
 //        ClusterSize_x, ClusterSize_y shoule be this ones
-        ClusterSize_x = 4; //Only the sink has it set here
-        ClusterSize_y = 2;
+        ClusterSize_x = 1; //Only the sink has it set here
+        ClusterSize_y = 1;
         
         XDenseHeader hd;
         hd.SetXDenseProtocol(XDenseHeader::ACTION_NODES_DATA_TO_CLUSTER_HEADS);

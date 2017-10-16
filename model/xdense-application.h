@@ -156,6 +156,8 @@ namespace ns3 {
 //        uint8_t n_size_y; 
         
         std::vector<NodeRef> m_neighborsList;
+        
+        std::vector<NodeRef> m_sinkNetworkData;
 //        uint32_t m_nPackets;
 //        vector <uint32_t> m_SerialNumber; //Serial NUmber
 //        DataRate m_dataRate;

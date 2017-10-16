@@ -395,6 +395,10 @@ namespace ns3 {
         p.b = (int32_t)(t2);
         p.c = (int32_t)(t3);
         
+        p.time = -1;
+        p.x = 0;
+        p.y = 0;
+        
         return p;
         //http://www.had2know.com/academics/least-squares-plane-regression.html
     }
