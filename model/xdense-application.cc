@@ -371,8 +371,8 @@ namespace ns3 {
     XDenseApp::NodesDataToClusterDataRequest() {
         Ptr<Packet> pck = Create<Packet>();
 
-//        ClusterSize_x, ClusterSize_y shoule be this ones
-        ClusterSize_x = 1; //Only the sink has it set here
+        //Only the sink runs this code
+        ClusterSize_x = 3; //Only the sink has it set here
         ClusterSize_y = 1;
         
         XDenseHeader hd;
@@ -380,9 +380,18 @@ namespace ns3 {
         hd.SetData8(ClusterSize_x, 0);
         hd.SetData8(ClusterSize_y, 1);
         pck->AddHeader(hd);
+        
+        
+        NodeRef n;
+        int32_t data = Sensor->ReadSensor();
+        n.value = data;
+        n.x = 0;
+        n.y = 0;
+        //Check if it already there, then push it to the back
+        UpdateList(n, m_neighborsList);
 
         this->m_router->PacketBroadcast(pck, NETWORK_ID_0);
-        uint16_t timeout = CalcTimeout(ClusterSize_x, ClusterSize_y); 
+        uint16_t timeout = CalcTimeout(ClusterSize_x, ClusterSize_y);
         Simulator::Schedule(PacketDuration * timeout , &XDenseApp::ClusterDataResponse, this, 0,0); 
     }
 

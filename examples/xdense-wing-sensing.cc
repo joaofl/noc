@@ -393,7 +393,7 @@ main(int argc, char *argv[]) {
 
     
     
-    for (uint8_t i = 0 ; i < 1 ; i++){
+    for (uint8_t i = 0 ; i < 5 ; i++){
         //Starts at t=packet duration, otherwise there were some negative timings on 
         //the bigining... dont know why
         Simulator::Schedule(packet_duration + (packet_duration*i*100) , &XDenseApp::NodesDataToClusterDataRequest, my_xdense_sink_app);
