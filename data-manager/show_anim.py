@@ -22,17 +22,16 @@ __author__ = 'Joao Loureiro <joflo@isep.ipp.pt>'
 import sys, os, traceback, optparse, time, cProfile
 import files_io
 import packet_structure as trace
-from os.path import expanduser
+import scipy as sp
+import numpy as np
 
 import matplotlib.pyplot as plt
 
 from PyQt5.QtWidgets import * #QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
-from PyQt5.QtOpenGL import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import QTimer, Qt, QRectF
-from collections import namedtuple
 import _thread
-import random
+
 import data_viewer
 from node_graphics import Node
 
@@ -57,7 +56,8 @@ class NOCAnim(QWidget):
         self.btn = QPushButton('Start', self)
         self.btn.clicked.connect(self.doActionStartStop)
 
-        self.cb = QCheckBox('Step', self)
+        self.cbStep = QCheckBox('Step', self)
+        self.cbLoop = QCheckBox('Loop', self)
 
         self.btn2 = QPushButton('Reload', self)
         self.btn2.clicked.connect(self.doActionReload)
@@ -86,7 +86,8 @@ class NOCAnim(QWidget):
 
         hbox_l1 = QHBoxLayout()
         hbox_l1.addWidget(self.btn)
-        hbox_l1.addWidget(self.cb)
+        hbox_l1.addWidget(self.cbStep)
+        hbox_l1.addWidget(self.cbLoop)
         hbox_l1.addWidget(self.btn2)
         hbox_l1.addWidget(self.tb_refresh)
         hbox_l1.addWidget(self.refresh_slider)
@@ -243,9 +244,13 @@ class NOCAnim(QWidget):
         self.tb_time_ns.setText('{0:.2f}µs'.format(time))
 
         if self.previous_index == len(self.packetTrace) - 1:
-            self.doActionStartStop()
+            if self.cbLoop.isChecked():
+                self.doActionReload()
+                self.doActionStartStop()
+            else:
+                self.doActionStartStop()
 
-        if self.cb.isChecked():
+        if self.cbStep.isChecked():
             self.doActionStartStop()
 
         # self.graphics.update()
@@ -256,7 +261,7 @@ class NOCAnim(QWidget):
         [v.scene.update() for v in self.viewers]
         #self.update()
 
-
+##############################################################
 
 data_matrix = {}
 
@@ -264,29 +269,44 @@ plt.ion()
 ax = plt.gca()
 ax.set_autoscale_on(True)
 
-p1, = ax.plot([], [])
-p2, = ax.plot([], [])
+p1, = ax.plot([], [], marker= '', label='Top')
+p2, = ax.plot([], [], marker= '', label='Bottom')
+ax.legend(loc='best', frameon=True, prop={'size':12})
+ax.set_xlabel('Wing position (m)')
+ax.set_ylabel('Pressure (kPa)')
 # p2, = plt.subplot([], [])
 plt.show()
 
 def plot_data_profile():
+    import scipy as sp
+    from scipy.interpolate import interp1d
+
     lines = []
     values = []
 
-    for y in range(0,40):
+    size_x = int(options.size_x)
+    size_y = int(options.size_y)
+
+    wing_size = 1.1963 #meters
+    sensors_interspace = (wing_size*2)/size_x
+
+    sink_x = 20
+
+    for y in range(0,size_y):
         line_top = []
         value_top = []
         line_bottom = []
         value_bottom = []
-        for x in range(0,50): # get the top only (righ only +0 if sink is centered)
+
+        for x in range(0, size_x): # get the top only (righ only +0 if sink is centered)
             v = data_matrix.get( (x, y) )
             if v != None:
-                if x > 20:
-                    line_top.append(x-20)
-                    value_top.append(v)
-                else:
-                    line_bottom.append(x)
-                    value_bottom.append(v)
+                if x >= sink_x:
+                    line_top.append(x - sink_x)
+                    value_top.append(v/1000)
+                if x <= sink_x:
+                    line_bottom.append(-(x - sink_x))
+                    value_bottom.append(v/1000)
 
         lines.append(line_top)
         values.append(value_top)
@@ -294,15 +314,36 @@ def plot_data_profile():
         lines.append(line_bottom)
         values.append(value_bottom)
 
+    if len(lines[0]) > 2 and len(values[0]) > 2:
+        #Interpolate here
+        x = lines[0]
+        y = values[0]
+
+        func = sp.interpolate.interp1d(x, y, kind="cubic")
+
+        x_vals = np.linspace(0, len(y) - 1, len(y) * 100, endpoint=False)
+        y_vals = func(x_vals)
+
+        x_vals = [val * sensors_interspace for val in x_vals]
+
+        #Plot here
+        p1.set_xdata(x_vals)
+        p1.set_ydata(y_vals)
 
 
-    if len(lines) > 0 and len(values) > 0:
-        # plt.plot(lines[0], values[0])
-        p1.set_xdata(list(reversed(lines[0])))
-        p1.set_ydata(list(reversed(values[0])))
+        x = lines[1]
+        y = values[1]
 
-        p2.set_xdata(lines[1])
-        p2.set_ydata(values[1])
+        func = sp.interpolate.interp1d(x, y, kind="cubic")
+
+        x_vals = np.linspace(0, len(y) - 1, len(y) * 100, endpoint=False)
+        y_vals = func(x_vals)
+
+        x_vals = [val * sensors_interspace for val in x_vals]
+
+        #Plot here
+        p2.set_xdata(x_vals)
+        p2.set_ydata(y_vals)
 
         ax.relim()
         ax.autoscale_view(True, True, True)

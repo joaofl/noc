@@ -472,11 +472,11 @@ res = 500
 #How many nodes should be deployed
 nw_size_x, nw_size_y = 20, 30 #nodes
 
-fig, spSensors = plt.subplots(1, 1)
-
 imgs = []
+imgs_deployment = []
 
-sensors_datas = []
+sensors_data = []
+sensors_deployment_data = []
 sensors_time = []
 
 #Get the time step from the config file
@@ -498,7 +498,9 @@ for i in range(100,301,1):
 
     print('Importing data from SU2 file' + fn)
 
-    [data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, extent] = ImportFromSU2(fn)
+    data = ImportFromSU2(fn)
+    sensors_deployment_data.append(data)
+    [data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, extent] = data
 
     print('Deploying sensors')
     x_interspace, y_interspace, placement = DeploySensors(point_lb, point_lt, point_rb, point_rt)
@@ -506,18 +508,20 @@ for i in range(100,301,1):
     frame = [[np.nan for _ in range(nw_size_x * 2)] for _ in range(nw_size_y)]
 
     for [x_grid, y_grid, x_pos, y_pos] in placement:
+        #Place top and bottom into the same matrix
+        #First bottom
         z = data_top[int(round(y_pos*res))][int(round(x_pos*res))]
         frame[y_grid][x_grid + nw_size_x] = z
-
+        #Here the top
         z = data_bottom[int(round(y_pos*res))][int(round(x_pos*res))]
         frame[y_grid][(x_grid - nw_size_x + 1) * -1] = z
 
-    sensors_datas.append(frame)
+    sensors_data.append(frame)
     sensors_time.append(i* t_step)
 
 
 zs = []
-for m in sensors_datas:
+for m in sensors_data:
     for l in m:
        zs += l
 z_min = min(zs)
@@ -525,7 +529,7 @@ z_max = max(zs)
 
 #normalize
 sens_res = 16
-sensors_normed = normalize_data_array(sensors_datas, sens_res, z_min, z_max)
+sensors_normed = normalize_data_array(sensors_data, sens_res, z_min, z_max)
 
 # zs = []
 # for m in sensors_normed:
@@ -539,8 +543,9 @@ write_input_data_to_disk('/home/joao/noc-data/input-data/sensors/pitching-onera.
 
 
 print('Ploting')
+fig, spSensors = plt.subplots(1, 1)
 
-for frame in sensors_datas:
+for frame in sensors_data:
     img = spSensors.imshow(frame, cmap=plt.get_cmap('jet'), origin='lower', vmin=z_min, vmax=z_max)
     imgs.append([img])
 
@@ -550,9 +555,16 @@ print('Done processing. Preparing to plot...')
 ani = animation.ArtistAnimation(fig, imgs, interval=120, blit=False, repeat_delay=0)
 ani.save('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram.mp4')
 
-fig, sp = plt.subplots(1, 2, sharey=True, sharex=True)
-img_top, img_bottom = plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
+plt.show()
 
-plt.savefig('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram.png')
+fig2, sp = plt.subplots(1, 2, sharey=True, sharex=True)
+for [data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, extent] in sensors_deployment_data:
+    img_top, img_bottom = plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
+    imgs_deployment.append([img_top, img_bottom])
+
+ani = animation.ArtistAnimation(fig2, imgs_deployment, interval=120, blit=False, repeat_delay=0)
+ani.save('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram_deployment.mp4')
+
+# plt.savefig('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram.png')
 plt.show()
 exit(0)

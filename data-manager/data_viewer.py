@@ -169,7 +169,7 @@ class SensorAnim(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('others/grid2.png'))
-    ex = SensorAnim([200,20])
+    ex = SensorAnim([3,3])
 
 
     sys.exit(app.exec_())
