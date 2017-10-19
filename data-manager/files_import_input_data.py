@@ -491,8 +491,8 @@ t_step = get_config(fn_cfg, 'UNST_TIMESTEP')
 # v = config['UNST_TIMESTEP']
 
 
-for i in range(100,301,1):
-# for i in [100, 110, 120, 130, 140, 150]:
+# for i in range(100,301,1):
+for i in range(100, 185, 5):
 # for i in [35, 62, 132, 211, 262, 344, 696]:
     fn = dir + 'surface_flow_{:05d}.csv'.format(i)
 
@@ -557,13 +557,13 @@ ani.save('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram.mp4')
 
 plt.show()
 
-fig2, sp = plt.subplots(1, 2, sharey=True, sharex=True)
-for [data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, extent] in sensors_deployment_data:
-    img_top, img_bottom = plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
-    imgs_deployment.append([img_top, img_bottom])
-
-ani = animation.ArtistAnimation(fig2, imgs_deployment, interval=120, blit=False, repeat_delay=0)
-ani.save('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram_deployment.mp4')
+# fig2, sp = plt.subplots(1, 2, sharey=True, sharex=True)
+# for [data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, extent] in sensors_deployment_data:
+#     img_top, img_bottom = plot_deployment(data_top, data_bottom, point_lb, point_lt, point_rb, point_rt, placement, extent)
+#     imgs_deployment.append([img_top, img_bottom])
+#
+# ani = animation.ArtistAnimation(fig2, imgs_deployment, interval=120, blit=False, repeat_delay=0)
+# ani.save('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram_deployment.mp4')
 
 # plt.savefig('/home/joao/noc-data/input-data/sensors/sources/pitching_oneram.png')
 plt.show()

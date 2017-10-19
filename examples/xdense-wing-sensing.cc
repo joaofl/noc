@@ -176,7 +176,7 @@ main(int argc, char *argv[]) {
     string input_delay_data_path = "";
     string input_shaping_data_path = "";
     
-    string extra = "XX"; //Contains shaping information
+    string extra = "1x1"; //Contains shaping information
  
     CommandLine cmd;
     cmd.AddValue("output_data", "Directory for simulations output", output_data_dir);
@@ -393,10 +393,10 @@ main(int argc, char *argv[]) {
 
     
     
-    for (uint8_t i = 0 ; i < 5 ; i++){
+    for (uint8_t i = 0 ; i < 17 ; i++){
         //Starts at t=packet duration, otherwise there were some negative timings on 
         //the bigining... dont know why
-        Simulator::Schedule(packet_duration + (packet_duration*i*100) , &XDenseApp::NodesDataToClusterDataRequest, my_xdense_sink_app);
+        Simulator::Schedule(packet_duration +  i * Time::FromInteger(100, Time::MS), &XDenseApp::NodesDataToClusterDataRequest, my_xdense_sink_app);
     }
 
 

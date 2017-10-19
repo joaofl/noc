@@ -372,7 +372,7 @@ namespace ns3 {
         Ptr<Packet> pck = Create<Packet>();
 
         //Only the sink runs this code
-        ClusterSize_x = 3; //Only the sink has it set here
+        ClusterSize_x = 1; //Only the sink has it set here
         ClusterSize_y = 1;
         
         XDenseHeader hd;

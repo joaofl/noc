@@ -314,7 +314,7 @@ def plot_data_profile():
         lines.append(line_bottom)
         values.append(value_bottom)
 
-    if len(lines[0]) > 2 and len(values[0]) > 2:
+    if len(lines[0]) > 4 and len(values[0]) > 4:
         #Interpolate here
         x = lines[0]
         y = values[0]
