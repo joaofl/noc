@@ -148,17 +148,6 @@ namespace ns3 {
          */
         void SetReceiveErrorModel(Ptr<ErrorModel> em);
         
-        
-//        void RemoteSignalChanged(uint8_t signalName, bool);
-//
-//        bool GetRemoteWait(void);
-//        
-//        bool GetLocalWait(void);
-//        
-//        void SetLocalWait(bool);     
-        
-        
-        
         Ptr<Packet> DequeueReceived(void);
         
         Ptr<const Packet> PeekReceived(void);
@@ -185,42 +174,13 @@ namespace ns3 {
          * @param p Ptr to the packet to be transmitted.
          */
         int8_t Send(Ptr<Packet> packet);
-        
-        /**
-         * Sends a packet without the need of informing destination and protocol n.
-         *
-         * @param p Ptr to the packet to be transmitted.
-         * @param pri Priority on transmitting the packet (default 0, 1 for prioritized transmissions)
-         */
-//        bool Send(Ptr<Packet> packet, uint8_t priority);
-        
-//        bool SendSignal(Ptr<Packet> packet);
-
-//        void SetNOCAddress(NOCAddress);
-//        NOCAddress GetNOCAddress(void);
-        
+                
         virtual void SetReceiveCallback(ReceiveCallback);
         
         
         typedef Callback< void, Ptr<const Packet>, NOCRouting::Directions> ReceiveCallback;
         void SetReceiveCallback(ReceiveCallback);
-        
-        
-//        typedef Callback< void, Ptr<const Packet>, uint16_t > SignalChanged;
-//        void SetSignalReadCallback (SignalChanged);
-        
-//        typedef Callback< void, Ptr<NOCNetDevice>, Ptr<NOCNetDevice>, uint8_t > RemoteTransmissionStartedCallback;
-        
-        
-        
-//        void AddRemoteTransmitStartedCallback(RemoteTransmissionStartedCallback callback);
-        
-//        typedef Callback< void, uint8_t, Ptr<NOCNetDevice>, bool > SignalChangedCallback;
-//        
-//        void SetRemoteSignalChangedCallback(SignalChangedCallback);
-//        
-//        void SetLocalSignalChangedCallback(SignalChangedCallback);
-        
+                
 
         // The remaining methods are documented in ns3::NetDevice*
 

@@ -268,7 +268,7 @@ namespace ns3 {
 
 //        Time t_ns = Time::FromInteger(0,Time::NS);
 //        Simulator::Schedule(t_ns, &NOCRouter::PacketMulticastIndividuals, this->m_router, pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
-            this->m_router->PacketMulticastIndividuals(pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
+            this->m_router->PacketMulticastAlternative(pck, NETWORK_ID_0, ClusterSize_x, ClusterSize_y);
 //        this->ClusterDataRequestReceived(pck, 0, 0, ClusterSize_x, ClusterSize_y);
     }
 

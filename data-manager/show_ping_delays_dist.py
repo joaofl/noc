@@ -26,6 +26,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
+from scipy.stats import burr, pareto, invgamma, uniform, norm, dgamma, gaussian_kde
+
 #My stuff
 import files_io
 
@@ -77,12 +79,19 @@ if __name__ == '__main__':
 
     pck_dur = 53333
 
-    normalize = True
+    normalize = False
     filter = True
+
+    if normalize:
+        trace_ping_delay[:] = [x / pck_dur for x in trace_ping_delay]
+        trace_ping_delay_hw[:] = [(x / pck_dur) for x in trace_ping_delay_hw]
+    else:
+        trace_ping_delay[:] = [(x / 1000) for x in trace_ping_delay]
+        trace_ping_delay_hw[:] = [(x - pck_dur) / 2000 for x in trace_ping_delay_hw] #for micro seconds, divided by 2 because we want a single hop delay
 
     if filter:
         v_min = 0
-        v_max = 10000000000000000
+        v_max = 280
 
         nl = []
         for v in trace_ping_delay_hw:
@@ -96,63 +105,75 @@ if __name__ == '__main__':
                 nl.append(v)
         trace_ping_delay = nl
 
-    if normalize:
-        trace_ping_delay[:] = [x / pck_dur for x in trace_ping_delay]
-        trace_ping_delay_hw[:] = [(x / pck_dur) for x in trace_ping_delay_hw]
-
 
     # -------------------
     # fig, ax = plt.subplots(1, 1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
-    # # ax.set_xlabel('Forward Delay ($\mu s$)')
-    # ax.set_xlabel('Transmission time slot (TTS)')
+    # ax.set_xlabel('Forward Delay ($\mu s$)')
+    # # ax.set_xlabel('Transmission time slot (TTS)')
     # ax.set_ylabel('Normalized Density')
     #
-    # ax.hist(trace_ping_delay, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Histogram SIM')
+    # ax.hist(trace_ping_delay, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid') #, label='Histogram SIM')
     #
     # ax.legend(loc='best', frameon=True)#, prop={'size':12})
     # fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
     # file_out = outputfile_ping_delay_dist
     # # plt.savefig(dir + file_out)
-    #
-    # # --------------------
-    # fig, ax = plt.subplots(1, 1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
-    # # ax.set_xlabel('Forward Delay ($\mu s$)')
+
+    # --------------------
+    fig, ax = plt.subplots(1, 1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
+    ax.set_xlabel('Internal Delay ($\mu s$)')
     # ax.set_xlabel('Transmission time slot (TTS)')
-    # ax.set_ylabel('Normalized Density')
-    #
-    # ax.hist(trace_ping_delay_hw, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Histogram HW')
-    #
-    # ax.legend(loc='best', frameon=True)#, prop={'size':12})
-    # fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+    ax.set_ylabel('Normalized Density')
+
+    ax.hist(trace_ping_delay_hw, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid') #, label='Normalized density')
+
+    d_max = max(trace_ping_delay_hw)
+    d_min = min(trace_ping_delay_hw)
+    d_mean = np.mean(trace_ping_delay_hw)
+    d_count = len(trace_ping_delay_hw)  # d = d_count
+
+    x = np.linspace(d_min, d_max, d_count)
+    param_norm = norm.fit(trace_ping_delay_hw)
+    y_norm = norm.pdf(x, param_norm[0], param_norm[1])
+    ax.plot(x, y_norm, 'r--', color='darkgreen', label='Normal distribution fit ')
+
+    print(param_norm)
+
+    ax.legend(loc='best', frameon=True)#, prop={'size':12})
+    fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+
+
     # file_out = outputfile_ping_delay_dist
-    # # plt.savefig(dir + file_out)
-    # plt.show()
+    # plt.savefig(dir + file_out)
 
 
-    all_data = [trace_ping_delay, trace_ping_delay_hw]
-
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 4))
-
-    axes[0].violinplot(all_data,
-                       showmeans=False,
-                       showmedians=True)
-    # axes[0].set_title('violin plot')
-
-    # plot box plot
-    axes[1].boxplot(all_data)
-    # axes[1].set_title('box plot')
-
-    # adding horizontal grid lines
-    for ax in axes:
-        ax.yaxis.grid(True)
-        ax.set_xticks([y+1 for y in range(len(all_data))])
-        # ax.set_xlabel('xlabel')
-        ax.set_ylabel('Transmission Time Slot (TTS)')
-
-    # add x-tick labels
-    plt.setp(axes, xticks=[y+1 for y in range(len(all_data))],
-             xticklabels=['SIM', 'HW'])
     plt.show()
+
+
+    # all_data = [trace_ping_delay, trace_ping_delay_hw]
+    #
+    # fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(9, 4))
+    #
+    # axes[0].violinplot(all_data,
+    #                    showmeans=False,
+    #                    showmedians=True)
+    # # axes[0].set_title('violin plot')
+    #
+    # # plot box plot
+    # axes[1].boxplot(all_data)
+    # # axes[1].set_title('box plot')
+    #
+    # # adding horizontal grid lines
+    # for ax in axes:
+    #     ax.yaxis.grid(True)
+    #     ax.set_xticks([y+1 for y in range(len(all_data))])
+    #     # ax.set_xlabel('xlabel')
+    #     ax.set_ylabel('Transmission Time Slot (TTS)')
+    #
+    # # add x-tick labels
+    # plt.setp(axes, xticks=[y+1 for y in range(len(all_data))],
+    #          xticklabels=['SIM', 'HW'])
+    # plt.show()
 
 
 

@@ -9,10 +9,10 @@ from scipy.stats import burr, pareto, invgamma, uniform, norm, dgamma, gaussian_
 
 
 
-dir = '/home/joao/noc-data/hw-measurements/'
+dir = '/home/joao/noc-data/others/hw-measurements/'
 
-file_in = 'relay-delay-fpga-10.0ks@3.0Mbps.data'
-# file_in = 'relay-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data'
+# file_in = 'relay-delay-fpga-10.0ks@3.0Mbps.data'
+file_in = 'relay-delay-uc-high-uart-irq-fine-10ks@3.0Mbps.data'
 
 
 din = pickle.load(open(dir + file_in, 'rb'))
@@ -94,14 +94,14 @@ plt.savefig(dir + file_out)
 #
 # ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
 # ax.hist(d, bins=20, facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
-
-
+#
+#
 # param_norm = uniform.fit(d)
 # y_norm = uniform.pdf(x, param_norm[0], param_norm[1])
 # ax.plot(x,y_norm,'r--', color='brown', label='Uniform distribution fit')
-
+#
 # plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
-
+#
 # ax.legend(loc='upper right', frameon=True, prop={'size':12})
 # fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
 # file_out = file_in + '-cdf.eps'

@@ -335,7 +335,7 @@ namespace ns3 {
     }
     
     bool 
-    NOCRouter::PacketMulticastIndividuals(Ptr<const Packet> pck, uint8_t network_id, int32_t x_position, int32_t y_position) {
+    NOCRouter::PacketMulticastAlternative(Ptr<const Packet> pck, uint8_t network_id, int32_t x_position, int32_t y_position) {
         NOCHeader h;
         h.SetProtocol(NOCHeader::PROTOCOL_MULTICAST_INDIVIDUALS);
         h.SetSourceAddressXY(0,0);

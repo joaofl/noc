@@ -6,7 +6,7 @@ from scipy.stats import burr, pareto, invgamma, uniform
 
 
 
-dir = '/home/joao/noc-data/hw-measurements/'
+dir = '/home/joao/noc-data/others/hw-measurements/'
 # file_in = 'relay-delay-uc-light-sensor-noled10.0ks@3.0Mbps.data'
 # file_in = 'relay-delay-fpga-100.0ks@1.5Mbps.data'
 # file_in = 'relay-delay-uc-delay-until-1ms-10.0ks@3.0Mbps.data'
@@ -36,14 +36,14 @@ ax.set_xlabel('Forward Delay ($\mu s$)')
 ax.set_ylabel('Cumulative Density')
 # ax.grid(True)
 
-ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
+# ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=1, log=0, align='mid', label='Measured data')
 
 x = np.linspace(d_min,d_max, d_count)
 
 param = uniform.fit(d)
 # y = uniform.pdf(x, param[0], param[1])
-y = uniform.cdf(x, param[0], param[1])
-ax.plot(x,y,'r--', color='darkred', label='Uniform distribution fit')
+# y = uniform.cdf(x, param[0], param[1])
+# ax.plot(x,y,'r--', color='darkred', label='Uniform distribution fit')
 
 # plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
 
@@ -56,18 +56,20 @@ plt.savefig(dir + file_out)
 
 
 fig, ax = plt.subplots(1, 1, figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
-ax.set_xlabel('Forward Delay ($\mu s$)')
+ax.set_xlabel('Internal Delay ($\mu s$)')
 ax.set_ylabel('Normalized Density')
 # ax.grid(True)
 
-ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid', label='Measured data')
+ax.hist(d, bins='fd', facecolor='lightblue', alpha=1, normed=1, cumulative=0, log=0, align='mid') #, label='Measured data')
 
 x = np.linspace(d_min,d_max, d_count)
 
 param = uniform.fit(d)
 y = uniform.pdf(x, param[0], param[1])
 # y = uniform.cdf(x, param[0], param[1])
-ax.plot(x,y,'r--', color='darkred', label='Uniform distribution fit')
+ax.plot(x,y,'r--', color='green', label='Uniform distribution fit')
+
+print(param)
 
 # plt.xlim([d_min - abs(2*d_min), d_max + abs(2*d_min)])
 

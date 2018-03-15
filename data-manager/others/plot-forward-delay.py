@@ -6,7 +6,7 @@ from scipy.stats import burr, pareto, invgamma, uniform
 
 
 
-dir = '/home/joao/noc-data/hw-measurements/'
+dir = '/home/joao/noc-data/others/hw-measurements/'
 # file_in = 'relay-delay-uc-light-sensor-noled10.0ks@3.0Mbps.data'
 # file_in = 'relay-delay-fpga-100.0ks@1.5Mbps.data'
 # file_in = 'relay-delay-uc-delay-until-1ms-10.0ks@3.0Mbps.data'

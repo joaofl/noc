@@ -114,7 +114,7 @@ namespace ns3 {
 
         bool PacketMulticastRadius (Ptr<const Packet> pck, uint8_t network_id, uint8_t n_hops);
         bool PacketMulticastArea (Ptr<const Packet> pck, uint8_t network_id, int32_t x_size, int32_t y_size);
-        bool PacketMulticastIndividuals (Ptr<const Packet> pck, uint8_t network_id, int32_t x_position, int32_t y_position);
+        bool PacketMulticastAlternative (Ptr<const Packet> pck, uint8_t network_id, int32_t x_position, int32_t y_position);
 //        bool PacketMulticastReceived (Ptr<const Packet> pck, uint8_t network_id);
 
         bool PacketBroadcast (Ptr<const Packet> pck, uint8_t network_id);

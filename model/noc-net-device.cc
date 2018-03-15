@@ -315,8 +315,9 @@ namespace ns3 {
             bool AddToDestination = false;
 
             if (h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST ||
-                    h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST_OFFSET)
+                    h.GetProtocol() == NOCHeader::PROTOCOL_UNICAST_OFFSET){
                 AddToDestination = true;
+            }
 
 
             switch (m_direction) {
