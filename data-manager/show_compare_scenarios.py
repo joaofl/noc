@@ -135,9 +135,6 @@ if __name__ == '__main__':
         dashecycler = cycle(dashes)
         linecycler = cycle(lines)
 
-
-
-
         makercycler = cycle(mark)
 
         fig, ax = plt.subplots(figsize=(x_size, y_size), dpi=110, facecolor='w', edgecolor='w')
