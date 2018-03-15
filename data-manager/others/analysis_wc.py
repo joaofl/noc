@@ -113,7 +113,7 @@ def burst_size(sw):
 
 def resulting_flow(sw_in, model='TL'):
 
-    if model not in ['BU','TD','RL','TL']:
+    if model not in ['Min-O','LQ','Max-S']:
         # model = 'TL'
         print('Model not specified. Exiting...')
         exit(-1)
@@ -130,7 +130,7 @@ def resulting_flow(sw_in, model='TL'):
         return [sw[0][0], sw[0][1] + 1, sw[0][2]]
 
 
-    if model == 'BU': #from befining to the end of the flow
+    if model == 'Min-O': #from befining to the end of the flow
         bursts_calc = []
         timeline = []
         ms_out = 0
@@ -174,7 +174,7 @@ def resulting_flow(sw_in, model='TL'):
 
         return [burstiness_out, offset_out, ms_out]
 ########################################################################################################################
-    if model == 'TL': # from end to begining of the flow
+    if model == 'Max-S': # from end to begining of the flow
         bursts_calc = []
         timeline = []
         ms_out = 0
@@ -209,7 +209,7 @@ def resulting_flow(sw_in, model='TL'):
             total_t += dt
 
             try:
-                bursts_calc.append( (total_tb) / total_t )
+                bursts_calc.append( total_tb / total_t )
             except:
                 print("Division by zero at TL calculation")
                 # exit(-1)
@@ -228,7 +228,7 @@ def resulting_flow(sw_in, model='TL'):
 
 
     ###################################################################################################################
-    if model == 'RL': #find the min offset for the nearest beta=1 departure curve
+    if model == 'LQ': #find the min offset for the nearest beta=1 departure curve
         timeline = []
         ms_out = 0
 

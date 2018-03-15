@@ -2,7 +2,7 @@ import math
 import random
 from math import ceil
 import matplotlib.pyplot as plt
-# import analysis_wc
+import analysis_wc
 
 
 def calculate_flow(fs):
@@ -13,7 +13,7 @@ def calculate_flow(fs):
 
     t = 0
     n = 0
-    step = 0.001
+    step = 0.0001
 
     t_axis = [t]
     n_axis = [n]
@@ -145,65 +145,19 @@ def get_n(ti,tf,ni,nf,t):
         n = 0
     return n
 
-def example():
-    ######################################################################################
-
-    b_in0 = random.random()
-    b_in1 = random.random()
-    b_in2 = random.random()
-    b_in3 = random.random()
-    msg = random.random()
-
-    bb = (b_in1 + b_in2) / 2
-    if bb > 1:
-        bb = 1
-
-    b_out = bb
-
-    # f_in0 = {'burstness':0.2, 'offset':4, 'msgsize':5}
-    # f_in1 = {'burstness':0.6, 'offset':8, 'msgsize':5}
-    # f_in2 = {'burstness':0.8, 'offset':6, 'msgsize':5}
-
-    f_in0 = {'burstness':b_in0, 'offset':1.5 * b_in0, 'msgsize':ceil(12*msg)}
-    f_in1 = {'burstness':b_in1, 'offset':3.3 * b_in1, 'msgsize':ceil(6*msg)}
-    f_in2 = {'burstness':b_in2, 'offset':10 * b_in2, 'msgsize':ceil(15*msg)}
-
-    # f_in3 = {'burstness':b_in3, 'offset':5 * b_in3, 'msgsize':ceil(7*msg)}
-    f_in = [f_in0, f_in1, f_in2]
-
-    b,o,ms = analysis_wc.resulting_flow(f_in, 'RL')
-    f_out = {'burstness':b, 'offset':o, 'msgsize':ms}
-
-    print('In: ', f_in)
-    print('Out: ', f_out)
-
-
-    # msg_size_total = sum([f['msgsize'] for f in F])
-    # f_out = {'burstness':0.6, 'offset':20, 'msgsize':msg_size_total}
-
-
-    t_in, n_in = calculate_flow(f_in)
-    t_out, n_out = calculate_flow([f_out])
-
-    t_queue, n_queue = calculate_queue(t_in, n_in, t_out, n_out)
-    t_delay, n_delay = calculate_delay(t_in, n_in, t_out, n_out)
-
-    t_math_in, n_math_in = get_points(f_in)
-    t_math_out, n_math_out = get_points([f_out])
-
-def plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out):
+def plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out, model):
 
     ######################## Plot #########################
-    fig, ax_main = plt.subplots(figsize=(6.5, 3.1), dpi=120, facecolor='w', edgecolor='w')
+    fig, ax_main = plt.subplots(figsize=(3.6, 3), dpi=110, facecolor='w', edgecolor='w')
 
     # ax_main.step(t_queue, n_queue, '-', where='post', label='Queue')
     # ax_main.step(t_delay, n_delay, '-', where='post', label='Delay')
 
-    ax_main.step(t_in, n_in, '-', color='green', where='post', label='Arrival SIM')
-    ax_main.plot(t_math_in, n_math_in,'--', color='green', label='Arrival Model')
+    ax_main.step(t_in, n_in, '-', color='green', where='post', label='SIM')
+    ax_main.plot(t_math_in, n_math_in,'--', color='blue', label=model)
 
-    ax_main.step(t_out, n_out, '-', color='orangered', where='post', label='Departure SIM')
-    ax_main.plot(t_math_out, n_math_out,'--', color='orangered', label='Departure Model')
+    ax_main.step(t_out, n_out, '-', color='green', where='post', label='')
+    ax_main.plot(t_math_out, n_math_out,'--', color='blue', label='')
 
     # for i, n in enumerate(n_delay):
     #     xs = [t_in[n], t_out[n]]
@@ -212,16 +166,16 @@ def plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out)
 
     for i,n in enumerate(n_math_in):
         #Horizontal distances
-        t = get_t(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], n)
-        xs = [t_math_in[i], t]
-        ys = [n, n]
-        ax_main.plot(xs, ys, '-.+', color='grey', alpha=0.7)
+        # t = get_t(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], n)
+        # xs = [t_math_in[i], t]
+        # ys = [n, n]
+        # ax_main.plot(xs, ys, '-.+', color='grey', alpha=0.8)
 
         #Vertical distances
         n_calc = get_n(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], t_math_in[i])
         xs = [t_math_in[i], t_math_in[i]]
         ys = [n, n_calc]
-        ax_main.plot(xs, ys, ':+', color='grey', alpha=0.7)
+        ax_main.plot(xs, ys, ':+', color='grey', alpha=0.8)
 
 
     ti_model = t_math_out[0]
@@ -235,27 +189,76 @@ def plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out)
     n_calc = get_n(t_math_in[arr_i], t_math_in[arr_i+1], n_math_in[arr_i], n_math_in[arr_i+1], ti_model)
     xs = [ti_model, ti_model]
     ys = [0, n_calc]
-    ax_main.plot(xs, ys, ':+', color='grey', alpha=0.7, label='Queue')
+    ax_main.plot(xs, ys, ':+', color='grey', alpha=0.9, label='Queue')
 
     #Horizontal distances
-    t_calc = get_t(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], n_calc)
-    xs = [ti_model, t_calc]
-    ys = [n_calc, n_calc]
-    ax_main.plot(xs, ys, '-.+', color='grey', alpha=0.7, label='Delay')
+    # t_calc = get_t(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], n_calc)
+    # xs = [ti_model, t_calc]
+    # ys = [n_calc, n_calc]
+    # ax_main.plot(xs, ys, '-.+', color='grey', alpha=0.9, label='Delay')
 
     ax_main.set_xlabel("Transmission time slot (TTS)")
     ax_main.set_ylabel("Cumulative packet count")
     # ax_main.set_xlim([3.5,31])
 
-    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+    plt.tight_layout(pad=0.5, w_pad=0.3, h_pad=0.3)
     plt.legend(loc=0, fontsize=11)
+    # plt.legend(loc=0, prop={'size': 6})
     plt.grid(False)
 
-    filename="/home/joao/noc-data/post/model-queue-delay.pdf"
+    filename="/home/joao/noc-data/post/model-queue-delay-{}.pdf".format(model)
     plt.savefig(filename)
     print("Plot saved in " + filename)
 
+def example():
+    ######################################################################################
+
+    b_in0 = random.random()
+    b_in1 = random.random()
+    b_in2 = random.random()
+    b_in3 = random.random()
+    msg = random.random()
+
+    bb = (b_in1 + b_in2) / 2
+    if bb > 1:
+        bb = 1
+
+    f_in0 = {'burstness':0.25, 'offset':2.2, 'msgsize':6}
+    f_in1 = {'burstness':0.37, 'offset':3.5, 'msgsize':5}
+    f_in2 = {'burstness':0.62, 'offset':4.2, 'msgsize':7}
+
+    # f_in0 = {'burstness':b_in0, 'offset':1.5 * b_in0, 'msgsize':ceil(12*msg)}
+    # f_in1 = {'burstness':b_in1, 'offset':3.3 * b_in1, 'msgsize':ceil(6*msg)}
+    # f_in2 = {'burstness':b_in2, 'offset':10 * b_in2, 'msgsize':ceil(15*msg)}
+
+    # f_in3 = {'burstness':b_in3, 'offset':5 * b_in3, 'msgsize':ceil(7*msg)}
+    f_in = [f_in0, f_in1, f_in2]
+
+
+    for model in ['Max-S']:
+
+        b,o,ms = analysis_wc.resulting_flow(f_in, model)
+        f_out = {'burstness':b, 'offset':o, 'msgsize':ms}
+
+        print('In: ', f_in)
+        print('Out: ', f_out)
+
+        # msg_size_total = sum([f['msgsize'] for f in F])
+
+        t_in, n_in = calculate_flow(f_in)
+        t_out, n_out = calculate_flow([f_out])
+
+        t_queue, n_queue = calculate_queue(t_in, n_in, t_out, n_out)
+        t_delay, n_delay = calculate_delay(t_in, n_in, t_out, n_out)
+
+        t_math_in, n_math_in = get_points(f_in)
+        t_math_out, n_math_out = get_points([f_out])
+
+
+        plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out, model)
+
     plt.show()
 
+example()
 
 
