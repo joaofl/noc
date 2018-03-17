@@ -142,7 +142,7 @@ def resulting_flow(sw_in, model='TL'):
             ms_out += ms
 
             if ms > 0 and b > 0:
-                ti = o
+                ti = o + 1/b
                 tf = (ms / b) + ti
                 timeline.append([ti, +b])
                 timeline.append([tf, -b])
@@ -189,7 +189,7 @@ def resulting_flow(sw_in, model='TL'):
             ms_out += ms
 
             if ms > 0 and b > 0:
-                tf = o
+                tf = o + 1/b
                 ti = (ms / b) + tf
                 timeline.append([ti, +b])
                 timeline.append([tf, -b])
@@ -242,7 +242,7 @@ def resulting_flow(sw_in, model='TL'):
             ms_out += ms
 
             if ms > 0 and b > 0:
-                ti = o
+                ti = o + 1/b
                 tf = (ms / b) + ti
                 timeline.append([ti, +b])
                 timeline.append([tf, -b])
