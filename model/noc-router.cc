@@ -843,12 +843,4 @@ namespace ns3 {
         m_SC = 0;
         m_LC = 0;
     }
-
-
-
-    
-
-
- 
-
 }

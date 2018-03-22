@@ -147,7 +147,8 @@ namespace ns3 {
                 out = UnicastFirstX(x_dest,y_dest);
                 break;
             default:
-                std::cout << "Unknown protocol" << std::endl;
+                std::cout << "Unicast routing not specified. Setting default" << std::endl;
+                out = UnicastClockwiseXY(x_dest,y_dest);
                 break;
         }
         
