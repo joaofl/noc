@@ -114,9 +114,10 @@ def burst_size(sw):
 def resulting_flow(sw_in, model='TL'):
 
     if model not in ['Min-O','LQ','Max-S']:
-        # model = 'TL'
-        print('Model not specified. Exiting...')
-        exit(-1)
+        model = 'LQ'
+        print('Model not specified. Setting default')
+
+        # exit(-1)
 
     sw = []
 
@@ -142,7 +143,7 @@ def resulting_flow(sw_in, model='TL'):
             ms_out += ms
 
             if ms > 0 and b > 0:
-                ti = o + 1/b
+                ti = o
                 tf = (ms / b) + ti
                 timeline.append([ti, +b])
                 timeline.append([tf, -b])
@@ -189,7 +190,7 @@ def resulting_flow(sw_in, model='TL'):
             ms_out += ms
 
             if ms > 0 and b > 0:
-                tf = o + 1/b
+                tf = o
                 ti = (ms / b) + tf
                 timeline.append([ti, +b])
                 timeline.append([tf, -b])
@@ -242,7 +243,7 @@ def resulting_flow(sw_in, model='TL'):
             ms_out += ms
 
             if ms > 0 and b > 0:
-                ti = o + 1/b
+                ti = o
                 tf = (ms / b) + ti
                 timeline.append([ti, +b])
                 timeline.append([tf, -b])

@@ -2,7 +2,7 @@ import math
 import random
 from math import ceil
 import matplotlib.pyplot as plt
-import analysis_wc
+import others.analysis_wc
 
 
 def simulate_flow(fs):
@@ -21,7 +21,8 @@ def simulate_flow(fs):
     while (n < m):
         n = 0
         for f in fs:
-            n_l = math.floor((t - f['offset']) * f['burstness'])
+            # n_l = math.floor((t - f['offset']) * f['burstness'])
+            n_l = math.ceil((t - f['offset']) * f['burstness'])
             if n_l < 0:
                 n_l = 0
             if n_l > f['msgsize']:
@@ -95,16 +96,13 @@ def calculate_queue_model(t_math_in, n_math_in, t_math_out, n_math_out):
 
     return queues
 
-
-
-
 def get_points(F):
     timeline = []
 
     for f in F:
         b = f['burstness']
         ms = f['msgsize']
-        ti = f['offset'] + 1/b
+        ti = f['offset']
         tf = (ms / b) + ti
         timeline.append([ti, +b])
         timeline.append([tf, -b])
@@ -139,7 +137,6 @@ def get_t(ti,tf,ni,nf,n):
     return n*s + ti
 
 def get_n(ti,tf,ni,nf,t):
-    s = 1
     if (nf != ni):
         s = (tf-ti)/(nf-ni)
         n = ((t-ti)/s)+ni
@@ -170,13 +167,13 @@ def plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out,
     #     ax_main.plot(xs, ys, color='grey', alpha=0.7)
 
     for i,n in enumerate(n_math_in):
-        #Vertical distances
-        # t = get_t(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], n)
-        # xs = [t_math_in[i], t]
-        # ys = [n, n]
-        # ax_main.plot(xs, ys, '-.+', color='grey', alpha=0.8)
-
         #Horizontal distances
+        t = get_t(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], n)
+        xs = [t_math_in[i], t]
+        ys = [n, n]
+        ax_main.plot(xs, ys, '-.+', color='grey', alpha=0.8)
+
+        #Vertical distances
         n_calc = get_n(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], t_math_in[i])
         xs = [t_math_in[i], t_math_in[i]]
         ys = [n, n_calc]
@@ -190,24 +187,26 @@ def plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out,
             arr_i = i-1
             break
 
+    #Horizontal distances
+    # t_calc = get_t(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], n_calc)
+    # xs = [ti_model, t_calc]
+    # ys = [n_calc, n_calc]
+    ax_main.plot(xs, ys, '-.+', color='grey', alpha=1, label='Delay')
+
     #Vertical distances
     n_calc = get_n(t_math_in[arr_i], t_math_in[arr_i+1], n_math_in[arr_i], n_math_in[arr_i+1], ti_model)
     xs = [ti_model, ti_model]
     ys = [0, n_calc]
     ax_main.plot(xs, ys, ':+', color='grey', alpha=1, label='Queue')
 
-    #Horizontal distances
-    # t_calc = get_t(t_math_out[0], t_math_out[1], n_math_out[0], n_math_out[1], n_calc)
-    # xs = [ti_model, t_calc]
-    # ys = [n_calc, n_calc]
-    # ax_main.plot(xs, ys, '-.+', color='grey', alpha=1, label='Delay')
-
     ax_main.set_xlabel("Transmission time slot (TTS)")
     ax_main.set_ylabel("Cumulative packet count")
     # ax_main.set_xlim([3.5,31])
 
+    plt.xlim([-1,32])
+
     plt.tight_layout(pad=0.5, w_pad=0.3, h_pad=0.3)
-    plt.legend(loc=0, fontsize=11)
+    plt.legend(loc=4, fontsize=11)
     # plt.legend(loc=0, prop={'size': 6})
     plt.grid(False)
 
@@ -234,9 +233,10 @@ def example():
     # f_in1 = {'burstness':0.37, 'offset':3.5, 'msgsize':5}
     # f_in2 = {'burstness':0.62, 'offset':4.2, 'msgsize':7}
 
-    f_in.append( {'burstness':1, 'offset':0, 'msgsize':5} )
-    f_in.append( {'burstness':1, 'offset':15, 'msgsize':5} )
-    # f_in.append( {'burstness':1, 'offset':0, 'msgsize':5} )
+    f_in.append( {'offset':0, 'msgsize':3, 'burstness':0.5} )
+    f_in.append( {'offset':10, 'msgsize':3, 'burstness':0.5} )
+    f_in.append( {'offset':12, 'msgsize':3, 'burstness':0.5} )
+    # f_in.append( {'burstness':0.5, 'offset':10, 'msgsize':10} )
 
 
     # f_in0 = {'burstness':0.25, 'offset':0, 'msgsize':6}
@@ -255,9 +255,9 @@ def example():
     # for model in ['Max-S']:
 
         b,o,ms = analysis_wc.resulting_flow(f_in, model)
-        f_out = {'burstness':b, 'offset':o, 'msgsize':ms}
+        f_out = {'offset':o, 'msgsize':ms, 'burstness':b}
 
-        print('Out: ', f_out)
+        print('{} f_out={}'.format(model, f_out))
 
         # msg_size_total = sum([f['msgsize'] for f in F])
 
@@ -273,11 +273,11 @@ def example():
 
         plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out, model)
 
-        print('Max queue = {}'.format(max(n_queue)))
-        print('Total time = {}'.format(o + ms/b))
+        # print('Max queue = {}'.format(max(n_queue)))
+        # print('Total time = {}'.format(o + ms/b))
 
     plt.show()
 
-example()
+# example()
 
 

@@ -35,8 +35,6 @@ import others.analysis_wc as wca
 import others.wcanalysis_node as wca_new
 import files_io
 
-import others.analysis_wc
-
 
 
 # matplotlib.style.use('bmh')
@@ -76,9 +74,9 @@ if __name__ == '__main__':
     parser.add_option('--shaper', help='Which traffic shaping policy to use', default='A')
     parser.add_option('--size_x', help='network size', default=0)
     parser.add_option('--size_y', help='network size', default=0)
-    parser.add_option('--pos_x', help='node to analyse', default=0)
-    parser.add_option('--pos_y', help='node to analyse', default=0)
-    parser.add_option('--port', help='port to analyse', default=0)
+    parser.add_option('--pos_x', help='node to analyse', default=1)
+    parser.add_option('--pos_y', help='node to analyse', default=1)
+    parser.add_option('--port', help='port to analyse', default=2)
     parser.add_option('--sinks_n', help='number of sinks', default=1)
     parser.add_option('--baudrate', help='baudrate utilized', default=3000000)
     parser.add_option('--packet_size', help='packet_size in bits', default=16*10)
@@ -107,7 +105,7 @@ if __name__ == '__main__':
     input_results = files_io.load_list(inputfile_results)
     if (len(input_results)) > 0: #simulation has been run on this scenario already, skip it
         print('Skiping scenario already run.')
-        exit(1)
+        # exit(1)
 
     trace_packets = files_io.load_list(inputfile_packet_trace)
     if (len(trace_packets)) == 0:
@@ -747,7 +745,7 @@ if __name__ == '__main__':
         list_sim_max_queue.append(max_queue_sim)
         list_sim_max_delay.append(max_delay_sim)
 
-        # wca_new.plot(t_in_sim, n_in_sim, t_out_sim, n_out_sim, t_math_in, n_math_in, t_math_out, n_math_out)
+        wca_new.plot(t_in_sim, n_in_sim, t_out_sim, n_out_sim, t_math_in, n_math_in, t_math_out, n_math_out, "whatever")
         # exit()
 
         if [x, y] == [node_x, node_y]:

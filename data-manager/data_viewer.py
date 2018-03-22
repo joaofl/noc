@@ -31,8 +31,6 @@ class SensorAnim(QWidget):
         super().__init__()
         # QWidget.__init__()
 
-
-
         # self.setGeometry(800, 100, self.networkSize[0] * 150 * self.s + 5, self.networkSize[1] * 150 * self.s + 50)
         self.scene = QGraphicsScene()
         self.graphics = QGraphicsView()
@@ -122,10 +120,11 @@ class SensorAnim(QWidget):
         return
 
     def setNode(self, x, y, port, value):
-
         try:
             n = self.network[y][x]
             n.elements[port].set_value(value)
+            # self.status_bar.set
+            print('Node {},{} selected'.format(x,y))
         except:
             print('Node {},{} is ouside the network'.format(x,y))
 
