@@ -30,9 +30,9 @@ import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import * #QWidget, QProgressBar,QPushButton, QApplication, QLabel, QCheckBox
 from PyQt5.QtGui import *
 from PyQt5.QtCore import QTimer, Qt, QRectF
-import _thread
 
-import data_viewer
+import packet_structure as HEADER
+import network_viewer
 from node_graphics import Node
 
 
@@ -164,8 +164,104 @@ class NOCAnim(QWidget):
 
     def doActionOpenView(self):
         # self.viewers = []
-        self.viewers.append(data_viewer.SensorAnim(self.networkSize))
+        v = network_viewer.SensorAnim(self.networkSize)
+        v.actionCallback = self.clickCallback
+
+        self.viewers.append(v)
         self.viewers[-1].show()
+
+
+
+
+    def clickCallback(self, x, y, port):
+        # print(' do smt')
+        #
+        # script = '/home/joao/Repositorios/ns-3-dev/src/noc/data-manager/show_node_analysis.py'
+        # args = ' --inputdir=' + options.inputdir + ' --outputdir=' + options.outputdir + \
+        #        ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' --port=' + str(port) + ' ' + \
+        #        ' --size_x=' + options.size_x + ' --size_y=' + options.size_y
+        #
+        #
+        # cmd = 'python3.5 ' + script + args
+        # print('Command executed: ' + cmd)
+        #
+        # # launch_thread = True
+        #
+        # # if (launch_thread == True):
+        #     # _thread.start_new_thread(os.system, (cmd,))
+        # # else:
+        # os.system(cmd)
+
+
+        ################# Get trace_packets from simulation logs ##################
+        x_arrival = [0]
+        y_arrival = [0]
+
+        x_departure = [0]
+        y_departure = [0]
+
+        count_r = 0;
+        count_t = 0;
+
+        protocol = 1
+
+        for line in self.packetTrace:
+            log_x = int(line[HEADER.x_absolute])
+            log_y = int(line[HEADER.y_absolute])
+            log_protocol = int(line[HEADER.app_protocol])
+            log_t = float(line[HEADER.time]) / self.packetDuration
+
+            if log_x == x and log_y == y and log_protocol == protocol:
+                ################# Received ####################
+                # Build the matrix for the density map
+                if line[HEADER.operation] == 'r' or line[HEADER.operation] == 'g':
+                    # Build the cumulative arrival for an specific node
+                    count_r += 1
+                    x_arrival.append(log_t)
+                    y_arrival.append(count_r)
+
+                ################# Transmitted ####################
+                elif line[HEADER.operation] == 't':  # or line[trace.operation] == 'g':
+                    # Build the cumulative departure curve
+                    count_t += 1
+                    x_departure.append(log_t + 1)
+                    y_departure.append(count_t)
+
+        # print(x_arrival, y_arrival, x_departure, y_departure)
+        # return x_arrival, y_arrival, x_departure, y_departure
+
+        self.plot(x_arrival, y_arrival, x_departure, y_departure, x, y)
+
+    def plot(sellf, t_in, n_in, t_out, n_out, x, y):
+
+        ######################## Plot #########################
+        fig, ax_main = plt.subplots(figsize=(3.6, 3), dpi=110, facecolor='w', edgecolor='w')
+
+        # ax_main.step(t_queue, n_queue, '-', where='post', label='Queue')
+        # ax_main.step(t_delay, n_delay, '-', where='post', label='Delay')
+
+        ax_main.step(t_in, n_in, '-', color='green', where='post', label='SIM')
+        # ax_main.plot(t_math_in, n_math_in, '--', color='blue', label=model)
+
+        ax_main.step(t_out, n_out, '-', color='lightgreen', where='post', label='')
+        # ax_main.plot(t_math_out, n_math_out, '--', color='blue', label='')
+
+
+        ax_main.set_xlabel("Transmission time slot (TTS)")
+        ax_main.set_ylabel("Cumulative packet count")
+        # ax_main.set_xlim([3.5,31])
+
+        # plt.xlim([-1, 32])
+
+        plt.tight_layout(pad=0.5, w_pad=0.3, h_pad=0.3)
+        plt.legend(loc=4, fontsize=11)
+        # plt.legend(loc=0, prop={'size': 6})
+        plt.grid(False)
+
+        filename = options.outputdir + "sim-arrival-departure-node({},{}).pdf".format(x,y)
+        plt.savefig(filename)
+        plt.show()
+        print("Plot saved in " + filename)
 
     def timerEvent(self):
 
@@ -264,18 +360,20 @@ class NOCAnim(QWidget):
 ##############################################################
 
 data_matrix = {}
+plot_enabled = False
 
-plt.ion()
-ax = plt.gca()
-ax.set_autoscale_on(True)
+if plot_enabled == True:
+    plt.ion()
+    ax = plt.gca()
+    ax.set_autoscale_on(True)
 
-p1, = ax.plot([], [], marker= '', label='Top')
-p2, = ax.plot([], [], marker= '', label='Bottom')
-ax.legend(loc='best', frameon=True, prop={'size':12})
-ax.set_xlabel('Wing position (m)')
-ax.set_ylabel('Pressure (kPa)')
-# p2, = plt.subplot([], [])
-plt.show()
+    p1, = ax.plot([], [], marker= '', label='Top')
+    p2, = ax.plot([], [], marker= '', label='Bottom')
+    ax.legend(loc='best', frameon=True, prop={'size':12})
+    ax.set_xlabel('Wing position (m)')
+    ax.set_ylabel('Pressure (kPa)')
+    # p2, = plt.subplot([], [])
+    plt.show()
 
 def plot_data_profile():
     import scipy as sp
@@ -349,25 +447,6 @@ def plot_data_profile():
         ax.autoscale_view(True, True, True)
         plt.draw()
         plt.pause(0.0001)
-
-
-
-def lauch_external(x, y, port):
-    script = '/home/joao/Repositorios/ns-3-dev/src/noc/data-manager/show_node_analysis.py'
-    args = ' --inputdir=' + options.inputdir + ' --outputdir=' + options.outputdir + \
-           ' --pos_x=' + str(x) + ' --pos_y=' + str(y) + ' --port=' + str(port) + ' ' + \
-           ' --size_x=' + options.size_x + ' --size_y=' + options.size_y
-
-
-    cmd = 'python3.5 ' + script + args
-    print('Command executed: ' + cmd)
-
-    launch_thread = True
-
-    if (launch_thread == True):
-        _thread.start_new_thread(os.system, (cmd,))
-    else:
-        os.system(cmd)
 
 
 class my_optparse(optparse.OptionParser):

@@ -2,7 +2,7 @@ import math
 import random
 from math import ceil
 import matplotlib.pyplot as plt
-import others.analysis_wc
+import analysis_wc
 
 
 def simulate_flow(fs):
@@ -233,9 +233,9 @@ def example():
     # f_in1 = {'burstness':0.37, 'offset':3.5, 'msgsize':5}
     # f_in2 = {'burstness':0.62, 'offset':4.2, 'msgsize':7}
 
-    f_in.append( {'offset':0, 'msgsize':3, 'burstness':0.5} )
-    f_in.append( {'offset':10, 'msgsize':3, 'burstness':0.5} )
-    f_in.append( {'offset':12, 'msgsize':3, 'burstness':0.5} )
+    f_in.append( {'offset':1, 'msgsize':3, 'burstness':0.5} )
+    f_in.append( {'offset':11, 'msgsize':3, 'burstness':0.5} )
+    f_in.append( {'offset':13, 'msgsize':3, 'burstness':0.5} )
     # f_in.append( {'burstness':0.5, 'offset':10, 'msgsize':10} )
 
 
@@ -278,6 +278,6 @@ def example():
 
     plt.show()
 
-# example()
+example()
 
 

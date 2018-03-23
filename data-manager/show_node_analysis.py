@@ -50,14 +50,14 @@ FLOW_OFFSET = 4
 FLOW_SIZE = 5
 FLOW_ROUTE = 6
 
-DIRECTION_MASK_NONE             = 0b00000000
-DIRECTION_MASK_E                = 0b00000001
-DIRECTION_MASK_S                = 0b00000010
-DIRECTION_MASK_W                = 0b00000100
-DIRECTION_MASK_N                = 0b00001000
-DIRECTION_MASK_L                = 0b00010000
-DIRECTION_MASK_ALL              = 0b00011111
-DIRECTION_MASK_ALL_EXCEPT_LOCAL = 0b00001111
+# DIRECTION_MASK_NONE             = 0b00000000
+# DIRECTION_MASK_E                = 0b00000001
+# DIRECTION_MASK_S                = 0b00000010
+# DIRECTION_MASK_W                = 0b00000100
+# DIRECTION_MASK_N                = 0b00001000
+# DIRECTION_MASK_L                = 0b00010000
+# DIRECTION_MASK_ALL              = 0b00011111
+# DIRECTION_MASK_ALL_EXCEPT_LOCAL = 0b00001111
 
 
 
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     input_results = files_io.load_list(inputfile_results)
     if (len(input_results)) > 0: #simulation has been run on this scenario already, skip it
-        print('Skiping scenario already run.')
+        print('Scenario already run.')
         # exit(1)
 
     trace_packets = files_io.load_list(inputfile_packet_trace)
@@ -617,7 +617,19 @@ if __name__ == '__main__':
     nw_size_y = int(options.size_y)
     node_x = int(options.pos_x)
     node_y = int(options.pos_y)
-    port = int(options.port)
+
+    try:
+        port = int(options.port)
+    except:
+        if options.port.startswith('north'):
+            port = 3
+        if options.port.startswith('south'):
+            port = 1
+        if options.port.startswith('east'):
+            port = 0
+        if options.port.startswith('west'):
+            port = 2
+
     pck_duration = ( float(options.packet_size) / float(options.baudrate) ) * 1e9
 
     if [nw_size_x, nw_size_y] == [0,0]:
