@@ -10,7 +10,7 @@ class Port():
     __green = QColor(0, 255, 0, __alpha)
     __red = QColor(255, 0, 0, __alpha)
 
-    def __init__(self, rect, scale, io):
+    def __init__(self, rect, scale, io, name):
         self.__rect_base = rect
         self.__color = self.__white
         self.set_scale(scale)
@@ -20,6 +20,8 @@ class Port():
             self.color_on = self.__red
         else:
             self.color_on = self.__green
+
+        self.name = name
 
     def get_rect(self):
         return QRectF(self.__rect_scaled[0],self.__rect_scaled[1],
@@ -141,7 +143,7 @@ class Sensor():
 
 
 class Node(QGraphicsItem):
-    def __init__(self, x, y, node_side, parent=None):
+    def __init__(self, x, y, x_real, y_real, node_side, parent=None):
         QGraphicsItem.__init__(self,parent)
         # self.setFlag(QGraphicsItem.ItemIsMovable)
 
@@ -159,23 +161,27 @@ class Node(QGraphicsItem):
         self.x_cord = x
         self.y_cord = y
 
+        self.x_real = x_real
+        self.y_real = y_real
+
         # self.__x, self.__y = self.translateXY(cordinate, scale)
         self.setPos(self.x_orig, self.y_orig) #this sets the origin of the object relative to the scenario
 
-        self.port_n_rx = Port([2, 0, 1, 2], scale, 1) #1 for input, 0 for output
-        self.port_n_tx = Port([3, 0, 1, 2], scale, 0) #(xorig,yorig, w,l)
+        self.port_n_rx = Port([2, 0, 1, 2], scale, 1, 'north rx') #1 for input, 0 for output
+        self.port_n_tx = Port([3, 0, 1, 2], scale, 0, 'north tx') #(xorig,yorig, w,l)
 
-        self.port_s_tx = Port([2, 4, 1, 2], scale, 0)
-        self.port_s_rx = Port([3, 4, 1, 2], scale, 1)
+        self.port_s_tx = Port([2, 4, 1, 2], scale, 0, 'south tx')
+        self.port_s_rx = Port([3, 4, 1, 2], scale, 1, 'south rx')
 
-        self.port_e_rx = Port([4, 2, 2, 1], scale, 1)
-        self.port_e_tx = Port([4, 3, 2, 1], scale, 0)
+        self.port_e_rx = Port([4, 2, 2, 1], scale, 1, 'east rx')
+        self.port_e_tx = Port([4, 3, 2, 1], scale, 0, 'east tx')
 
-        self.port_w_tx = Port([0, 2, 2, 1], scale, 0)
-        self.port_w_rx = Port([0, 3, 2, 1], scale, 1)
+        self.port_w_tx = Port([0, 2, 2, 1], scale, 0, 'west tx')
+        self.port_w_rx = Port([0, 3, 2, 1], scale, 1, 'west rx')
 
-        self.core_rx = Port([2, 2, 2, 2], scale, 1)
-        self.core_tx = Port([2, 2, 2, 2], scale, 0)
+        self.core_rx = Port([2, 2, 2, 2], scale, 1, 'core')
+        self.core_tx = Port([2, 2, 2, 2], scale, 0, 'core')
+
         self.sensor = Sensor([0, 0, 6, 6], scale)
 
         # self.rescale(node_size)
@@ -205,58 +211,49 @@ class Node(QGraphicsItem):
 
         self.setPos(self.x_orig, self.y_orig) #this sets the origin of the object relative to the scenario
 
+    def mouseDoubleClickEvent(self, QMouseEvent):
+        pos = QMouseEvent.pos()
+        port = self.get_port(pos)
+        if type(port) == Port:
+            self.click_callback('double_click', self.x_real, self.y_real, port.name)
+
+    def mousePressEvent(self, QMouseEvent):
+        pos = QMouseEvent.pos()
+        port = self.get_port(pos)
+        if type(port) == Port:
+            self.click_callback('click', self.x_real, self.y_real, port.name)
 
 
-    # def mouseDoubleClickEvent(self, QMouseEvent):
-    #
-    #     pos = QMouseEvent.pos()
-    #
-    #     port = self.get_who(pos)
-    #
-    #     msg = "Node analysis run for port {} on node [{},{}]".format(port, self.__x_origin, self.__y_origin)
-    #     ex.status_bar.showMessage(msg)
-    #
-    #     lauch_external(self.__x_origin, self.__y_origin, port)
-    #
-    # def mousePressEvent(self, QGraphicsSceneMouseEvent):
-    #     pos = QGraphicsSceneMouseEvent.pos()
-    #
-    #     who = self.get_who(pos)
-    #
-    #     msg = "Selected port {} on node [{},{}]".format(who, self.__x_origin, self.__y_origin)
-    #     # ex.status_bar.showMessage(msg)
-    #     print(msg)
-    #
     def boundingRect(self):
         r = QRectF(0, 0, self.node_side, self.node_side)
         return r
 
-    # def get_who(self, pos):
-    #     who = None
-    #     if self.__core_rect.contains(pos):
-    #         who = self.port['core']
-    #
-    #     elif self.__east_rx_rect.contains(pos):
-    #         who = self.port['east']
-    #     elif self.__east_tx_rect.contains(pos):
-    #         who = self.port['east']
-    #
-    #     elif self.__west_rx_rect.contains(pos):
-    #         who = self.port['west']
-    #     elif self.__west_tx_rect.contains(pos):
-    #         who = self.port['west']
-    #
-    #     elif self.__north_rx_rect.contains(pos):
-    #         who = self.port['north']
-    #     elif self.__north_tx_rect.contains(pos):
-    #         who = self.port['north']
-    #
-    #     elif self.__south_rx_rect.contains(pos):
-    #         who = self.port['south']
-    #     elif self.__south_tx_rect.contains(pos):
-    #         who = self.port['south']
-    #
-    #     return who
+    def get_port(self, pos):
+        who = None
+        if self.core_rx.get_rect().contains(pos):
+            who = self.core_rx
+
+        elif self.port_e_rx.get_rect().contains(pos):
+            who = self.port_e_rx
+        elif self.port_e_tx.get_rect().contains(pos):
+            who = self.port_e_tx
+
+        elif self.port_w_rx.get_rect().contains(pos):
+            who = self.port_w_rx
+        elif self.port_w_tx.get_rect().contains(pos):
+            who = self.port_w_tx
+
+        elif self.port_n_rx.get_rect().contains(pos):
+            who = self.port_n_rx
+        elif self.port_n_tx.get_rect().contains(pos):
+            who = self.port_n_tx
+
+        elif self.port_s_rx.get_rect().contains(pos):
+            who = self.port_s_rx
+        elif self.port_s_tx.get_rect().contains(pos):
+            who = self.port_s_tx
+
+        return who
 
     def resetPorts(self):
         for key, e in self.elements.items():

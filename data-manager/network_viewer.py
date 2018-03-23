@@ -52,12 +52,13 @@ class SensorAnim(QWidget):
         self.tb_zoom.setFont(QFont("Monospace", 10, QFont.Bold))
 
         self.zoom_slider = QSlider(Qt.Horizontal)
+        self.zoom_slider.setFixedWidth(150)
         self.zoom_slider.setValue(0) #Initial value
         self.zoom_slider.setTickInterval(1)
 
         hbox_l3 = QHBoxLayout()
         hbox_l3.addWidget(self.status_bar)
-        hbox_l3.addStretch(1)
+        # hbox_l3.addStretch(1)
         hbox_l3.addWidget(self.cbPorts)
         hbox_l3.addWidget(self.cbSensors)
         hbox_l3.addWidget(self.cbLeds)
@@ -84,9 +85,14 @@ class SensorAnim(QWidget):
 
         self.network = [[Node] * self.networkSize[0] for i in range(self.networkSize[1])]
         for x in range(self.networkSize[0]):
-            for y in range(self.networkSize[1]):
-                n = Node(x, y, node_side=nodes_size) #set on the existing one instead of creating another
-                self.network[-y-1][x] = n # flips the y so that the (0,0) shows on the bottom left instead of top-left
+            for y in range(self.networkSize[1]):# flips the y so that the (0,0) shows on the bottom left instead of top-left
+                ynew = (self.networkSize[1] - 1 - y)
+                n = Node(x, y, x, ynew, node_side=nodes_size) #set on the existing one instead of creating another
+
+                n.print_callback = self.print_status
+                n.click_callback = self.node_clicked
+
+                self.network[ynew][x] = n
                 self.scene.addItem(n)
 
         # if self.zoom_slider.value() == 0:
@@ -100,6 +106,21 @@ class SensorAnim(QWidget):
         self.scene.update()
 
         return
+
+    def print_status(self, msg):
+        self.status_bar.showMessage(msg, 2000)
+
+    def node_clicked(self, event, x, y, port):
+        if event == 'click':
+            msg = "Node [{},{}] port {}".format(x, y, port)
+            self.status_bar.showMessage(msg)
+
+        elif event == 'double_click':
+            msg = "Analysing node [{},{}] port {}".format(x, y, port)
+            self.status_bar.showMessage(msg)
+
+            self.actionCallback(x, y, port)
+
 
     def cbChanged(self):
         for x in range(self.networkSize[0]):
@@ -124,7 +145,7 @@ class SensorAnim(QWidget):
             n = self.network[y][x]
             n.elements[port].set_value(value)
             # self.status_bar.set
-            print('Node {},{} selected'.format(x,y))
+            # print('Node {},{} selected'.format(x,y))
         except:
             print('Node {},{} is ouside the network'.format(x,y))
 
