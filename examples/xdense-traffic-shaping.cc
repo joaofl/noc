@@ -404,6 +404,7 @@ main(int argc, char *argv[]) {
 //            if (y == 1 && x == 1){ //The one to trace
 //
 //            } 
+            
             if (x==0 && y==1){
                 beta = 0.5;
                 offset = 0;
@@ -411,20 +412,22 @@ main(int argc, char *argv[]) {
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, center_x, center_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST_OFFSET);
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, center_x, center_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST_OFFSET);                                          
             } 
-            else if(x==1 && y==2){
+            
+            if(x==1 && y==2){
                 beta = 0.5;
                 offset = 10;
                 ms = 3;
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, center_x, center_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST_OFFSET);
                 my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, center_x, center_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST_OFFSET);                 
             }
-            else if(x==2 && y==1){
-                beta = 0.5;
-                offset = 12;
-                ms = 3;
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, center_x, center_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
-                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, center_x, center_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST);                 
-            }
+            
+//            if(x==2 && y==1){
+//                beta = 0.5;
+//                offset = 12;
+//                ms = 3;
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->m_flows_source(x, y, center_x, center_y, offset, beta, ms, NOCHeader::PROTOCOL_UNICAST);
+//                my_xdense_app_container.Get(n)->GetObject<XDenseApp>()->SetFlowGenerator(initial_delay, beta, offset, ms, pck_out, center_x, center_y, XDenseApp::ADDRESSING_ABSOLUTE, NOCHeader::PROTOCOL_UNICAST);                 
+//            }
         }
     }
 

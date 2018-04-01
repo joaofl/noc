@@ -113,6 +113,8 @@ namespace ns3 {
                 
         Time t_step_t = Time::FromInteger(PacketDuration.GetNanoSeconds() / burstiness, Time::NS);
         Time t_offset_t = Time::FromInteger(PacketDuration.GetNanoSeconds() * (initial_delay + t_offset), Time::NS);
+        Time t_shift_t = Time::FromInteger((1/burstiness - 1) * PacketDuration.GetNanoSeconds(), Time::NS);
+
         
         for (uint16_t i = 0 ; i < msg_size ; i++ ){
             Ptr<Packet> pck_c = pck->Copy();
@@ -122,10 +124,10 @@ namespace ns3 {
             pck_c->AddHeader(hd);
             
             if (protocol == NOCHeader::PROTOCOL_UNICAST) {
-                Simulator::Schedule(t_offset_t + (i * t_step_t), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, addressing);
+                Simulator::Schedule(t_offset_t + (i * t_step_t + t_shift_t), &NOCRouter::PacketUnicast, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, addressing);
             }
             else if(protocol == NOCHeader::PROTOCOL_UNICAST_OFFSET){
-                Simulator::Schedule(t_offset_t + (i * t_step_t), &NOCRouter::PacketUnicastOffset, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, addressing);
+                Simulator::Schedule(t_offset_t + (i * t_step_t + t_shift_t), &NOCRouter::PacketUnicastOffset, this->m_router, pck_c, NETWORK_ID_0, dest_x, dest_y, addressing);
             }
         }
     }
