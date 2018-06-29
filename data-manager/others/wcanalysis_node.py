@@ -21,8 +21,8 @@ def simulate_flow(fs):
     while (n < m):
         n = 0
         for f in fs:
-            n_l = math.floor((t - f['offset']) * f['burstness'])
-            # n_l = math.ceil((t - f['offset']) * f['burstness'])
+            # n_l = math.floor((t - f['offset']) * f['burstness'])
+            n_l = math.ceil((t - f['offset']) * f['burstness'])
             if n_l < 0:
                 n_l = 0
             elif n_l > f['msgsize']:
@@ -102,7 +102,11 @@ def get_points(F):
     for f in F:
         b = f['burstness']
         ms = f['msgsize']
-        ti = f['offset']  -1/b
+
+        #If it is either left or right continuous
+        ti = f['offset'] - 1/b      #left
+        # ti = f['offset']          #right
+
         tf = (ms / b) + ti
         timeline.append([ti, +b])
         timeline.append([tf, -b])
@@ -156,9 +160,9 @@ def plot(t_in, n_in, t_out, n_out, t_math_in, n_math_in, t_math_out, n_math_out,
     # ax_main.step(t_queue, n_queue, '-', where='post', label='Queue')
     # ax_main.step(t_delay, n_delay, '-', where='post', label='Delay')
 
-    if t_math_in[0] < 0:
-        t_math_in[0] = 0
-        n_math_in[0] = 1
+    # if t_math_in[0] < 0:
+    #     t_math_in[0] = 0
+    #     n_math_in[0] = 1
 
     ax_main.step(t_in, n_in, '-', color='green', where='post', label='SIM')
     ax_main.plot(t_math_in, n_math_in,'--', color='blue', label=model)
@@ -239,8 +243,8 @@ def example():
     # f_in1 = {'burstness':0.37, 'offset':3.5, 'msgsize':5}
     # f_in2 = {'burstness':0.62, 'offset':4.2, 'msgsize':7}
 
-    f_in.append( {'offset':1, 'msgsize':3, 'burstness':0.5} )
-    f_in.append( {'offset':11, 'msgsize':3, 'burstness':0.5} )
+    f_in.append( {'offset':0, 'msgsize':3, 'burstness':0.5} )
+    f_in.append( {'offset':10, 'msgsize':3, 'burstness':0.5} )
     # f_in.append( {'offset':13, 'msgsize':3, 'burstness':0.5} )
     # f_in.append( {'burstness':0.5, 'offset':10, 'msgsize':10} )
 
